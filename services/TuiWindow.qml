@@ -6,7 +6,8 @@ import qs.config
 // A TUI application (see scripts/tui-launch.py) in a floating, centered
 // terminal window that opens and closes like a panel: toggle() opens it, or
 // closes it if it's already open. The window is themed with the shell's
-// current colors. Needs Hyprland, which is asked to float, size and center
+// current colors and as translucent as its widgets (so Hyprland can blur what's
+// behind it). Needs Hyprland, which is asked to float, size and center
 // the window when it launches it (no config of yours is involved).
 Scope {
   id: root
@@ -51,6 +52,7 @@ Scope {
       "--accent", Theme.accentColor.toString(),
       "--outline", Theme.outlineColor.toString(),
       "--warning", Theme.warningColor.toString(),
+      "--opacity", Theme.widgetOpacity.toFixed(2),
       "--"].concat(root.terminal).map(quote).join(" ")
     Hyprland.dispatch("hl.dsp.exec_cmd(" + root.lua(command) + ", { float = true, center = true, size = "
       + root.lua(width + " " + height) + " })")

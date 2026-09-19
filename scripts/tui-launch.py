@@ -3,7 +3,7 @@
 
 Usage: tui-launch.py --app btop|wiremix --background #rrggbb --surface #rrggbb
                      --text #rrggbb --accent #rrggbb --outline #rrggbb
-                     --warning #rrggbb -- TERMINAL...
+                     --warning #rrggbb --opacity 0-1 -- TERMINAL...
 
 TERMINAL... is the terminal command up to, but not including, the `-e APP`
 part, which is added here. A theme is generated from the colors into
@@ -11,6 +11,10 @@ $XDG_RUNTIME_DIR/quickshell-APP/, along with a copy of your own configuration
 file for the application that selects it, so your own configuration is left
 alone (settings changed inside the application are saved to the copy, not to
 your file).
+
+The terminal window is made as translucent as the shell's widgets (--opacity),
+so the compositor can blur what's behind it: the applications are themed but
+don't paint a background of their own, the terminal's shows through.
 """
 import argparse
 import os
@@ -20,6 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--app", required=True, choices=("btop", "wiremix"))
 for name in ("background", "surface", "text", "accent", "outline", "warning"):
     parser.add_argument("--" + name, required=True)
+parser.add_argument("--opacity", type=float, default=1.0)
 parser.add_argument("terminal", nargs=argparse.REMAINDER)
 args = parser.parse_args()
 terminal = args.terminal[1:] if args.terminal[:1] == ["--"] else args.terminal
@@ -94,9 +99,10 @@ def btop():
         for key, value in theme.items():
             f.write('theme[%s]="%s"\n' % (key, value))
 
-    # The user's config, with our theme selected (and its background painted).
+    # The user's config, with our theme selected (and its background left to
+    # the terminal, so the window can be translucent).
     config = read_user_config("btop", "btop.conf")
-    for key, value in (("color_theme", '"quickshell"'), ("theme_background", "true")):
+    for key, value in (("color_theme", '"quickshell"'), ("theme_background", "false")):
         line = "%s = %s" % (key, value)
         config, replaced = re.subn(r"(?m)^%s\s*=.*$" % key, line, config)
         if not replaced:
@@ -152,8 +158,9 @@ def wiremix():
     return ["wiremix", "-c", config_path, "-t", "quickshell"]
 
 
-# Terminal colors too: the application covers the whole window, but the
-# padding around it shows the terminal's own background.
+# Terminal colors too: the applications leave their background to the
+# terminal (btop's `theme_background` is off, wiremix has none), and so does
+# the padding around them. The window's opacity is the shell's.
 extra = []
 if os.path.basename(terminal[0]) == "alacritty":
     for key, value in (
@@ -161,6 +168,7 @@ if os.path.basename(terminal[0]) == "alacritty":
         ("colors.primary.foreground", '"%s"' % text),
         ("colors.cursor.cursor", '"%s"' % accent),
         ("window.decorations", '"None"'),
+        ("window.opacity", "%.2f" % max(0.0, min(1.0, args.opacity))),
         ("window.padding", "{x=12,y=8}"),
     ):
         extra += ["-o", "%s=%s" % (key, value)]
