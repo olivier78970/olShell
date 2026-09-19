@@ -2,7 +2,7 @@ pragma Singleton
 
 import Quickshell
 
-// The applications opened by clicking bar widgets (btop, wiremix, bluetui).
+// The applications opened by clicking bar widgets (btop, wiremix, bluetui, gdu).
 // Edit here to swap the terminal or the window size.
 Singleton {
   // The btop window (see services/Btop.qml): a terminal, without the
@@ -33,6 +33,13 @@ Singleton {
   readonly property var bluetuiTerminal: ["alacritty", "--class", bluetuiClass, "-T", "bluetui"]
   readonly property real bluetuiWidth: 0.5
   readonly property real bluetuiHeight: 0.6
+
+  // The gdu window (see services/Gdu.qml), opened by clicking the disk widget:
+  // a disk usage analyzer for the disk mounted on /.
+  readonly property string gduClass: "quickshell-gdu"
+  readonly property var gduTerminal: ["alacritty", "--class", gduClass, "-T", "gdu"]
+  readonly property real gduWidth: 0.6
+  readonly property real gduHeight: 0.7
 
   // What a left click does on some tray icons, by tray item id, instead of
   // the application's own action: "bluetui" opens/closes the bluetui window.

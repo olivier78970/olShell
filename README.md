@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -8,6 +8,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 - [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
 - [`wiremix`](https://github.com/tsowell/wiremix) for the audio mixer window (volume click)
 - [`bluetui`](https://github.com/pythops/bluetui) for the Bluetooth window (left click on the Blueman tray icon)
+- [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
 - PipeWire (volume)
 - `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
 - the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
@@ -40,6 +41,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
 │   ├── Wiremix.qml           # The wiremix window (toggle + `wiremix` IPC target)
 │   ├── Bluetui.qml           # The bluetui window (toggle + `bluetui` IPC target)
+│   ├── Gdu.qml               # The gdu window (toggle + `gdu` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
 │   ├── ThemedText.qml        # Text in the shell's font and color
@@ -67,7 +69,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
-├── scripts/tui-launch.py     # Themes and starts btop, wiremix or bluetui in a terminal (used by services/TuiWindow.qml)
+├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/quickshell.toml   # matugen config for this shell's template
 ```
 
@@ -145,6 +147,12 @@ Left-clicking the Bluetooth icon in the tray (or `quickshell -p . ipc call bluet
 
 Which tray icons behave this way is [config/Apps.qml](config/Apps.qml)'s `trayLeftClick`, a table from a tray item's id (the application's name: `blueman` for Blueman's icon) to what the left click does instead of the application's own action; only `"bluetui"` exists for now. Right and middle clicks are unchanged, so Blueman's own menu is still on the right click. The terminal and size are `bluetuiTerminal`, `bluetuiWidth` and `bluetuiHeight`.
 
+## gdu
+
+Clicking the disk widget (or `quickshell -p . ipc call gdu toggle`) opens [gdu](https://github.com/dundee/gdu), an interactive disk usage analyzer, on the disk mounted on `/`, and clicking again (or the same call) closes it. It shows which folders take the room, largest first: **Enter** goes into a folder, **←** back out, **d** deletes the selected item (with confirmation), **?** lists the other keys. (btop can't be used for this: it draws the disks inside its memory box, and nothing hides the memory part.) The window works like the others: [services/TuiWindow.qml](services/TuiWindow.qml) opens it floating and centered (60% × 70% of the monitor by default) with its own window class (`quickshell-gdu`), as translucent as the widgets.
+
+gdu is started with `--no-cross`, so it stays on the filesystem of `/` (other disks and mounts such as `/boot/efi` aren't counted, as the widget doesn't count them; note that on btrfs, subvolumes such as `/home` count as other filesystems, so remove `--no-cross` in [scripts/tui-launch.py](scripts/tui-launch.py) there). It reads its styles from a file the launcher writes, `$XDG_RUNTIME_DIR/quickshell-gdu/gdu.yaml`, with the shell's colors for the header, footer, selected row and directories; that replaces gdu's default `~/.gdu.yaml` for this window only, so a configuration of yours is not used here (and never modified). The terminal and size are in [config/Apps.qml](config/Apps.qml) (`gduTerminal`, `gduWidth`, `gduHeight`).
+
 ## Launcher
 
 The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher toggle` (bind it to a key), opens a search box over the installed applications (their `.desktop` entries). Type to filter: matches names first (exact, prefix, word prefix, anywhere), then generic name, keywords, category and description, and finally letters in order (`ffx` finds Firefox). **↑/↓**, **Tab / Shift+Tab**, **Ctrl+N / Ctrl+P** (or **Ctrl+J / Ctrl+K**) and **Page Up / Down** move the selection, **Enter** launches it, **Escape** or a click outside closes. Hovering moves the selection too and a click launches; resting the pointer on an entry for half a second shows a tooltip with the real process name (e.g. "Fichiers" → `nautilus`), its full command and its desktop-entry id. With an empty search the list is alphabetical.
@@ -183,7 +191,7 @@ The **Performances** tab of the clock popup shows the machine's load at a glance
 - **Réseau**: instant download and upload speed with a sparkline of the last minute each. Only physical interfaces are counted (found through `/sys/class/net`), so a VPN or docker doesn't count the same traffic twice.
 - **Stockage**: the main disk, the one mounted on `/`, with used / capacity and a usage bar. (`SystemStats.disks` lists every mounted disk, without pseudo file systems such as tmpfs and with a device mounted several times, e.g. btrfs subvolumes, listed once; the tab filters it to `/`.) Gauges and bars turn to `Theme.warningColor` above 90%.
 
-The right part of the bar also has a disk widget (`DiskUsage`, after the RAM widget) showing how full the main disk, the one mounted on `/`, is, in percent (in the warning color above 90%); hovering it shows the used space over the capacity (e.g. "825.8 GiB used / 915.3 GiB"). It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s) and does nothing when clicked. It also has an instant download / upload speed widget (`NetworkSpeed`, between the disk and volume widgets), fed by the same network figures, refreshed every second. Its numbers have fixed widths so the bar does not shift as they change.
+The right part of the bar also has a disk widget (`DiskUsage`, after the RAM widget) showing how full the main disk, the one mounted on `/`, is, in percent (in the warning color above 90%); hovering it shows the used space over the capacity (e.g. "825.8 GiB used / 915.3 GiB"). It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s), and clicking it opens [gdu](#gdu) on that disk. It also has an instant download / upload speed widget (`NetworkSpeed`, between the disk and volume widgets), fed by the same network figures, refreshed every second. Its numbers have fixed widths so the bar does not shift as they change.
 
 The figures come from [services/SystemStats.qml](services/SystemStats.qml), which the CPU and RAM widgets share, so they're polled once however many monitors there are: CPU every 2 s, memory every 3 s, network every second, disks every 20 s.
 
@@ -204,6 +212,7 @@ quickshell -p . ipc call btop toggle                   # open/close the full bto
 quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
 quickshell -p . ipc call wiremix toggle                # open/close the wiremix window
 quickshell -p . ipc call bluetui toggle                # open/close the bluetui window
+quickshell -p . ipc call gdu toggle                    # open/close the gdu window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call themes themesToggle       # open/close the theme panel

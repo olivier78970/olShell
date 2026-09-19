@@ -14,6 +14,7 @@ ShellRoot {
   readonly property var btopMonitor: Btop.monitor
   readonly property var wiremixMonitor: Wiremix.monitor
   readonly property var bluetuiMonitor: Bluetui.monitor
+  readonly property var gduMonitor: Gdu.monitor
   // Same for the lock-key watcher: it has to run before the first toggle.
   readonly property var lockKeys: LockKeys.ready
 

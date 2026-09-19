@@ -4,7 +4,8 @@ import qs.config
 import qs.services
 
 // How full the main disk (the one mounted on "/") is, in percent, in the
-// warning color above 90%; hover to see used/total in a popup.
+// warning color above 90%; hover to see used/total in a popup, click to open
+// or close gdu on it.
 Item {
   id: root
 
@@ -35,6 +36,8 @@ Item {
   MouseArea {
     anchors.fill: parent
     hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    onClicked: Gdu.toggle()
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }
