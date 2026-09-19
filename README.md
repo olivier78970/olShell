@@ -1,6 +1,6 @@
-# Quickshell config
+# olShell
 
-A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -140,7 +140,7 @@ mkdir -p ~/.config/matugen
 cp matugen/quickshell.toml ~/.config/matugen/quickshell.toml
 ```
 
-**Edit the two paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/claudetest2`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
+**Edit the two paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/olShell`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
 
 ## Clock popup
 

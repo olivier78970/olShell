@@ -2,5 +2,5 @@
 set = false
 
 [templates.quickshell]
-input_path = "~/dev/claudetest2/config/GeneratedColors.json.template"
-output_path = "~/dev/claudetest2/config/GeneratedColors.json"
+input_path = "~/dev/olShell/config/GeneratedColors.json.template"
+output_path = "~/dev/olShell/config/GeneratedColors.json"
