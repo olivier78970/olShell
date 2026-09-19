@@ -5,7 +5,8 @@ import qs.services
 
 // Instant download and upload speed of the physical network interfaces.
 // Each figure has a fixed width (that of the longest text it can show), so
-// the bar doesn't shift around as the numbers change.
+// the bar doesn't shift around as the numbers change. Click to open or close
+// btop.
 Item {
   id: root
 
@@ -56,5 +57,11 @@ Item {
         text: SystemStats.formatRate(SystemStats.netUpBps, true)
       }
     }
+  }
+
+  MouseArea {
+    anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
+    onClicked: Btop.toggle()
   }
 }

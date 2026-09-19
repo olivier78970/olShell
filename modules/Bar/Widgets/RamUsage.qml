@@ -1,10 +1,10 @@
 import QtQuick
-import Quickshell.Io
 import qs.components
 import qs.config
 import qs.services
 
-// RAM usage percentage; hover to see used/total in a popup.
+// RAM usage percentage; hover to see used/total in a popup, click to open or
+// close btop.
 Item {
   id: root
 
@@ -33,14 +33,9 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: monitorProcess.running = true
+    onClicked: Btop.toggle()
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
-  }
-
-  Process {
-    id: monitorProcess
-    command: Apps.systemMonitor
   }
 
   HoverPopup {

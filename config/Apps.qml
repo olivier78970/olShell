@@ -6,7 +6,6 @@ import Quickshell
 // out which application a widget opens.
 Singleton {
   readonly property var volumeMixer: ["pavucontrol"]
-  readonly property var systemMonitor: ["gnome-system-monitor", "-r"]
 
   // The btop window (see services/Btop.qml): a terminal, without the
   // `-e btop` part which is added by scripts/btop-launch.py, started with a

@@ -1,12 +1,12 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
 - [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
 - [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
-- `pavucontrol` (volume click) and `gnome-system-monitor` (RAM click) — configurable in [config/Apps.qml](config/Apps.qml)
+- `pavucontrol` (volume click) — configurable in [config/Apps.qml](config/Apps.qml)
 - PipeWire (volume)
 - `btop` and a terminal (`alacritty` by default) for the btop window
 - the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
@@ -121,7 +121,7 @@ The texts are in [config/Translations.qml](config/Translations.qml), one diction
 
 ## btop
 
-Clicking the CPU widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/Btop.qml](services/Btop.qml) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
+Clicking the CPU, RAM or network-speed widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/Btop.qml](services/Btop.qml) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
 
 The window is themed with the shell's current colors: [scripts/btop-launch.py](scripts/btop-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
 
