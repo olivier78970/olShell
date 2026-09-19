@@ -33,6 +33,7 @@ Singleton {
 
     "cpu.core": "Core {0}",
     "ram.used": "{0} used / {1}",
+    "disk.used": "{0} used / {1}",
 
     "launcher.search": "Search applications…",
     "launcher.noResults": "No results",
@@ -102,6 +103,7 @@ Singleton {
 
     "cpu.core": "Cœur {0}",
     "ram.used": "{0} utilisés / {1}",
+    "disk.used": "{0} utilisés / {1}",
 
     "launcher.search": "Rechercher une application…",
     "launcher.noResults": "Aucun résultat",

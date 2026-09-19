@@ -57,7 +57,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   │       ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger
 │   │       ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
 │   │       ├── Tray, TrayItem, TrayMenuItem
-│   │       ├── CpuUsage, RamUsage, NetworkSpeed, Volume
+│   │       ├── CpuUsage, RamUsage, DiskUsage, NetworkSpeed, Volume
 │   │       └── PowerMenu
 │   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
 │   ├── Osd/                  # Bottom-of-screen popups
@@ -183,7 +183,7 @@ The **Performances** tab of the clock popup shows the machine's load at a glance
 - **Réseau**: instant download and upload speed with a sparkline of the last minute each. Only physical interfaces are counted (found through `/sys/class/net`), so a VPN or docker doesn't count the same traffic twice.
 - **Stockage**: the main disk, the one mounted on `/`, with used / capacity and a usage bar. (`SystemStats.disks` lists every mounted disk, without pseudo file systems such as tmpfs and with a device mounted several times, e.g. btrfs subvolumes, listed once; the tab filters it to `/`.) Gauges and bars turn to `Theme.warningColor` above 90%.
 
-The right part of the bar also has an instant download / upload speed widget (`NetworkSpeed`, between the RAM and volume widgets), fed by the same network figures, refreshed every second. Its numbers have fixed widths so the bar does not shift as they change.
+The right part of the bar also has a disk widget (`DiskUsage`, after the RAM widget) showing how full the main disk, the one mounted on `/`, is, in percent (in the warning color above 90%); hovering it shows the used space over the capacity (e.g. "825.8 GiB used / 915.3 GiB"). It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s) and does nothing when clicked. It also has an instant download / upload speed widget (`NetworkSpeed`, between the disk and volume widgets), fed by the same network figures, refreshed every second. Its numbers have fixed widths so the bar does not shift as they change.
 
 The figures come from [services/SystemStats.qml](services/SystemStats.qml), which the CPU and RAM widgets share, so they're polled once however many monitors there are: CPU every 2 s, memory every 3 s, network every second, disks every 20 s.
 

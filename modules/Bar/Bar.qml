@@ -82,6 +82,10 @@ Scope {
 
         Separator {}
 
+        DiskUsage {}
+
+        Separator {}
+
         NetworkSpeed {}
 
         Separator {}

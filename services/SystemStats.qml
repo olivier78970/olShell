@@ -34,6 +34,10 @@ Singleton {
 
   // Mounted disks: [{ mount, device, fstype, size, used }], sizes in bytes.
   property var disks: []
+  // The main disk, the one mounted on "/" (null until the first poll), and
+  // how full it is, in percent.
+  readonly property var rootDisk: root.disks.find(disk => disk.mount === "/") ?? null
+  readonly property real rootDiskPercent: root.rootDisk ? (root.rootDisk.used / root.rootDisk.size) * 100 : 0
 
   property var cpuHistory: []
   property var ramHistory: []
