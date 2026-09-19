@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -33,6 +33,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   └── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
 ├── services/
 │   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
+│   ├── LockKeys.qml          # Caps Lock / Num Lock state, from scripts/lock-keys-watch.py
 │   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
 │   ├── Btop.qml              # Opens/closes the btop terminal window (toggle + `btop` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
@@ -49,10 +50,12 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── CpuUsage, RamUsage, NetworkSpeed, Volume
 │   ├── PowerMenu, PowerMenuOption, PowerConfirmDialog
 │   ├── VolumeOsd.qml         # Bottom-of-screen volume popup
+│   ├── LockKeysOsd.qml       # Bottom-of-screen Caps Lock / Num Lock popup
 │   ├── LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
 │   ├── SettingsPanel.qml, SettingSlider.qml, ChoiceRow.qml   # Settings panel and its rows
 │   ├── WallpaperPanel.qml    # Wallpaper picker (CarouselPanel + waypaper/matugen)
 │   └── ThemePanel.qml        # Theme picker (CarouselPanel + ThemeState)
+├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/btop-launch.py    # Themes and starts btop in a terminal (used by services/Btop.qml)
 └── matugen/quickshell.toml   # matugen config for this shell's template
 ```
@@ -181,3 +184,9 @@ quickshell -p . ipc call volume mute
 ```
 
 Volume changes from any source (these calls, media keys, pavucontrol) also show the OSD.
+
+## Lock keys OSD
+
+Switching Caps Lock or Num Lock on or off briefly shows a popup at the bottom of the screen, next to where the volume OSD appears, with the key's icon and its new state (accent-colored when on). The state isn't announced at startup, only on changes.
+
+[services/LockKeys.qml](services/LockKeys.qml) runs [scripts/lock-keys-watch.py](scripts/lock-keys-watch.py), which polls the lock LEDs the kernel exposes in `/sys/class/leds/*::capslock` and `*::numlock` (ten times a second, from one process) and reports each change. A lock counts as on when any keyboard's LED is on, and keyboards plugged in later are picked up. This works on any compositor but needs those LEDs to exist, which is the case for ordinary keyboards.

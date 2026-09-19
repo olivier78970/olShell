@@ -38,6 +38,11 @@ Singleton {
     "launcher.noResults": "No results",
     "launcher.terminal": "terminal",
 
+    "lock.caps": "Caps Lock",
+    "lock.num": "Num Lock",
+    "lock.on": "on",
+    "lock.off": "off",
+
     "power.logout": "Log out",
     "power.restart": "Restart",
     "power.shutdown": "Shut down",
@@ -100,6 +105,11 @@ Singleton {
     "launcher.search": "Rechercher une application…",
     "launcher.noResults": "Aucun résultat",
     "launcher.terminal": "terminal",
+
+    "lock.caps": "Verrouillage majuscules",
+    "lock.num": "Verrouillage numérique",
+    "lock.on": "activé",
+    "lock.off": "désactivé",
 
     "power.logout": "Déconnexion",
     "power.restart": "Redémarrer",
