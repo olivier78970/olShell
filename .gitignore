@@ -3,4 +3,5 @@
 config/GeneratedColors.json
 config/ThemeState.json
 config/LocaleState.json
+config/Settings.json
 .qmlls.ini

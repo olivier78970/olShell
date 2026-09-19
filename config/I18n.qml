@@ -17,6 +17,8 @@ Singleton {
 
   readonly property var supported: ["en", "fr"]
   readonly property string fallback: "en"
+  // Each language's name in that language, as shown in the settings panel.
+  readonly property var languageNames: ({ en: "English", fr: "Français" })
 
   // "auto" or one of `supported`, as chosen by the user.
   readonly property string setting: file.adapter.setting

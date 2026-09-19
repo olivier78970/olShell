@@ -21,6 +21,8 @@ A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated 
 │   ├── GeneratedColors.qml   # Active palette: selected theme, or matugen's GeneratedColors.json
 │   ├── ThemePresets.qml      # The selectable themes ("auto" + 10 fixed palettes)
 │   ├── ThemeState.qml        # Selected theme, saved in ThemeState.json
+│   ├── Settings.qml          # Adjustable look-and-feel values, saved in Settings.json (Theme reads them)
+│   ├── SettingsPanelState.qml   # Shared visibility of the settings panel
 │   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French texts
 │   ├── ThemePanelState.qml   # Shared visibility of the theme panel
 │   ├── LauncherState.qml     # Shared visibility of the launcher
@@ -42,12 +44,13 @@ A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated 
 │   ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart used by the performance tab
 │   ├── TabBar.qml, IconButton.qml
-│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger
+│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger
 │   ├── Tray, TrayItem, TrayMenuItem
 │   ├── CpuUsage, RamUsage, NetworkSpeed, Volume
 │   ├── PowerMenu, PowerMenuOption, PowerConfirmDialog
 │   ├── VolumeOsd.qml         # Bottom-of-screen volume popup
 │   ├── LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
+│   ├── SettingsPanel.qml, SettingSlider.qml, ChoiceRow.qml   # Settings panel and its rows
 │   ├── WallpaperPanel.qml    # Wallpaper picker (CarouselPanel + waypaper/matugen)
 │   └── ThemePanel.qml        # Theme picker (CarouselPanel + ThemeState)
 ├── scripts/btop-launch.py    # Themes and starts btop in a terminal (used by services/Btop.qml)
@@ -67,6 +70,27 @@ Or symlink/copy this directory to `~/.config/quickshell/<name>` and run:
 ```sh
 quickshell -c <name>
 ```
+
+## Settings
+
+The gear icon in the left part of the bar, or `quickshell -p . ipc call settings toggle` (bind it to a key), opens a settings panel where the look of the shell can be adjusted live; every change applies immediately and is remembered in `config/Settings.json` (git-ignored; the language is remembered as before). The settings, with their range:
+
+| Setting | Range | Default |
+|---|---|---|
+| Widget radius | 0 – 30 px | 5 |
+| Language | Automatic / English / Français | Automatic |
+| Widget opacity | 40 – 100 % | 90 % |
+| Widget spacing | 0 – 40 px | 15 |
+| Top bar height | 28 – 72 px | 40 |
+| Top bar left margin | 0 – 300 px | 5 |
+| Top bar right margin | 0 – 300 px | 5 |
+| Border width | 0 – 6 px | 2 |
+
+Click or drag a slider, or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Escape** closes. **Reset** puts everything back to the defaults, language included. Note that the bar height also scales the text (as before), so a very tall bar with big margins can make the bar's three groups collide.
+
+From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginLeft`, `barMarginRight`, `borderWidth`; out-of-range values are clamped), `settings get <key>` and `settings reset`.
+
+Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row in [modules/Bar/SettingsPanel.qml](modules/Bar/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
 
 ## Localization
 
@@ -149,6 +173,7 @@ quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpape
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call btop toggle                   # open/close the btop window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
+quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call themes themesToggle       # open/close the theme panel
 quickshell -p . ipc call volume increase 0.05
 quickshell -p . ipc call volume decrease 0.05

@@ -13,4 +13,5 @@ ShellRoot {
   WallpaperPanel {}
   ThemePanel {}
   LauncherPanel {}
+  SettingsPanel {}
 }

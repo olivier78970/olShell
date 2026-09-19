@@ -18,8 +18,8 @@ Scope {
       }
 
       margins.top: Theme.barVerticalMargin
-      margins.left: Theme.barHorizontalMargin
-      margins.right: Theme.barHorizontalMargin
+      margins.left: Theme.barMarginLeft
+      margins.right: Theme.barMarginRight
 
       implicitHeight: Theme.barHeight
       color: "transparent"
@@ -32,6 +32,9 @@ Scope {
         LauncherTrigger {}
 
         LanguageTrigger {}
+
+        SettingsTrigger {}
+
         Separator {}
         Workspaces {}
 

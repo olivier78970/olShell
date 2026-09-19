@@ -16,6 +16,9 @@ PanelWindow {
   // Design size of the frame; it shrinks to fit smaller screens.
   property real maxPanelWidth: 800
   property real maxPanelHeight: 600
+  // Opacity of the frame; the settings panel keeps it high so it stays
+  // readable while the widget opacity is being adjusted.
+  property real panelOpacity: Theme.widgetOpacity
   // Gets keyboard focus each time the panel opens (default: the frame).
   property Item focusTarget: frame
 
@@ -89,7 +92,7 @@ PanelWindow {
     color: Theme.pillColor
     border.color: Theme.outlineColor
     border.width: Theme.borderWidth
-    opacity: Theme.widgetOpacity
+    opacity: root.panelOpacity
     focus: true
 
     Keys.onPressed: event => {

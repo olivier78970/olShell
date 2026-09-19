@@ -14,6 +14,7 @@ Singleton {
     // Both panels grab the keyboard, so only one may be open at a time.
     ThemePanelState.visible = false
     LauncherState.visible = false
+    SettingsPanelState.visible = false
     root.visible = !root.visible
   }
 }

@@ -18,6 +18,9 @@ Singleton {
   // The selected theme, remembered across restarts (git-ignored).
   readonly property string themeState: Quickshell.shellPath("config/ThemeState.json")
 
+  // The adjustable look-and-feel values (git-ignored).
+  readonly property string settings: Quickshell.shellPath("config/Settings.json")
+
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
