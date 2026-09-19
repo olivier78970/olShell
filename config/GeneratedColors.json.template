@@ -1,0 +1,7 @@
+{
+  "backgroundColor": "{{colors.background.default.hex}}",
+  "borderColor": "{{colors.surface_variant.default.hex}}",
+  "textColor": "{{colors.on_background.default.hex}}",
+  "accentColor": "{{colors.primary.default.hex}}",
+  "pillColor": "{{colors.surface_container.default.hex}}"
+}

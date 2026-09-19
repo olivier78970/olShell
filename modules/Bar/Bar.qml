@@ -1,0 +1,93 @@
+import Quickshell
+import QtQuick
+import qs.config
+
+// Top bar, replicated across every connected screen.
+Scope {
+  Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+      property var modelData
+      screen: modelData
+
+      anchors {
+        top: true
+        left: true
+        right: true
+      }
+
+      margins.top: Theme.barVerticalMargin
+      margins.left: Theme.barHorizontalMargin
+      margins.right: Theme.barHorizontalMargin
+
+      implicitHeight: Theme.barHeight
+      color: "transparent"
+
+      // Left widgets
+      Pill {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+
+        LauncherTrigger {}
+        Separator {}
+        Workspaces {}
+
+        Separator {
+          visible: activeWindow.toplevel !== null
+        }
+
+        ActiveWindow {
+          id: activeWindow
+        }
+      }
+
+      // Middle widget
+      Pill {
+        anchors.centerIn: parent
+
+        Clock {}
+
+        Separator {}
+
+        WallpaperTrigger {}
+
+        ThemeTrigger {}
+
+        
+      }
+
+      // Right widgets
+      Pill {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        flattenBottomRight: powerMenu.menuOpen
+
+        Tray {}
+
+        Separator {}
+
+        CpuUsage {}
+
+        Separator {}
+
+        RamUsage {}
+
+        Separator {}
+
+        NetworkSpeed {}
+
+        Separator {}
+
+        Volume {}
+
+        Separator {}
+
+        PowerMenu {
+          id: powerMenu
+        }
+      }
+    }
+  }
+}
+

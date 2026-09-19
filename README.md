@@ -1,0 +1,140 @@
+# Quickshell config
+
+A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation.
+
+## Requirements
+
+- [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
+- [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
+- `pavucontrol` (volume click) and `gnome-system-monitor` (RAM click) — configurable in [config/Apps.qml](config/Apps.qml)
+- PipeWire (volume)
+- `btop` and a terminal (`alacritty` by default) for the btop window
+- the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
+
+## Structure
+
+```
+.
+├── shell.qml                 # Shell root — wires modules together
+├── config/
+│   ├── Theme.qml             # Sizes, font, corner radius, border width and colors shared by every widget
+│   ├── GeneratedColors.qml   # Active palette: selected theme, or matugen's GeneratedColors.json
+│   ├── ThemePresets.qml      # The selectable themes ("auto" + 10 fixed palettes)
+│   ├── ThemeState.qml        # Selected theme, saved in ThemeState.json
+│   ├── ThemePanelState.qml   # Shared visibility of the theme panel
+│   ├── LauncherState.qml     # Shared visibility of the launcher
+│   ├── GeneratedColors.json.template   # matugen template for the palette
+│   ├── Paths.qml             # Wallpaper, matugen and palette locations
+│   ├── Apps.qml              # Commands launched by clicking widgets
+│   ├── PowerMenuState.qml    # Pending power action + the commands that run it
+│   └── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
+├── services/
+│   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
+│   ├── Btop.qml              # Opens/closes the btop terminal window (toggle + `btop` IPC target)
+│   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
+├── modules/Bar/              # Bar widgets and the panels/dialogs opened from it
+│   ├── Bar.qml               # Top bar, one per screen
+│   ├── Pill.qml, Separator.qml, PopupMenu.qml, HoverPopup.qml, ThemedText.qml
+│   ├── ModalPanel.qml        # Shared base of the full-screen panels: backdrop, frame, keyboard focus
+│   ├── CarouselPanel.qml, CarouselCard.qml   # Shared base of the two pickers below
+│   ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
+│   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart used by the performance tab
+│   ├── TabBar.qml, IconButton.qml
+│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger
+│   ├── Tray, TrayItem, TrayMenuItem
+│   ├── CpuUsage, RamUsage, NetworkSpeed, Volume
+│   ├── PowerMenu, PowerMenuOption, PowerConfirmDialog
+│   ├── VolumeOsd.qml         # Bottom-of-screen volume popup
+│   ├── LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
+│   ├── WallpaperPanel.qml    # Wallpaper picker (CarouselPanel + waypaper/matugen)
+│   └── ThemePanel.qml        # Theme picker (CarouselPanel + ThemeState)
+├── scripts/btop-launch.py    # Themes and starts btop in a terminal (used by services/Btop.qml)
+└── matugen/quickshell.toml   # matugen config for this shell's template
+```
+
+Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`) instead of relative paths.
+
+## Running
+
+```sh
+quickshell -p .
+```
+
+Or symlink/copy this directory to `~/.config/quickshell/<name>` and run:
+
+```sh
+quickshell -c <name>
+```
+
+## btop
+
+Clicking the CPU widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/Btop.qml](services/Btop.qml) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
+
+The window is themed with the shell's current colors: [scripts/btop-launch.py](scripts/btop-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
+
+It is a real terminal window, so btop works completely (mouse, copy/paste, resizing) but it's an ordinary window: no dimmed backdrop, and clicking elsewhere or pressing Escape doesn't close it. The terminal and size (as fractions of the monitor, 85% × 90% by default) are in [config/Apps.qml](config/Apps.qml) (`btopTerminal`, `btopWidth`, `btopHeight`); another terminal works too, but only alacritty gets the colors applied (btop itself is themed either way).
+
+## Launcher
+
+The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher toggle` (bind it to a key), opens a search box over the installed applications (their `.desktop` entries). Type to filter: matches names first (exact, prefix, word prefix, anywhere), then generic name, keywords, category and description, and finally letters in order (`ffx` finds Firefox). **↑/↓**, **Tab / Shift+Tab**, **Ctrl+N / Ctrl+P** (or **Ctrl+J / Ctrl+K**) and **Page Up / Down** move the selection, **Enter** launches it, **Escape** or a click outside closes. Hovering moves the selection too and a click launches; resting the pointer on an entry for half a second shows a tooltip with the real process name (e.g. "Fichiers" → `nautilus`), its full command and its desktop-entry id. With an empty search the list is alphabetical.
+
+## Themes
+
+The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique** followed by ten fixed themes: Catppuccin Mocha, Dracula, Nord, Gruvbox Dark, Tokyo Night, Solarized Dark, One Dark, Rosé Pine, Everforest Dark and Kanagawa. The **Automatique** button in the top-right corner jumps to its card and applies it. Left/Right browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
+
+- **Automatique** uses the palette matugen generates from the current wallpaper (below).
+- A fixed theme ignores the wallpaper: changing the wallpaper still runs matugen, but the shell keeps the theme's colors until you switch back to Automatique.
+
+To add or edit a theme, change the list in [config/ThemePresets.qml](config/ThemePresets.qml); each theme defines the same five colors as `GeneratedColors.json.template`.
+
+## Theming with matugen (Automatique)
+
+Colors come from `config/GeneratedColors.json`, which matugen writes from the current wallpaper. The file is git-ignored; until it exists, the defaults in [config/GeneratedColors.qml](config/GeneratedColors.qml) are used.
+
+[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config containing only this shell's template, so applying a wallpaper doesn't also re-theme other apps. The wallpaper panel expects it at `~/.config/matugen/quickshell.toml` (see [config/Paths.qml](config/Paths.qml)):
+
+```sh
+mkdir -p ~/.config/matugen
+cp matugen/quickshell.toml ~/.config/matugen/quickshell.toml
+```
+
+**Edit the two paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/claudetest2`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
+
+## Clock popup
+
+Hovering the clock opens a popup (it stays open while the pointer is over it) with a tab bar: **Agenda** (the default tab: a month calendar, weeks starting on Monday with ISO week numbers; the arrows browse months, "Aujourd'hui" jumps back, today is highlighted; no events yet) and **Performances** (see the next section). The popup is as wide as its tab bar needs (520 px at least) and as tall as the tab being shown. To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [ClockPanel.qml](modules/Bar/ClockPanel.qml).
+
+## Performances
+
+The **Performances** tab of the clock popup shows the machine's load at a glance, refreshed live:
+
+- **Processeur** and **Mémoire**: a ring gauge with the current percentage (the CPU card adds frequency and core count, the memory card used / total), and a sparkline of the last samples.
+- **Réseau**: instant download and upload speed with a sparkline of the last minute each. Only physical interfaces are counted (found through `/sys/class/net`), so a VPN or docker doesn't count the same traffic twice.
+- **Stockage**: the main disk, the one mounted on `/`, with used / capacity and a usage bar. (`SystemStats.disks` lists every mounted disk, without pseudo file systems such as tmpfs and with a device mounted several times, e.g. btrfs subvolumes, listed once; the tab filters it to `/`.) Gauges and bars turn to `Theme.warningColor` above 90%.
+
+The right part of the bar also has an instant download / upload speed widget (`NetworkSpeed`, between the RAM and volume widgets), fed by the same network figures, refreshed every second. Its numbers have fixed widths so the bar does not shift as they change.
+
+The figures come from [services/SystemStats.qml](services/SystemStats.qml), which the CPU and RAM widgets share, so they're polled once however many monitors there are: CPU every 2 s, memory every 3 s, network every second, disks every 20 s.
+
+## Wallpapers
+
+The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry. Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](config/Paths.qml).
+
+Left/Right browse without changing anything; **Enter**, clicking a picture, or "Image du jour" applies it (waypaper sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+
+## IPC
+
+Bind these to keys, e.g. from Hyprland:
+
+```sh
+quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
+quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
+quickshell -p . ipc call btop toggle                   # open/close the btop window
+quickshell -p . ipc call launcher toggle               # open/close the application launcher
+quickshell -p . ipc call themes themesToggle       # open/close the theme panel
+quickshell -p . ipc call volume increase 0.05
+quickshell -p . ipc call volume decrease 0.05
+quickshell -p . ipc call volume mute
+```
+
+Volume changes from any source (these calls, media keys, pavucontrol) also show the OSD.

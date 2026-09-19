@@ -1,0 +1,5 @@
+# Written by matugen from the current wallpaper; Theme falls back to the
+# defaults in config/GeneratedColors.qml when it's missing.
+config/GeneratedColors.json
+config/ThemeState.json
+.qmlls.ini
