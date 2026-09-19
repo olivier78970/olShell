@@ -17,7 +17,7 @@ Scope {
         right: true
       }
 
-      margins.top: Theme.barVerticalMargin
+      margins.top: Theme.barMarginTop
       margins.left: Theme.barMarginLeft
       margins.right: Theme.barMarginRight
 

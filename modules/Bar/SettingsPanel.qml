@@ -18,6 +18,7 @@ ModalPanel {
     { key: "opacity", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
     { key: "barHeight", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
+    { key: "barMarginTop", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "borderWidth", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" }
@@ -30,7 +31,7 @@ ModalPanel {
   property int selected: 0
 
   maxPanelWidth: 640
-  maxPanelHeight: 610
+  maxPanelHeight: 670
   // Stays readable while the widget opacity is being adjusted.
   panelOpacity: Math.max(0.92, Theme.widgetOpacity)
 
@@ -46,7 +47,7 @@ ModalPanel {
     }
 
     // Sets one setting by name (radius, opacity, spacing, barHeight,
-    // barMarginLeft, barMarginRight, borderWidth); out-of-range values are
+    // barMarginTop, barMarginLeft, barMarginRight, borderWidth); out-of-range values are
     // clamped.
     function set(key: string, value: real): void {
       Settings.set(key, value)

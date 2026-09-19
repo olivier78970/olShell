@@ -16,6 +16,7 @@ Singleton {
     opacity: 0.9,
     spacing: 15,
     barHeight: 40,
+    barMarginTop: 5,
     barMarginLeft: 5,
     barMarginRight: 5,
     borderWidth: 2
@@ -28,6 +29,7 @@ Singleton {
     opacity: [0.4, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
+    barMarginTop: [0, 100],
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
     borderWidth: [0, 6]
@@ -40,6 +42,7 @@ Singleton {
   // Space between the widgets of a pill.
   readonly property int spacing: root.valid("spacing", file.adapter.spacing)
   readonly property int barHeight: root.valid("barHeight", file.adapter.barHeight)
+  readonly property int barMarginTop: root.valid("barMarginTop", file.adapter.barMarginTop)
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
   // Width of the outline around surfaces; 0 for none.
@@ -89,6 +92,7 @@ Singleton {
       property real opacity: 0.9
       property int spacing: 15
       property int barHeight: 40
+      property int barMarginTop: 5
       property int barMarginLeft: 5
       property int barMarginRight: 5
       property int borderWidth: 2
