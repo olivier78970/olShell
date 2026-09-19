@@ -17,8 +17,17 @@ Singleton {
 
   readonly property var monitor: window.monitor
 
+  // btop settings to change when only these boxes are shown: the memory box
+  // comes with the disks, which the RAM widget doesn't want.
+  readonly property var boxSettings: ({ "mem": { "show_disks": "False" } })
+
   function toggle(boxes) {
-    window.toggle(boxes ? { boxes: boxes, widthFraction: Apps.btopBoxWidth, heightFraction: Apps.btopBoxHeight } : {})
+    window.toggle(boxes ? {
+      boxes: boxes,
+      settings: root.boxSettings[boxes] ?? {},
+      widthFraction: Apps.btopBoxWidth,
+      heightFraction: Apps.btopBoxHeight
+    } : {})
   }
 
   TuiWindow {

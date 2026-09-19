@@ -42,7 +42,8 @@ Scope {
 
   // `options` (all optional): `boxes`, the btop boxes to show instead of the
   // ones in its configuration ("net", "cpu mem"...); `widthFraction` and
-  // `heightFraction`, a size other than the usual one.
+  // `heightFraction`, a size other than the usual one; `settings`, an object of
+  // other btop settings to change (`{ show_disks: "False" }`).
   function open() {
     const options = root.pending
     const widthFraction = options.widthFraction ?? root.widthFraction
@@ -51,6 +52,9 @@ Scope {
     const scale = root.monitor ? root.monitor.scale : 1
     const width = root.monitor ? Math.round(root.monitor.width / scale * widthFraction) : 1200
     const height = root.monitor ? Math.round(root.monitor.height / scale * heightFraction) : 800
+
+    const settings = []
+    for (const key in options.settings ?? {}) settings.push("--set", key + "=" + options.settings[key])
 
     // The launcher themes the application (and the terminal) with the colors
     // the shell is using right now.
@@ -65,6 +69,7 @@ Scope {
       "--warning", Theme.warningColor.toString(),
       "--opacity", Theme.widgetOpacity.toFixed(2)]
       .concat(options.boxes ? ["--boxes", options.boxes] : [])
+      .concat(settings)
       .concat(["--"]).concat(root.terminal).map(quote).join(" ")
     Hyprland.dispatch("hl.dsp.exec_cmd(" + root.lua(command) + ", { float = true, center = true, size = "
       + root.lua(width + " " + height) + " })")
