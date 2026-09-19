@@ -32,7 +32,7 @@ Item {
 
     PowerMenuOption {
       icon: ""
-      label: "Déconnexion"
+      label: I18n.tr("power.logout")
       onClicked: {
         menu.visible = false
         PowerMenuState.request("logout")
@@ -41,7 +41,7 @@ Item {
 
     PowerMenuOption {
       icon: ""
-      label: "Redémarrer"
+      label: I18n.tr("power.restart")
       onClicked: {
         menu.visible = false
         PowerMenuState.request("restart")
@@ -50,7 +50,7 @@ Item {
 
     PowerMenuOption {
       icon: ""
-      label: "Éteindre"
+      label: I18n.tr("power.shutdown")
       onClicked: {
         menu.visible = false
         PowerMenuState.request("shutdown")

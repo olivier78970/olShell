@@ -18,6 +18,9 @@ Singleton {
   // The selected theme, remembered across restarts (git-ignored).
   readonly property string themeState: Quickshell.shellPath("config/ThemeState.json")
 
+  // The chosen language, remembered across restarts (git-ignored).
+  readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
+
   // Dedicated matugen config containing only the quickshell template.
   readonly property string matugenConfig: userConfigDir + "/matugen/quickshell.toml"
 }

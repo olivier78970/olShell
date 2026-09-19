@@ -8,7 +8,7 @@ import qs.config
 Item {
   id: root
 
-  readonly property var locale: Qt.locale("fr_FR")
+  readonly property var locale: I18n.locale
   readonly property date today: clock.date
   // The month being shown (any day in it; only year and month are used).
   property int viewYear: root.today.getFullYear()
@@ -101,7 +101,7 @@ Item {
         visible: !root.onCurrentMonth
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        label: "Aujourd'hui"
+        label: I18n.tr("agenda.today")
         onClicked: root.showToday()
       }
     }
@@ -113,7 +113,7 @@ Item {
         height: root.cellHeight * 0.7
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        text: "S"
+        text: I18n.tr("agenda.week")
         opacity: 0.5
         sizeScale: 0.65
       }

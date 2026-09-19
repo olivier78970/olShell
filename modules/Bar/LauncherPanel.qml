@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
 import qs.config
+import qs.services
 
 // Application launcher, toggled from outside via:
 //   quickshell -p . ipc call launcher toggle
@@ -32,6 +33,8 @@ ModalPanel {
     input.text = ""
     list.currentIndex = 0
     root.leaveEntry()
+    // Pick up applications installed since the last look.
+    DesktopLocale.refresh()
   }
 
   IpcHandler {
@@ -42,20 +45,36 @@ ModalPanel {
     }
   }
 
-  // How well an application matches the (lowercase) query, 0 for no match:
-  // name first (exact, prefix, word prefix, anywhere), then generic name,
-  // keywords, category, description, and finally letters in order
-  // ("ffx" finds Firefox).
-  function score(entry, q) {
-    const name = entry.name.toLowerCase()
+  // The texts of an application in the shell's language, read from its
+  // .desktop file (see DesktopLocale); Quickshell's own, which are in the
+  // system's language, when that file can't be found.
+  function describe(entry) {
+    const local = DesktopLocale.info(entry.id)
+    return {
+      name: local?.name ?? entry.name,
+      genericName: local?.genericName ?? entry.genericName ?? "",
+      comment: local?.comment ?? entry.comment ?? "",
+      keywords: local ? local.keywords : (entry.keywords ?? []),
+      // The untranslated name: still worth matching ("files" in a French UI).
+      defaultName: local?.defaultName ?? ""
+    }
+  }
+
+  // How well an application, whose texts are `text` (see describe()), matches
+  // the (lowercase) query, 0 for no match: name first (exact, prefix, word
+  // prefix, anywhere), then the untranslated name, generic name, keywords,
+  // category, description, and finally letters in order ("ffx" finds Firefox).
+  function score(entry, text, q) {
+    const name = text.name.toLowerCase()
     if (name === q) return 100
     if (name.startsWith(q)) return 90
     if (name.split(/[\s\-_.]+/).some(word => word.startsWith(q))) return 70
     if (name.includes(q)) return 60
-    if ((entry.genericName ?? "").toLowerCase().includes(q)) return 40
-    if ((entry.keywords ?? []).some(keyword => keyword.toLowerCase().includes(q))) return 35
+    if (text.defaultName.toLowerCase().includes(q)) return 55
+    if (text.genericName.toLowerCase().includes(q)) return 40
+    if (text.keywords.some(keyword => keyword.toLowerCase().includes(q))) return 35
     if ((entry.categories ?? []).some(category => category.toLowerCase() === q)) return 30
-    if ((entry.comment ?? "").toLowerCase().includes(q)) return 20
+    if (text.comment.toLowerCase().includes(q)) return 20
 
     let matched = 0
     for (const letter of name) {
@@ -68,16 +87,20 @@ ModalPanel {
   // Visible applications matching the query, best first; alphabetical when
   // the query is empty.
   function search(query) {
-    const entries = DesktopEntries.applications.values.filter(entry => !entry.noDisplay)
+    const entries = DesktopEntries.applications.values
+      .filter(entry => !entry.noDisplay)
+      .map(entry => ({ entry: entry, text: root.describe(entry) }))
     const q = query.trim().toLowerCase()
-    if (q.length === 0) return entries.sort((a, b) => a.name.localeCompare(b.name))
+    if (q.length === 0) {
+      return entries.sort((a, b) => a.text.name.localeCompare(b.text.name)).map(item => item.entry)
+    }
 
     const scored = []
-    for (const entry of entries) {
-      const s = root.score(entry, q)
-      if (s > 0) scored.push({ entry: entry, score: s })
+    for (const item of entries) {
+      const s = root.score(item.entry, item.text, q)
+      if (s > 0) scored.push({ entry: item.entry, name: item.text.name, score: s })
     }
-    scored.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
+    scored.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
     return scored.map(item => item.entry)
   }
 
@@ -101,7 +124,7 @@ ModalPanel {
       const app = run >= 0 ? args.slice(run + 1).find(arg => !arg.startsWith("-")) : undefined
       if (app) return app
     }
-    return exe.length > 0 ? exe : entry.name
+    return exe.length > 0 ? exe : root.describe(entry).name
   }
 
   // The pointer rests on an application: show its tooltip once it stops
@@ -200,7 +223,7 @@ ModalPanel {
         ThemedText {
           visible: input.text.length === 0
           anchors.verticalCenter: parent.verticalCenter
-          text: "Rechercher une application…"
+          text: I18n.tr("launcher.search")
           opacity: 0.5
         }
       }
@@ -255,7 +278,7 @@ ModalPanel {
           ThemedText {
             width: parent.width
             elide: Text.ElideRight
-            text: entry.modelData.name
+            text: root.describe(entry.modelData).name
             color: entry.current ? Theme.backgroundColor : Theme.textColor
           }
 
@@ -263,7 +286,7 @@ ModalPanel {
             visible: text.length > 0
             width: parent.width
             elide: Text.ElideRight
-            text: entry.modelData.comment || entry.modelData.genericName || ""
+            text: root.describe(entry.modelData).comment || root.describe(entry.modelData).genericName
             color: entry.current ? Theme.backgroundColor : Theme.textColor
             opacity: 0.6
             sizeScale: 0.7
@@ -294,7 +317,7 @@ ModalPanel {
       ThemedText {
         visible: list.count === 0
         anchors.centerIn: parent
-        text: "Aucun résultat"
+        text: I18n.tr("launcher.noResults")
         opacity: 0.6
       }
     }
@@ -349,7 +372,7 @@ ModalPanel {
       ThemedText {
         width: Math.min(implicitWidth, tooltip.maxTextWidth)
         elide: Text.ElideRight
-        text: root.tipEntry ? root.tipEntry.id + (root.tipEntry.runInTerminal ? " · terminal" : "") : ""
+        text: root.tipEntry ? root.tipEntry.id + (root.tipEntry.runInTerminal ? " · " + I18n.tr("launcher.terminal") : "") : ""
         opacity: 0.5
         sizeScale: 0.65
       }

@@ -1,12 +1,12 @@
 import QtQuick
 import qs.config
 
-// Centered date/time display (French locale). Hovering it opens the popup
+// Centered date/time display, in the current language. Hovering it opens the popup
 // with the agenda and the performance figures.
 Item {
   id: root
 
-  readonly property var locale: Qt.locale("fr_FR")
+  readonly property var locale: I18n.locale
   property date now: new Date()
 
   anchors.verticalCenter: parent.verticalCenter
@@ -25,7 +25,7 @@ Item {
 
     ThemedText {
       anchors.verticalCenter: parent.verticalCenter
-      text: root.now.toLocaleString(root.locale, "dddd d MMMM yyyy HH:mm:ss")
+      text: root.now.toLocaleString(root.locale, I18n.value("format.dateTime"))
     }
   }
 

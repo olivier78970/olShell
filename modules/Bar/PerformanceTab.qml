@@ -62,7 +62,7 @@ Item {
 
       Card {
         width: (parent.width - 8) / 2
-        title: "Processeur"
+        title: I18n.tr("perf.cpu")
         icon: "󰻠"
 
         RingGauge {
@@ -77,7 +77,7 @@ Item {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           elide: Text.ElideRight
-          text: SystemStats.cpuFrequencyGhz.toFixed(1).replace(".", ",") + " GHz · " + SystemStats.corePercents.length + " cœurs"
+          text: I18n.formatNumber(SystemStats.cpuFrequencyGhz, 1) + " GHz · " + I18n.tr("perf.cores", SystemStats.corePercents.length)
           opacity: 0.7
           sizeScale: 0.7
         }
@@ -92,7 +92,7 @@ Item {
 
       Card {
         width: (parent.width - 8) / 2
-        title: "Mémoire"
+        title: I18n.tr("perf.memory")
         icon: "󰍛"
 
         RingGauge {
@@ -123,13 +123,13 @@ Item {
 
     // Network
     Card {
-      title: "Réseau"
+      title: I18n.tr("perf.network")
       icon: "󰌗"
 
       Repeater {
         model: [
-          { label: "Réception", icon: "󰇚", speed: SystemStats.netDownBps, history: SystemStats.downHistory, tint: 0 },
-          { label: "Émission", icon: "󰕒", speed: SystemStats.netUpBps, history: SystemStats.upHistory, tint: 0.5 }
+          { label: I18n.tr("perf.download"), icon: "󰇚", speed: SystemStats.netDownBps, history: SystemStats.downHistory, tint: 0 },
+          { label: I18n.tr("perf.upload"), icon: "󰕒", speed: SystemStats.netUpBps, history: SystemStats.upHistory, tint: 0.5 }
         ]
 
         Item {
@@ -184,7 +184,7 @@ Item {
 
     // Storage
     Card {
-      title: "Stockage"
+      title: I18n.tr("perf.storage")
       icon: "󰋊"
 
       Repeater {

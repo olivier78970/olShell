@@ -118,7 +118,7 @@ ModalPanel {
 
     ThemedText {
       anchors.horizontalCenter: parent.horizontalCenter
-      text: carousel.count > 0 ? (carousel.currentIndex + 1) + " / " + carousel.count + "  ·  Entrée : appliquer" : root.emptyText
+      text: carousel.count > 0 ? (carousel.currentIndex + 1) + " / " + carousel.count + "  ·  " + I18n.tr("carousel.apply") : root.emptyText
       sizeScale: 1.2
     }
   }

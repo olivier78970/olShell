@@ -48,7 +48,7 @@ Item {
     anchor.margins.right: -Theme.pillPadding
 
     ThemedText {
-      text: (SystemStats.ramUsedKb / 1048576).toFixed(1) + " Gio utilisés / " + (SystemStats.ramTotalKb / 1048576).toFixed(1) + " Gio"
+      text: I18n.tr("ram.used", SystemStats.formatBytes(SystemStats.ramUsedKb * 1024), SystemStats.formatBytes(SystemStats.ramTotalKb * 1024))
     }
   }
 }

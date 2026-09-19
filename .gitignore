@@ -2,4 +2,5 @@
 # defaults in config/GeneratedColors.qml when it's missing.
 config/GeneratedColors.json
 config/ThemeState.json
+config/LocaleState.json
 .qmlls.ini

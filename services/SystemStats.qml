@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
 // CPU, RAM, network and storage figures, polled once for the whole shell
 // rather than once per bar instance (i.e. per screen). The *History lists
@@ -39,10 +40,11 @@ Singleton {
   property var downHistory: []
   property var upHistory: []
 
-  // 1234567 -> "1,2 Mio" (binary units, comma decimals). With `compact`, a
+  // 1234567 -> "1,2 Mio" / "1.2 MiB" (binary units, in the current language).
+  // With `compact`, a
   // value of 10 or more drops the decimals ("15 Mio"), for tight spaces.
   function formatBytes(bytes, compact) {
-    const units = ["o", "Kio", "Mio", "Gio", "Tio", "Pio"]
+    const units = I18n.value("format.units")
     let value = bytes
     let unit = 0
     while (value >= 1024 && unit < units.length - 1) {
@@ -50,7 +52,7 @@ Singleton {
       unit++
     }
     const digits = unit === 0 || (compact && value >= 10) ? 0 : 1
-    return value.toFixed(digits).replace(".", ",") + " " + units[unit]
+    return I18n.formatNumber(value, digits) + " " + units[unit]
   }
 
   function formatRate(bytesPerSecond, compact) {

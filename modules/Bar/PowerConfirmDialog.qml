@@ -13,9 +13,9 @@ PanelWindow {
 
   readonly property string action: PowerMenuState.pendingAction
   readonly property var messages: ({
-    logout: "Se déconnecter ?",
-    restart: "Redémarrer l'ordinateur ?",
-    shutdown: "Éteindre l'ordinateur ?"
+    logout: I18n.tr("power.confirm.logout"),
+    restart: I18n.tr("power.confirm.restart"),
+    shutdown: I18n.tr("power.confirm.shutdown")
   })
 
   WlrLayershell.layer: WlrLayer.Overlay
@@ -99,12 +99,12 @@ PanelWindow {
         spacing: 12
 
         PowerMenuOption {
-          label: "Annuler"
+          label: I18n.tr("common.cancel")
           onClicked: PowerMenuState.cancel()
         }
 
         PowerMenuOption {
-          label: "Confirmer"
+          label: I18n.tr("common.confirm")
           onClicked: PowerMenuState.confirm()
         }
       }

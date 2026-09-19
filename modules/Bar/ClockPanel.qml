@@ -11,8 +11,8 @@ Item {
   id: root
 
   readonly property var tabs: [
-    { label: "Agenda", icon: "󰃭" },
-    { label: "Performances", icon: "󰓅" }
+    { label: I18n.tr("clock.tab.agenda"), icon: "󰃭" },
+    { label: I18n.tr("clock.tab.performance"), icon: "󰓅" }
   ]
 
   // As wide as the pages want to be, but never narrower than the tab bar

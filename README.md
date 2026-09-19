@@ -1,6 +1,6 @@
 # Quickshell config
 
-A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation.
+A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -21,6 +21,7 @@ A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated 
 │   ├── GeneratedColors.qml   # Active palette: selected theme, or matugen's GeneratedColors.json
 │   ├── ThemePresets.qml      # The selectable themes ("auto" + 10 fixed palettes)
 │   ├── ThemeState.qml        # Selected theme, saved in ThemeState.json
+│   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French texts
 │   ├── ThemePanelState.qml   # Shared visibility of the theme panel
 │   ├── LauncherState.qml     # Shared visibility of the launcher
 │   ├── GeneratedColors.json.template   # matugen template for the palette
@@ -30,6 +31,7 @@ A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated 
 │   └── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
 ├── services/
 │   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
+│   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
 │   ├── Btop.qml              # Opens/closes the btop terminal window (toggle + `btop` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── modules/Bar/              # Bar widgets and the panels/dialogs opened from it
@@ -40,7 +42,7 @@ A [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated 
 │   ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart used by the performance tab
 │   ├── TabBar.qml, IconButton.qml
-│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger
+│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger
 │   ├── Tray, TrayItem, TrayMenuItem
 │   ├── CpuUsage, RamUsage, NetworkSpeed, Volume
 │   ├── PowerMenu, PowerMenuOption, PowerConfirmDialog
@@ -65,6 +67,22 @@ Or symlink/copy this directory to `~/.config/quickshell/<name>` and run:
 ```sh
 quickshell -c <name>
 ```
+
+## Localization
+
+The shell speaks **English** and **French**. By default it follows the system language (`LC_ALL`, `LC_MESSAGES` or `LANG`; English if that isn't one of the two). The **EN / FR** button at the right end of the middle pill switches to the other language, and the choice is remembered in `config/LocaleState.json` (git-ignored). It can also be set from a key binding or a script:
+
+```sh
+quickshell -p . ipc call language set fr      # or en, or auto to follow the system again
+quickshell -p . ipc call language toggle
+quickshell -p . ipc call language get
+```
+
+Everything is switched at once: texts, dates and month/day names, decimal separators, and units (Gio / GiB). The week still starts on Monday in both.
+
+The launcher's application names, descriptions and keywords follow the shell's language too, not the system's: every `.desktop` file carries all its translations (`Comment[fr]=...`), so [services/DesktopLocale.qml](services/DesktopLocale.qml) reads them straight from the files (the user's and system's `applications` directories, in priority order) and picks the best one for the current language (`language_COUNTRY`, then `language`, then the untranslated text), instead of the single language Quickshell reads at startup. Searching matches the translated name and keywords as well as the untranslated name ("files" still finds Fichiers). The files are read again each time the launcher opens; an application with no readable file falls back to Quickshell's own text.
+
+The texts are in [config/Translations.qml](config/Translations.qml), one dictionary per language with dotted keys (`power.logout`); [config/I18n.qml](config/I18n.qml) looks them up with `I18n.tr("key", args...)`, replacing `{0}`, `{1}`... and choosing between `one` / `other` forms for counts. A key missing from a language falls back to English, then shows the key itself. To add a language: add a dictionary with the same keys as `en` (including `format.locale`, `format.decimal`, `format.units`, `format.dateTime`) and list its code in `I18n.supported`. Use `I18n.tr` for any new visible text rather than a literal.
 
 ## btop
 

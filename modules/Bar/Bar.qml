@@ -30,6 +30,8 @@ Scope {
         anchors.verticalCenter: parent.verticalCenter
 
         LauncherTrigger {}
+
+        LanguageTrigger {}
         Separator {}
         Workspaces {}
 

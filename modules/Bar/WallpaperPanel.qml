@@ -15,8 +15,8 @@ CarouselPanel {
   readonly property string podPath: Paths.wallpaperOfTheDay
   property var wallpapers: []
 
-  title: "Fonds d'écran"
-  emptyText: "Aucun fond d'écran trouvé"
+  title: I18n.tr("wallpaper.title")
+  emptyText: I18n.tr("wallpaper.none")
   model: root.wallpapers
   maxPanelWidth: 2000
   maxPanelHeight: 650
@@ -119,7 +119,7 @@ CarouselPanel {
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 20
-    label: "Image du jour"
+    label: I18n.tr("wallpaper.pod")
     onClicked: {
       // POD is always the first entry (see listProcess above), so
       // selecting it moves the carousel to it instead of just

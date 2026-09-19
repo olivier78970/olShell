@@ -13,7 +13,7 @@ CarouselPanel {
 
   readonly property int activeIndex: ThemePresets.presets.findIndex(theme => theme.id === ThemeState.active.id)
 
-  title: "Thèmes"
+  title: I18n.tr("theme.title")
   model: ThemePresets.presets
   maxPanelWidth: 1700
   maxPanelHeight: 520
@@ -54,7 +54,7 @@ CarouselPanel {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           elide: Text.ElideRight
-          text: card.modelData.name
+          text: card.modelData.id === "auto" ? I18n.tr("theme.auto") : card.modelData.name
           color: card.colors.textColor
           sizeScale: 0.8
         }
@@ -64,7 +64,7 @@ CarouselPanel {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: card.modelData.description ?? ""
+          text: card.modelData.id === "auto" ? I18n.tr("theme.autoDescription") : ""
           color: card.colors.textColor
           opacity: 0.7
           sizeScale: 0.55
@@ -107,11 +107,11 @@ CarouselPanel {
 
           Repeater {
             model: [
-              { label: "Fond", key: "backgroundColor" },
-              { label: "Pilule", key: "pillColor" },
-              { label: "Bordure", key: "borderColor" },
-              { label: "Texte", key: "textColor" },
-              { label: "Accent", key: "accentColor" }
+              { label: I18n.tr("theme.color.background"), key: "backgroundColor" },
+              { label: I18n.tr("theme.color.pill"), key: "pillColor" },
+              { label: I18n.tr("theme.color.border"), key: "borderColor" },
+              { label: I18n.tr("theme.color.text"), key: "textColor" },
+              { label: I18n.tr("theme.color.accent"), key: "accentColor" }
             ]
 
             Row {
@@ -167,7 +167,7 @@ CarouselPanel {
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 20
-    label: "Automatique"
+    label: I18n.tr("theme.auto")
     onClicked: {
       // "auto" is always the first entry, so selecting it moves the
       // carousel to it instead of just applying it without visually

@@ -16,7 +16,7 @@ Item {
     id: widest
     font.family: Theme.fontFamily
     font.pixelSize: Theme.fontSize()
-    text: "1023 Kio/s"
+    text: "1023 " + I18n.value("format.units")[1] + "/s"
   }
 
   Row {

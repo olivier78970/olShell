@@ -52,7 +52,7 @@ Item {
       ThemedText {
         required property int index
 
-        text: "Core " + index + " : " + Math.round(SystemStats.corePercents[index]) + "%"
+        text: I18n.tr("cpu.core", index) + " : " + Math.round(SystemStats.corePercents[index]) + "%"
       }
     }
   }

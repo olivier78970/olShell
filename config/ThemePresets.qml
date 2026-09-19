@@ -9,9 +9,8 @@ import Quickshell
 Singleton {
   readonly property var presets: [
     {
-      id: "auto",
-      name: "Automatique",
-      description: "Couleurs du fond d'écran"
+      // Named and described by I18n ("theme.auto", "theme.autoDescription").
+      id: "auto"
     },
     {
       id: "catppuccin-mocha",
