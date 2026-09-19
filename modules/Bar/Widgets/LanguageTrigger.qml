@@ -1,4 +1,5 @@
 import QtQuick
+import qs.components
 import qs.config
 
 // Shows the language in use ("EN" / "FR"); clicking it switches to the other

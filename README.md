@@ -37,30 +37,37 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
 │   ├── Btop.qml              # Opens/closes the btop terminal window (toggle + `btop` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
-├── modules/Bar/              # Bar widgets and the panels/dialogs opened from it
-│   ├── Bar.qml               # Top bar, one per screen
-│   ├── Pill.qml, Separator.qml, PopupMenu.qml, HoverPopup.qml, ThemedText.qml
-│   ├── ModalPanel.qml        # Shared base of the full-screen panels: backdrop, frame, keyboard focus
-│   ├── CarouselPanel.qml, CarouselCard.qml   # Shared base of the two pickers below
-│   ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
-│   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart used by the performance tab
-│   ├── TabBar.qml, IconButton.qml
-│   ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger
-│   ├── Tray, TrayItem, TrayMenuItem
-│   ├── CpuUsage, RamUsage, NetworkSpeed, Volume
-│   ├── PowerMenu, PowerMenuOption, PowerConfirmDialog
-│   ├── VolumeOsd.qml         # Bottom-of-screen volume popup
-│   ├── LockKeysOsd.qml       # Bottom-of-screen Caps Lock / Num Lock popup
-│   ├── LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
-│   ├── SettingsPanel.qml, SettingSlider.qml, ChoiceRow.qml   # Settings panel and its rows
-│   ├── WallpaperPanel.qml    # Wallpaper picker (CarouselPanel + waypaper/matugen)
-│   └── ThemePanel.qml        # Theme picker (CarouselPanel + ThemeState)
+├── components/               # Generic building blocks shared by the widgets (import qs.components)
+│   ├── ThemedText.qml        # Text in the shell's font and color
+│   ├── Pill.qml, Separator.qml, IconButton.qml, TabBar.qml, PowerMenuOption.qml   # Bar pill, divider and buttons
+│   ├── PopupMenu.qml, HoverPopup.qml   # Popup windows: a menu, and one opened by hovering
+│   ├── ModalPanel.qml        # Base of the full-screen panels: backdrop, frame, keyboard focus
+│   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes)
+│   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
+│   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
+│   └── SettingSlider.qml, ChoiceRow.qml   # Rows of the settings panel
+├── modules/                  # One directory per feature (import qs.modules.<Name>)
+│   ├── Bar/                  # The top bar
+│   │   ├── Bar.qml           # Top bar, one per screen
+│   │   └── Widgets/          # What sits in the bar (import qs.modules.Bar.Widgets)
+│   │       ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger
+│   │       ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
+│   │       ├── Tray, TrayItem, TrayMenuItem
+│   │       ├── CpuUsage, RamUsage, NetworkSpeed, Volume
+│   │       └── PowerMenu
+│   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
+│   ├── Osd/                  # Bottom-of-screen popups
+│   │   ├── VolumeOsd.qml     # Volume
+│   │   └── LockKeysOsd.qml   # Caps Lock / Num Lock
+│   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider and ChoiceRow)
+│   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
+│   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/btop-launch.py    # Themes and starts btop in a terminal (used by services/Btop.qml)
 └── matugen/quickshell.toml   # matugen config for this shell's template
 ```
 
-Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`) instead of relative paths.
+Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`, `import qs.components`, `import qs.modules.Bar.Widgets`, `import qs.modules.Settings`) instead of relative paths.
 
 ## Running
 
@@ -94,7 +101,7 @@ Click or drag a slider, or use the keys: **↑/↓** select a row, **←/→** a
 
 From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginTop`, `barMarginLeft`, `barMarginRight`, `borderWidth`; out-of-range values are clamped), `settings get <key>` and `settings reset`.
 
-Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row in [modules/Bar/SettingsPanel.qml](modules/Bar/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
+Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row in [modules/Settings/SettingsPanel.qml](modules/Settings/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
 
 ## Localization
 
@@ -148,7 +155,7 @@ cp matugen/quickshell.toml ~/.config/matugen/quickshell.toml
 
 ## Clock popup
 
-Hovering the clock opens a popup (it stays open while the pointer is over it) with a tab bar: **Agenda** (the default tab: a month calendar, weeks starting on Monday with ISO week numbers; the arrows browse months, "Aujourd'hui" jumps back, today is highlighted; no events yet) and **Performances** (see the next section). The popup is as wide as its tab bar needs (520 px at least) and as tall as the tab being shown. To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [ClockPanel.qml](modules/Bar/ClockPanel.qml).
+Hovering the clock opens a popup (it stays open while the pointer is over it) with a tab bar: **Agenda** (the default tab: a month calendar, weeks starting on Monday with ISO week numbers; the arrows browse months, "Aujourd'hui" jumps back, today is highlighted; no events yet) and **Performances** (see the next section). The popup is as wide as its tab bar needs (520 px at least) and as tall as the tab being shown. To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [ClockPanel.qml](modules/Bar/Widgets/ClockPanel.qml).
 
 ## Performances
 

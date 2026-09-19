@@ -1,5 +1,11 @@
 import Quickshell
+import qs.components
 import qs.modules.Bar
+import qs.modules.Launcher
+import qs.modules.Osd
+import qs.modules.Settings
+import qs.modules.Theme
+import qs.modules.Wallpapers
 import qs.services
 
 ShellRoot {

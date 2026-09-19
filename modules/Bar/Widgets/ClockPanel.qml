@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import qs.components
 import qs.config
 
 // Content of the clock's popup: a tab bar over the page of the current tab

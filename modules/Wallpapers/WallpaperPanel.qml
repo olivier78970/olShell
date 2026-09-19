@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // Screen-centered wallpaper picker, toggled from outside via:

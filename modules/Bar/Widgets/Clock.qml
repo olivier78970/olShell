@@ -1,11 +1,14 @@
 import QtQuick
-import Quickshell.Io
+import qs.components
 import qs.config
-import qs.services
 
-// RAM usage percentage; hover to see used/total in a popup.
+// Centered date/time display, in the current language. Hovering it opens the popup
+// with the agenda and the performance figures.
 Item {
   id: root
+
+  readonly property var locale: I18n.locale
+  property date now: new Date()
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: content.implicitWidth
@@ -18,37 +21,35 @@ Item {
 
     ThemedText {
       anchors.verticalCenter: parent.verticalCenter
-      text: ""
+      text: ""
     }
 
     ThemedText {
-      id: label
       anchors.verticalCenter: parent.verticalCenter
-      text: Math.round(SystemStats.ramPercent) + "%"
+      text: root.now.toLocaleString(root.locale, I18n.value("format.dateTime"))
     }
   }
 
   MouseArea {
     anchors.fill: parent
     hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
-    onClicked: monitorProcess.running = true
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }
 
-  Process {
-    id: monitorProcess
-    command: Apps.systemMonitor
+  Timer {
+    interval: 1000
+    running: true
+    repeat: true
+    onTriggered: root.now = new Date()
   }
 
   HoverPopup {
     id: popup
     anchorItem: root
-    anchor.margins.right: -Theme.pillPadding
+    alignCenter: true
+    keepOpen: true
 
-    ThemedText {
-      text: I18n.tr("ram.used", SystemStats.formatBytes(SystemStats.ramUsedKb * 1024), SystemStats.formatBytes(SystemStats.ramTotalKb * 1024))
-    }
+    ClockPanel {}
   }
 }

@@ -1,6 +1,8 @@
 import Quickshell
 import QtQuick
+import qs.components
 import qs.config
+import qs.modules.Bar.Widgets
 
 // Top bar, replicated across every connected screen.
 Scope {

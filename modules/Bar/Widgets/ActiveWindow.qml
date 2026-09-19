@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import qs.components
 import qs.config
 
 // Icon and title of the currently focused window (any compositor

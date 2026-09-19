@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.components
 import qs.config
 
 // The agenda page of the clock popup: a month calendar (weeks start on

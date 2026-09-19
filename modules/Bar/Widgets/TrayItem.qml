@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import qs.components
 import qs.config
 
 // A single system tray icon: left click activates, right click opens

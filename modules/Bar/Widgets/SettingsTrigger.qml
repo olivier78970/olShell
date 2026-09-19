@@ -1,7 +1,8 @@
 import QtQuick
+import qs.components
 import qs.config
 
-// Icon that opens the application launcher.
+// Icon that opens the settings panel.
 Item {
   id: root
 
@@ -12,12 +13,12 @@ Item {
   ThemedText {
     id: icon
     anchors.centerIn: parent
-    text: "󰀻"
+    text: "󰒓"
   }
 
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: LauncherState.toggle()
+    onClicked: SettingsPanelState.toggle()
   }
 }

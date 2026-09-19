@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.components
 import qs.config
 
 // Power icon that toggles a small logout/restart/shutdown menu below it.

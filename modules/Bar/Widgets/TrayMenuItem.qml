@@ -1,4 +1,5 @@
 import QtQuick
+import qs.components
 import qs.config
 
 // One row in a tray item's context menu: a separator line, or a
