@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Starts a TUI application (btop or wiremix) in a terminal, themed with the shell's colors.
+"""Starts a TUI application (btop, wiremix or bluetui) in a terminal, themed with the shell's colors.
 
-Usage: tui-launch.py --app btop|wiremix --background #rrggbb --surface #rrggbb
+Usage: tui-launch.py --app btop|wiremix|bluetui --background #rrggbb --surface #rrggbb
                      --text #rrggbb --accent #rrggbb --outline #rrggbb
                      --warning #rrggbb --opacity 0-1 -- TERMINAL...
 
@@ -10,7 +10,7 @@ part, which is added here. A theme is generated from the colors into
 $XDG_RUNTIME_DIR/quickshell-APP/, along with a copy of your own configuration
 file for the application that selects it, so your own configuration is left
 alone (settings changed inside the application are saved to the copy, not to
-your file).
+your file). bluetui has no theme option: it takes the terminal's colors.
 
 The terminal window is made as translucent as the shell's widgets (--opacity),
 so the compositor can blur what's behind it: the applications are themed but
@@ -21,7 +21,7 @@ import os
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--app", required=True, choices=("btop", "wiremix"))
+parser.add_argument("--app", required=True, choices=("btop", "wiremix", "bluetui"))
 for name in ("background", "surface", "text", "accent", "outline", "warning"):
     parser.add_argument("--" + name, required=True)
 parser.add_argument("--opacity", type=float, default=1.0)
@@ -158,6 +158,11 @@ def wiremix():
     return ["wiremix", "-c", config_path, "-t", "quickshell"]
 
 
+def bluetui():
+    """bluetui has no theme of its own: it uses the terminal's palette, set below."""
+    return ["bluetui"]
+
+
 # Terminal colors too: the applications leave their background to the
 # terminal (btop's `theme_background` is off, wiremix has none), and so does
 # the padding around them. The window's opacity is the shell's.
@@ -173,5 +178,5 @@ if os.path.basename(terminal[0]) == "alacritty":
     ):
         extra += ["-o", "%s=%s" % (key, value)]
 
-command = terminal + extra + ["-e"] + {"btop": btop, "wiremix": wiremix}[args.app]()
+command = terminal + extra + ["-e"] + {"btop": btop, "wiremix": wiremix, "bluetui": bluetui}[args.app]()
 os.execvp(command[0], command)
