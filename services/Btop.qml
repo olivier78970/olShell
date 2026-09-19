@@ -6,16 +6,19 @@ import qs.config
 
 // btop in a floating, centered terminal window that opens and closes like a
 // panel: toggle() opens it, or closes it if it's already open (see
-// TuiWindow.qml). The terminal and size are in config/Apps.qml.
+// TuiWindow.qml). The terminal and size are in config/Apps.qml. toggle("net")
+// opens it with only the network box (any btop boxes: "cpu mem"...), in a
+// smaller window.
 //
 //   quickshell -p . ipc call btop toggle
+//   quickshell -p . ipc call btop network
 Singleton {
   id: root
 
   readonly property var monitor: window.monitor
 
-  function toggle() {
-    window.toggle()
+  function toggle(boxes) {
+    window.toggle(boxes ? { boxes: boxes, widthFraction: Apps.btopBoxWidth, heightFraction: Apps.btopBoxHeight } : {})
   }
 
   TuiWindow {
@@ -32,6 +35,10 @@ Singleton {
 
     function toggle(): void {
       root.toggle()
+    }
+
+    function network(): void {
+      root.toggle("net")
     }
   }
 }

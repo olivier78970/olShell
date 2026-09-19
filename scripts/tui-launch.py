@@ -3,7 +3,7 @@
 
 Usage: tui-launch.py --app btop|wiremix|bluetui --background #rrggbb --surface #rrggbb
                      --text #rrggbb --accent #rrggbb --outline #rrggbb
-                     --warning #rrggbb --opacity 0-1 -- TERMINAL...
+                     --warning #rrggbb --opacity 0-1 [--boxes "net"] -- TERMINAL...
 
 TERMINAL... is the terminal command up to, but not including, the `-e APP`
 part, which is added here. A theme is generated from the colors into
@@ -11,6 +11,8 @@ $XDG_RUNTIME_DIR/quickshell-APP/, along with a copy of your own configuration
 file for the application that selects it, so your own configuration is left
 alone (settings changed inside the application are saved to the copy, not to
 your file). bluetui has no theme option: it takes the terminal's colors.
+--boxes (btop only) is the list of boxes to show, e.g. "net" or "cpu mem"
+(btop's `shown_boxes`), instead of the ones in your configuration.
 
 The terminal window is made as translucent as the shell's widgets (--opacity),
 so the compositor can blur what's behind it: the applications are themed but
@@ -25,6 +27,7 @@ parser.add_argument("--app", required=True, choices=("btop", "wiremix", "bluetui
 for name in ("background", "surface", "text", "accent", "outline", "warning"):
     parser.add_argument("--" + name, required=True)
 parser.add_argument("--opacity", type=float, default=1.0)
+parser.add_argument("--boxes", default="")
 parser.add_argument("terminal", nargs=argparse.REMAINDER)
 args = parser.parse_args()
 terminal = args.terminal[1:] if args.terminal[:1] == ["--"] else args.terminal
@@ -102,7 +105,10 @@ def btop():
     # The user's config, with our theme selected (and its background left to
     # the terminal, so the window can be translucent).
     config = read_user_config("btop", "btop.conf")
-    for key, value in (("color_theme", '"quickshell"'), ("theme_background", "false")):
+    settings = [("color_theme", '"quickshell"'), ("theme_background", "false")]
+    if args.boxes:
+        settings.append(("shown_boxes", '"%s"' % args.boxes.replace('"', "")))
+    for key, value in settings:
         line = "%s = %s" % (key, value)
         config, replaced = re.subn(r"(?m)^%s\s*=.*$" % key, line, config)
         if not replaced:

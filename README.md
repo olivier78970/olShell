@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU or RAM widget; the network-speed widget opens it with only the network box), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -125,7 +125,7 @@ The texts are in [config/Translations.qml](config/Translations.qml), one diction
 
 ## btop
 
-Clicking the CPU, RAM or network-speed widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/TuiWindow.qml](services/TuiWindow.qml) (shared with wiremix, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
+Clicking the CPU or RAM widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. Clicking the network-speed widget (or `quickshell -p . ipc call btop network`) does the same but shows only btop's network box, in a smaller window (50% × 50%; `btopBoxWidth` and `btopBoxHeight` in [config/Apps.qml](config/Apps.qml)). That is done by setting `shown_boxes` in the copy of your `btop.conf` described below, so your own configuration and its layout are not touched; a click on another widget while such a window is open closes it, as they all share the one window. [services/TuiWindow.qml](services/TuiWindow.qml) (shared with wiremix, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
 
 The window is themed with the shell's current colors: [scripts/tui-launch.py](scripts/tui-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
 
@@ -201,6 +201,7 @@ Bind these to keys, e.g. from Hyprland:
 quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call btop toggle                   # open/close the btop window
+quickshell -p . ipc call btop network                  # open/close it showing only the network box
 quickshell -p . ipc call wiremix toggle                # open/close the wiremix window
 quickshell -p . ipc call bluetui toggle                # open/close the bluetui window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher

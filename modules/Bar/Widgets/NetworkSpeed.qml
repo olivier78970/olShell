@@ -6,7 +6,7 @@ import qs.services
 // Instant download and upload speed of the physical network interfaces.
 // Each figure has a fixed width (that of the longest text it can show), so
 // the bar doesn't shift around as the numbers change. Click to open or close
-// btop.
+// btop with only its network box.
 Item {
   id: root
 
@@ -62,6 +62,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle()
+    onClicked: Btop.toggle("net")
   }
 }

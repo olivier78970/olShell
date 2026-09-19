@@ -5,7 +5,8 @@ import qs.config
 
 // A TUI application (see scripts/tui-launch.py) in a floating, centered
 // terminal window that opens and closes like a panel: toggle() opens it, or
-// closes it if it's already open. The window is themed with the shell's
+// closes it if it's already open (`options` of toggle() can ask for something
+// other than the usual window: see open()). The window is themed with the shell's
 // current colors and as translucent as its widgets (so Hyprland can blur what's
 // behind it). Needs Hyprland, which is asked to float, size and center
 // the window when it launches it (no config of yours is involved).
@@ -26,7 +27,11 @@ Scope {
   // data is already loaded by the time the window is opened.
   readonly property var monitor: Hyprland.focusedMonitor
 
-  function toggle() {
+  // What the next open() should do differently, from toggle()'s `options`.
+  property var pending: ({})
+
+  function toggle(options) {
+    root.pending = options ?? {}
     probe.running = true
   }
 
@@ -35,11 +40,17 @@ Scope {
     return JSON.stringify(text)
   }
 
+  // `options` (all optional): `boxes`, the btop boxes to show instead of the
+  // ones in its configuration ("net", "cpu mem"...); `widthFraction` and
+  // `heightFraction`, a size other than the usual one.
   function open() {
+    const options = root.pending
+    const widthFraction = options.widthFraction ?? root.widthFraction
+    const heightFraction = options.heightFraction ?? root.heightFraction
     // Window sizes are in logical pixels, monitor sizes in physical ones.
     const scale = root.monitor ? root.monitor.scale : 1
-    const width = root.monitor ? Math.round(root.monitor.width / scale * root.widthFraction) : 1200
-    const height = root.monitor ? Math.round(root.monitor.height / scale * root.heightFraction) : 800
+    const width = root.monitor ? Math.round(root.monitor.width / scale * widthFraction) : 1200
+    const height = root.monitor ? Math.round(root.monitor.height / scale * heightFraction) : 800
 
     // The launcher themes the application (and the terminal) with the colors
     // the shell is using right now.
@@ -52,8 +63,9 @@ Scope {
       "--accent", Theme.accentColor.toString(),
       "--outline", Theme.outlineColor.toString(),
       "--warning", Theme.warningColor.toString(),
-      "--opacity", Theme.widgetOpacity.toFixed(2),
-      "--"].concat(root.terminal).map(quote).join(" ")
+      "--opacity", Theme.widgetOpacity.toFixed(2)]
+      .concat(options.boxes ? ["--boxes", options.boxes] : [])
+      .concat(["--"]).concat(root.terminal).map(quote).join(" ")
     Hyprland.dispatch("hl.dsp.exec_cmd(" + root.lua(command) + ", { float = true, center = true, size = "
       + root.lua(width + " " + height) + " })")
   }

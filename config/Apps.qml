@@ -15,6 +15,10 @@ Singleton {
   // Its size, as fractions of the focused monitor.
   readonly property real btopWidth: 0.85
   readonly property real btopHeight: 0.9
+  // The size of a window showing only some of btop's boxes (the network
+  // widget's), which needs less room.
+  readonly property real btopBoxWidth: 0.5
+  readonly property real btopBoxHeight: 0.5
 
   // The wiremix window (see services/Wiremix.qml), opened by clicking the
   // volume widget: same idea as btop, with its own window class and size.
