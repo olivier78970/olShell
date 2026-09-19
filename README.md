@@ -1,14 +1,15 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), a wiremix audio mixer window (click the volume widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
 - [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
 - [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
 - [`wiremix`](https://github.com/tsowell/wiremix) for the audio mixer window (volume click)
+- [`bluetui`](https://github.com/pythops/bluetui) for the Bluetooth window (left click on the Blueman tray icon)
 - PipeWire (volume)
-- `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for both windows
+- `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
 - the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
 
 ## Structure
@@ -38,6 +39,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── TuiWindow.qml         # A TUI app in a floating, themed terminal window that opens/closes like a panel
 │   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
 │   ├── Wiremix.qml           # The wiremix window (toggle + `wiremix` IPC target)
+│   ├── Bluetui.qml           # The bluetui window (toggle + `bluetui` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
 │   ├── ThemedText.qml        # Text in the shell's font and color
@@ -65,7 +67,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
-├── scripts/tui-launch.py     # Themes and starts btop or wiremix in a terminal (used by services/TuiWindow.qml)
+├── scripts/tui-launch.py     # Themes and starts btop, wiremix or bluetui in a terminal (used by services/TuiWindow.qml)
 └── matugen/quickshell.toml   # matugen config for this shell's template
 ```
 
@@ -137,6 +139,12 @@ The theme is a `[themes.quickshell]` table appended to a copy of your `~/.config
 
 Both this window and the btop one are as translucent as the widgets (the **Widget opacity** setting, read each time a window opens), so Hyprland blurs what's behind them if its blur is enabled. To make that possible the applications don't paint a background of their own (btop's `theme_background` is turned off in the copy of its config) and the terminal window's opacity is set to the widget opacity, overriding your terminal's own setting (only alacritty is handled, as for the colors).
 
+## bluetui
+
+Left-clicking the Bluetooth icon in the tray (or `quickshell -p . ipc call bluetui toggle`) opens [bluetui](https://github.com/pythops/bluetui), a TUI Bluetooth manager, in a terminal window (50% × 60% of the monitor by default), and clicking again (or the same call) closes it. It is the same machinery as the btop and wiremix windows: [services/TuiWindow.qml](services/TuiWindow.qml) opens it floating and centered with its own window class (`quickshell-bluetui`), and the window is as translucent as the widgets. bluetui has no theme option, so it takes the colors of the terminal, which [scripts/tui-launch.py](scripts/tui-launch.py) sets from the shell's palette (alacritty only).
+
+Which tray icons behave this way is [config/Apps.qml](config/Apps.qml)'s `trayLeftClick`, a table from a tray item's id (the application's name: `blueman` for Blueman's icon) to what the left click does instead of the application's own action; only `"bluetui"` exists for now. Right and middle clicks are unchanged, so Blueman's own menu is still on the right click. The terminal and size are `bluetuiTerminal`, `bluetuiWidth` and `bluetuiHeight`.
+
 ## Launcher
 
 The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher toggle` (bind it to a key), opens a search box over the installed applications (their `.desktop` entries). Type to filter: matches names first (exact, prefix, word prefix, anywhere), then generic name, keywords, category and description, and finally letters in order (`ffx` finds Firefox). **↑/↓**, **Tab / Shift+Tab**, **Ctrl+N / Ctrl+P** (or **Ctrl+J / Ctrl+K**) and **Page Up / Down** move the selection, **Enter** launches it, **Escape** or a click outside closes. Hovering moves the selection too and a click launches; resting the pointer on an entry for half a second shows a tooltip with the real process name (e.g. "Fichiers" → `nautilus`), its full command and its desktop-entry id. With an empty search the list is alphabetical.
@@ -194,6 +202,7 @@ quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpape
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call btop toggle                   # open/close the btop window
 quickshell -p . ipc call wiremix toggle                # open/close the wiremix window
+quickshell -p . ipc call bluetui toggle                # open/close the bluetui window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call themes themesToggle       # open/close the theme panel
