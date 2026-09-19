@@ -32,7 +32,7 @@ Item {
       ThemedText {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰇚"
-        color: Theme.accentColor
+        //color: Theme.accentColor
       }
 
       ThemedText {
@@ -48,7 +48,7 @@ Item {
       ThemedText {
         anchors.verticalCenter: parent.verticalCenter
         text: "󰕒"
-        color: Qt.tint(Theme.accentColor, Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.5))
+        //color: Qt.tint(Theme.accentColor, Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.5))
       }
 
       ThemedText {
