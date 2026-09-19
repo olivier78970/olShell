@@ -15,8 +15,8 @@ Singleton {
   // Its size, as fractions of the focused monitor.
   readonly property real btopWidth: 0.85
   readonly property real btopHeight: 0.9
-  // The size of a window showing only some of btop's boxes (the network
-  // widget's), which needs less room.
+  // The size of a window showing only some of btop's boxes, as the CPU, RAM and
+  // network widgets open it: it needs less room.
   readonly property real btopBoxWidth: 0.5
   readonly property real btopBoxHeight: 0.5
 

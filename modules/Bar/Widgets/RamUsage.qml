@@ -4,7 +4,7 @@ import qs.config
 import qs.services
 
 // RAM usage percentage; hover to see used/total in a popup, click to open or
-// close btop.
+// close btop with only its memory box.
 Item {
   id: root
 
@@ -33,7 +33,7 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle()
+    onClicked: Btop.toggle("mem")
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }

@@ -4,7 +4,7 @@ import qs.config
 import qs.services
 
 // Global CPU usage percentage; hover to see per-core usage in a popup, click
-// to open or close btop.
+// to open or close btop with only its CPU box.
 Item {
   id: root
 
@@ -37,7 +37,7 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle()
+    onClicked: Btop.toggle("cpu")
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }
