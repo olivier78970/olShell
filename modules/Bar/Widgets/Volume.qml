@@ -1,10 +1,10 @@
 import QtQuick
-import Quickshell.Io
 import qs.components
 import qs.config
 import qs.services
 
-// Output volume percentage; scroll over it to adjust.
+// Output volume percentage; scroll over it to adjust, click to open or close
+// wiremix.
 Item {
   id: root
 
@@ -38,12 +38,7 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: pavucontrolProcess.running = true
+    onClicked: Wiremix.toggle()
     onWheel: wheel => Audio.adjust((wheel.angleDelta.y / 120) * root.step)
-  }
-
-  Process {
-    id: pavucontrolProcess
-    command: Apps.volumeMixer
   }
 }

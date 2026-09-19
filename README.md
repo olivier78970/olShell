@@ -1,14 +1,14 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget), a wiremix audio mixer window (click the volume widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
 - [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
 - [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
-- `pavucontrol` (volume click) — configurable in [config/Apps.qml](config/Apps.qml)
+- [`wiremix`](https://github.com/tsowell/wiremix) for the audio mixer window (volume click)
 - PipeWire (volume)
-- `btop` and a terminal (`alacritty` by default) for the btop window
+- `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for both windows
 - the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
 
 ## Structure
@@ -35,7 +35,9 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
 │   ├── LockKeys.qml          # Caps Lock / Num Lock state, from scripts/lock-keys-watch.py
 │   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
-│   ├── Btop.qml              # Opens/closes the btop terminal window (toggle + `btop` IPC target)
+│   ├── TuiWindow.qml         # A TUI app in a floating, themed terminal window that opens/closes like a panel
+│   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
+│   ├── Wiremix.qml           # The wiremix window (toggle + `wiremix` IPC target)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
 │   ├── ThemedText.qml        # Text in the shell's font and color
@@ -63,7 +65,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
-├── scripts/btop-launch.py    # Themes and starts btop in a terminal (used by services/Btop.qml)
+├── scripts/tui-launch.py     # Themes and starts btop or wiremix in a terminal (used by services/TuiWindow.qml)
 └── matugen/quickshell.toml   # matugen config for this shell's template
 ```
 
@@ -121,11 +123,17 @@ The texts are in [config/Translations.qml](config/Translations.qml), one diction
 
 ## btop
 
-Clicking the CPU, RAM or network-speed widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/Btop.qml](services/Btop.qml) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
+Clicking the CPU, RAM or network-speed widget (or `quickshell -p . ipc call btop toggle`) opens btop in a terminal window, and clicking again (or the same call) closes it. [services/TuiWindow.qml](services/TuiWindow.qml) (shared with wiremix, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
 
-The window is themed with the shell's current colors: [scripts/btop-launch.py](scripts/btop-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
+The window is themed with the shell's current colors: [scripts/tui-launch.py](scripts/tui-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
 
 It is a real terminal window, so btop works completely (mouse, copy/paste, resizing) but it's an ordinary window: no dimmed backdrop, and clicking elsewhere or pressing Escape doesn't close it. The terminal and size (as fractions of the monitor, 85% × 90% by default) are in [config/Apps.qml](config/Apps.qml) (`btopTerminal`, `btopWidth`, `btopHeight`); another terminal works too, but only alacritty gets the colors applied (btop itself is themed either way).
+
+## wiremix
+
+Clicking the volume widget (or `quickshell -p . ipc call wiremix toggle`) opens [wiremix](https://github.com/tsowell/wiremix), a TUI mixer for PipeWire, in a terminal window, and clicking again (or the same call) closes it. It works exactly like the btop window above: the same [services/TuiWindow.qml](services/TuiWindow.qml) opens it floating and centered (60% × 70% of the monitor by default) with its own window class (`quickshell-wiremix`), and [scripts/tui-launch.py](scripts/tui-launch.py) themes it with the shell's colors. It has tabs for playback, recording, output and input devices and the device configuration; press **?** inside for its keys.
+
+The theme is a `[themes.quickshell]` table appended to a copy of your `~/.config/wiremix/wiremix.toml` (if you have one) in `$XDG_RUNTIME_DIR/quickshell-wiremix/`, selected on the command line, so your own configuration is never modified and its `theme` option is overridden only for this window. The terminal and size are in [config/Apps.qml](config/Apps.qml) (`wiremixTerminal`, `wiremixWidth`, `wiremixHeight`). Scrolling over the volume widget still adjusts the volume.
 
 ## Launcher
 
@@ -183,6 +191,7 @@ Bind these to keys, e.g. from Hyprland:
 quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call btop toggle                   # open/close the btop window
+quickshell -p . ipc call wiremix toggle                # open/close the wiremix window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call themes themesToggle       # open/close the theme panel
@@ -191,7 +200,7 @@ quickshell -p . ipc call volume decrease 0.05
 quickshell -p . ipc call volume mute
 ```
 
-Volume changes from any source (these calls, media keys, pavucontrol) also show the OSD.
+Volume changes from any source (these calls, media keys, wiremix, pavucontrol...) also show the OSD.
 
 ## Lock keys OSD
 
