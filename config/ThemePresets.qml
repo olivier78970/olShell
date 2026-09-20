@@ -5,7 +5,7 @@ import Quickshell
 // Selectable themes, in the order shown by the theme panel. "auto" has no
 // colors of its own: it uses the palette matugen generated from the current
 // wallpaper (see GeneratedColors.qml). The others are fixed palettes, using
-// the same five roles as matugen/GeneratedColors.json.template.
+// the same five roles as matugen/quickshell-theme.json.template.
 Singleton {
   readonly property var presets: [
     {

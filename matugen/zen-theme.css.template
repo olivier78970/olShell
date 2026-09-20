@@ -1,7 +1,7 @@
 /* Zen browser's interface, colored with the shell's palette.
  *
  * Written by matugen from the current wallpaper - do not edit: change
- * matugen/zen-userChrome.css.template in olShell instead.
+ * matugen/zen-theme.css.template in olShell instead.
  *
  * Zen mixes its whole interface out of one accent color and two "branding"
  * colors, so overriding those three re-colors the tabs, the sidebar, the URL

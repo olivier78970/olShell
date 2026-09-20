@@ -8,12 +8,12 @@ set = false
 
 # The shell's own palette (Theme reads it for "Automatique").
 [templates.quickshell]
-input_path = "GeneratedColors.json.template"
+input_path = "quickshell-theme.json.template"
 output_path = "../config/GeneratedColors.json"
 
 # Zen browser's interface. Set output_path to your own Zen profile (the one
 # marked Default in ~/.config/zen/profiles.ini), or drop this block if you
 # don't use Zen.
 [templates.zen]
-input_path = "zen-userChrome.css.template"
+input_path = "zen-theme.css.template"
 output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
