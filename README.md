@@ -5,7 +5,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 ## Requirements
 
 - [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
-- [matugen](https://github.com/InioX/matugen) and [waypaper](https://github.com/anufrievroman/waypaper) for the wallpaper picker
+- [matugen](https://github.com/InioX/matugen) and [awww](https://codeberg.org/LGFae/awww) for the wallpaper picker (awww is the wallpaper daemon; the shell starts it when it isn't running)
 - [`wiremix`](https://github.com/tsowell/wiremix) for the audio mixer window (volume click)
 - [`bluetui`](https://github.com/pythops/bluetui) for the Bluetooth window (left click on the Blueman tray icon)
 - [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
@@ -68,7 +68,8 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   │   └── LockKeysOsd.qml   # Caps Lock / Num Lock
 │   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider and ChoiceRow)
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
-│   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
+│   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + awww/matugen)
+├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
@@ -231,7 +232,9 @@ The figures come from [services/SystemStats.qml](services/SystemStats.qml), whic
 
 The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry. Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](config/Paths.qml).
 
-Left/Right browse without changing anything; **Enter**, clicking a picture, or "Image du jour" applies it (waypaper sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+Left/Right browse without changing anything; **Enter**, clicking a picture, or "Image du jour" applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+
+Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login; the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
 ## IPC
 

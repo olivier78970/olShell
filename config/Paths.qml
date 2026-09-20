@@ -24,6 +24,9 @@ Singleton {
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
+  // Applies a wallpaper with awww, starting its daemon if needed.
+  readonly property string applyWallpaperScript: Quickshell.shellPath("scripts/apply-wallpaper.py")
+
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")

@@ -41,6 +41,11 @@ Singleton {
   readonly property real gduWidth: 0.6
   readonly property real gduHeight: 0.7
 
+  // The options of `awww img` used when a wallpaper is applied (see
+  // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image
+  // fills the screen, and the transition to it.
+  readonly property var wallpaperOptions: ["--resize", "crop", "--transition-type", "fade", "--transition-step", "63", "--transition-duration", "2", "--transition-fps", "60"]
+
   // What a left click does on some tray icons, by tray item id, instead of
   // the application's own action: "bluetui" opens/closes the bluetui window.
   // (An item's id is the application's name, e.g. "blueman" for Blueman.)

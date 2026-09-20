@@ -57,8 +57,9 @@ Singleton {
     }
   }
 
-  // Starting matugen in the same tick as waypaper reliably makes one of the
-  // two Process spawns silently no-op, so a request waits a moment first.
+  // Starting matugen in the same tick as the wallpaper command reliably makes
+  // one of the two Process spawns silently no-op, so a request waits a moment
+  // first.
   Timer {
     id: start
     interval: 300

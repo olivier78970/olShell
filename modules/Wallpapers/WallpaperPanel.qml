@@ -7,7 +7,7 @@ import qs.services
 // Screen-centered wallpaper picker, toggled from outside via:
 //   quickshell -p . ipc call wallpapers wallpapersToggle
 // Wallpapers are browsed in a carousel (centered item large, neighbors
-// smaller); Enter or a click applies one with waypaper.
+// smaller); Enter or a click applies one with awww.
 // The Bing "picture of the day" can also be applied directly via:
 //   quickshell -p . ipc call wallpapers applyPod
 CarouselPanel {
@@ -41,15 +41,12 @@ CarouselPanel {
   }
 
   function applyPath(path) {
-    // Waypaper starts the wallpaper daemon (awww) when it isn't running, as a
-    // child that inherits waypaper's output. If that output is a pipe of ours,
-    // the daemon dies (SIGPIPE) as soon as we close it when waypaper exits, and
-    // the wallpaper vanishes: so the output goes to /dev/null instead.
-    applyProcess.command = ["sh", "-c", 'exec waypaper --wallpaper "$1" >/dev/null 2>&1 </dev/null', "sh", path]
+    // The script starts awww's daemon when it isn't running, detached from us.
+    applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, [path])
     applyProcess.running = true
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
-    // it doesn't spawn in the same tick as waypaper above.
+    // it doesn't spawn in the same tick as the wallpaper command above.
     Matugen.applyWallpaper(path)
   }
 
