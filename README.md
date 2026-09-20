@@ -234,7 +234,7 @@ The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config
 
 Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
-Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login; the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
+Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell also re-applies the last wallpaper (the one remembered in `config/ThemeState.json`) when it starts, so the wallpaper is back at login; the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
 ## IPC
 
