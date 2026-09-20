@@ -8,8 +8,10 @@ import qs.services
 //   quickshell -p . ipc call wallpapers wallpapersToggle
 // Wallpapers are browsed in a carousel (centered item large, neighbors
 // smaller); Enter or a click applies one with waypaper.
-// The Bing "picture of the day" can also be applied directly via:
+// The Bing "picture of the day", or a random wallpaper, can also be applied
+// directly via:
 //   quickshell -p . ipc call wallpapers applyPod
+//   quickshell -p . ipc call wallpapers applyRandom
 CarouselPanel {
   id: root
 
@@ -38,7 +40,16 @@ CarouselPanel {
     function applyPod(): void {
       root.applyPath(root.podPath)
     }
+
+    function applyRandom(): void {
+      // The list is only read when the panel opens: read it again first.
+      root.randomPending = true
+      listProcess.running = true
+    }
   }
+
+  // A random wallpaper was asked for by IPC and waits for the list to load.
+  property bool randomPending: false
 
   // The index of a random wallpaper other than the one in use (unless it is the
   // only one), or -1 when the list is empty.
@@ -47,6 +58,15 @@ CarouselPanel {
     const others = indexes.filter(index => root.wallpapers[index] !== ThemeState.wallpaper)
     const pool = others.length > 0 ? others : indexes
     return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : -1
+  }
+
+  // Applies a random wallpaper (see randomIndex), moving the carousel to it
+  // when the panel is open.
+  function applyRandom() {
+    const index = root.randomIndex()
+    if (index < 0) return
+    root.currentIndex = index
+    root.applyPath(root.wallpapers[index])
   }
 
   function applyPath(path) {
@@ -75,6 +95,10 @@ CarouselPanel {
         // it's shown as the dedicated pod entry instead.
         if (podExists) saved.pop()
         root.wallpapers = podExists ? [root.podPath].concat(saved) : saved
+        if (root.randomPending) {
+          root.randomPending = false
+          root.applyRandom()
+        }
       }
     }
   }
@@ -120,19 +144,13 @@ CarouselPanel {
     }
   }
 
-  // Left of the picture-of-the-day button. Moves the carousel to the wallpaper
-  // it picked, like that button does.
+  // Left of the picture-of-the-day button.
   PowerMenuOption {
     anchors.top: podButton.top
     anchors.right: podButton.left
     anchors.rightMargin: 8
     icon: "\uDB81\uDC9F"
     label: I18n.tr("wallpaper.random")
-    onClicked: {
-      const index = root.randomIndex()
-      if (index < 0) return
-      root.currentIndex = index
-      root.accept()
-    }
+    onClicked: root.applyRandom()
   }
 }

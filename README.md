@@ -240,6 +240,7 @@ Bind these to keys, e.g. from Hyprland:
 ```sh
 quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
+quickshell -p . ipc call wallpapers applyRandom        # apply a random wallpaper other than the current one
 quickshell -p . ipc call btop toggle                   # open/close the full btop window
 quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
 quickshell -p . ipc call wiremix toggle                # open/close the wiremix window
