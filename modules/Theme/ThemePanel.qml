@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import qs.components
 import qs.config
+import qs.services
 
 // Screen-centered theme picker, toggled from outside via:
 //   quickshell -p . ipc call themes themesToggle
@@ -23,7 +24,11 @@ CarouselPanel {
   onCloseRequested: ThemePanelState.visible = false
   // Open on the theme currently in use.
   onOpened: root.showIndex(Math.max(0, root.activeIndex))
-  onAccepted: index => ThemeState.select(ThemePresets.presets[index].id)
+  onAccepted: index => {
+    ThemeState.select(ThemePresets.presets[index].id)
+    // Re-colors the other apps (Zen...) with the new theme.
+    Matugen.applyTheme()
+  }
 
   IpcHandler {
     target: "themes"

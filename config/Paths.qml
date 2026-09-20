@@ -24,7 +24,9 @@ Singleton {
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
-  // Dedicated matugen config containing only this shell's templates, kept in
-  // the repo so nothing has to be copied into ~/.config/matugen.
+  // Dedicated matugen configs, kept in the repo so nothing has to be copied
+  // into ~/.config/matugen: the shell's own palette (from the wallpaper), and
+  // the other apps colored with the selected theme (e.g. Zen).
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")
+  readonly property string matugenAppsConfig: Quickshell.shellPath("matugen/apps.toml")
 }

@@ -1,0 +1,17 @@
+[config]
+set = false
+
+# Other apps, colored with the palette of the theme selected in the shell:
+# generated from the wallpaper for "Automatique", from the theme's accent color
+# for a fixed theme (see services/Matugen.qml). Kept apart from quickshell.toml
+# so that a fixed theme never overwrites the shell's wallpaper palette.
+#
+# Add an app by adding a template here; relative paths are resolved against
+# this file's directory.
+
+# Zen browser's interface. Set output_path to your own Zen profile (the one
+# marked Default in ~/.config/zen/profiles.ini), or drop this block if you
+# don't use Zen.
+[templates.zen]
+input_path = "zen-userChrome.css.template"
+output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"

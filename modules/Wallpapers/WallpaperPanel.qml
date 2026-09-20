@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import qs.components
 import qs.config
+import qs.services
 
 // Screen-centered wallpaper picker, toggled from outside via:
 //   quickshell -p . ipc call wallpapers wallpapersToggle
@@ -42,12 +43,10 @@ CarouselPanel {
   function applyPath(path) {
     applyProcess.command = ["waypaper", "--wallpaper", path]
     applyProcess.running = true
-    // Starting matugen in the same tick as waypaper above reliably makes
-    // one of the two Process spawns silently no-op, so it's deferred to
-    // the next tick instead. Regenerates GeneratedColors.json, which
-    // Theme.qml picks up via FileView.
-    themeTimer.path = path
-    themeTimer.restart()
+    // Regenerates GeneratedColors.json, which Theme.qml picks up via
+    // FileView, and the other apps' colors. Matugen defers its own start so
+    // it doesn't spawn in the same tick as waypaper above.
+    Matugen.applyWallpaper(path)
   }
 
   Process {
@@ -73,26 +72,6 @@ CarouselPanel {
 
   Process {
     id: applyProcess
-  }
-
-  // No stdout collector: matugen's hooks for other apps (e.g. waybar)
-  // spawn long-lived background processes that would keep an attached
-  // pipe open indefinitely, so output is left uncaptured here.
-  Process {
-    id: themeProcess
-  }
-
-  Timer {
-    id: themeTimer
-    property string path: ""
-    interval: 300
-    onTriggered: {
-      // Scoped to a dedicated config with only the quickshell template,
-      // so this doesn't also restart unrelated apps (waybar, wofi, etc.)
-      // that the shared matugen config themes.
-      themeProcess.command = ["matugen", "image", themeTimer.path, "-m", "dark", "--prefer", "saturation", "-c", Paths.matugenConfig]
-      themeProcess.running = true
-    }
   }
 
   delegate: Component {

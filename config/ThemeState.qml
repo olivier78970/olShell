@@ -4,14 +4,22 @@ import Quickshell
 import Quickshell.Io
 
 // The currently selected theme, remembered across restarts in
-// ThemeState.json. `active` is the matching entry of ThemePresets.
+// ThemeState.json. `active` is the matching entry of ThemePresets. The last
+// applied wallpaper is kept there too, so "Automatique" can be regenerated
+// from it when it is selected again (see services/Matugen.qml).
 Singleton {
   id: root
 
   readonly property var active: ThemePresets.byId(file.adapter.selected)
+  readonly property string wallpaper: file.adapter.wallpaper
 
   function select(id) {
     file.adapter.selected = id
+    file.writeAdapter()
+  }
+
+  function setWallpaper(path) {
+    file.adapter.wallpaper = path
     file.writeAdapter()
   }
 
@@ -24,6 +32,7 @@ Singleton {
 
     JsonAdapter {
       property string selected: "auto"
+      property string wallpaper: ""
     }
   }
 }

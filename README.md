@@ -23,7 +23,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Theme.qml             # Sizes, font, corner radius, border width and colors shared by every widget
 │   ├── GeneratedColors.qml   # Active palette: selected theme, or matugen's GeneratedColors.json
 │   ├── ThemePresets.qml      # The selectable themes ("auto" + 10 fixed palettes)
-│   ├── ThemeState.qml        # Selected theme, saved in ThemeState.json
+│   ├── ThemeState.qml        # Selected theme and last wallpaper, saved in ThemeState.json
 │   ├── Settings.qml          # Adjustable look-and-feel values, saved in Settings.json (Theme reads them)
 │   ├── SettingsPanelState.qml   # Shared visibility of the settings panel
 │   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French texts
@@ -43,6 +43,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Wiremix.qml           # The wiremix window (toggle + `wiremix` IPC target)
 │   ├── Bluetui.qml           # The bluetui window (toggle + `bluetui` IPC target)
 │   ├── Gdu.qml               # The gdu window (toggle + `gdu` IPC target)
+│   ├── Matugen.qml           # Runs matugen when a wallpaper is applied or a theme is selected
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
 │   ├── ThemedText.qml        # Text in the shell's font and color
@@ -71,8 +72,9 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
-├── matugen/quickshell.toml   # matugen config for this shell's templates
-└── matugen/zen-userChrome.css.template   # matugen template coloring Zen browser with the same palette
+├── matugen/quickshell.toml   # matugen config for the shell's own palette (from the wallpaper)
+├── matugen/apps.toml         # matugen config for the other apps, colored with the selected theme (Zen)
+└── matugen/zen-userChrome.css.template   # matugen template coloring Zen browser
 ```
 
 Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`, `import qs.components`, `import qs.modules.Bar.Widgets`, `import qs.modules.Settings`) instead of relative paths.
@@ -172,11 +174,18 @@ To add or edit a theme, change the list in [config/ThemePresets.qml](config/Them
 
 Colors come from `config/GeneratedColors.json`, which matugen writes from the current wallpaper. The file is git-ignored; until it exists, the defaults in [config/GeneratedColors.qml](config/GeneratedColors.qml) are used.
 
-[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config containing only this shell's templates, so applying a wallpaper doesn't also re-theme other apps. The wallpaper panel runs matugen with it straight from the checkout (`matugen image … -c matugen/quickshell.toml`, see [config/Paths.qml](config/Paths.qml)): nothing has to be copied into `~/.config/matugen`, and its template paths are relative to the file, so the checkout can live anywhere. Don't also declare this shell's template in your global `~/.config/matugen/config.toml`, or a plain `matugen image …` would write the palette a second time.
+There are two dedicated matugen configs in [matugen/](matugen/), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`:
+
+- [matugen/quickshell.toml](matugen/quickshell.toml) writes the shell's own palette, from the wallpaper only. It is what **Automatique** shows, so a fixed theme never overwrites it.
+- [matugen/apps.toml](matugen/apps.toml) writes the other apps ([Zen](#zen-browser) for now), colored with the palette of the selected theme.
+
+[services/Matugen.qml](services/Matugen.qml) runs them: applying a wallpaper regenerates the shell's palette, and the apps too when **Automatique** is selected (a fixed theme ignores the wallpaper); selecting a theme regenerates the apps, from the wallpaper for **Automatique**, or from the theme's accent color for a fixed one. A fixed theme has no image, only five colors, so matugen builds a full palette around its accent: the apps get colors in the theme's family, not its exact palette (Dracula's purple accent gives a purple-tinted dark background, not Dracula's own `#282a36`). The last wallpaper is remembered in `config/ThemeState.json`, so switching back to **Automatique** works without picking a wallpaper again; until a wallpaper has been applied once, that state is empty and the switch doesn't regenerate the apps.
+
+Both configs are used straight from the checkout, with template paths relative to the file, so nothing has to be copied into `~/.config/matugen` and the checkout can live anywhere. Don't also declare these templates in your global `config.toml`, or a plain `matugen image …` would write them a second time.
 
 ## Zen browser
 
-The same config has a second template, [matugen/zen-userChrome.css.template](matugen/zen-userChrome.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the palette the shell is using, so the browser follows the wallpaper along with the bar. Remove the `[templates.zen]` block from `quickshell.toml` if you don't use Zen.
+[matugen/apps.toml](matugen/apps.toml) has a template, [matugen/zen-userChrome.css.template](matugen/zen-userChrome.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the theme the shell is using, so the browser follows the wallpaper and theme changes along with the bar. Remove the `[templates.zen]` block from `apps.toml` if you don't use Zen.
 
 It writes `userChrome.css` into the Zen profile, which is the one place in that file that has to be edited for your machine: `output_path` points at the profile marked `Default=1` in `~/.config/zen/profiles.ini`. Firefox ignores `userChrome.css` unless one pref is on, so the profile also needs a `user.js` containing:
 
@@ -184,7 +193,7 @@ It writes `userChrome.css` into the Zen profile, which is the one place in that 
 user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 ```
 
-Zen reads `userChrome.css` once, at startup: applying a wallpaper re-writes the file, but the browser only picks up the new colors the next time it starts.
+Zen reads `userChrome.css` once, at startup: applying a wallpaper or a theme re-writes the file, but the browser only picks up the new colors the next time it starts (quit it completely first: launching it again while it runs only opens a window in the old process).
 
 The template sets Zen's accent color (`--zen-primary-color`, which every other `--zen-colors-*` value is mixed from) and the surfaces Zen hardcodes rather than deriving from it, all in `!important` because Zen writes some of them as inline styles. It replaces the workspace background chosen in Zen's settings. Web pages aren't touched — this colors the browser, not what it displays.
 
