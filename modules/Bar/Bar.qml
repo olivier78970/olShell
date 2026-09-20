@@ -33,7 +33,7 @@ Scope {
 
         LauncherTrigger {}
 
-        LanguageTrigger {}
+        // LanguageTrigger {}
 
         SettingsTrigger {}
 
