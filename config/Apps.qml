@@ -43,8 +43,9 @@ Singleton {
 
   // The options of `awww img` used when a wallpaper is applied (see
   // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image
-  // fills the screen, and the transition to it.
-  readonly property var wallpaperOptions: ["--resize", "crop", "--transition-type", "fade", "--transition-step", "63", "--transition-duration", "2", "--transition-fps", "60"]
+  // fills the screen, and the transition's smoothness. The transition's type
+  // and duration are settings (see config/Settings.qml), added after these.
+  readonly property var wallpaperOptions: ["--resize", "crop", "--transition-step", "63", "--transition-fps", "60"]
 
   // What a left click does on some tray icons, by tray item id, instead of
   // the application's own action: "bluetui" opens/closes the bluetui window.

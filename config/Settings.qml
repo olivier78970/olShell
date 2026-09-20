@@ -19,7 +19,9 @@ Singleton {
     barMarginTop: 5,
     barMarginLeft: 5,
     barMarginRight: 5,
-    borderWidth: 2
+    borderWidth: 2,
+    wallpaperTransition: "fade",
+    wallpaperDuration: 2
   })
 
   // [minimum, maximum] of each setting, for the panel's sliders and to keep
@@ -32,7 +34,16 @@ Singleton {
     barMarginTop: [0, 100],
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
-    borderWidth: [0, 6]
+    borderWidth: [0, 6],
+    wallpaperDuration: [0.5, 10]
+  })
+
+  // The values a setting can only take one of, in the order the panel cycles
+  // through them. The wallpaper transitions are those of `awww img
+  // --transition-type` ("simple" is left out: "fade" is the same, tunable, and
+  // "none" already changes the wallpaper at once).
+  readonly property var choices: ({
+    wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"]
   })
 
   // Corner radius of every rounded item, in pixels.
@@ -47,14 +58,23 @@ Singleton {
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
   // Width of the outline around surfaces; 0 for none.
   readonly property int borderWidth: root.valid("borderWidth", file.adapter.borderWidth)
+  // How awww changes from one wallpaper to the next (one of choices.wallpaperTransition),
+  // and how long it takes, in seconds.
+  readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
+  readonly property real wallpaperDuration: root.valid("wallpaperDuration", file.adapter.wallpaperDuration)
 
   // `value` for setting `key` kept within its limits (the default if it
-  // isn't a number), and rounded to whole numbers except for the opacity.
+  // isn't a number), and rounded to whole numbers except for the opacity
+  // (hundredths) and the duration (tenths). For a setting with a fixed list of
+  // choices, `value` if it is one of them, else the default.
   function valid(key, value) {
+    const choices = root.choices[key]
+    if (choices !== undefined) return choices.includes(value) ? value : root.defaults[key]
     const [min, max] = root.limits[key]
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
-    return key === "opacity" ? Math.round(clamped * 100) / 100 : Math.round(clamped)
+    if (key === "opacity") return Math.round(clamped * 100) / 100
+    return key === "wallpaperDuration" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
 
   // The current value of setting `key`.
@@ -65,7 +85,7 @@ Singleton {
   // Changes a setting and saves it (shortly after the last change, so
   // dragging a slider doesn't write the file for every step).
   function set(key, value) {
-    if (root.limits[key] === undefined) return
+    if (root.limits[key] === undefined && root.choices[key] === undefined) return
     file.adapter[key] = root.valid(key, value)
     saveTimer.restart()
   }
@@ -96,6 +116,8 @@ Singleton {
       property int barMarginLeft: 5
       property int barMarginRight: 5
       property int borderWidth: 2
+      property string wallpaperTransition: "fade"
+      property real wallpaperDuration: 2
     }
   }
 }

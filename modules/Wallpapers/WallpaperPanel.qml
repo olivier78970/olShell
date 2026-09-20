@@ -105,7 +105,8 @@ CarouselPanel {
 
   function applyPath(path) {
     // The script starts awww's daemon when it isn't running, detached from us.
-    applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, [path])
+    const transition = ["--transition-type", Settings.wallpaperTransition, "--transition-duration", String(Settings.wallpaperDuration)]
+    applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, transition, [path])
     applyProcess.running = true
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
