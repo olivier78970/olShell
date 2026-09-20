@@ -72,9 +72,12 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
-    ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Zen)
+    ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, starship)
     ├── quickshell-theme.json.template   # Template of the shell's palette (written to config/GeneratedColors.json)
-    └── zen-theme.css.template           # Template coloring Zen browser
+    ├── hyprland-theme.lua.template      # Template of Hyprland's colors (~/.config/hypr/colors.lua)
+    ├── zen-theme.css.template           # Template coloring Zen browser
+    ├── alacritty-theme.toml.template    # Template coloring alacritty
+    └── starship-theme.toml.template     # Template of the starship prompt (~/.config/starship/starship.toml)
 ```
 
 Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`, `import qs.components`, `import qs.modules.Bar.Widgets`, `import qs.modules.Settings`) instead of relative paths.
@@ -174,7 +177,7 @@ To add or edit a theme, change the list in [config/ThemePresets.qml](config/Them
 
 Colors come from `config/GeneratedColors.json`, which matugen writes from the current wallpaper. The file is git-ignored; until it exists, the defaults in [config/GeneratedColors.qml](config/GeneratedColors.qml) are used.
 
-[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config holding this shell's templates (its palette, and [Zen](#zen-browser)'s colors), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`. [services/Matugen.qml](services/Matugen.qml) runs it:
+[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config holding this shell's templates (its palette, and the colors of Hyprland, [Zen](#zen-browser), [alacritty](#alacritty) and starship), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`. [services/Matugen.qml](services/Matugen.qml) runs it:
 
 - applying a wallpaper regenerates everything from it when **Automatique** is selected; a fixed theme ignores the wallpaper, which is only remembered;
 - selecting a theme regenerates everything: from the wallpaper for **Automatique**, or from the theme's accent color for a fixed one.
@@ -196,6 +199,17 @@ user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 Zen reads `userChrome.css` once, at startup: applying a wallpaper or a theme re-writes the file, but the browser only picks up the new colors the next time it starts (quit it completely first: launching it again while it runs only opens a window in the old process).
 
 The template sets Zen's accent color (`--zen-primary-color`, which every other `--zen-colors-*` value is mixed from) and the surfaces Zen hardcodes rather than deriving from it, all in `!important` because Zen writes some of them as inline styles. It replaces the workspace background chosen in Zen's settings. Web pages aren't touched — this colors the browser, not what it displays.
+
+## Alacritty
+
+[matugen/quickshell.toml](matugen/quickshell.toml) also has a template for alacritty, [matugen/alacritty-theme.toml.template](matugen/alacritty-theme.toml.template), which writes the terminal colors (foreground, background, cursor, selection and the 16 ANSI colors) to `~/.config/alacritty/theme.toml`. Import that file from your `alacritty.toml`:
+
+```toml
+[general]
+import = ["~/.config/alacritty/theme.toml"]
+```
+
+Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Remove the `[templates.alacritty]` block from `quickshell.toml` if you don't use alacritty. The same goes for the `[templates.hyprland]` (writes `~/.config/hypr/colors.lua`) and `[templates.starship]` (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template) blocks. The btop, wiremix, bluetui and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
 
 ## Clock popup
 

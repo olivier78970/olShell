@@ -11,9 +11,21 @@ set = false
 input_path = "quickshell-theme.json.template"
 output_path = "../config/GeneratedColors.json"
 
+[templates.hyprland]
+input_path = "hyprland-theme.lua.template"
+output_path = "~/.config/hypr/colors.lua"
+
 # Zen browser's interface. Set output_path to your own Zen profile (the one
 # marked Default in ~/.config/zen/profiles.ini), or drop this block if you
 # don't use Zen.
 [templates.zen]
 input_path = "zen-theme.css.template"
 output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
+
+[templates.alacritty]
+input_path = "alacritty-theme.toml.template"
+output_path = "~/.config/alacritty/theme.toml"
+
+[templates.starship]
+input_path = "starship-theme.toml.template"
+output_path = "~/.config/starship/starship.toml"
