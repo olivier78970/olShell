@@ -4,3 +4,10 @@ set = false
 [templates.quickshell]
 input_path = "~/dev/olShell/config/GeneratedColors.json.template"
 output_path = "~/dev/olShell/config/GeneratedColors.json"
+
+# Zen browser's interface, colored with the same palette. Set output_path to
+# your own Zen profile (the one marked Default in ~/.config/zen/profiles.ini),
+# or drop this block if you don't use Zen.
+[templates.zen]
+input_path = "~/dev/olShell/matugen/zen-userChrome.css.template"
+output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"

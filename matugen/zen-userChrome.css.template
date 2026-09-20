@@ -1,0 +1,56 @@
+/* Zen browser's interface, colored with the shell's palette.
+ *
+ * Written by matugen from the current wallpaper - do not edit: change
+ * matugen/zen-userChrome.css.template in olShell instead.
+ *
+ * Zen mixes its whole interface out of one accent color and two "branding"
+ * colors, so overriding those three re-colors the tabs, the sidebar, the URL
+ * bar and the panels at once; the handful of surfaces below are hardcoded in
+ * Zen instead of derived from them, so they are set separately.
+ *
+ * !important is needed everywhere: Zen writes --zen-primary-color (and, when a
+ * workspace background is set, the browser background) as inline styles on the
+ * root element, and an inline style only loses to an !important declaration.
+ *
+ * light-dark() picks matugen's light or dark variant of the same color, so the
+ * interface follows the shell's palette while staying readable whichever color
+ * scheme Zen is in.
+ */
+
+:root {
+  /* Accent. Every --zen-colors-* value is mixed from this one. */
+  --zen-primary-color: light-dark({{colors.primary.light.hex}}, {{colors.primary.dark.hex}}) !important;
+
+  /* The base those mixes are made against: the shell's background color. */
+  --zen-branding-paper: {{colors.background.light.hex}} !important;
+  --zen-branding-dark: {{colors.background.dark.hex}} !important;
+
+  /* Window and toolbar background. */
+  --zen-themed-toolbar-bg-transparent: light-dark({{colors.background.light.hex}}, {{colors.background.dark.hex}}) !important;
+
+  /* Text on the toolbar, the sidebar and the workspace bar. */
+  --toolbox-textcolor: light-dark({{colors.on_background.light.hex}}, {{colors.on_background.dark.hex}}) !important;
+
+  /* Raised surfaces: the URL bar, input fields, dialogs and popups
+     (the shell's pill color). */
+  --zen-urlbar-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
+  --zen-colors-input-bg: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
+  --zen-dialog-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
+  --arrowpanel-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
+
+  /* Outlines, as in the shell's border color. */
+  --zen-colors-border: light-dark({{colors.surface_variant.light.hex}}, {{colors.surface_variant.dark.hex}}) !important;
+}
+
+/* The window and toolbar background are painted by these two layers, and Zen
+ * sets their color as an inline style on the layers themselves (the workspace
+ * background, see ZenGradientGenerator.mjs) - a value inherited from :root
+ * would never reach them, so they are set here directly. This replaces the
+ * workspace background picked in Zen's settings. */
+.zen-browser-generic-background {
+  --zen-main-browser-background: light-dark({{colors.background.light.hex}}, {{colors.background.dark.hex}}) !important;
+  --zen-main-browser-background-old: var(--zen-main-browser-background) !important;
+  --zen-main-browser-background-toolbar: var(--zen-main-browser-background) !important;
+  --zen-main-browser-background-toolbar-old: var(--zen-main-browser-background) !important;
+  --zen-background-opacity: 1 !important;
+}

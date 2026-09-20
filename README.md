@@ -12,6 +12,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 - PipeWire (volume)
 - `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
 - the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
+- optionally [Zen browser](https://zen-browser.app), whose interface matugen can color with the shell's palette (see [Zen browser](#zen-browser))
 
 ## Structure
 
@@ -70,7 +71,8 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + waypaper/matugen)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
-└── matugen/quickshell.toml   # matugen config for this shell's template
+├── matugen/quickshell.toml   # matugen config for this shell's templates
+└── matugen/zen-userChrome.css.template   # matugen template coloring Zen browser with the same palette
 ```
 
 Quickshell auto-generates QML modules for each subdirectory, so files are referenced with `qs.<path>` imports (e.g. `import qs.config`, `import qs.services`, `import qs.components`, `import qs.modules.Bar.Widgets`, `import qs.modules.Settings`) instead of relative paths.
@@ -177,7 +179,21 @@ mkdir -p ~/.config/matugen
 cp matugen/quickshell.toml ~/.config/matugen/quickshell.toml
 ```
 
-**Edit the two paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/olShell`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
+**Edit the paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/olShell`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
+
+## Zen browser
+
+The same config has a second template, [matugen/zen-userChrome.css.template](matugen/zen-userChrome.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the palette the shell is using, so the browser follows the wallpaper along with the bar. Remove the `[templates.zen]` block from `quickshell.toml` if you don't use Zen.
+
+It writes `userChrome.css` into the Zen profile, which has to be your own: `output_path` points at the profile marked `Default=1` in `~/.config/zen/profiles.ini`. Firefox ignores `userChrome.css` unless one pref is on, so the profile also needs a `user.js` containing:
+
+```js
+user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+```
+
+Zen reads `userChrome.css` once, at startup: applying a wallpaper re-writes the file, but the browser only picks up the new colors the next time it starts.
+
+The template sets Zen's accent color (`--zen-primary-color`, which every other `--zen-colors-*` value is mixed from) and the surfaces Zen hardcodes rather than deriving from it, all in `!important` because Zen writes some of them as inline styles. It replaces the workspace background chosen in Zen's settings. Web pages aren't touched — this colors the browser, not what it displays.
 
 ## Clock popup
 
