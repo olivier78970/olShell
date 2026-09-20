@@ -73,11 +73,12 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
-    ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, starship)
+    ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, GTK, starship)
     ├── quickshell-theme.json.template   # Template of the shell's palette (written to config/GeneratedColors.json)
     ├── hyprland-theme.lua.template      # Template of Hyprland's colors (~/.config/hypr/colors.lua)
     ├── zen-theme.css.template           # Template coloring Zen browser
     ├── alacritty-theme.toml.template    # Template coloring alacritty
+    ├── gtk-theme.css.template           # Template of the GTK named colors (GTK4/libadwaita and GTK3)
     └── starship-theme.toml.template     # Template of the starship prompt (~/.config/starship/starship.toml)
 ```
 
@@ -211,6 +212,16 @@ import = ["~/.config/alacritty/theme.toml"]
 ```
 
 Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Remove the `[templates.alacritty]` block from `quickshell.toml` if you don't use alacritty. The same goes for the `[templates.hyprland]` (writes `~/.config/hypr/colors.lua`) and `[templates.starship]` (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template) blocks. The btop, wiremix, bluetui and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
+
+## GTK
+
+[matugen/quickshell.toml](matugen/quickshell.toml) has two blocks, `[templates.gtk4]` and `[templates.gtk3]`, that write [matugen/gtk-theme.css.template](matugen/gtk-theme.css.template) to `~/.config/gtk-4.0/gtk.css` and `~/.config/gtk-3.0/gtk.css`. The file only defines the GTK named colors (window, view, header bar, sidebar, card, dialog and popover backgrounds, accent, ...) from the shell's palette: libadwaita apps (Nautilus and most GNOME apps) rebuild their widgets from them, whatever GTK theme is set, and follow the wallpaper and theme changes.
+
+- Apps have to be restarted to show new colors.
+- GTK3 apps only follow the colors with a theme built on the same names (Adwaita, adw-gtk3...): a theme with hardcoded colors, such as a compiled Zorin theme, ignores them.
+- `~/.config/gtk-4.0/gtk.css` and `gtk-dark.css` must not be symlinks to a GTK theme (as `nwg-look` or a theme installer leaves them): matugen would write through the link and overwrite the theme's own file. Remove the links first; libadwaita prefers `gtk-dark.css` in dark mode, so a leftover one hides the generated colors.
+- Set the `org.gnome.desktop.interface color-scheme` to `prefer-dark` so the apps use the dark variant the palette is generated for (`gsettings set org.gnome.desktop.interface color-scheme prefer-dark`).
+- Remove the two blocks from `quickshell.toml` if you don't want GTK apps themed.
 
 ## Clock popup
 
