@@ -69,10 +69,25 @@ CarouselPanel {
     root.applyPath(root.wallpapers[index])
   }
 
-  function applyPath(path) {
+  // Shows the wallpaper remembered by the last run: awww's daemon draws
+  // nothing at login until a wallpaper is sent to it. Only the image is
+  // restored: the colors were generated when it was applied.
+  // Started after a moment: a Process started while the shell is loading
+  // silently does nothing.
+  Timer {
+    running: ThemeState.wallpaper.length > 0
+    interval: 1000
+    onTriggered: root.showPath(ThemeState.wallpaper)
+  }
+
+  function showPath(path) {
     // The script starts awww's daemon when it isn't running, detached from us.
     applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, [path])
     applyProcess.running = true
+  }
+
+  function applyPath(path) {
+    root.showPath(path)
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
     // it doesn't spawn in the same tick as the wallpaper command above.
@@ -96,6 +111,10 @@ CarouselPanel {
         // it's shown as the dedicated pod entry instead.
         if (podExists) saved.pop()
         root.wallpapers = podExists ? [root.podPath].concat(saved) : saved
+        // Open on the wallpaper in use (the first entry, the picture of the
+        // day, when it isn't in the list: it is that one's duplicate). Once the
+        // carousel has taken the new list, which resets its position.
+        Qt.callLater(root.showIndex, Math.max(0, root.wallpapers.indexOf(ThemeState.wallpaper)))
         if (root.randomPending) {
           root.randomPending = false
           root.applyRandom()
