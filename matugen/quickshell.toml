@@ -26,6 +26,17 @@ output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
 input_path = "alacritty-theme.toml.template"
 output_path = "~/.config/alacritty/theme.toml"
 
+# GTK apps: the same file for GTK4 (libadwaita) and GTK3. Both directories
+# must not hold a symlink to a GTK theme named gtk.css (or gtk-dark.css, which
+# libadwaita prefers in dark mode), which matugen would write through.
+[templates.gtk4]
+input_path = "gtk-theme.css.template"
+output_path = "~/.config/gtk-4.0/gtk.css"
+
+[templates.gtk3]
+input_path = "gtk-theme.css.template"
+output_path = "~/.config/gtk-3.0/gtk.css"
+
 [templates.starship]
 input_path = "starship-theme.toml.template"
 output_path = "~/.config/starship/starship.toml"
