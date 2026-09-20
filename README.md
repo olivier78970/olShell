@@ -234,7 +234,7 @@ The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config
 
 Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
-Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell also re-applies the last wallpaper (the one remembered in `config/ThemeState.json`) when it starts, so the wallpaper is back at login; the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
+Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell applies the last wallpaper (the one remembered in `config/ThemeState.json`) as soon as it starts and again 5 seconds later (in case a new picture of the day was downloaded meanwhile), so the wallpaper is back at login (the `applyLast` IPC call does the same on demand, see [IPC](#ipc)); the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
 ## IPC
 
@@ -244,6 +244,7 @@ Bind these to keys, e.g. from Hyprland:
 quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call wallpapers applyRandom        # apply a random wallpaper other than the current one
+quickshell -p . ipc call wallpapers applyLast          # apply the last applied wallpaper again (e.g. after a new picture of the day was downloaded)
 quickshell -p . ipc call btop toggle                   # open/close the full btop window
 quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
 quickshell -p . ipc call wiremix toggle                # open/close the wiremix window

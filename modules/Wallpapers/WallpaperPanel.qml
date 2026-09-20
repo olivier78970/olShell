@@ -8,10 +8,11 @@ import qs.services
 //   quickshell -p . ipc call wallpapers wallpapersToggle
 // Wallpapers are browsed in a carousel (centered item large, neighbors
 // smaller); Enter or a click applies one with awww.
-// The Bing "picture of the day", or a random wallpaper, can also be applied
-// directly via:
+// The Bing "picture of the day", a random wallpaper, or the last one applied
+// can also be applied directly via:
 //   quickshell -p . ipc call wallpapers applyPod
 //   quickshell -p . ipc call wallpapers applyRandom
+//   quickshell -p . ipc call wallpapers applyLast
 CarouselPanel {
   id: root
 
@@ -41,6 +42,10 @@ CarouselPanel {
       root.applyPath(root.podPath)
     }
 
+    function applyLast(): void {
+      root.applyLast()
+    }
+
     function applyRandom(): void {
       // The list is only read when the panel opens: read it again first.
       root.randomPending = true
@@ -60,6 +65,31 @@ CarouselPanel {
     return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : -1
   }
 
+  // Applies the last wallpaper again: the one remembered in ThemeState. The
+  // colors are regenerated too: the file may have changed since (a new picture
+  // of the day is saved over the same pod.jpg).
+  function applyLast() {
+    if (ThemeState.wallpaper.length > 0)
+      root.applyPath(ThemeState.wallpaper)
+  }
+
+  // awww's daemon draws nothing until a wallpaper is sent to it, so the last
+  // one is applied as soon as the shell has started, and again a few seconds
+  // later, which leaves time for a new picture of the day to be downloaded at
+  // login. The first one waits a moment: a Process started while the shell is
+  // loading silently does nothing.
+  Timer {
+    running: true
+    interval: 1000
+    onTriggered: root.applyLast()
+  }
+
+  Timer {
+    running: true
+    interval: 5000
+    onTriggered: root.applyLast()
+  }
+
   // Applies a random wallpaper (see randomIndex), moving the carousel to it
   // when the panel is open.
   function applyRandom() {
@@ -69,25 +99,10 @@ CarouselPanel {
     root.applyPath(root.wallpapers[index])
   }
 
-  // Shows the wallpaper remembered by the last run: awww's daemon draws
-  // nothing at login until a wallpaper is sent to it. Only the image is
-  // restored: the colors were generated when it was applied.
-  // Started after a moment: a Process started while the shell is loading
-  // silently does nothing.
-  Timer {
-    running: ThemeState.wallpaper.length > 0
-    interval: 1000
-    onTriggered: root.showPath(ThemeState.wallpaper)
-  }
-
-  function showPath(path) {
+  function applyPath(path) {
     // The script starts awww's daemon when it isn't running, detached from us.
     applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, [path])
     applyProcess.running = true
-  }
-
-  function applyPath(path) {
-    root.showPath(path)
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
     // it doesn't spawn in the same tick as the wallpaper command above.
