@@ -1,9 +1,19 @@
 [config]
 set = false
 
-# The shell's own palette, generated from the wallpaper only: it is what the
-# "Automatique" theme shows. Relative paths are resolved against this file's
-# directory, so the checkout can live anywhere.
+# Every template of the shell, colored with the palette of the selected theme:
+# generated from the wallpaper for "Automatique", from the theme's accent color
+# for a fixed theme (see services/Matugen.qml). Relative paths are resolved
+# against this file's directory, so the checkout can live anywhere.
+
+# The shell's own palette (Theme reads it for "Automatique").
 [templates.quickshell]
 input_path = "../config/GeneratedColors.json.template"
 output_path = "../config/GeneratedColors.json"
+
+# Zen browser's interface. Set output_path to your own Zen profile (the one
+# marked Default in ~/.config/zen/profiles.ini), or drop this block if you
+# don't use Zen.
+[templates.zen]
+input_path = "zen-userChrome.css.template"
+output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
