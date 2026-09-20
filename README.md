@@ -231,7 +231,7 @@ The figures come from [services/SystemStats.qml](services/SystemStats.qml), whic
 
 The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry. Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](config/Paths.qml).
 
-Left/Right browse without changing anything; **Enter**, clicking a picture, or "Image du jour" applies it (waypaper sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (waypaper sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
 ## IPC
 

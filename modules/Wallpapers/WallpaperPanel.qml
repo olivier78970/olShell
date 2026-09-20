@@ -40,6 +40,15 @@ CarouselPanel {
     }
   }
 
+  // The index of a random wallpaper other than the one in use (unless it is the
+  // only one), or -1 when the list is empty.
+  function randomIndex() {
+    const indexes = root.wallpapers.map((path, index) => index)
+    const others = indexes.filter(index => root.wallpapers[index] !== ThemeState.wallpaper)
+    const pool = others.length > 0 ? others : indexes
+    return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : -1
+  }
+
   function applyPath(path) {
     applyProcess.command = ["waypaper", "--wallpaper", path]
     applyProcess.running = true
@@ -96,6 +105,8 @@ CarouselPanel {
   }
 
   PowerMenuOption {
+    id: podButton
+
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 20
@@ -105,6 +116,22 @@ CarouselPanel {
       // selecting it moves the carousel to it instead of just
       // applying it without visually reflecting the change.
       root.currentIndex = 0
+      root.accept()
+    }
+  }
+
+  // Left of the picture-of-the-day button. Moves the carousel to the wallpaper
+  // it picked, like that button does.
+  PowerMenuOption {
+    anchors.top: podButton.top
+    anchors.right: podButton.left
+    anchors.rightMargin: 8
+    icon: "\uDB81\uDC9F"
+    label: I18n.tr("wallpaper.random")
+    onClicked: {
+      const index = root.randomIndex()
+      if (index < 0) return
+      root.currentIndex = index
       root.accept()
     }
   }

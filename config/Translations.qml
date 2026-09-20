@@ -55,6 +55,7 @@ Singleton {
     "wallpaper.title": "Wallpapers",
     "wallpaper.none": "No wallpaper found",
     "wallpaper.pod": "Picture of the day",
+    "wallpaper.random": "Random",
 
     "settings.title": "Settings",
     "settings.radius": "Widget radius",
@@ -125,6 +126,7 @@ Singleton {
     "wallpaper.title": "Fonds d'écran",
     "wallpaper.none": "Aucun fond d'écran trouvé",
     "wallpaper.pod": "Image du jour",
+    "wallpaper.random": "Aléatoire",
 
     "settings.title": "Paramètres",
     "settings.radius": "Rayon des widgets",
