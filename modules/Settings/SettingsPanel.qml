@@ -22,8 +22,14 @@ ModalPanel {
     { key: "barMarginTop", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
-    { key: "borderWidth", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" }
+    { key: "borderWidth", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
+    { key: "wallpaperTransition", kind: "cycle", label: I18n.tr("settings.wallpaperTransition") },
+    { key: "wallpaperDuration", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" }
   ]
+
+  // The wallpaper transitions, named in the current language.
+  readonly property var transitionOptions: Settings.choices.wallpaperTransition
+    .map(name => ({ value: name, text: I18n.tr("settings.transition." + name) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]
@@ -32,7 +38,7 @@ ModalPanel {
   property int selected: 0
 
   maxPanelWidth: 640
-  maxPanelHeight: 670
+  maxPanelHeight: 780
   // Stays readable while the widget opacity is being adjusted.
   panelOpacity: Math.max(0.92, Theme.widgetOpacity)
 
@@ -47,15 +53,25 @@ ModalPanel {
       SettingsPanelState.toggle()
     }
 
-    // Sets one setting by name (radius, opacity, spacing, barHeight,
-    // barMarginTop, barMarginLeft, barMarginRight, borderWidth); out-of-range values are
-    // clamped.
+    // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
+    // barMarginTop, barMarginLeft, barMarginRight, borderWidth,
+    // wallpaperDuration); out-of-range values are clamped.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }
 
     function get(key: string): real {
       return Settings.get(key)
+    }
+
+    // The same for a setting with a fixed list of choices (wallpaperTransition);
+    // a value not in the list is ignored.
+    function choose(key: string, value: string): void {
+      if (Settings.choices[key]?.includes(value)) Settings.set(key, value)
+    }
+
+    function getChoice(key: string): string {
+      return String(Settings.get(key))
     }
 
     // Puts every setting, and the language, back to its default.
@@ -74,6 +90,10 @@ ModalPanel {
     const row = root.rows[root.selected]
     if (row.kind === "slider") {
       Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
+    } else if (row.kind === "cycle") {
+      const values = Settings.choices[row.key]
+      const next = ((values.indexOf(Settings.get(row.key)) + direction * steps) % values.length + values.length) % values.length
+      Settings.set(row.key, values[next])
     } else {
       const values = root.languageOptions.map(option => option.value)
       const next = (values.indexOf(I18n.setting) + direction + values.length) % values.length
@@ -150,6 +170,17 @@ ModalPanel {
             selected: root.selected === row.index
             onActivated: root.selected = row.index
             onMoved: value => Settings.set(row.modelData.key, value)
+          }
+
+          CycleRow {
+            visible: row.modelData.kind === "cycle"
+            anchors.fill: parent
+            label: row.modelData.label
+            options: root.transitionOptions
+            current: row.modelData.kind === "cycle" ? Settings.get(row.modelData.key) : null
+            selected: root.selected === row.index
+            onActivated: root.selected = row.index
+            onChosen: value => Settings.set(row.modelData.key, value)
           }
 
           ChoiceRow {

@@ -24,7 +24,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── GeneratedColors.qml   # Active palette: selected theme, or matugen's GeneratedColors.json
 │   ├── ThemePresets.qml      # The selectable themes ("auto" + 10 fixed palettes)
 │   ├── ThemeState.qml        # Selected theme and last wallpaper, saved in ThemeState.json
-│   ├── Settings.qml          # Adjustable look-and-feel values, saved in Settings.json (Theme reads them)
+│   ├── Settings.qml          # Adjustable values (look-and-feel, wallpaper transition), saved in Settings.json (Theme reads them)
 │   ├── SettingsPanelState.qml   # Shared visibility of the settings panel
 │   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French texts
 │   ├── ThemePanelState.qml   # Shared visibility of the theme panel
@@ -52,7 +52,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes)
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
 │   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
-│   └── SettingSlider.qml, ChoiceRow.qml   # Rows of the settings panel
+│   └── SettingSlider.qml, ChoiceRow.qml, CycleRow.qml   # Rows of the settings panel
 ├── modules/                  # One directory per feature (import qs.modules.<Name>)
 │   ├── Bar/                  # The top bar
 │   │   ├── Bar.qml           # Top bar, one per screen
@@ -66,7 +66,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Osd/                  # Bottom-of-screen popups
 │   │   ├── VolumeOsd.qml     # Volume
 │   │   └── LockKeysOsd.qml   # Caps Lock / Num Lock
-│   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider and ChoiceRow)
+│   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider, ChoiceRow and CycleRow)
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + awww/matugen)
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
@@ -111,10 +111,12 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Top bar left margin | 0 – 300 px | 5 |
 | Top bar right margin | 0 – 300 px | 5 |
 | Border width | 0 – 6 px | 2 |
+| Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
+| Transition duration | 0.5 – 10 s | 2 s |
 
-Click or drag a slider, or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Escape** closes. **Reset** puts everything back to the defaults, language included. Note that the bar height also scales the text (as before), so a very tall bar with big margins can make the bar's three groups collide.
+Click or drag a slider (the transition has arrows to go to the previous/next one), or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Escape** closes. **Reset** puts everything back to the defaults, language included. Note that the bar height also scales the text (as before), so a very tall bar with big margins can make the bar's three groups collide.
 
-From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginTop`, `barMarginLeft`, `barMarginRight`, `borderWidth`; out-of-range values are clamped), `settings get <key>` and `settings reset`.
+From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginTop`, `barMarginLeft`, `barMarginRight`, `borderWidth`, `wallpaperDuration`; out-of-range values are clamped), `settings choose <key> <value>` for the one with a list of choices (`wallpaperTransition`, a value not in the list is ignored), `settings get <key>`, `settings getChoice <key>` and `settings reset`. The transition and its duration apply the next time a wallpaper is applied (they are the `awww img` `--transition-type` and `--transition-duration`), including when the shell restores the last one at startup.
 
 Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row in [modules/Settings/SettingsPanel.qml](modules/Settings/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
 
@@ -245,7 +247,7 @@ The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config
 
 Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
-Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell applies the last wallpaper (the one remembered in `config/ThemeState.json`) as soon as it starts, and again 5 seconds later if it is the picture of the day (in case a new one was downloaded meanwhile), so the wallpaper is back at login (the `applyLast` IPC call does the same on demand, see [IPC](#ipc)); the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The image fill and the transition (a 2 s fade) are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
+Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell applies the last wallpaper (the one remembered in `config/ThemeState.json`) as soon as it starts, and again 5 seconds later if it is the picture of the day (in case a new one was downloaded meanwhile), so the wallpaper is back at login (the `applyLast` IPC call does the same on demand, see [IPC](#ipc)); the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The transition's type and duration (a 2 s fade by default) are [settings](#settings); the image fill and the transition's smoothness are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
 ## IPC
 
