@@ -41,7 +41,11 @@ CarouselPanel {
   }
 
   function applyPath(path) {
-    applyProcess.command = ["waypaper", "--wallpaper", path]
+    // Waypaper starts the wallpaper daemon (awww) when it isn't running, as a
+    // child that inherits waypaper's output. If that output is a pipe of ours,
+    // the daemon dies (SIGPIPE) as soon as we close it when waypaper exits, and
+    // the wallpaper vanishes: so the output goes to /dev/null instead.
+    applyProcess.command = ["sh", "-c", 'exec waypaper --wallpaper "$1" >/dev/null 2>&1 </dev/null', "sh", path]
     applyProcess.running = true
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
