@@ -6,7 +6,7 @@ import QtQuick
 // Provides the shell's palette: either the fixed colors of the theme chosen
 // in the theme panel (see ThemeState), or, for "auto", GeneratedColors.json,
 // which matugen regenerates from the current wallpaper (see
-// GeneratedColors.json.template and matugen/quickshell.toml).
+// matugen/GeneratedColors.json.template and matugen/quickshell.toml).
 // This file itself is static and never rewritten: FileView picks up changes to the JSON data file
 // without Quickshell treating it as a source-file edit, so applying a
 // wallpaper never triggers a full engine reload (which would reset
