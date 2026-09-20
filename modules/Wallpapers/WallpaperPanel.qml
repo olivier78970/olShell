@@ -74,20 +74,24 @@ CarouselPanel {
   }
 
   // awww's daemon draws nothing until a wallpaper is sent to it, so the last
-  // one is applied as soon as the shell has started, and again a few seconds
-  // later, which leaves time for a new picture of the day to be downloaded at
-  // login. The first one waits a moment: a Process started while the shell is
-  // loading silently does nothing.
+  // one is applied as soon as the shell has started. The first one waits a
+  // moment: a Process started while the shell is loading silently does
+  // nothing.
   Timer {
     running: true
     interval: 1000
     onTriggered: root.applyLast()
   }
 
+  // A new picture of the day may have been downloaded at login since, over the
+  // same pod.jpg: apply it again, only when it is the wallpaper in use.
   Timer {
     running: true
     interval: 5000
-    onTriggered: root.applyLast()
+    onTriggered: {
+      if (ThemeState.wallpaper === root.podPath)
+        root.applyLast()
+    }
   }
 
   // Applies a random wallpaper (see randomIndex), moving the carousel to it
