@@ -24,6 +24,7 @@ Singleton {
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
-  // Dedicated matugen config containing only the quickshell template.
-  readonly property string matugenConfig: userConfigDir + "/matugen/quickshell.toml"
+  // Dedicated matugen config containing only this shell's templates, kept in
+  // the repo so nothing has to be copied into ~/.config/matugen.
+  readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")
 }

@@ -172,20 +172,13 @@ To add or edit a theme, change the list in [config/ThemePresets.qml](config/Them
 
 Colors come from `config/GeneratedColors.json`, which matugen writes from the current wallpaper. The file is git-ignored; until it exists, the defaults in [config/GeneratedColors.qml](config/GeneratedColors.qml) are used.
 
-[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config containing only this shell's template, so applying a wallpaper doesn't also re-theme other apps. The wallpaper panel expects it at `~/.config/matugen/quickshell.toml` (see [config/Paths.qml](config/Paths.qml)):
-
-```sh
-mkdir -p ~/.config/matugen
-cp matugen/quickshell.toml ~/.config/matugen/quickshell.toml
-```
-
-**Edit the paths in that file** (`input_path` and `output_path`) if this checkout isn't at `~/dev/olShell`; they must point at `config/GeneratedColors.json.template` and `config/GeneratedColors.json` here.
+[matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config containing only this shell's templates, so applying a wallpaper doesn't also re-theme other apps. The wallpaper panel runs matugen with it straight from the checkout (`matugen image … -c matugen/quickshell.toml`, see [config/Paths.qml](config/Paths.qml)): nothing has to be copied into `~/.config/matugen`, and its template paths are relative to the file, so the checkout can live anywhere. Don't also declare this shell's template in your global `~/.config/matugen/config.toml`, or a plain `matugen image …` would write the palette a second time.
 
 ## Zen browser
 
 The same config has a second template, [matugen/zen-userChrome.css.template](matugen/zen-userChrome.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the palette the shell is using, so the browser follows the wallpaper along with the bar. Remove the `[templates.zen]` block from `quickshell.toml` if you don't use Zen.
 
-It writes `userChrome.css` into the Zen profile, which has to be your own: `output_path` points at the profile marked `Default=1` in `~/.config/zen/profiles.ini`. Firefox ignores `userChrome.css` unless one pref is on, so the profile also needs a `user.js` containing:
+It writes `userChrome.css` into the Zen profile, which is the one place in that file that has to be edited for your machine: `output_path` points at the profile marked `Default=1` in `~/.config/zen/profiles.ini`. Firefox ignores `userChrome.css` unless one pref is on, so the profile also needs a `user.js` containing:
 
 ```js
 user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
