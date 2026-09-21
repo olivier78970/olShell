@@ -5,6 +5,10 @@ import qs.config
 // A bar pill filled with the widgets of one zone, in order (`widgets` is a
 // list of ids, from Settings.layout). It draws the dividers Settings.dividers
 // asks for, and hides itself when no widget in it has anything to show.
+// A group (the widgets between two dividers) can be set to show only while the
+// pointer is over the pill ("hover": it slides open, and shut again shortly
+// after the pointer leaves) or never ("off"), see Settings.groupMode. A pill
+// with nothing left showing keeps a small dots handle to hover.
 Pill {
   id: root
 
@@ -19,10 +23,33 @@ Pill {
     return false
   }
 
+  // Whether the pointer is in the pill, or was a moment ago, so the groups are
+  // not shut the instant it strays. They are also open while a popup hangs
+  // off the pill, which would lose its anchor.
+  property bool expanded: false
+  readonly property bool revealed: root.expanded || root.popupOpen
+
+  onHoveredChanged: {
+    if (root.hovered) {
+      shutTimer.stop()
+      root.expanded = true
+    } else {
+      shutTimer.restart()
+    }
+  }
+
+  Timer {
+    id: shutTimer
+    interval: 500
+    onTriggered: root.expanded = false
+  }
+
   // For each slot: whether it is shown. Rebuilt whenever a slot changes.
   property var flags: []
 
-  visible: root.flags.some(flag => flag.shown)
+  // Something to show, now or on hover.
+  readonly property bool anyPresent: root.flags.some((flag, index) => flag.shown && root.modeAt(index) !== "off")
+  visible: root.anyPresent
 
   function refresh() {
     const next = []
@@ -33,12 +60,46 @@ Pill {
     root.flags = next
   }
 
-  // Whether a divider goes before slot `index`: its widget is shown, has one
-  // asked for, and something shown comes before it (a divider at the start of
+  // The mode ("on", "hover" or "off") of the group slot `index` belongs to.
+  function modeAt(index) {
+    let start = root.widgets[0]
+    for (let i = 1; i <= index; i++) {
+      if (Settings.dividers.includes(root.widgets[i])) start = root.widgets[i]
+    }
+    return Settings.groupMode(start)
+  }
+
+  // Whether the group slot `index` belongs to is hidden right now: it is off,
+  // or on hover and the pill isn't open.
+  function groupCollapsed(index) {
+    const mode = root.modeAt(index)
+    return mode === "off" || (mode === "hover" && !root.revealed)
+  }
+
+  // Whether slot `index` is showing now: its widget is, and its group isn't hidden.
+  function showing(index) {
+    return (root.flags[index]?.shown ?? false) && !root.groupCollapsed(index)
+  }
+
+  // Whether every widget that could show is in a group hidden until hover.
+  readonly property bool allHidden: root.anyPresent && !root.flags.some((flag, index) => root.showing(index))
+
+  // Whether a divider goes before slot `index`: its widget is showing, has one
+  // asked for, and something showing comes before it (a divider at the start of
   // a pill would border nothing).
   function dividerBefore(index) {
-    if (!root.flags[index]?.shown || !Settings.dividers.includes(root.widgets[index])) return false
-    return root.flags.slice(0, index).some(flag => flag.shown)
+    if (!root.showing(index) || !Settings.dividers.includes(root.widgets[index])) return false
+    for (let i = 0; i < index; i++) {
+      if (root.showing(i)) return true
+    }
+    return false
+  }
+
+  // What is left of a pill whose groups are all hidden.
+  ThemedText {
+    visible: root.allHidden
+    anchors.verticalCenter: parent.verticalCenter
+    text: "󰇘"
   }
 
   Repeater {
@@ -51,6 +112,7 @@ Pill {
 
       widget: modelData
       divider: root.dividerBefore(index)
+      collapsed: root.groupCollapsed(index)
 
       onShownChanged: Qt.callLater(root.refresh)
       onItemChanged: Qt.callLater(root.refresh)

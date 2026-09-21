@@ -2,6 +2,7 @@ import Quickshell
 import qs.components
 import qs.modules.Bar
 import qs.modules.Launcher
+import qs.modules.Notifications
 import qs.modules.Osd
 import qs.modules.Settings
 import qs.modules.Theme
@@ -19,6 +20,8 @@ ShellRoot {
   readonly property var lockKeys: LockKeys.ready
   // And the screenshot service, which answers the `screenshot` IPC calls.
   readonly property var screenshotMode: Screenshot.mode
+  // And the notification server, which has to own its D-Bus name from the start.
+  readonly property var notificationsDnd: Notifications.dnd
 
   Bar {}
   PowerConfirmDialog {}
@@ -28,4 +31,6 @@ ShellRoot {
   ThemePanel {}
   LauncherPanel {}
   SettingsPanel {}
+  NotificationPopups {}
+  NotificationCenter {}
 }

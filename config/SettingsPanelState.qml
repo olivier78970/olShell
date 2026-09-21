@@ -14,6 +14,7 @@ Singleton {
     WallpaperPanelState.visible = false
     ThemePanelState.visible = false
     LauncherState.visible = false
+    NotificationCenterState.visible = false
     root.visible = !root.visible
   }
 }

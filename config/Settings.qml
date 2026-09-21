@@ -34,10 +34,16 @@ Singleton {
     screenshotMode: "screen",
     screenshotEdit: false,
     screenshotDir: Quickshell.env("HOME") + "/Pictures/Screenshots",
+    notificationTimeout: 6,
+    notificationMax: 4,
+    notificationDnd: false,
+    notificationPosition: "top-right",
+    barCollapsed: [],
+    barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
     barCenter: ["clock", "wallpaper", "theme", "screenshot"],
-    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"],
-    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
+    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"],
+    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
   })
 
   // [minimum, maximum] of each setting, for the panel's sliders and to keep
@@ -55,16 +61,19 @@ Singleton {
     fontSize: [10, 32],
     fontWeight: [100, 900],
     fontLetterSpacing: [-2, 6],
-    wallpaperDuration: [0.5, 10]
+    wallpaperDuration: [0.5, 10],
+    notificationTimeout: [2, 30],
+    notificationMax: [1, 8]
   })
 
-  // The values a setting can only take one of, in the order the panel cycles
-  // through them. The wallpaper transitions are those of `awww img
+  // The values a setting can only take one of, in the order the panel lists
+  // them. The wallpaper transitions are those of `awww img
   // --transition-type` ("simple" is left out: "fade" is the same, tunable, and
   // "none" already changes the wallpaper at once).
   readonly property var choices: ({
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
+    notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"]
   })
 
@@ -101,7 +110,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -112,6 +121,15 @@ Singleton {
   // The widgets that have a divider drawn before them, when something is shown
   // before them in their pill. A divider goes with its widget when it moves.
   readonly property var dividers: root.valid("barDividers", file.adapter.barDividers)
+  // A group is the widgets between two dividers (a widget starts one when it
+  // is first in its pill or has a divider before it), and is named by the
+  // widget that starts it. Each group is shown ("on"), shown only while the
+  // pointer is over its pill ("hover") or never ("off"); these two lists have
+  // the widgets that start the "hover" and the "off" groups (a group in neither
+  // is "on"). Listing a widget that doesn't start a group (any more) does nothing.
+  readonly property var groupModes: ["on", "hover", "off"]
+  readonly property var collapsed: root.valid("barCollapsed", file.adapter.barCollapsed)
+  readonly property var hiddenGroups: root.valid("barGroupsOff", file.adapter.barGroupsOff)
   // How awww changes from one wallpaper to the next (one of choices.wallpaperTransition),
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
@@ -122,6 +140,15 @@ Singleton {
   readonly property string screenshotMode: root.valid("screenshotMode", file.adapter.screenshotMode)
   readonly property bool screenshotEdit: root.valid("screenshotEdit", file.adapter.screenshotEdit)
   readonly property string screenshotDir: root.valid("screenshotDir", file.adapter.screenshotDir)
+  // Notifications: how long a pop-up stays on screen (in seconds, unless the
+  // sender asks for another time; urgent ones stay until closed), how many
+  // pop-ups are shown at once, and do-not-disturb, which keeps everything but
+  // urgent notifications out of sight (they still go to the center).
+  readonly property int notificationTimeout: root.valid("notificationTimeout", file.adapter.notificationTimeout)
+  readonly property int notificationMax: root.valid("notificationMax", file.adapter.notificationMax)
+  readonly property bool notificationDnd: root.valid("notificationDnd", file.adapter.notificationDnd)
+  // Where the pop-ups appear on the screen (one of choices.notificationPosition).
+  readonly property string notificationPosition: root.valid("notificationPosition", file.adapter.notificationPosition)
 
   // `value` for setting `key` kept within its limits (the default if it
   // isn't a number), and rounded to whole numbers except for the opacity
@@ -210,6 +237,46 @@ Singleton {
     root.set("barDividers", on ? others.concat([id]) : others)
   }
 
+  // The groups of `zone`, in order, each the list of its widgets' ids.
+  function groupsOf(zone) {
+    const groups = []
+    root.asArray(root.layout[zone]).forEach((id, index) => {
+      if (index === 0 || root.dividers.includes(id)) groups.push([id])
+      else groups[groups.length - 1].push(id)
+    })
+    return groups
+  }
+
+  // Whether the group `leader` starts is "on", "hover" or "off".
+  function groupMode(leader) {
+    if (root.hiddenGroups.includes(leader)) return "off"
+    return root.collapsed.includes(leader) ? "hover" : "on"
+  }
+
+  function setGroupMode(leader, mode) {
+    if (!root.widgetIds.includes(leader) || !root.groupModes.includes(mode)) return
+    const without = list => list.filter(id => id !== leader)
+    root.set("barCollapsed", mode === "hover" ? without(root.collapsed).concat([leader]) : without(root.collapsed))
+    root.set("barGroupsOff", mode === "off" ? without(root.hiddenGroups).concat([leader]) : without(root.hiddenGroups))
+  }
+
+  // Moves the group `leader` starts `steps` places later (negative: earlier)
+  // in its zone, past whole groups. Each group but the first has a divider
+  // before it, so the dividers are set again for the new order.
+  function moveGroup(leader, steps) {
+    const zone = root.zoneOf(leader)
+    if (zone === "off") return
+    const groups = root.groupsOf(zone)
+    const from = groups.findIndex(group => group[0] === leader)
+    if (from < 0) return
+    const to = Math.max(0, Math.min(groups.length - 1, from + steps))
+    if (to === from) return
+    groups.splice(to, 0, groups.splice(from, 1)[0])
+    const ids = groups.reduce((all, group) => all.concat(group), [])
+    root.set("bar" + zone.charAt(0).toUpperCase() + zone.slice(1), ids)
+    root.set("barDividers", root.dividers.filter(id => !ids.includes(id)).concat(groups.slice(1).map(group => group[0])))
+  }
+
   // Moves widget `id` `steps` places later (negative: earlier) within its zone.
   function move(id, steps) {
     const zone = root.zoneOf(id)
@@ -272,10 +339,16 @@ Singleton {
       property string screenshotMode: "screen"
       property bool screenshotEdit: false
       property string screenshotDir: root.defaults.screenshotDir
+      property int notificationTimeout: 6
+      property int notificationMax: 4
+      property bool notificationDnd: false
+      property string notificationPosition: "top-right"
+      property var barCollapsed: []
+      property var barGroupsOff: []
       property var barLeft: ["launcher", "settings", "workspaces", "activeWindow"]
       property var barCenter: ["clock", "wallpaper", "theme", "screenshot"]
-      property var barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"]
-      property var barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
+      property var barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
+      property var barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
     }
   }
 }

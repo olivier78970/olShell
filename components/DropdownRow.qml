@@ -22,6 +22,9 @@ Item {
   property int highlighted: 0
   // Draw each entry in the font family it names (for a list of fonts).
   property bool previewFonts: false
+  // The options are positions ("top-right"...): each is drawn as a PositionIcon
+  // before its text (its list shows every position, in taller entries).
+  property bool positionIcon: false
 
   signal chosen(var value)
   signal activated()
@@ -29,10 +32,11 @@ Item {
   signal highlightRequested(int index)
 
   readonly property int currentIndex: root.options.findIndex(option => option.value === root.current)
-  readonly property int entryHeight: 30
+  readonly property int entryHeight: root.positionIcon ? 38 : 30
+  readonly property int visibleEntries: root.positionIcon ? 8 : 6
   // The label and button line, and the list below it when open.
   property real headerHeight: 54
-  readonly property real listHeight: Math.min(root.options.length * root.entryHeight, 6 * root.entryHeight) + 8
+  readonly property real listHeight: Math.min(root.options.length, root.visibleEntries) * root.entryHeight + 8
 
   implicitHeight: root.headerHeight + (root.open ? root.listHeight + 4 : 0)
 
@@ -66,20 +70,33 @@ Item {
     anchors.right: header.right
     anchors.rightMargin: 12
     anchors.verticalCenter: header.verticalCenter
-    width: value.implicitWidth + arrow.implicitWidth + 36
-    height: 30
+    width: valueRow.implicitWidth + arrow.implicitWidth + 36
+    height: root.positionIcon ? 38 : 30
     radius: Theme.radiusFor(height)
     color: mouse.containsMouse || root.open ? Theme.borderColor : "transparent"
     border.color: root.open ? Theme.accentColor : Theme.outlineColor
     border.width: 1
 
-    ThemedText {
-      id: value
+    Row {
+      id: valueRow
       anchors.left: parent.left
       anchors.leftMargin: 12
       anchors.verticalCenter: parent.verticalCenter
-      text: root.currentIndex >= 0 ? root.options[root.currentIndex].text : ""
-      color: Theme.accentColor
+      spacing: 10
+
+      PositionIcon {
+        visible: root.positionIcon
+        anchors.verticalCenter: parent.verticalCenter
+        width: 34
+        height: 22
+        position: String(root.current)
+      }
+
+      ThemedText {
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.currentIndex >= 0 ? root.options[root.currentIndex].text : ""
+        color: Theme.accentColor
+      }
     }
 
     ThemedText {
@@ -142,8 +159,19 @@ Item {
         radius: Theme.radiusFor(height)
         color: entry.index === root.highlighted ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.22) : "transparent"
 
-        ThemedText {
+        PositionIcon {
+          id: entryIcon
+          visible: root.positionIcon
           anchors.left: parent.left
+          anchors.leftMargin: 10
+          anchors.verticalCenter: parent.verticalCenter
+          width: 34
+          height: 22
+          position: String(entry.modelData.value)
+        }
+
+        ThemedText {
+          anchors.left: entryIcon.visible ? entryIcon.right : parent.left
           anchors.leftMargin: 10
           anchors.right: parent.right
           anchors.rightMargin: 10
