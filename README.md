@@ -11,7 +11,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 - [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
 - PipeWire (volume)
 - `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
-- the "0xProto Nerd Font" font, used for text and icons (see [config/Theme.qml](config/Theme.qml))
+- a Nerd Font, used for text and icons: "0xProto Nerd Font" by default, changeable in the settings (see [Settings](#settings))
 - optionally [Zen browser](https://zen-browser.app), whose interface matugen can color with the shell's palette (see [Zen browser](#zen-browser))
 
 ## Structure
@@ -100,25 +100,34 @@ quickshell -c <name>
 
 The gear icon in the left part of the bar, or `quickshell -p . ipc call settings toggle` (bind it to a key), opens a settings panel where the look of the shell can be adjusted live; every change applies immediately and is remembered in `config/Settings.json` (git-ignored; the language is remembered as before). The settings, with their range:
 
-| Setting | Range | Default |
-|---|---|---|
-| Widget radius | 0 – 30 px | 5 |
-| Language | Automatic / English / Français | Automatic |
-| Widget opacity | 40 – 100 % | 90 % |
-| Widget spacing | 0 – 40 px | 15 |
-| Top bar height | 28 – 72 px | 40 |
-| Top bar top margin | 0 – 100 px | 5 |
-| Top bar left margin | 0 – 300 px | 5 |
-| Top bar right margin | 0 – 300 px | 5 |
-| Border width | 0 – 6 px | 2 |
-| Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
-| Transition duration | 0.5 – 10 s | 2 s |
+| Category | Setting | Range | Default |
+|---|---|---|---|
+| Appearance | Widget radius | 0 – 30 px | 5 |
+| Appearance | Widget opacity | 40 – 100 % | 90 % |
+| Appearance | Widget spacing | 0 – 40 px | 15 |
+| Appearance | Border width | 0 – 6 px | 2 |
+| Text | Font size | 10 – 32 px | 18 |
+| Text | Font weight | Thin / Extra light / Light / Normal / Medium / Semi bold / Bold / Extra bold / Black (100 – 900) | Normal |
+| Text | Letter spacing | -2 – 6 px | 0 |
+| Text | Capitalization | As typed / UPPERCASE / lowercase / Small caps | As typed |
+| Text | Font style | Italic, underline, outline (each on / off) | all off |
+| Text | Font | the installed Nerd Font families | 0xProto Nerd Font |
+| Top bar | Top bar height | 28 – 72 px | 40 |
+| Top bar | Top bar top margin | 0 – 100 px | 5 |
+| Top bar | Top bar bottom margin | 0 – 100 px | 0 |
+| Top bar | Top bar left margin | 0 – 300 px | 5 |
+| Top bar | Top bar right margin | 0 – 300 px | 5 |
+| Wallpaper | Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
+| Wallpaper | Transition duration | 0.5 – 10 s | 2 s |
+| General | Language | Automatic / English / Français | Automatic |
 
-Click or drag a slider (the transition has arrows to go to the previous/next one), or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Escape** closes. **Reset** puts everything back to the defaults, language included. Note that the bar height also scales the text (as before), so a very tall bar with big margins can make the bar's three groups collide.
+The bottom margin is extra room kept free below the bar (the bar reserves its height plus this much, so windows start lower), on top of your compositor's own gaps; at 0 the layout is what it was without the setting. The text settings apply to all text and icons in the shell: the weight is what the font offers (a font without that weight uses the nearest it has), the outline is drawn in the accent color, and letter spacing and capitalization change the width of the text (so the bar's contents move). The settings are grouped in categories, shown as a column of buttons on the left of the panel, each an icon with its name (appearance, text, top bar, wallpaper, general); click one to show its settings, whose name is the panel's heading.
 
-From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginTop`, `barMarginLeft`, `barMarginRight`, `borderWidth`, `wallpaperDuration`; out-of-range values are clamped), `settings choose <key> <value>` for the one with a list of choices (`wallpaperTransition`, a value not in the list is ignored), `settings get <key>`, `settings getChoice <key>` and `settings reset`. The transition and its duration apply the next time a wallpaper is applied (they are the `awww img` `--transition-type` and `--transition-duration`), including when the shell restores the last one at startup.
+Click or drag a slider (the transition has arrows to go to the previous/next one, and the font opens a list: click a name to pick it, or scroll for more, each name drawn in its own font), or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Page Up/Page Down** switch category, **Enter** opens the font list (then **↑/↓**, **Page Up/Page Down**, **Home/End** move in it, **Enter** picks, **Escape** closes just the list); on the font style row, **←/→** move between the buttons and **Enter** switches one, **Escape** closes. **Reset** puts everything back to the defaults, language included. Neither the font size nor the icons (tray and active window) depend on the bar height, so a large font in a low bar can overflow the pills, and a very tall bar with big margins can make the bar's three groups collide.
 
-Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row in [modules/Settings/SettingsPanel.qml](modules/Settings/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
+From a script: `quickshell -p . ipc call settings set <key> <value>` (keys: `radius`, `opacity`, `spacing`, `barHeight`, `barMarginTop`, `barMarginBottom`, `barMarginLeft`, `barMarginRight`, `borderWidth`, `fontSize`, `fontWeight` (100 to 900, rounded to hundreds), `fontLetterSpacing`, `wallpaperDuration`, and `fontItalic`, `fontUnderline`, `fontOutline` with 1 or 0; out-of-range values are clamped), `settings choose <key> <value>` for the ones with a list of choices (`wallpaperTransition` and `fontCaps` (`none`, `upper`, `lower`, `small`), where a value not in the list is ignored, and `fontFamily`, which takes any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`; the panel's list only has the Nerd Font families, since the icons are Nerd Font glyphs; Qt only reads the installed fonts when the shell starts, so restart the shell after installing or removing one), `settings get <key>`, `settings getChoice <key>` (for the font family and capitalization too) and `settings reset`. The transition and its duration apply the next time a wallpaper is applied (they are the `awww img` `--transition-type` and `--transition-duration`), including when the shell restores the last one at startup.
+
+Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (default, limits, property), point `Theme` at it, and add a row (with its `category`) in [modules/Settings/SettingsPanel.qml](modules/Settings/SettingsPanel.qml) and its label in [config/Translations.qml](config/Translations.qml).
 
 ## Localization
 

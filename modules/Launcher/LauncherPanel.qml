@@ -211,6 +211,10 @@ ModalPanel {
         selectionColor: Theme.accentColor
         selectedTextColor: Theme.backgroundColor
         font.family: Theme.fontFamily
+        font.weight: Theme.fontWeight
+        font.letterSpacing: Theme.fontLetterSpacing
+        font.italic: Theme.fontItalic
+        font.underline: Theme.fontUnderline
         font.pixelSize: Theme.fontSize()
 
         onTextChanged: {

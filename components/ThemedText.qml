@@ -9,5 +9,14 @@ Text {
 
   color: Theme.textColor
   font.family: Theme.fontFamily
+  font.weight: Theme.fontWeight
+  font.letterSpacing: Theme.fontLetterSpacing
+  font.capitalization: Theme.fontCapitalization
+  font.italic: Theme.fontItalic
+  font.underline: Theme.fontUnderline
   font.pixelSize: Theme.fontSize() * sizeScale
+  // The outline, when on, is in the accent color: the background color would
+  // vanish into the pills, which are nearly the same.
+  style: Theme.fontOutline ? Text.Outline : Text.Normal
+  styleColor: Theme.accentColor
 }

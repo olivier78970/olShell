@@ -24,6 +24,10 @@ Scope {
       margins.right: Theme.barMarginRight
 
       implicitHeight: Theme.barHeight
+      // The room the bar keeps free for itself: its height plus the bottom
+      // margin, so windows start that much lower.
+      exclusionMode: ExclusionMode.Normal
+      exclusiveZone: Theme.barHeight + Theme.barMarginBottom
       color: "transparent"
 
       // Left widgets
