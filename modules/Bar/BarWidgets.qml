@@ -17,6 +17,7 @@ Singleton {
     clock: clock,
     wallpaper: wallpaper,
     theme: theme,
+    screenshot: screenshot,
     tray: tray,
     cpu: cpu,
     ram: ram,
@@ -33,6 +34,7 @@ Singleton {
   Component { id: clock; Clock {} }
   Component { id: wallpaper; WallpaperTrigger {} }
   Component { id: theme; ThemeTrigger {} }
+  Component { id: screenshot; ScreenshotButton {} }
   Component { id: tray; Tray {} }
   Component { id: cpu; CpuUsage {} }
   Component { id: ram; RamUsage {} }

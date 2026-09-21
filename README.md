@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a Caps Lock / Num Lock OSD and a power menu with confirmation, all in English or French.
 
 ## Requirements
 
@@ -10,6 +10,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 - [`bluetui`](https://github.com/pythops/bluetui) for the Bluetooth window (left click on the Blueman tray icon)
 - [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
 - PipeWire (volume)
+- `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
 - `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
 - a Nerd Font, used for text and icons: "0xProto Nerd Font" by default, changeable in the settings (see [Settings](#settings))
 - optionally [Zen browser](https://zen-browser.app), whose interface matugen can color with the shell's palette (see [Zen browser](#zen-browser))
@@ -35,6 +36,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   └── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
 ├── services/
 │   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
+│   ├── Screenshot.qml        # Takes screenshots (mode remembered) + `screenshot` IPC target
 │   ├── LockKeys.qml          # Caps Lock / Num Lock state, from scripts/lock-keys-watch.py
 │   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
 │   ├── TuiWindow.qml         # A TUI app in a floating, themed terminal window that opens/closes like a panel
@@ -72,6 +74,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + awww/matugen)
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
+├── scripts/screenshot.py        # Takes a screenshot (screen, rectangle or window), saves and copies it (used by services/Screenshot.qml)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
 ├── scripts/tui-launch.py     # Themes and starts btop, wiremix, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
@@ -123,8 +126,9 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Wallpaper | Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
 | Wallpaper | Transition duration | 0.5 – 10 s | 2 s |
 | General | Language | Automatic / English / Français | Automatic |
+| General | Screenshot folder | an absolute path (`~` is your home folder), typed in | `~/Pictures/Screenshots` |
 
-**The bar's layout.** The widgets category has a row per bar widget (launcher, settings button, workspaces, window title, clock, wallpaper and theme buttons, tray, CPU, RAM, disk, network, volume, power) with buttons to put it **Off** (hidden) or in the **Left**, **Center** or **Right** pill, and ‹ › arrows to move it earlier or later in its pill. Putting a widget in a pill adds it at the end. Each row also has a **│** button: the divider drawn before that widget (lit when on; **D** on the keys). A divider only shows when its widget does and something shown comes before it in the pill, so there is none at the start of a pill or for a widget with nothing to show (the window title when no window is open), and it goes with its widget when that is moved; a pill with nothing left in it disappears. By default there is one before every widget except the launcher, the settings button, the clock and the tray, which is how the bar looked before this was adjustable. The settings button can go anywhere but off, so this panel stays reachable by clicking. The layout is saved as three lists (`barLeft`, `barCenter`, `barRight`) and the widgets with a divider before them (`barDividers`) in `config/Settings.json`; a widget listed twice or unknown is ignored. On the keys, **←/→** on a widget row change its pill (Off, Left, Center, Right) and **Shift+←/→** move it within the pill.
+**The bar's layout.** The widgets category has a row per bar widget (launcher, settings button, workspaces, window title, clock, wallpaper, theme and screenshot buttons, tray, CPU, RAM, disk, network, volume, power) with buttons to put it **Off** (hidden) or in the **Left**, **Center** or **Right** pill, and ‹ › arrows to move it earlier or later in its pill. Putting a widget in a pill adds it at the end. Each row also has a **│** button: the divider drawn before that widget (lit when on; **D** on the keys). A divider only shows when its widget does and something shown comes before it in the pill, so there is none at the start of a pill or for a widget with nothing to show (the window title when no window is open), and it goes with its widget when that is moved; a pill with nothing left in it disappears. By default there is one before every widget except the launcher, the settings button, the clock and the tray, which is how the bar looked before this was adjustable. The settings button can go anywhere but off, so this panel stays reachable by clicking. The layout is saved as three lists (`barLeft`, `barCenter`, `barRight`) and the widgets with a divider before them (`barDividers`) in `config/Settings.json`; a widget listed twice or unknown is ignored. On the keys, **←/→** on a widget row change its pill (Off, Left, Center, Right) and **Shift+←/→** move it within the pill.
 
 The bottom margin is extra room kept free below the bar (the bar reserves its height plus this much, so windows start lower), on top of your compositor's own gaps; at 0 the layout is what it was without the setting. The text settings apply to all text and icons in the shell: the weight is what the font offers (a font without that weight uses the nearest it has), the outline is drawn in the accent color, and letter spacing and capitalization change the width of the text (so the bar's contents move). The settings are grouped in categories, shown as a column of buttons on the left of the panel, each an icon with its name (appearance, text, top bar, widgets, wallpaper, general); click one to show its settings, whose name is the panel's heading.
 
@@ -286,6 +290,28 @@ quickshell -p . ipc call volume mute
 ```
 
 Volume changes from any source (these calls, media keys, wiremix, pavucontrol...) also show the OSD.
+
+## Screenshots
+
+The camera button in the middle of the top bar takes a screenshot: a **left click** captures in the mode chosen last, a **right click** opens a menu to choose a mode (the current one is in the accent color), and choosing one remembers it and takes the screenshot at once (after a quarter of a second, so the menu is gone from the picture). The modes:
+
+- **Screen**: the focused monitor.
+- **Rectangle**: draw the area with the mouse ([slurp](https://github.com/emersion/slurp)).
+- **Window**: click one of the windows on show on any monitor's workspace.
+
+The last row of the right-click menu, **Annotate with Satty**, switches an annotation step on or off (remembered; ticked and in the accent color when on). With it on, each screenshot is also opened in [Satty](https://github.com/gabm/satty) once taken, to draw arrows, boxes, text, blur and so on: **Enter** there copies the annotated picture to the clipboard and saves it next to the original as `screenshot-<date>_<time>-edited.png`, then closes Satty (its toolbar has more save options). The original is kept and copied first, so closing Satty without doing anything leaves you the plain picture; no notification is shown in that case, since Satty announces its own. It needs `satty`; without it the switch does nothing.
+
+The picture is saved as `~/Pictures/Screenshots/screenshot-<date>_<time>.png` (the folder is created; the settings panel's General category has a **Screenshot folder** field to change it: click it or press **Enter**, type, **Enter** again to save, **Escape** to cancel; `~` is your home folder, and anything that isn't an absolute path is refused and puts back the default), copied to the clipboard, and announced with a notification showing it. Escape while choosing an area cancels. [scripts/screenshot.py](scripts/screenshot.py) does the work with `grim`, and [services/Screenshot.qml](services/Screenshot.qml) keeps the mode (`screenshotMode` and `screenshotEdit` in `config/Settings.json`, not in the settings panel; the folder, `screenshotDir`, is) and answers the IPC calls:
+
+```sh
+quickshell -p . ipc call screenshot capture         # in the remembered mode (bind this to a key, e.g. Print)
+quickshell -p . ipc call screenshot take window     # in another mode, without remembering it (screen, region or window; the argument is required)
+quickshell -p . ipc call screenshot mode region     # remember a mode
+quickshell -p . ipc call screenshot edit 1          # annotate with Satty afterwards (0: don't)
+quickshell -p . ipc call screenshot dir ~/Shots     # where pictures go (no argument: print it)
+```
+
+The button is a bar widget like the others: it can be moved, turned off or given a divider from the settings panel's Widgets category. It is in the middle of the bar by default; a layout saved before it existed doesn't have it until you put it in a pill there (or `settings place screenshot center -1`). The clipboard copy and the notification are skipped if `wl-copy` or `notify-send` isn't installed.
 
 ## Lock keys OSD
 

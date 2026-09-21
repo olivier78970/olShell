@@ -2,7 +2,9 @@ import QtQuick
 import qs.config
 
 // A bar widget's row: its name on the left, then a button for the divider
-// before the widget (lit when `divider` is on; `dividerToggled` on click),
+// before the widget (lit when `divider` is on; `dividerToggled` on click; dimmed
+// and not clickable when `dividerEnabled` is off, for the first widget of a
+// pill, where a divider would border nothing),
 // where it is on the bar as a row of buttons (`zones`, an array of
 // { value, text }, `zone` the current value) and two arrows moving it earlier
 // / later in its zone. `zoneChosen` fires with the value clicked and `moved`
@@ -19,6 +21,7 @@ Item {
   property bool canMoveBack: false
   property bool canMoveForward: false
   property bool divider: false
+  property bool dividerEnabled: true
   property bool selected: false
 
   signal dividerToggled()
@@ -58,9 +61,10 @@ Item {
       width: 26
       height: 26
       radius: Theme.radiusFor(height)
-      color: root.divider ? Theme.accentColor : (dividerMouse.containsMouse ? Theme.borderColor : "transparent")
+      color: root.divider ? Theme.accentColor : (dividerMouse.containsMouse && root.dividerEnabled ? Theme.borderColor : "transparent")
       border.color: root.divider ? Theme.accentColor : Theme.outlineColor
       border.width: 1
+      opacity: root.dividerEnabled ? 1 : 0.35
 
       // The divider as the bar draws it, a thin vertical line, drawn as a
       // shape so it is centered whatever the font.
@@ -75,6 +79,7 @@ Item {
       MouseArea {
         id: dividerMouse
         anchors.fill: parent
+        enabled: root.dividerEnabled
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {

@@ -24,6 +24,9 @@ Singleton {
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
+  // The script that takes screenshots (the folder they go to is a setting).
+  readonly property string screenshotScript: Quickshell.shellPath("scripts/screenshot.py")
+
   // Applies a wallpaper with awww, starting its daemon if needed.
   readonly property string applyWallpaperScript: Quickshell.shellPath("scripts/apply-wallpaper.py")
 

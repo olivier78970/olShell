@@ -31,8 +31,11 @@ Singleton {
     fontOutline: false,
     wallpaperTransition: "fade",
     wallpaperDuration: 2,
+    screenshotMode: "screen",
+    screenshotEdit: false,
+    screenshotDir: Quickshell.env("HOME") + "/Pictures/Screenshots",
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
-    barCenter: ["clock", "wallpaper", "theme"],
+    barCenter: ["clock", "wallpaper", "theme", "screenshot"],
     barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"],
     barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
   })
@@ -61,6 +64,7 @@ Singleton {
   // "none" already changes the wallpaper at once).
   readonly property var choices: ({
     fontCaps: ["none", "upper", "lower", "small"],
+    screenshotMode: ["screen", "region", "window"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"]
   })
 
@@ -97,7 +101,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "tray", "cpu", "ram", "disk", "network", "volume", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "power"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -112,6 +116,12 @@ Singleton {
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
   readonly property real wallpaperDuration: root.valid("wallpaperDuration", file.adapter.wallpaperDuration)
+  // What the bar's screenshot widget captures: the focused screen, a rectangle or a window,
+  // whether the picture is then opened in satty to be annotated, and the folder
+  // pictures are saved in (an absolute path; a leading ~ is the home folder).
+  readonly property string screenshotMode: root.valid("screenshotMode", file.adapter.screenshotMode)
+  readonly property bool screenshotEdit: root.valid("screenshotEdit", file.adapter.screenshotEdit)
+  readonly property string screenshotDir: root.valid("screenshotDir", file.adapter.screenshotDir)
 
   // `value` for setting `key` kept within its limits (the default if it
   // isn't a number), and rounded to whole numbers except for the opacity
@@ -125,6 +135,16 @@ Singleton {
     if (Array.isArray(root.defaults[key])) {
       const list = root.asArray(value)
       return list.length > 0 || (value !== null && typeof value === "object") ? list.filter(id => root.widgetIds.includes(id)) : root.defaults[key]
+    }
+    if (key === "screenshotDir") {
+      // ~ is the home folder, a trailing slash is dropped, and anything that
+      // isn't then an absolute path (or is just "/") is the default.
+      let path = typeof value === "string" ? value.trim() : ""
+      const home = Quickshell.env("HOME")
+      if (path === "~") path = home
+      else if (path.startsWith("~/")) path = home + path.slice(1)
+      path = path.replace(/\/+$/, "")
+      return path.startsWith("/") ? path : root.defaults[key]
     }
     if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
@@ -249,8 +269,11 @@ Singleton {
       property bool fontOutline: false
       property string wallpaperTransition: "fade"
       property real wallpaperDuration: 2
+      property string screenshotMode: "screen"
+      property bool screenshotEdit: false
+      property string screenshotDir: root.defaults.screenshotDir
       property var barLeft: ["launcher", "settings", "workspaces", "activeWindow"]
-      property var barCenter: ["clock", "wallpaper", "theme"]
+      property var barCenter: ["clock", "wallpaper", "theme", "screenshot"]
       property var barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"]
       property var barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
     }

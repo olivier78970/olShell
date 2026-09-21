@@ -30,6 +30,7 @@ ModalPanel {
   readonly property var allRows: [
     { key: "radius", category: "appearance", kind: "slider", label: I18n.tr("settings.radius"), step: 1, format: v => v + " px" },
     { key: "language", category: "general", kind: "choice", label: I18n.tr("settings.language") },
+    { key: "screenshotDir", category: "general", kind: "path", label: I18n.tr("settings.screenshotDir") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
@@ -115,6 +116,9 @@ ModalPanel {
   // entry of that list the keys are on.
   property string openKey: ""
   property int highlight: 0
+  // The row being typed into (its key, "" for none): a text field has the
+  // keyboard then, and the panel's own keys are off.
+  property string editKey: ""
 
   maxPanelWidth: 920
   maxPanelHeight: 780
@@ -124,7 +128,8 @@ ModalPanel {
   visible: SettingsPanelState.visible
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
-    if (root.openKey !== "") root.openKey = ""
+    if (root.editKey !== "") root.editKey = ""
+    else if (root.openKey !== "") root.openKey = ""
     else SettingsPanelState.visible = false
   }
   Component.onCompleted: root.refreshFontOptions()
@@ -135,6 +140,7 @@ ModalPanel {
   }
   onSelectedChanged: {
     root.openKey = ""
+    root.editKey = ""
     root.toggleFocus = 0
   }
 
@@ -209,6 +215,7 @@ ModalPanel {
 
   function selectCategory(index) {
     root.openKey = ""
+    root.editKey = ""
     root.category = Math.max(0, Math.min(root.categories.length - 1, index))
     root.selected = 0
   }
@@ -222,7 +229,7 @@ ModalPanel {
       const values = root.optionsOf(row).map(option => option.value)
       const next = ((values.indexOf(Settings.get(row.key)) + direction * steps) % values.length + values.length) % values.length
       Settings.set(row.key, values[next])
-    } else {
+    } else if (row.kind === "choice") {
       const values = root.languageOptions.map(option => option.value)
       const next = (values.indexOf(I18n.setting) + direction + values.length) % values.length
       I18n.select(values[next])
@@ -261,13 +268,26 @@ ModalPanel {
   }
 
   onKeyPressed: event => {
+    // While typing in a text field, its keys are its own (it took the ones
+    // it uses; the rest, like Page Up, are not the panel's).
+    if (root.editKey !== "") {
+      event.accepted = true
+      return
+    }
     if (root.openKey !== "") {
       root.listKeyPressed(event)
       return
     }
     const big = (event.modifiers & Qt.ShiftModifier) !== 0
     const kind = root.rows[root.selected].kind
-    if (kind === "widget" && event.key === Qt.Key_D) {
+    if (kind === "widget" && event.key === Qt.Key_D && Settings.layout[Settings.zoneOf(root.rows[root.selected].widget)]?.[0] === root.rows[root.selected].widget) {
+      // The first widget of a pill has no divider to switch.
+      event.accepted = true
+    } else if (kind === "path" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      // Enter: type in the field.
+      root.editKey = root.rows[root.selected].key
+      event.accepted = true
+    } else if (kind === "widget" && event.key === Qt.Key_D) {
       // D: the divider before the widget, on or off.
       const id = root.rows[root.selected].widget
       Settings.setDivider(id, !Settings.dividers.includes(id))
@@ -499,6 +519,7 @@ ModalPanel {
             lockedZone: widgetId === "settings" ? "off" : ""
             zone: zoneNow
             divider: Settings.dividers.includes(widgetId)
+            dividerEnabled: placed.indexOf(widgetId) !== 0
             canMoveBack: placed.indexOf(widgetId) > 0
             canMoveForward: placed.indexOf(widgetId) >= 0 && placed.indexOf(widgetId) < placed.length - 1
             selected: root.selected === row.index
@@ -523,6 +544,23 @@ ModalPanel {
               root.toggleFocus = (row.modelData.toggles ?? []).findIndex(option => option.key === key)
               Settings.set(key, !Settings.get(key))
             }
+          }
+
+          PathRow {
+            visible: row.modelData.kind === "path"
+            anchors.fill: parent
+            label: row.modelData.label
+            value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
+            selected: root.selected === row.index
+            editing: root.editKey === row.modelData.key
+            onActivated: root.selected = row.index
+            onEditRequested: root.editKey = row.modelData.key
+            onCommitted: text => {
+              root.editKey = ""
+              Settings.set(row.modelData.key, text)
+            }
+            onCancelled: root.editKey = ""
+            onReleased: root.focusTarget.forceActiveFocus()
           }
 
           DropdownRow {
