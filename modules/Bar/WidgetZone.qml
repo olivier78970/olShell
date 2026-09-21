@@ -24,10 +24,10 @@ Pill {
   }
 
   // Whether the pointer is in the pill, or was a moment ago, so the groups are
-  // not shut the instant it strays. They are also open while a popup hangs
-  // off the pill, which would lose its anchor.
+  // not shut the instant it strays. (The group of a widget with a popup open
+  // also stays, whatever the pointer does, or the popup would lose its anchor;
+  // the other groups shut as usual.)
   property bool expanded: false
-  readonly property bool revealed: root.expanded || root.popupOpen
 
   onHoveredChanged: {
     if (root.hovered) {
@@ -60,20 +60,35 @@ Pill {
     root.flags = next
   }
 
-  // The mode ("on", "hover" or "off") of the group slot `index` belongs to.
-  function modeAt(index) {
+  // The widget that starts the group slot `index` belongs to.
+  function groupStart(index) {
     let start = root.widgets[0]
     for (let i = 1; i <= index; i++) {
       if (Settings.dividers.includes(root.widgets[i])) start = root.widgets[i]
     }
-    return Settings.groupMode(start)
+    return start
+  }
+
+  // The mode ("on", "hover" or "off") of the group slot `index` belongs to.
+  function modeAt(index) {
+    return Settings.groupMode(root.groupStart(index))
+  }
+
+  // Whether a widget of the group slot `index` belongs to has a popup open.
+  function groupHasPopup(index) {
+    root.flags  // look again when the slots change
+    const start = root.groupStart(index)
+    for (let i = 0; i < slots.count; i++) {
+      if (slots.itemAt(i)?.open && root.groupStart(i) === start) return true
+    }
+    return false
   }
 
   // Whether the group slot `index` belongs to is hidden right now: it is off,
-  // or on hover and the pill isn't open.
+  // or on hover and the pointer isn't in the pill (nor a popup of the group open).
   function groupCollapsed(index) {
     const mode = root.modeAt(index)
-    return mode === "off" || (mode === "hover" && !root.revealed)
+    return mode === "off" || (mode === "hover" && !root.expanded && !root.groupHasPopup(index))
   }
 
   // Whether slot `index` is showing now: its widget is, and its group isn't hidden.
