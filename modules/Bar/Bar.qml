@@ -1,8 +1,6 @@
 import Quickshell
 import QtQuick
-import qs.components
 import qs.config
-import qs.modules.Bar.Widgets
 
 // Top bar, replicated across every connected screen.
 Scope {
@@ -31,78 +29,25 @@ Scope {
       color: "transparent"
 
       // Left widgets
-      Pill {
+      WidgetZone {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-
-        LauncherTrigger {}
-
-        // LanguageTrigger {}
-
-        SettingsTrigger {}
-
-        Separator {}
-        Workspaces {}
-
-        Separator {
-          visible: activeWindow.toplevel !== null
-        }
-
-        ActiveWindow {
-          id: activeWindow
-        }
+        widgets: Settings.layout.left
       }
 
-      // Middle widget
-      Pill {
+      // Middle widgets
+      WidgetZone {
         anchors.centerIn: parent
-
-        Clock {}
-
-        Separator {}
-
-        WallpaperTrigger {}
-
-        ThemeTrigger {}
-
-        
+        widgets: Settings.layout.center
       }
 
       // Right widgets
-      Pill {
+      WidgetZone {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        flattenBottomRight: powerMenu.menuOpen
-
-        Tray {}
-
-        Separator {}
-
-        CpuUsage {}
-
-        Separator {}
-
-        RamUsage {}
-
-        Separator {}
-
-        DiskUsage {}
-
-        Separator {}
-
-        NetworkSpeed {}
-
-        Separator {}
-
-        Volume {}
-
-        Separator {}
-
-        PowerMenu {
-          id: powerMenu
-        }
+        widgets: Settings.layout.right
+        flattenBottomRight: popupOpen
       }
     }
   }
 }
-

@@ -30,7 +30,11 @@ Singleton {
     fontUnderline: false,
     fontOutline: false,
     wallpaperTransition: "fade",
-    wallpaperDuration: 2
+    wallpaperDuration: 2,
+    barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
+    barCenter: ["clock", "wallpaper", "theme"],
+    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"],
+    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
   })
 
   // [minimum, maximum] of each setting, for the panel's sliders and to keep
@@ -90,6 +94,20 @@ Singleton {
   readonly property bool fontItalic: root.valid("fontItalic", file.adapter.fontItalic)
   readonly property bool fontUnderline: root.valid("fontUnderline", file.adapter.fontUnderline)
   readonly property bool fontOutline: root.valid("fontOutline", file.adapter.fontOutline)
+  // The bar's widgets, by id, in the order the settings panel lists them (the
+  // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
+  // the bar they can be put in. Every widget is in at most one of them.
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "tray", "cpu", "ram", "disk", "network", "volume", "power"]
+  readonly property var zones: ["left", "center", "right"]
+  // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
+  // widgets of a zone in the order they are drawn. Made from the saved lists
+  // with what is not a known widget, or is a second copy, left out; the
+  // settings button is put back at the start of the left if it went missing,
+  // so the panel stays reachable by clicking.
+  readonly property var layout: root.buildLayout(file.adapter.barLeft, file.adapter.barCenter, file.adapter.barRight)
+  // The widgets that have a divider drawn before them, when something is shown
+  // before them in their pill. A divider goes with its widget when it moves.
+  readonly property var dividers: root.valid("barDividers", file.adapter.barDividers)
   // How awww changes from one wallpaper to the next (one of choices.wallpaperTransition),
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
@@ -103,6 +121,11 @@ Singleton {
   // is any non-empty name (whether it is installed isn't checked here), and a
   // yes/no setting is true or false.
   function valid(key, value) {
+    // A list of widgets: only known ones (the layout also drops duplicates).
+    if (Array.isArray(root.defaults[key])) {
+      const list = root.asArray(value)
+      return list.length > 0 || (value !== null && typeof value === "object") ? list.filter(id => root.widgetIds.includes(id)) : root.defaults[key]
+    }
     if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
     if (typeof root.defaults[key] === "boolean") {
@@ -117,6 +140,63 @@ Singleton {
     if (key === "opacity") return Math.round(clamped * 100) / 100
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
+  }
+
+  // `list` as a real array: a list read from the saved file is an array-like
+  // object that Array.isArray refuses, and anything else gives an empty one.
+  function asArray(list) {
+    return list !== null && typeof list === "object" && typeof list.length === "number" ? Array.from(list) : []
+  }
+
+  function buildLayout(left, center, right) {
+    const seen = new Set()
+    const clean = list => root.asArray(list).filter(id => {
+      if (!root.widgetIds.includes(id) || seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+    const zones = [clean(left), clean(center), clean(right)]
+    if (!seen.has("settings")) zones[0].unshift("settings")
+    return { left: zones[0], center: zones[1], right: zones[2] }
+  }
+
+  // The zone widget `id` is in ("left", "center" or "right"), or "off".
+  function zoneOf(id) {
+    return root.zones.find(zone => root.layout[zone].includes(id)) ?? "off"
+  }
+
+  // Puts widget `id` in `zone` ("left", "center", "right", or "off" to hide
+  // it) at `position` (0 for first; the end if left out), taking it out of
+  // where it was. The settings button can't be turned off.
+  function place(id, zone, position) {
+    if (!root.widgetIds.includes(id)) return
+    if (zone === "off" && id === "settings") return
+    if (zone !== "off" && !root.zones.includes(zone)) return
+    const lists = {}
+    for (const name of root.zones) lists[name] = root.layout[name].filter(other => other !== id)
+    if (zone !== "off") {
+      const index = position === undefined ? lists[zone].length : Math.max(0, Math.min(lists[zone].length, position))
+      lists[zone].splice(index, 0, id)
+    }
+    root.set("barLeft", lists.left)
+    root.set("barCenter", lists.center)
+    root.set("barRight", lists.right)
+  }
+
+  // Turns the divider before widget `id` on or off.
+  function setDivider(id, on) {
+    if (!root.widgetIds.includes(id)) return
+    const others = root.dividers.filter(other => other !== id)
+    root.set("barDividers", on ? others.concat([id]) : others)
+  }
+
+  // Moves widget `id` `steps` places later (negative: earlier) within its zone.
+  function move(id, steps) {
+    const zone = root.zoneOf(id)
+    if (zone === "off") return
+    const index = root.layout[zone].indexOf(id)
+    const target = Math.max(0, Math.min(root.layout[zone].length - 1, index + steps))
+    if (target !== index) root.place(id, zone, target)
   }
 
   // The current value of setting `key`.
@@ -169,6 +249,10 @@ Singleton {
       property bool fontOutline: false
       property string wallpaperTransition: "fade"
       property real wallpaperDuration: 2
+      property var barLeft: ["launcher", "settings", "workspaces", "activeWindow"]
+      property var barCenter: ["clock", "wallpaper", "theme"]
+      property var barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "power"]
+      property var barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "power"]
     }
   }
 }
