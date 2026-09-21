@@ -16,7 +16,10 @@ Row {
 
   anchors.verticalCenter: parent.verticalCenter
   spacing: 8
-  visible: root.toplevel !== null
+  // Whether there is a window to show; the bar's slot hides the widget (and the
+  // divider before it) when there isn't.
+  readonly property bool present: root.toplevel !== null
+  visible: root.present
 
   IconImage {
     anchors.verticalCenter: parent.verticalCenter

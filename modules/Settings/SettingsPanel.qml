@@ -20,6 +20,7 @@ ModalPanel {
     { id: "appearance", icon: "󰏘", label: I18n.tr("settings.category.appearance") },
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
+    { id: "widgets", icon: "󰀻", label: I18n.tr("settings.category.widgets") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
@@ -41,11 +42,17 @@ ModalPanel {
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
     { key: "fontCaps", category: "text", kind: "buttons", label: I18n.tr("settings.fontCaps") },
-    { key: "fontStyle", category: "text", kind: "toggles", label: I18n.tr("settings.fontStyle") },
+    { key: "fontStyle", category: "text", kind: "toggles", label: I18n.tr("settings.fontStyle"), toggles: [
+      { key: "fontItalic", text: I18n.tr("settings.fontItalic"), italic: true },
+      { key: "fontUnderline", text: I18n.tr("settings.fontUnderline"), underline: true },
+      { key: "fontOutline", text: I18n.tr("settings.fontOutline") }
+    ] },
     { key: "fontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.fontFamily") },
     { key: "wallpaperTransition", category: "wallpaper", kind: "cycle", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" }
-  ]
+  ].concat(Settings.widgetIds.map(id => ({
+    key: "widget:" + id, widget: id, category: "widgets", kind: "widget", label: I18n.tr("settings.widget." + id)
+  })))
 
   // The wallpaper transitions, named in the current language.
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
@@ -66,19 +73,19 @@ ModalPanel {
     root.fontOptions = names.sort().map(name => ({ value: name, text: name }))
   }
 
-  // The buttons of the font style row, and which are on.
-  readonly property var styleOptions: [
-    { key: "fontItalic", text: I18n.tr("settings.fontItalic"), italic: true },
-    { key: "fontUnderline", text: I18n.tr("settings.fontUnderline"), underline: true },
-    { key: "fontOutline", text: I18n.tr("settings.fontOutline") }
-  ]
-  readonly property var styleChecked: ({
-    fontItalic: Settings.fontItalic,
-    fontUnderline: Settings.fontUnderline,
-    fontOutline: Settings.fontOutline
-  })
+  // Which buttons of a toggle row are on, by setting key.
+  function checkedOf(row) {
+    const checked = {}
+    for (const toggle of row.toggles ?? []) checked[toggle.key] = Settings.get(toggle.key) === true
+    return checked
+  }
+
   // The button of the selected toggle row the keys are on.
   property int toggleFocus: 0
+
+  // Where a widget can be put, for its row: off, or one of the three zones.
+  readonly property var zoneOptions: ["off"].concat(Settings.zones)
+    .map(name => ({ value: name, text: I18n.tr("settings.zone." + name) }))
 
   // The capitalizations, named in the current language.
   readonly property var capsOptions: Settings.choices.fontCaps
@@ -145,6 +152,31 @@ ModalPanel {
     // fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
+    }
+
+    // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
+    // it; the widget ids are launcher, settings, workspaces, activeWindow,
+    // clock, wallpaper, theme, tray, cpu, ram, disk, network, volume, power),
+    // at the end of it, or `position` places from its start when not negative.
+    function place(widget: string, zone: string, position: int): void {
+      Settings.place(widget, zone, position < 0 ? undefined : position)
+    }
+
+    // Moves a bar widget `steps` places later (negative: earlier) in its zone.
+    function move(widget: string, steps: int): void {
+      Settings.move(widget, steps)
+    }
+
+    // Turns the divider before a bar widget on (1) or off (0). It shows when
+    // the widget is shown and something shown comes before it in its pill.
+    function divider(widget: string, on: int): void {
+      Settings.setDivider(widget, on !== 0)
+    }
+
+    // The bar's layout as JSON: { "left": [ids], "center": [ids], "right":
+    // [ids], "dividers": [the ids with a divider before them] }.
+    function layout(): string {
+      return JSON.stringify(Object.assign({}, Settings.layout, { dividers: Settings.dividers }))
     }
 
     function get(key: string): real {
@@ -235,13 +267,30 @@ ModalPanel {
     }
     const big = (event.modifiers & Qt.ShiftModifier) !== 0
     const kind = root.rows[root.selected].kind
-    if (kind === "toggles" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+    if (kind === "widget" && event.key === Qt.Key_D) {
+      // D: the divider before the widget, on or off.
+      const id = root.rows[root.selected].widget
+      Settings.setDivider(id, !Settings.dividers.includes(id))
+      event.accepted = true
+    } else if (kind === "widget" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: another zone; with Shift: earlier / later in this one.
+      const id = root.rows[root.selected].widget
+      const direction = event.key === Qt.Key_Left ? -1 : 1
+      if (big) {
+        Settings.move(id, direction)
+      } else {
+        const zones = id === "settings" ? Settings.zones : ["off"].concat(Settings.zones)
+        const next = zones.indexOf(Settings.zoneOf(id)) + direction
+        if (next >= 0 && next < zones.length) Settings.place(id, zones[next])
+      }
+      event.accepted = true
+    } else if (kind === "toggles" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Move between the buttons of the row.
-      const last = root.styleOptions.length - 1
+      const last = root.rows[root.selected].toggles.length - 1
       root.toggleFocus = Math.max(0, Math.min(last, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
       event.accepted = true
     } else if (kind === "toggles" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      const key = root.styleOptions[root.toggleFocus].key
+      const key = root.rows[root.selected].toggles[root.toggleFocus].key
       Settings.set(key, !Settings.get(key))
       event.accepted = true
     } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
@@ -411,7 +460,7 @@ ModalPanel {
 
           width: parent.width
           // A dropdown row grows to hold its list while it's open.
-          height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : 64
+          height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.modelData.kind === "widget" ? 38 : 64)
 
           SettingSlider {
             visible: row.modelData.kind === "slider"
@@ -438,19 +487,40 @@ ModalPanel {
             onChosen: value => Settings.set(row.modelData.key, value)
           }
 
+          WidgetRow {
+            readonly property string widgetId: row.modelData.widget ?? ""
+            readonly property string zoneNow: row.modelData.kind === "widget" ? Settings.zoneOf(widgetId) : "off"
+            readonly property var placed: Settings.layout[zoneNow] ?? []
+
+            visible: row.modelData.kind === "widget"
+            anchors.fill: parent
+            label: row.modelData.label
+            zones: root.zoneOptions
+            lockedZone: widgetId === "settings" ? "off" : ""
+            zone: zoneNow
+            divider: Settings.dividers.includes(widgetId)
+            canMoveBack: placed.indexOf(widgetId) > 0
+            canMoveForward: placed.indexOf(widgetId) >= 0 && placed.indexOf(widgetId) < placed.length - 1
+            selected: root.selected === row.index
+            onActivated: root.selected = row.index
+            onDividerToggled: Settings.setDivider(widgetId, !Settings.dividers.includes(widgetId))
+            onZoneChosen: value => Settings.place(widgetId, value)
+            onMoved: steps => Settings.move(widgetId, steps)
+          }
+
           ToggleRow {
             visible: row.modelData.kind === "toggles"
             anchors.fill: parent
             label: row.modelData.label
-            options: root.styleOptions
-            checked: root.styleChecked
+            options: row.modelData.toggles ?? []
+            checked: root.checkedOf(row.modelData)
             selected: root.selected === row.index
             focusIndex: root.toggleFocus
             onActivated: {
               root.selected = row.index
             }
             onToggled: key => {
-              root.toggleFocus = root.styleOptions.findIndex(option => option.key === key)
+              root.toggleFocus = (row.modelData.toggles ?? []).findIndex(option => option.key === key)
               Settings.set(key, !Settings.get(key))
             }
           }
