@@ -2,7 +2,10 @@ import QtQuick
 import qs.config
 
 // A label with a row of options, the current one highlighted. `options` is
-// an array of { value, text }; `chosen` fires with the value clicked.
+// an array of { value, text, capitalization? }; `chosen` fires with the value
+// clicked. With `literal` on, the buttons show their text as written (or in
+// the capitalization the option names) instead of the shell's, for a row that
+// lets you choose that capitalization.
 Item {
   id: root
 
@@ -10,6 +13,7 @@ Item {
   property var options: []
   property var current: null
   property bool selected: false
+  property bool literal: false
 
   signal chosen(var value)
   signal activated()
@@ -59,6 +63,7 @@ Item {
           text: option.modelData.text
           color: option.active ? Theme.backgroundColor : Theme.textColor
           sizeScale: 0.85
+          font.capitalization: root.literal ? (option.modelData.capitalization ?? Font.MixedCase) : Theme.fontCapitalization
         }
 
         MouseArea {

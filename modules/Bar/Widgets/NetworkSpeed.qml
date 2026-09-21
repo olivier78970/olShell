@@ -17,6 +17,9 @@ Item {
   TextMetrics {
     id: widest
     font.family: Theme.fontFamily
+    font.weight: Theme.fontWeight
+    font.letterSpacing: Theme.fontLetterSpacing
+    font.italic: Theme.fontItalic
     font.pixelSize: Theme.fontSize()
     text: "1023 " + I18n.value("format.units")[1] + "/s"
   }

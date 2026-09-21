@@ -1,9 +1,9 @@
 import QtQuick
 import qs.config
 
-// One adjustable number: its label and current value above a slider. The
-// owner gives the value and reacts to `moved`; `activated` fires when the
-// row is pressed (to select it).
+// One adjustable number: its label on the left, then a slider and the
+// current value on the right. The owner gives the value and reacts to
+// `moved`; `activated` fires when the row is pressed (to select it).
 Item {
   id: root
 
@@ -38,30 +38,36 @@ Item {
   }
 
   ThemedText {
+    id: labelText
     anchors.left: parent.left
     anchors.leftMargin: 12
-    anchors.top: parent.top
-    anchors.topMargin: 9
+    anchors.right: track.left
+    anchors.rightMargin: 12
+    anchors.verticalCenter: parent.verticalCenter
     text: root.label
+    elide: Text.ElideRight
   }
 
   ThemedText {
+    id: valueLabel
     anchors.right: parent.right
     anchors.rightMargin: 12
-    anchors.top: parent.top
-    anchors.topMargin: 9
+    anchors.verticalCenter: parent.verticalCenter
+    width: 80
+    horizontalAlignment: Text.AlignRight
     text: root.valueText
     color: Theme.accentColor
   }
 
+  // The slider itself, on the right of the row, before the value.
   Rectangle {
     id: track
-    anchors.left: parent.left
-    anchors.leftMargin: 12
-    anchors.right: parent.right
-    anchors.rightMargin: 12
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 11
+    anchors.right: valueLabel.left
+    anchors.rightMargin: 14
+    anchors.verticalCenter: parent.verticalCenter
+    // 35% of the row, but never so much that the label gets cut off, and at
+    // least a short slider.
+    width: Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - valueLabel.width - 12 - 12 - 14 - 12))
     height: 6
     radius: Theme.radiusFor(height)
     color: Theme.borderColor
@@ -84,8 +90,12 @@ Item {
   }
 
   MouseArea {
+    id: area
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
+
+    // True while a drag that started on the slider is going on.
+    property bool dragging: false
 
     function setFrom(x) {
       const fraction = Math.max(0, Math.min(1, (x - track.x) / track.width))
@@ -94,11 +104,14 @@ Item {
 
     onPressed: mouse => {
       root.activated()
-      // Only the lower half is the slider; the label above is just to select.
-      if (mouse.y > root.height / 2 - 4) setFrom(mouse.x)
+      // Only the slider (with a little room around its knob) sets the value;
+      // the rest of the row is just to select it.
+      area.dragging = mouse.x >= track.x - 10 && mouse.x <= track.x + track.width + 10
+      if (area.dragging) setFrom(mouse.x)
     }
     onPositionChanged: mouse => {
-      if (pressed && mouse.y > -20) setFrom(mouse.x)
+      if (pressed && area.dragging) setFrom(mouse.x)
     }
+    onReleased: area.dragging = false
   }
 }

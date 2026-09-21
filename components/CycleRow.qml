@@ -2,7 +2,8 @@ import QtQuick
 import qs.config
 
 // A label with one value out of a list, shown between two arrows: clicking
-// them (or the row's value) moves to the previous / next one. `options` is an
+// them (or the row's value) moves to the previous / next one. The arrows hug
+// the current value, so they move as its length changes. `options` is an
 // array of { value, text }; `chosen` fires with the value moved to.
 Item {
   id: root
@@ -45,7 +46,7 @@ Item {
     anchors.right: parent.right
     anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter
-    spacing: 6
+    spacing: 10
 
     CycleArrow {
       text: "‹"
@@ -57,8 +58,6 @@ Item {
 
     ThemedText {
       anchors.verticalCenter: parent.verticalCenter
-      width: 110
-      horizontalAlignment: Text.AlignHCenter
       text: root.currentIndex >= 0 ? root.options[root.currentIndex].text : ""
       color: Theme.accentColor
     }
