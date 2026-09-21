@@ -8,6 +8,8 @@ Rectangle {
   default property alias content: row.data
   property int spacing: 10
   property int horizontalPadding: Theme.pillPadding
+  // True while the pointer is over the pill (padding included).
+  readonly property bool hovered: pillHover.hovered
 
   // Square off the bottom-right corner, e.g. while a popup anchored to
   // this pill's right edge is open, so the pill flows into the popup.
@@ -21,6 +23,10 @@ Rectangle {
   color: Theme.pillColor
   border.color: Theme.outlineColor
   border.width: Theme.borderWidth
+
+  HoverHandler {
+    id: pillHover
+  }
 
   Row {
     id: row

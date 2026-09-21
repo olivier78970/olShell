@@ -24,6 +24,7 @@ Singleton {
     disk: disk,
     network: network,
     volume: volume,
+    notifications: notifications,
     power: power
   })
 
@@ -41,5 +42,6 @@ Singleton {
   Component { id: disk; DiskUsage {} }
   Component { id: network; NetworkSpeed {} }
   Component { id: volume; Volume {} }
+  Component { id: notifications; NotificationBell {} }
   Component { id: power; PowerMenu {} }
 }

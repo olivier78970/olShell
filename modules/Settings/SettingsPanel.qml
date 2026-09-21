@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import qs.components
 import qs.config
@@ -22,6 +23,7 @@ ModalPanel {
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
     { id: "widgets", icon: "󰀻", label: I18n.tr("settings.category.widgets") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
+    { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -49,11 +51,69 @@ ModalPanel {
       { key: "fontOutline", text: I18n.tr("settings.fontOutline") }
     ] },
     { key: "fontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.fontFamily") },
-    { key: "wallpaperTransition", category: "wallpaper", kind: "cycle", label: I18n.tr("settings.wallpaperTransition") },
-    { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" }
-  ].concat(Settings.widgetIds.map(id => ({
-    key: "widget:" + id, widget: id, category: "widgets", kind: "widget", label: I18n.tr("settings.widget." + id)
-  })))
+    { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
+    { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
+    { key: "notificationTimeout", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationTimeout"), step: 1, format: v => v + " s" },
+    { key: "notificationMax", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationMax"), step: 1, format: v => String(v) },
+    { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.notificationPosition") },
+    { key: "notificationDndRow", category: "notifications", kind: "toggles", label: I18n.tr("settings.notificationDnd"), toggles: [
+      { key: "notificationDnd", text: I18n.tr("settings.notificationDndOn") }
+    ] }
+  ].concat(root.widgetRows)
+
+  // The widgets category, in the order things are on the bar: for each
+  // section (left, center, right) its groups (the widgets between two
+  // dividers), each a "group" row (its mode, and moving it) followed by a row
+  // per widget; then the widgets that are off. Rows say where they are in
+  // their section and group so the panel can draw each group as a block:
+  // `zoneStart` for the first row of a section, `groupStart` for a group's
+  // first row and `groupEnd` for its last. A group row's `widget` is the
+  // widget that starts the group, which names it.
+  readonly property var widgetRows: {
+    const rows = []
+    const widgetRow = (id, zone, zoneStart, groupEnd) => ({
+      key: "widget:" + id,
+      widget: id,
+      category: "widgets",
+      kind: "widget",
+      label: I18n.tr("settings.widget." + id),
+      zone: zone,
+      zoneStart: zoneStart,
+      groupStart: false,
+      groupEnd: groupEnd
+    })
+    for (const zone of Settings.zones) {
+      const groups = Settings.groupsOf(zone)
+      groups.forEach((group, groupIndex) => {
+        rows.push({
+          key: "group:" + group[0],
+          widget: group[0],
+          category: "widgets",
+          kind: "group",
+          label: I18n.tr("settings.group") + " " + (groupIndex + 1),
+          zone: zone,
+          mode: Settings.groupMode(group[0]),
+          canMoveBack: groupIndex > 0,
+          canMoveForward: groupIndex < groups.length - 1,
+          zoneStart: groupIndex === 0,
+          groupStart: true,
+          groupEnd: false
+        })
+        group.forEach((id, index) => rows.push(widgetRow(id, zone, false, index === group.length - 1)))
+      })
+    }
+    const off = Settings.widgetIds.filter(id => Settings.zoneOf(id) === "off")
+    off.forEach((id, index) => rows.push(widgetRow(id, "off", index === 0, false)))
+    return rows
+  }
+
+  // The group modes, named in the current language.
+  readonly property var groupModeOptions: Settings.groupModes
+    .map(name => ({ value: name, text: I18n.tr("settings.groupMode." + name) }))
+
+  // The pop-up positions, named in the current language.
+  readonly property var positionOptions: Settings.choices.notificationPosition
+    .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
 
   // The wallpaper transitions, named in the current language.
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
@@ -96,11 +156,12 @@ ModalPanel {
       capitalization: name === "small" ? Font.SmallCaps : Font.MixedCase
     }))
 
-  // The options of a cycle, buttons or dropdown row.
+  // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
+    if (row.key === "notificationPosition") return root.positionOptions
     return []
   }
 
@@ -112,6 +173,19 @@ ModalPanel {
   // The rows of the current category; `selected` indexes into these.
   readonly property var rows: root.allRows.filter(row => row.category === root.categories[root.category].id)
   property int selected: 0
+  // The key of the selected row, so the selection follows a row that moves
+  // (a widget put in another section is listed elsewhere).
+  property string selectedKey: ""
+
+  function syncSelectedKey() {
+    root.selectedKey = root.rows[root.selected]?.key ?? ""
+  }
+
+  onRowsChanged: {
+    const index = root.rows.findIndex(row => row.key === root.selectedKey)
+    if (index >= 0 && index !== root.selected) root.selected = index
+    else root.syncSelectedKey()
+  }
   // The row whose list of options is showing (its key, "" for none), and the
   // entry of that list the keys are on.
   property string openKey: ""
@@ -139,6 +213,7 @@ ModalPanel {
     root.refreshFontOptions()
   }
   onSelectedChanged: {
+    root.syncSelectedKey()
     root.openKey = ""
     root.editKey = ""
     root.toggleFocus = 0
@@ -179,10 +254,25 @@ ModalPanel {
       Settings.setDivider(widget, on !== 0)
     }
 
+    // Sets the mode of the group that widget starts: "on", "hover" (shown only
+    // while its pill is hovered) or "off". A group starts at the first widget
+    // of a pill and at each widget with a divider before it.
+    function group(widget: string, mode: string): void {
+      Settings.setGroupMode(widget, mode)
+    }
+
+    // Moves the group that widget starts `steps` places later (negative:
+    // earlier) in its pill.
+    function moveGroup(widget: string, steps: int): void {
+      Settings.moveGroup(widget, steps)
+    }
+
     // The bar's layout as JSON: { "left": [ids], "center": [ids], "right":
-    // [ids], "dividers": [the ids with a divider before them] }.
+    // [ids], "dividers": [the ids with a divider before them], "collapsed":
+    // [the widgets starting a group shown only on hover], "off": [the widgets
+    // starting a group that is off] }.
     function layout(): string {
-      return JSON.stringify(Object.assign({}, Settings.layout, { dividers: Settings.dividers }))
+      return JSON.stringify(Object.assign({}, Settings.layout, { dividers: Settings.dividers, collapsed: Settings.collapsed, off: Settings.hiddenGroups }))
     }
 
     function get(key: string): real {
@@ -225,7 +315,7 @@ ModalPanel {
     const row = root.rows[root.selected]
     if (row.kind === "slider") {
       Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
-    } else if (row.kind === "cycle" || row.kind === "dropdown" || row.kind === "buttons") {
+    } else if (row.kind === "dropdown" || row.kind === "buttons") {
       const values = root.optionsOf(row).map(option => option.value)
       const next = ((values.indexOf(Settings.get(row.key)) + direction * steps) % values.length + values.length) % values.length
       Settings.set(row.key, values[next])
@@ -286,6 +376,18 @@ ModalPanel {
     } else if (kind === "path" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
       // Enter: type in the field.
       root.editKey = root.rows[root.selected].key
+      event.accepted = true
+    } else if (kind === "group" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: the group's mode (on, hover, off); with Shift: the
+      // whole group earlier / later in its pill.
+      const row = root.rows[root.selected]
+      const direction = event.key === Qt.Key_Left ? -1 : 1
+      if (big) {
+        Settings.moveGroup(row.widget, direction)
+      } else {
+        const index = Settings.groupModes.indexOf(row.mode) + direction
+        Settings.setGroupMode(row.widget, Settings.groupModes[Math.max(0, Math.min(Settings.groupModes.length - 1, index))])
+      }
       event.accepted = true
     } else if (kind === "widget" && event.key === Qt.Key_D) {
       // D: the divider before the widget, on or off.
@@ -440,13 +542,15 @@ ModalPanel {
     anchors.left: railDivider.right
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.bottom: parent.bottom
+    anchors.bottom: hint.top
     anchors.margins: 20
+    anchors.bottomMargin: 10
     spacing: 10
     // Above the click-away area while a list is open, so it can be used.
     z: root.openKey !== "" ? 10 : 0
 
     Item {
+      id: titleRow
       width: parent.width
       height: resetButton.implicitHeight
 
@@ -465,154 +569,280 @@ ModalPanel {
       }
     }
 
-    Column {
+    // The rows of the category, scrolling when there are more than fit (the
+    // widgets category has one per bar widget).
+    Item {
+      id: viewport
       width: parent.width
-      spacing: 6
+      height: parent.height - titleRow.height - parent.spacing
 
-      Repeater {
-        model: root.rows
+      Flickable {
+        id: scroller
+        anchors.fill: parent
+        contentWidth: width
+        contentHeight: rowsColumn.height
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
 
-        Item {
-          id: row
+        // Scrolls just enough to have row `index` fully in view.
+        function reveal(index) {
+          const item = rowsRepeater.itemAt(index)
+          if (!item) return
+          if (item.y < scroller.contentY) scroller.contentY = item.y
+          else if (item.y + item.height > scroller.contentY + scroller.height) scroller.contentY = Math.min(item.y, item.y + item.height - scroller.height)
+        }
 
-          required property var modelData
-          required property int index
+        Connections {
+          target: root
 
-          width: parent.width
-          // A dropdown row grows to hold its list while it's open.
-          height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.modelData.kind === "widget" ? 38 : 64)
-
-          SettingSlider {
-            visible: row.modelData.kind === "slider"
-            anchors.fill: parent
-            label: row.modelData.label
-            from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
-            to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
-            stepSize: row.modelData.step ?? 1
-            value: row.modelData.kind === "slider" ? Settings.get(row.modelData.key) : 0
-            valueText: row.modelData.kind === "slider" ? row.modelData.format(Settings.get(row.modelData.key)) : ""
-            selected: root.selected === row.index
-            onActivated: root.selected = row.index
-            onMoved: value => Settings.set(row.modelData.key, value)
+          // (Later: a row that moved is only in its new place by then.)
+          function onSelectedChanged() {
+            Qt.callLater(() => scroller.reveal(root.selected))
           }
 
-          CycleRow {
-            visible: row.modelData.kind === "cycle"
-            anchors.fill: parent
-            label: row.modelData.label
-            options: root.optionsOf(row.modelData)
-            current: row.modelData.kind === "cycle" ? Settings.get(row.modelData.key) : null
-            selected: root.selected === row.index
-            onActivated: root.selected = row.index
-            onChosen: value => Settings.set(row.modelData.key, value)
+          // A list that opens makes its row taller: show all of it.
+          function onOpenKeyChanged() {
+            Qt.callLater(() => scroller.reveal(root.selected))
           }
 
-          WidgetRow {
-            readonly property string widgetId: row.modelData.widget ?? ""
-            readonly property string zoneNow: row.modelData.kind === "widget" ? Settings.zoneOf(widgetId) : "off"
-            readonly property var placed: Settings.layout[zoneNow] ?? []
-
-            visible: row.modelData.kind === "widget"
-            anchors.fill: parent
-            label: row.modelData.label
-            zones: root.zoneOptions
-            lockedZone: widgetId === "settings" ? "off" : ""
-            zone: zoneNow
-            divider: Settings.dividers.includes(widgetId)
-            dividerEnabled: placed.indexOf(widgetId) !== 0
-            canMoveBack: placed.indexOf(widgetId) > 0
-            canMoveForward: placed.indexOf(widgetId) >= 0 && placed.indexOf(widgetId) < placed.length - 1
-            selected: root.selected === row.index
-            onActivated: root.selected = row.index
-            onDividerToggled: Settings.setDivider(widgetId, !Settings.dividers.includes(widgetId))
-            onZoneChosen: value => Settings.place(widgetId, value)
-            onMoved: steps => Settings.move(widgetId, steps)
-          }
-
-          ToggleRow {
-            visible: row.modelData.kind === "toggles"
-            anchors.fill: parent
-            label: row.modelData.label
-            options: row.modelData.toggles ?? []
-            checked: root.checkedOf(row.modelData)
-            selected: root.selected === row.index
-            focusIndex: root.toggleFocus
-            onActivated: {
-              root.selected = row.index
-            }
-            onToggled: key => {
-              root.toggleFocus = (row.modelData.toggles ?? []).findIndex(option => option.key === key)
-              Settings.set(key, !Settings.get(key))
-            }
-          }
-
-          PathRow {
-            visible: row.modelData.kind === "path"
-            anchors.fill: parent
-            label: row.modelData.label
-            value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
-            selected: root.selected === row.index
-            editing: root.editKey === row.modelData.key
-            onActivated: root.selected = row.index
-            onEditRequested: root.editKey = row.modelData.key
-            onCommitted: text => {
-              root.editKey = ""
-              Settings.set(row.modelData.key, text)
-            }
-            onCancelled: root.editKey = ""
-            onReleased: root.focusTarget.forceActiveFocus()
-          }
-
-          DropdownRow {
-            id: dropdown
-            visible: row.modelData.kind === "dropdown"
-            anchors.fill: parent
-            label: row.modelData.label
-            options: root.optionsOf(row.modelData)
-            current: row.modelData.kind === "dropdown" ? Settings.get(row.modelData.key) : null
-            selected: root.selected === row.index
-            headerHeight: 64
-            open: root.openKey === row.modelData.key
-            highlighted: root.highlight
-            previewFonts: row.modelData.key === "fontFamily"
-            onActivated: root.selected = row.index
-            onToggled: root.toggleDropdown(row.modelData)
-            onHighlightRequested: index => root.highlight = index
-            onChosen: value => {
-              // Close first: applying it may rebuild what the list belongs to.
-              root.openKey = ""
-              Settings.set(row.modelData.key, value)
-            }
-          }
-
-          ChoiceRow {
-            visible: row.modelData.kind === "buttons"
-            anchors.fill: parent
-            literal: true
-            label: row.modelData.label
-            options: root.optionsOf(row.modelData)
-            current: row.modelData.kind === "buttons" ? Settings.get(row.modelData.key) : null
-            selected: root.selected === row.index
-            onActivated: root.selected = row.index
-            onChosen: value => Settings.set(row.modelData.key, value)
-          }
-
-          ChoiceRow {
-            visible: row.modelData.kind === "choice"
-            anchors.fill: parent
-            label: row.modelData.label
-            options: root.languageOptions
-            current: I18n.setting
-            selected: root.selected === row.index
-            onActivated: root.selected = row.index
-            onChosen: value => I18n.select(value)
+          function onCategoryChanged() {
+            scroller.contentY = 0
           }
         }
+
+        Column {
+          id: rowsColumn
+          // Leaves room for the scroll bar.
+          width: scroller.width - 10
+          spacing: 6
+
+          Repeater {
+            id: rowsRepeater
+            model: ScriptModel {
+              values: root.rows
+              objectProp: "key"
+            }
+
+            Item {
+              id: row
+
+              required property var modelData
+              required property int index
+
+              // A widget row that starts a section has that section's name
+              // above it, and one that starts a group has a gap above it.
+              readonly property bool isWidget: row.modelData.kind === "widget" || row.modelData.kind === "group"
+              readonly property real titleHeight: row.isWidget && row.modelData.zoneStart ? 34 : 0
+              readonly property real gapHeight: row.isWidget && row.modelData.groupStart && !row.modelData.zoneStart ? 12 : 0
+              readonly property real above: row.titleHeight + row.gapHeight
+
+              width: parent.width
+              // A dropdown row grows to hold its list while it's open.
+              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : 64)
+
+              // The name of the section, with a line after it.
+              ThemedText {
+                id: zoneTitle
+                visible: row.titleHeight > 0
+                anchors.left: parent.left
+                anchors.leftMargin: 4
+                anchors.bottom: parent.top
+                anchors.bottomMargin: -row.titleHeight + 6
+                text: row.isWidget ? I18n.tr("settings.zone." + row.modelData.zone) : ""
+                sizeScale: 0.75
+                font.bold: true
+                opacity: 0.7
+              }
+
+              Rectangle {
+                visible: row.titleHeight > 0
+                anchors.left: zoneTitle.right
+                anchors.leftMargin: 10
+                anchors.right: parent.right
+                anchors.verticalCenter: zoneTitle.verticalCenter
+                height: 1
+                color: Theme.separatorColor
+                opacity: 0.6
+              }
+
+              // The group as a block: a tinted background and a bar on its left,
+              // continuing through the little gap between its rows.
+              Rectangle {
+                id: groupBlock
+                readonly property real bridge: 3
+                visible: row.isWidget && row.modelData.zone !== "off"
+                x: 0
+                y: row.above - (row.modelData.groupStart ? 0 : groupBlock.bridge)
+                width: parent.width
+                height: 38 + (row.modelData.groupStart ? 0 : groupBlock.bridge) + (row.modelData.groupEnd ? 0 : groupBlock.bridge)
+                topLeftRadius: row.modelData.groupStart ? 10 : 0
+                topRightRadius: row.modelData.groupStart ? 10 : 0
+                bottomLeftRadius: row.modelData.groupEnd ? 10 : 0
+                bottomRightRadius: row.modelData.groupEnd ? 10 : 0
+                color: Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.06)
+
+                Rectangle {
+                  width: 3
+                  height: parent.height
+                  color: Theme.accentColor
+                  opacity: 0.8
+                }
+              }
+
+              SettingSlider {
+                visible: row.modelData.kind === "slider"
+                anchors.fill: parent
+                label: row.modelData.label
+                from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
+                to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
+                stepSize: row.modelData.step ?? 1
+                value: row.modelData.kind === "slider" ? Settings.get(row.modelData.key) : 0
+                valueText: row.modelData.kind === "slider" ? row.modelData.format(Settings.get(row.modelData.key)) : ""
+                selected: root.selected === row.index
+                onActivated: root.selected = row.index
+                onMoved: value => Settings.set(row.modelData.key, value)
+              }
+
+              GroupRow {
+                visible: row.modelData.kind === "group"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                anchors.leftMargin: 8
+                label: row.modelData.label
+                modes: root.groupModeOptions
+                mode: row.modelData.mode ?? ""
+                canMoveBack: row.modelData.canMoveBack ?? false
+                canMoveForward: row.modelData.canMoveForward ?? false
+                selected: root.selected === row.index
+                onActivated: root.selected = row.index
+                onModeChosen: value => Settings.setGroupMode(row.modelData.widget, value)
+                onMoved: steps => Settings.moveGroup(row.modelData.widget, steps)
+              }
+
+              WidgetRow {
+                readonly property string widgetId: row.modelData.widget ?? ""
+                readonly property string zoneNow: row.modelData.kind === "widget" ? Settings.zoneOf(widgetId) : "off"
+                readonly property var placed: Settings.layout[zoneNow] ?? []
+
+                visible: row.modelData.kind === "widget"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                anchors.leftMargin: 8
+                label: row.modelData.label
+                zones: root.zoneOptions
+                lockedZone: widgetId === "settings" ? "off" : ""
+                zone: zoneNow
+                divider: Settings.dividers.includes(widgetId)
+                dividerEnabled: placed.indexOf(widgetId) !== 0
+                canMoveBack: placed.indexOf(widgetId) > 0
+                canMoveForward: placed.indexOf(widgetId) >= 0 && placed.indexOf(widgetId) < placed.length - 1
+                selected: root.selected === row.index
+                onActivated: root.selected = row.index
+                onDividerToggled: Settings.setDivider(widgetId, !Settings.dividers.includes(widgetId))
+                onZoneChosen: value => Settings.place(widgetId, value)
+                onMoved: steps => Settings.move(widgetId, steps)
+              }
+
+              ToggleRow {
+                visible: row.modelData.kind === "toggles"
+                anchors.fill: parent
+                label: row.modelData.label
+                options: row.modelData.toggles ?? []
+                checked: root.checkedOf(row.modelData)
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                onActivated: {
+                  root.selected = row.index
+                }
+                onToggled: key => {
+                  root.toggleFocus = (row.modelData.toggles ?? []).findIndex(option => option.key === key)
+                  Settings.set(key, !Settings.get(key))
+                }
+              }
+
+              PathRow {
+                visible: row.modelData.kind === "path"
+                anchors.fill: parent
+                label: row.modelData.label
+                value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
+                selected: root.selected === row.index
+                editing: root.editKey === row.modelData.key
+                onActivated: root.selected = row.index
+                onEditRequested: root.editKey = row.modelData.key
+                onCommitted: text => {
+                  root.editKey = ""
+                  Settings.set(row.modelData.key, text)
+                }
+                onCancelled: root.editKey = ""
+                onReleased: root.focusTarget.forceActiveFocus()
+              }
+
+              DropdownRow {
+                id: dropdown
+                visible: row.modelData.kind === "dropdown"
+                anchors.fill: parent
+                label: row.modelData.label
+                options: root.optionsOf(row.modelData)
+                current: row.modelData.kind === "dropdown" ? Settings.get(row.modelData.key) : null
+                selected: root.selected === row.index
+                headerHeight: 64
+                open: root.openKey === row.modelData.key
+                highlighted: root.highlight
+                previewFonts: row.modelData.key === "fontFamily"
+                positionIcon: row.modelData.positionIcon ?? false
+                onActivated: root.selected = row.index
+                onToggled: root.toggleDropdown(row.modelData)
+                onHighlightRequested: index => root.highlight = index
+                onChosen: value => {
+                  // Close first: applying it may rebuild what the list belongs to.
+                  root.openKey = ""
+                  Settings.set(row.modelData.key, value)
+                }
+              }
+
+              ChoiceRow {
+                visible: row.modelData.kind === "buttons"
+                anchors.fill: parent
+                literal: true
+                label: row.modelData.label
+                options: root.optionsOf(row.modelData)
+                current: row.modelData.kind === "buttons" ? Settings.get(row.modelData.key) : null
+                selected: root.selected === row.index
+                onActivated: root.selected = row.index
+                onChosen: value => Settings.set(row.modelData.key, value)
+              }
+
+              ChoiceRow {
+                visible: row.modelData.kind === "choice"
+                anchors.fill: parent
+                label: row.modelData.label
+                options: root.languageOptions
+                current: I18n.setting
+                selected: root.selected === row.index
+                onActivated: root.selected = row.index
+                onChosen: value => I18n.select(value)
+              }
+            }
+          }
+        }
+      }
+
+      // Where the visible part is, when the rows don't all fit.
+      Rectangle {
+        visible: scroller.visibleArea.heightRatio < 1
+        anchors.right: parent.right
+        y: scroller.visibleArea.yPosition * scroller.height
+        width: 4
+        height: scroller.visibleArea.heightRatio * scroller.height
+        radius: 2
+        color: Theme.textColor
+        opacity: 0.4
       }
     }
   }
 
   ThemedText {
+    id: hint
     anchors.left: railDivider.right
     anchors.right: parent.right
     anchors.bottom: parent.bottom
