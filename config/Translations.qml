@@ -171,7 +171,7 @@ Singleton {
     "perf.upload": "Émission",
     "perf.cores": { "one": "{0} cœur", "other": "{0} cœurs" },
 
-    "cpu.core": "Cœur {0}",
+    // "cpu.core": "Cœur {0}",
     "ram.used": "{0} utilisés / {1}",
     "disk.used": "{0} utilisés / {1}",
 
