@@ -1,12 +1,14 @@
 import QtQuick
 import qs.config
 
-// A single clickable row inside the power menu.
+// A single clickable row inside a menu, in the accent color while `active`
+// (the current choice of a menu that picks one).
 Rectangle {
   id: root
 
   property string label: ""
   property string icon: ""
+  property bool active: false
   signal clicked()
 
   implicitWidth: content.implicitWidth + 24
@@ -25,12 +27,12 @@ Rectangle {
     ThemedText {
       visible: root.icon.length > 0
       text: root.icon
-      color: mouseArea.containsMouse ? Theme.backgroundColor : Theme.textColor
+      color: mouseArea.containsMouse ? Theme.backgroundColor : (root.active ? Theme.accentColor : Theme.textColor)
     }
 
     ThemedText {
       text: root.label
-      color: mouseArea.containsMouse ? Theme.backgroundColor : Theme.textColor
+      color: mouseArea.containsMouse ? Theme.backgroundColor : (root.active ? Theme.accentColor : Theme.textColor)
     }
   }
 

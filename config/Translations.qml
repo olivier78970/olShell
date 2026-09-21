@@ -39,6 +39,12 @@ Singleton {
     "launcher.noResults": "No results",
     "launcher.terminal": "terminal",
 
+    "screenshot.screen": "Screen",
+    "screenshot.region": "Rectangle",
+    "screenshot.window": "Window",
+    "screenshot.saved": "Screenshot saved",
+    "screenshot.edit": "Annotate with Satty",
+
     "lock.caps": "Caps Lock",
     "lock.num": "Num Lock",
     "lock.on": "on",
@@ -59,6 +65,7 @@ Singleton {
 
     "settings.radius": "Widget radius",
     "settings.language": "Language",
+    "settings.screenshotDir": "Screenshot folder",
     "settings.language.auto": "Automatic",
     "settings.opacity": "Widget opacity",
     "settings.spacing": "Widget spacing",
@@ -119,6 +126,7 @@ Singleton {
     "settings.widget.clock": "Clock",
     "settings.widget.wallpaper": "Wallpapers",
     "settings.widget.theme": "Themes",
+    "settings.widget.screenshot": "Screenshot",
     "settings.widget.cpu": "CPU",
     "settings.widget.ram": "RAM",
     "settings.widget.disk": "Disk",
@@ -171,6 +179,12 @@ Singleton {
     "launcher.noResults": "Aucun résultat",
     "launcher.terminal": "terminal",
 
+    "screenshot.screen": "Écran",
+    "screenshot.region": "Rectangle",
+    "screenshot.window": "Fenêtre",
+    "screenshot.saved": "Capture enregistrée",
+    "screenshot.edit": "Annoter avec Satty",
+
     "lock.caps": "Verrouillage majuscules",
     "lock.num": "Verrouillage numérique",
     "lock.on": "activé",
@@ -191,6 +205,7 @@ Singleton {
 
     "settings.radius": "Rayon des widgets",
     "settings.language": "Langue",
+    "settings.screenshotDir": "Dossier des captures",
     "settings.language.auto": "Automatique",
     "settings.opacity": "Opacité des widgets",
     "settings.spacing": "Espacement des widgets",
@@ -251,6 +266,7 @@ Singleton {
     "settings.widget.clock": "Horloge",
     "settings.widget.wallpaper": "Fonds d'écran",
     "settings.widget.theme": "Thèmes",
+    "settings.widget.screenshot": "Capture d'écran",
     "settings.widget.cpu": "CPU",
     "settings.widget.ram": "RAM",
     "settings.widget.disk": "Disque",

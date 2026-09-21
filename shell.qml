@@ -17,6 +17,8 @@ ShellRoot {
   readonly property var gduMonitor: Gdu.monitor
   // Same for the lock-key watcher: it has to run before the first toggle.
   readonly property var lockKeys: LockKeys.ready
+  // And the screenshot service, which answers the `screenshot` IPC calls.
+  readonly property var screenshotMode: Screenshot.mode
 
   Bar {}
   PowerConfirmDialog {}
