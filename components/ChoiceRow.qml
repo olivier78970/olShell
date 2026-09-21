@@ -18,6 +18,8 @@ Item {
   signal chosen(var value)
   signal activated()
 
+  // The least it needs: the name and the buttons.
+  implicitWidth: 12 + nameText.implicitWidth + 16 + optionRow.implicitWidth + 12
   implicitHeight: 54
 
   Rectangle {
@@ -29,6 +31,7 @@ Item {
   }
 
   ThemedText {
+    id: nameText
     anchors.left: parent.left
     anchors.leftMargin: 12
     anchors.verticalCenter: parent.verticalCenter
@@ -36,6 +39,7 @@ Item {
   }
 
   Row {
+    id: optionRow
     anchors.right: parent.right
     anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter

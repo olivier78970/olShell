@@ -33,6 +33,7 @@ ModalPanel {
     { key: "radius", category: "appearance", kind: "slider", label: I18n.tr("settings.radius"), step: 1, format: v => v + " px" },
     { key: "language", category: "general", kind: "choice", label: I18n.tr("settings.language") },
     { key: "screenshotDir", category: "general", kind: "path", label: I18n.tr("settings.screenshotDir") },
+    { key: "factoryAll", category: "general", kind: "factoryAll", label: I18n.tr("settings.factoryAll") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
@@ -56,10 +57,15 @@ ModalPanel {
     { key: "notificationTimeout", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationTimeout"), step: 1, format: v => v + " s" },
     { key: "notificationMax", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationMax"), step: 1, format: v => String(v) },
     { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.notificationPosition") },
-    { key: "notificationDndRow", category: "notifications", kind: "toggles", label: I18n.tr("settings.notificationDnd"), toggles: [
-      { key: "notificationDnd", text: I18n.tr("settings.notificationDndOn") }
+    { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
+      { key: "notificationDnd", text: "" }
     ] }
-  ].concat(root.widgetRows)
+  ].concat(root.widgetRows).concat(root.defaultRows)
+
+  // The last row of every category: its defaults (see DefaultsRow).
+  readonly property var defaultRows: root.categories.map(category => ({
+    key: "defaults:" + category.id, category: category.id, kind: "defaults", label: I18n.tr("settings.defaults")
+  }))
 
   // The widgets category, in the order things are on the bar: for each
   // section (left, center, right) its groups (the widgets between two
@@ -92,7 +98,8 @@ ModalPanel {
           kind: "group",
           label: I18n.tr("settings.group") + " " + (groupIndex + 1),
           zone: zone,
-          mode: Settings.groupMode(group[0]),
+          shown: !Settings.hiddenGroups.includes(group[0]),
+          hover: Settings.collapsed.includes(group[0]),
           canMoveBack: groupIndex > 0,
           canMoveForward: groupIndex < groups.length - 1,
           zoneStart: groupIndex === 0,
@@ -106,10 +113,6 @@ ModalPanel {
     off.forEach((id, index) => rows.push(widgetRow(id, "off", index === 0, false)))
     return rows
   }
-
-  // The group modes, named in the current language.
-  readonly property var groupModeOptions: Settings.groupModes
-    .map(name => ({ value: name, text: I18n.tr("settings.groupMode." + name) }))
 
   // The pop-up positions, named in the current language.
   readonly property var positionOptions: Settings.choices.notificationPosition
@@ -144,8 +147,9 @@ ModalPanel {
   // The button of the selected toggle row the keys are on.
   property int toggleFocus: 0
 
-  // Where a widget can be put, for its row: off, or one of the three zones.
-  readonly property var zoneOptions: ["off"].concat(Settings.zones)
+  // Where a widget can be put, for its row: one of the three zones (off is
+  // the check box).
+  readonly property var zoneOptions: Settings.zones
     .map(name => ({ value: name, text: I18n.tr("settings.zone." + name) }))
 
   // The capitalizations, named in the current language.
@@ -173,6 +177,14 @@ ModalPanel {
   // The rows of the current category; `selected` indexes into these.
   readonly property var rows: root.allRows.filter(row => row.category === root.categories[root.category].id)
   property int selected: 0
+  // The width the panel needs for the rows of the current category: the widest
+  // row, and what surrounds them (the category rail, its divider, the margins
+  // and the room for the scroll bar).
+  readonly property real neededWidth: {
+    let need = 0
+    for (let i = 0; i < rowsRepeater.count; i++) need = Math.max(need, rowsRepeater.itemAt(i)?.need ?? 0)
+    return rail.width + 79 + need
+  }
   // The key of the selected row, so the selection follows a row that moves
   // (a widget put in another section is listed elsewhere).
   property string selectedKey: ""
@@ -194,7 +206,10 @@ ModalPanel {
   // keyboard then, and the panel's own keys are off.
   property string editKey: ""
 
-  maxPanelWidth: 920
+  // Wide enough for the widest row of the category: the names are longer in
+  // some languages (French), and so is what they share a row with. Never
+  // narrower than the usual size.
+  maxPanelWidth: Math.max(920, root.neededWidth)
   maxPanelHeight: 780
   // Stays readable while the widget opacity is being adjusted.
   panelOpacity: Math.max(0.92, Theme.widgetOpacity)
@@ -202,7 +217,9 @@ ModalPanel {
   visible: SettingsPanelState.visible
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
-    if (root.editKey !== "") root.editKey = ""
+    if (root.confirmAll) root.confirmAll = false
+    else if (root.confirmKey !== "") root.confirmKey = ""
+    else if (root.editKey !== "") root.editKey = ""
     else if (root.openKey !== "") root.openKey = ""
     else SettingsPanelState.visible = false
   }
@@ -216,6 +233,8 @@ ModalPanel {
     root.syncSelectedKey()
     root.openKey = ""
     root.editKey = ""
+    root.confirmKey = ""
+    root.confirmAll = false
     root.toggleFocus = 0
   }
 
@@ -241,6 +260,12 @@ ModalPanel {
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
+    }
+
+    // Puts a bar widget on the bar (1: back where it was, else where it is by
+    // default) or takes it off (0).
+    function widgetShown(widget: string, on: int): void {
+      Settings.setWidgetShown(widget, on !== 0)
     }
 
     // Moves a bar widget `steps` places later (negative: earlier) in its zone.
@@ -292,20 +317,125 @@ ModalPanel {
       return String(Settings.get(key))
     }
 
-    // Puts every setting, and the language, back to its default.
+    // Puts every setting, and the language, back to the built-in defaults and
+    // saves them as your defaults too, without asking (the panel's button
+    // asks first).
+    function factoryReset(): void {
+      root.factoryResetAll()
+    }
+
+    // Puts every setting, and the language, back to your own defaults (the
+    // built-in ones for what you have saved none for).
     function reset(): void {
       root.resetAll()
     }
+
+    // Saves the current values of a category (appearance, text, bar, widgets,
+    // wallpaper, notifications or general) as your own defaults.
+    function saveDefaults(category: string): void {
+      if (root.categories.some(candidate => candidate.id === category)) root.saveDefaults(category)
+    }
+
+    // Puts a category back to your own defaults (source "mine") or to the
+    // built-in ones ("factory").
+    function restoreDefaults(category: string, source: string): void {
+      if (root.categories.some(candidate => candidate.id === category) && (source === "mine" || source === "factory")) {
+        root.restoreDefaults(category, source)
+      }
+    }
   }
 
+  // Puts every setting, and the language, back to the user's own defaults (the
+  // built-in ones for what has none).
   function resetAll() {
-    Settings.reset()
+    Settings.restoreDefaults(Object.keys(Settings.defaults), "mine")
+    I18n.select(Settings.userDefaults.language ?? "auto")
+  }
+
+  // The settings a category holds, by key: the ones its rows change (the
+  // widgets category has the bar's layout lists). The language, which the
+  // general category also holds, is not a setting: see the functions below.
+  function keysOf(categoryId) {
+    if (categoryId === "widgets") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
+    const keys = []
+    for (const row of root.allRows) {
+      if (row.category !== categoryId) continue
+      if (Settings.defaults[row.key] !== undefined) keys.push(row.key)
+      for (const toggle of row.toggles ?? []) keys.push(toggle.key)
+    }
+    return keys
+  }
+
+  // Saves the current values of a category as the user's own defaults.
+  function saveDefaults(categoryId) {
+    Settings.saveDefaults(root.keysOf(categoryId), categoryId === "general" ? { language: I18n.setting } : {})
+  }
+
+  // Puts a category back to the user's own defaults ("mine"; the built-in
+  // ones for what has none) or to the built-in ones ("factory").
+  function restoreDefaults(categoryId, source) {
+    Settings.restoreDefaults(root.keysOf(categoryId), source)
+    if (categoryId !== "general") return
+    const saved = source === "mine" ? Settings.userDefaults.language : undefined
+    I18n.select(saved ?? "auto")
+  }
+
+  // Whether the factory reset of everything (the general category's row) waits
+  // for its confirmation.
+  property bool confirmAll: false
+
+  // Puts every setting, and the language, back to the built-in defaults and
+  // saves them as the user's defaults too (as for a category), and forgets
+  // where turned-off widgets were.
+  function factoryResetAll() {
+    const keys = Object.keys(Settings.defaults)
+    Settings.restoreDefaults(keys, "factory")
     I18n.select("auto")
+    Settings.forgetPlaces()
+    Settings.saveDefaults(keys, { language: "auto" })
+  }
+
+  // The button of the "all categories" row: Factory defaults, which asks; or,
+  // while asking, Confirm (0) and Cancel (1).
+  function pressFactoryAll(index) {
+    if (!root.confirmAll) {
+      root.confirmAll = true
+      // On Cancel, the safe answer.
+      root.toggleFocus = 1
+    } else {
+      if (index === 0) root.factoryResetAll()
+      root.confirmAll = false
+    }
+  }
+
+  // The category whose factory reset is waiting for a confirmation ("" for none):
+  // its defaults row then asks, with Confirm and Cancel instead of its buttons.
+  property string confirmKey: ""
+
+  // The buttons of the defaults row, in the order of DefaultsRow's `pressed`:
+  // save, factory (which asks first); or, while asking, confirm and cancel.
+  function pressDefaults(categoryId, index) {
+    if (root.confirmKey === categoryId) {
+      // Back to the built-in values, which then are the user's defaults too.
+      if (index === 0) {
+        root.restoreDefaults(categoryId, "factory")
+        root.saveDefaults(categoryId)
+      }
+      root.confirmKey = ""
+    } else if (index === 0) {
+      root.saveDefaults(categoryId)
+    } else {
+      root.confirmKey = categoryId
+      // On Cancel, the safe answer.
+      root.toggleFocus = 1
+    }
   }
 
   function selectCategory(index) {
     root.openKey = ""
     root.editKey = ""
+    root.confirmKey = ""
+    root.confirmAll = false
     root.category = Math.max(0, Math.min(root.categories.length - 1, index))
     root.selected = 0
   }
@@ -378,16 +508,23 @@ ModalPanel {
       root.editKey = root.rows[root.selected].key
       event.accepted = true
     } else if (kind === "group" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
-      // Left / Right: the group's mode (on, hover, off); with Shift: the
-      // whole group earlier / later in its pill.
+      // Left / Right: the check box the keys are on (on, on hover); with
+      // Shift: the whole group earlier / later in its pill.
       const row = root.rows[root.selected]
       const direction = event.key === Qt.Key_Left ? -1 : 1
-      if (big) {
-        Settings.moveGroup(row.widget, direction)
-      } else {
-        const index = Settings.groupModes.indexOf(row.mode) + direction
-        Settings.setGroupMode(row.widget, Settings.groupModes[Math.max(0, Math.min(Settings.groupModes.length - 1, index))])
-      }
+      if (big) Settings.moveGroup(row.widget, direction)
+      else root.toggleFocus = Math.max(0, Math.min(1, root.toggleFocus + direction))
+      event.accepted = true
+    } else if (kind === "group" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      // Enter / Space: tick or untick the check box the keys are on.
+      const row = root.rows[root.selected]
+      if (root.toggleFocus === 0) Settings.setGroupShown(row.widget, !row.shown)
+      else Settings.setGroupHover(row.widget, !row.hover)
+      event.accepted = true
+    } else if (kind === "widget" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      // Enter / Space: put the widget on the bar or take it off.
+      const id = root.rows[root.selected].widget
+      Settings.setWidgetShown(id, Settings.zoneOf(id) === "off")
       event.accepted = true
     } else if (kind === "widget" && event.key === Qt.Key_D) {
       // D: the divider before the widget, on or off.
@@ -405,6 +542,20 @@ ModalPanel {
         const next = zones.indexOf(Settings.zoneOf(id)) + direction
         if (next >= 0 && next < zones.length) Settings.place(id, zones[next])
       }
+      event.accepted = true
+    } else if (kind === "factoryAll" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Move between Confirm and Cancel, while asking.
+      root.toggleFocus = Math.max(0, Math.min(root.confirmAll ? 1 : 0, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+      event.accepted = true
+    } else if (kind === "factoryAll" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.pressFactoryAll(root.toggleFocus)
+      event.accepted = true
+    } else if (kind === "defaults" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Move between the buttons of the row.
+      root.toggleFocus = Math.max(0, Math.min(1, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+      event.accepted = true
+    } else if (kind === "defaults" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.pressDefaults(root.rows[root.selected].category, root.toggleFocus)
       event.accepted = true
     } else if (kind === "toggles" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Move between the buttons of the row.
@@ -452,6 +603,22 @@ ModalPanel {
       ThemedText {
         required property var modelData
         text: modelData.label
+      }
+    }
+  }
+
+  // Not shown either: the widget names, to give them all the width of the
+  // widest so the check boxes after them line up.
+  Column {
+    id: widgetLabels
+    opacity: 0
+
+    Repeater {
+      model: Settings.widgetIds
+
+      ThemedText {
+        required property string modelData
+        text: I18n.tr("settings.widget." + modelData)
       }
     }
   }
@@ -565,7 +732,8 @@ ModalPanel {
         id: resetButton
         anchors.right: parent.right
         label: I18n.tr("settings.reset")
-        onClicked: root.resetAll()
+        // This category only: to your own defaults, else the built-in ones.
+        onClicked: root.restoreDefaults(root.categories[root.category].id, "mine")
       }
     }
 
@@ -633,12 +801,16 @@ ModalPanel {
               // above it, and one that starts a group has a gap above it.
               readonly property bool isWidget: row.modelData.kind === "widget" || row.modelData.kind === "group"
               readonly property real titleHeight: row.isWidget && row.modelData.zoneStart ? 34 : 0
-              readonly property real gapHeight: row.isWidget && row.modelData.groupStart && !row.modelData.zoneStart ? 12 : 0
+              readonly property real gapHeight: row.modelData.kind === "defaults" ? 16 : (row.isWidget && row.modelData.groupStart && !row.modelData.zoneStart ? 12 : 0)
               readonly property real above: row.titleHeight + row.gapHeight
+              // The least width this row needs: that of the row shown in it
+              // (a dropdown's list has its own width, and does not count).
+              readonly property real need: [sliderRow, groupRow, widgetRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+                .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
               // A dropdown row grows to hold its list while it's open.
-              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : 64)
+              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64)))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -663,6 +835,55 @@ ModalPanel {
                 height: 1
                 color: Theme.separatorColor
                 opacity: 0.6
+              }
+
+              // The factory reset of every category, with its confirmation.
+              DefaultsRow {
+                id: factoryRow
+                visible: row.modelData.kind === "factoryAll"
+                anchors.fill: parent
+                label: root.confirmAll ? I18n.tr("settings.factoryAll.confirm") : row.modelData.label
+                buttons: root.confirmAll ? [
+                  { text: I18n.tr("common.confirm"), enabled: true },
+                  { text: I18n.tr("common.cancel"), enabled: true }
+                ] : [
+                  { text: I18n.tr("settings.defaults.factory"), enabled: true }
+                ]
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                onActivated: root.selected = row.index
+                onPressed: index => root.pressFactoryAll(index)
+              }
+
+              // A line above the defaults row.
+              Rectangle {
+                visible: row.modelData.kind === "defaults"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                y: 6
+                height: 1
+                color: Theme.separatorColor
+                opacity: 0.6
+              }
+
+              DefaultsRow {
+                id: defaultsRow
+                visible: row.modelData.kind === "defaults"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                readonly property bool asking: root.confirmKey === row.modelData.category
+                label: asking ? I18n.tr("settings.defaults.confirm") : row.modelData.label
+                buttons: asking ? [
+                  { text: I18n.tr("common.confirm"), enabled: true },
+                  { text: I18n.tr("common.cancel"), enabled: true }
+                ] : [
+                  { text: I18n.tr("settings.defaults.save"), enabled: true },
+                  { text: I18n.tr("settings.defaults.factory"), enabled: true }
+                ]
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                onActivated: root.selected = row.index
+                onPressed: index => root.pressDefaults(row.modelData.category, index)
               }
 
               // The group as a block: a tinted background and a bar on its left,
@@ -690,6 +911,7 @@ ModalPanel {
               }
 
               SettingSlider {
+                id: sliderRow
                 visible: row.modelData.kind === "slider"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -704,22 +926,28 @@ ModalPanel {
               }
 
               GroupRow {
+                id: groupRow
                 visible: row.modelData.kind === "group"
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 anchors.leftMargin: 8
                 label: row.modelData.label
-                modes: root.groupModeOptions
-                mode: row.modelData.mode ?? ""
+                labelWidth: widgetLabels.implicitWidth
+                hoverText: I18n.tr("settings.groupMode.hover")
+                shown: row.modelData.shown ?? true
+                hover: row.modelData.hover ?? false
+                focusIndex: root.toggleFocus
                 canMoveBack: row.modelData.canMoveBack ?? false
                 canMoveForward: row.modelData.canMoveForward ?? false
                 selected: root.selected === row.index
                 onActivated: root.selected = row.index
-                onModeChosen: value => Settings.setGroupMode(row.modelData.widget, value)
+                onShownToggled: Settings.setGroupShown(row.modelData.widget, !row.modelData.shown)
+                onHoverToggled: Settings.setGroupHover(row.modelData.widget, !row.modelData.hover)
                 onMoved: steps => Settings.moveGroup(row.modelData.widget, steps)
               }
 
               WidgetRow {
+                id: widgetRow
                 readonly property string widgetId: row.modelData.widget ?? ""
                 readonly property string zoneNow: row.modelData.kind === "widget" ? Settings.zoneOf(widgetId) : "off"
                 readonly property var placed: Settings.layout[zoneNow] ?? []
@@ -730,7 +958,9 @@ ModalPanel {
                 anchors.leftMargin: 8
                 label: row.modelData.label
                 zones: root.zoneOptions
-                lockedZone: widgetId === "settings" ? "off" : ""
+                labelWidth: widgetLabels.implicitWidth
+                shown: zoneNow !== "off"
+                shownEnabled: widgetId !== "settings"
                 zone: zoneNow
                 divider: Settings.dividers.includes(widgetId)
                 dividerEnabled: placed.indexOf(widgetId) !== 0
@@ -739,15 +969,18 @@ ModalPanel {
                 selected: root.selected === row.index
                 onActivated: root.selected = row.index
                 onDividerToggled: Settings.setDivider(widgetId, !Settings.dividers.includes(widgetId))
+                onShownToggled: Settings.setWidgetShown(widgetId, zoneNow === "off")
                 onZoneChosen: value => Settings.place(widgetId, value)
                 onMoved: steps => Settings.move(widgetId, steps)
               }
 
               ToggleRow {
+                id: toggleRow
                 visible: row.modelData.kind === "toggles"
                 anchors.fill: parent
                 label: row.modelData.label
                 options: row.modelData.toggles ?? []
+                checkBoxes: row.modelData.checkBoxes ?? false
                 checked: root.checkedOf(row.modelData)
                 selected: root.selected === row.index
                 focusIndex: root.toggleFocus
@@ -761,6 +994,7 @@ ModalPanel {
               }
 
               PathRow {
+                id: pathRow
                 visible: row.modelData.kind === "path"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -801,6 +1035,7 @@ ModalPanel {
               }
 
               ChoiceRow {
+                id: buttonsRow
                 visible: row.modelData.kind === "buttons"
                 anchors.fill: parent
                 literal: true
@@ -813,6 +1048,7 @@ ModalPanel {
               }
 
               ChoiceRow {
+                id: choiceRow
                 visible: row.modelData.kind === "choice"
                 anchors.fill: parent
                 label: row.modelData.label

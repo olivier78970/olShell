@@ -22,6 +22,8 @@ Item {
   // The row wants keyboard focus back to the owner (editing ended).
   signal released()
 
+  // The least it needs: the name and a field of some width.
+  implicitWidth: 12 + labelText.implicitWidth + 16 + 220 + 12
   implicitHeight: 54
 
   onEditingChanged: {

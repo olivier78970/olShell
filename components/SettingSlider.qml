@@ -20,6 +20,8 @@ Item {
 
   readonly property real fraction: root.to > root.from ? Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from))) : 0
 
+  // The least it needs: the name, a short track and the value.
+  implicitWidth: 12 + labelText.implicitWidth + 12 + 100 + 14 + valueLabel.width + 12
   implicitHeight: 54
 
   // `raw` (anywhere between from and to) rounded to the nearest step.

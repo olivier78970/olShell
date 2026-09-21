@@ -20,6 +20,8 @@ Singleton {
 
   // The adjustable look-and-feel values (git-ignored).
   readonly property string settings: Quickshell.shellPath("config/Settings.json")
+  // The values the user saved as their own defaults (see Settings.qml).
+  readonly property string userDefaults: Quickshell.shellPath("config/UserDefaults.json")
 
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")

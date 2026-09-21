@@ -38,6 +38,8 @@ Item {
   property real headerHeight: 54
   readonly property real listHeight: Math.min(root.options.length, root.visibleEntries) * root.entryHeight + 8
 
+  // The least it needs: the name and the button.
+  implicitWidth: 12 + nameText.implicitWidth + 16 + button.width + 12
   implicitHeight: root.headerHeight + (root.open ? root.listHeight + 4 : 0)
 
   // Keeps the entry the keys are on in view.
@@ -58,6 +60,7 @@ Item {
   }
 
   ThemedText {
+    id: nameText
     anchors.left: header.left
     anchors.leftMargin: 12
     anchors.verticalCenter: header.verticalCenter

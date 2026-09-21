@@ -10,41 +10,9 @@ import Quickshell.Io
 Singleton {
   id: root
 
-  // What each setting is when nothing has been saved.
-  readonly property var defaults: ({
-    radius: 5,
-    opacity: 0.9,
-    spacing: 15,
-    barHeight: 40,
-    barMarginTop: 5,
-    barMarginBottom: 0,
-    barMarginLeft: 5,
-    barMarginRight: 5,
-    borderWidth: 2,
-    fontSize: 18,
-    fontFamily: "0xProto Nerd Font",
-    fontWeight: 400,
-    fontLetterSpacing: 0,
-    fontCaps: "none",
-    fontItalic: false,
-    fontUnderline: false,
-    fontOutline: false,
-    wallpaperTransition: "fade",
-    wallpaperDuration: 2,
-    screenshotMode: "screen",
-    screenshotEdit: false,
-    screenshotDir: Quickshell.env("HOME") + "/Pictures/Screenshots",
-    notificationTimeout: 6,
-    notificationMax: 4,
-    notificationDnd: false,
-    notificationPosition: "top-right",
-    barCollapsed: [],
-    barGroupsOff: [],
-    barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
-    barCenter: ["clock", "wallpaper", "theme", "screenshot"],
-    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"],
-    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
-  })
+  // The built-in value of each setting (see Defaults.qml): what is used when
+  // nothing has been saved, and to make up for a value that isn't valid.
+  readonly property var defaults: Defaults.values
 
   // [minimum, maximum] of each setting, for the panel's sliders and to keep
   // a hand-edited file from breaking the layout.
@@ -219,6 +187,9 @@ Singleton {
     if (!root.widgetIds.includes(id)) return
     if (zone === "off" && id === "settings") return
     if (zone !== "off" && !root.zones.includes(zone)) return
+    // Where it was, for when it is turned on again.
+    const from = root.zoneOf(id)
+    if (zone === "off" && from !== "off") root.rememberPlace(id, from, root.layout[from].indexOf(id))
     const lists = {}
     for (const name of root.zones) lists[name] = root.layout[name].filter(other => other !== id)
     if (zone !== "off") {
@@ -228,6 +199,38 @@ Singleton {
     root.set("barLeft", lists.left)
     root.set("barCenter", lists.center)
     root.set("barRight", lists.right)
+  }
+
+  // Where each widget that was turned off was, by id: { zone, position }.
+  readonly property var lastPlace: file.adapter.barLastPlace ?? ({})
+
+  // Forgets where the widgets that were turned off were.
+  function forgetPlaces() {
+    file.adapter.barLastPlace = ({})
+    saveTimer.restart()
+  }
+
+  function rememberPlace(id, zone, position) {
+    const places = {}
+    for (const other in root.lastPlace) places[other] = root.lastPlace[other]
+    places[id] = { zone: zone, position: position }
+    file.adapter.barLastPlace = places
+    saveTimer.restart()
+  }
+
+  // Shows widget `id` (back where it was, else in the zone it is in by default,
+  // else at the end of the right one) or hides it (turns it off).
+  function setWidgetShown(id, on) {
+    if (!root.widgetIds.includes(id)) return
+    if (!on) {
+      root.place(id, "off")
+      return
+    }
+    if (root.zoneOf(id) !== "off") return
+    const last = root.lastPlace[id]
+    const fallback = root.zones.find(zone => root.asArray(root.defaults["bar" + zone.charAt(0).toUpperCase() + zone.slice(1)]).includes(id)) ?? "right"
+    if (last && root.zones.includes(last.zone)) root.place(id, last.zone, last.position)
+    else root.place(id, fallback)
   }
 
   // Turns the divider before widget `id` on or off.
@@ -253,11 +256,25 @@ Singleton {
     return root.collapsed.includes(leader) ? "hover" : "on"
   }
 
+  // Turns the group `leader` starts on (shown) or off (never shown), keeping
+  // whether it is shown on hover only for when it is on again.
+  function setGroupShown(leader, on) {
+    if (!root.widgetIds.includes(leader)) return
+    const others = root.hiddenGroups.filter(id => id !== leader)
+    root.set("barGroupsOff", on ? others : others.concat([leader]))
+  }
+
+  // Whether the group `leader` starts, when on, shows only on hover.
+  function setGroupHover(leader, on) {
+    if (!root.widgetIds.includes(leader)) return
+    const others = root.collapsed.filter(id => id !== leader)
+    root.set("barCollapsed", on ? others.concat([leader]) : others)
+  }
+
   function setGroupMode(leader, mode) {
-    if (!root.widgetIds.includes(leader) || !root.groupModes.includes(mode)) return
-    const without = list => list.filter(id => id !== leader)
-    root.set("barCollapsed", mode === "hover" ? without(root.collapsed).concat([leader]) : without(root.collapsed))
-    root.set("barGroupsOff", mode === "off" ? without(root.hiddenGroups).concat([leader]) : without(root.hiddenGroups))
+    if (!root.groupModes.includes(mode)) return
+    root.setGroupShown(leader, mode !== "off")
+    if (mode !== "off") root.setGroupHover(leader, mode === "hover")
   }
 
   // Moves the group `leader` starts `steps` places later (negative: earlier)
@@ -299,9 +316,34 @@ Singleton {
     saveTimer.restart()
   }
 
-  function reset() {
-    for (const key in root.defaults) file.adapter[key] = root.defaults[key]
-    saveTimer.restart()
+  // The values the user saved as their own defaults, by setting key (in
+  // UserDefaults.json, next to the built-in ones in Defaults.qml, which never
+  // change): what Reset puts back. A setting missing from it has none.
+  readonly property var userDefaults: userFile.adapter.values ?? ({})
+
+  // Saves the current value of each of the settings `keys` as the user's own
+  // default; `extra` ({ key: value }) adds values that aren't settings (the
+  // language).
+  function saveDefaults(keys, extra) {
+    const values = {}
+    for (const key in root.userDefaults) values[key] = root.userDefaults[key]
+    for (const key of keys) {
+      if (root.defaults[key] !== undefined) values[key] = root.valid(key, file.adapter[key])
+    }
+    Object.assign(values, extra ?? {})
+    userFile.adapter.values = values
+    userFile.writeAdapter()
+  }
+
+  // Puts each of the settings `keys` back to the user's own default
+  // (`source` "mine"; the built-in one for a setting that has none) or to the
+  // built-in one ("factory").
+  function restoreDefaults(keys, source) {
+    for (const key of keys) {
+      if (root.defaults[key] === undefined) continue
+      const saved = source === "mine" ? root.userDefaults[key] : undefined
+      root.set(key, saved !== undefined ? saved : root.defaults[key])
+    }
   }
 
   Timer {
@@ -311,44 +353,57 @@ Singleton {
   }
 
   FileView {
+    id: userFile
+    path: Paths.userDefaults
+    blockLoading: true
+    // The file only exists once something has been saved.
+    printErrors: false
+
+    JsonAdapter {
+      property var values: ({})
+    }
+  }
+
+  FileView {
     id: file
     path: Paths.settings
     // Read synchronously so saved values are in place from the first frame.
     blockLoading: true
 
     JsonAdapter {
-      property int radius: 5
-      property real opacity: 0.9
-      property int spacing: 15
-      property int barHeight: 40
-      property int barMarginTop: 5
-      property int barMarginBottom: 0
-      property int barMarginLeft: 5
-      property int barMarginRight: 5
-      property int borderWidth: 2
-      property int fontSize: 18
-      property string fontFamily: "0xProto Nerd Font"
-      property int fontWeight: 400
-      property real fontLetterSpacing: 0
-      property string fontCaps: "none"
-      property bool fontItalic: false
-      property bool fontUnderline: false
-      property bool fontOutline: false
-      property string wallpaperTransition: "fade"
-      property real wallpaperDuration: 2
-      property string screenshotMode: "screen"
-      property bool screenshotEdit: false
-      property string screenshotDir: root.defaults.screenshotDir
-      property int notificationTimeout: 6
-      property int notificationMax: 4
-      property bool notificationDnd: false
-      property string notificationPosition: "top-right"
-      property var barCollapsed: []
-      property var barGroupsOff: []
-      property var barLeft: ["launcher", "settings", "workspaces", "activeWindow"]
-      property var barCenter: ["clock", "wallpaper", "theme", "screenshot"]
-      property var barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
-      property var barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
+      property int radius: Defaults.values.radius
+      property real opacity: Defaults.values.opacity
+      property int spacing: Defaults.values.spacing
+      property int barHeight: Defaults.values.barHeight
+      property int barMarginTop: Defaults.values.barMarginTop
+      property int barMarginBottom: Defaults.values.barMarginBottom
+      property int barMarginLeft: Defaults.values.barMarginLeft
+      property int barMarginRight: Defaults.values.barMarginRight
+      property int borderWidth: Defaults.values.borderWidth
+      property int fontSize: Defaults.values.fontSize
+      property string fontFamily: Defaults.values.fontFamily
+      property int fontWeight: Defaults.values.fontWeight
+      property real fontLetterSpacing: Defaults.values.fontLetterSpacing
+      property string fontCaps: Defaults.values.fontCaps
+      property bool fontItalic: Defaults.values.fontItalic
+      property bool fontUnderline: Defaults.values.fontUnderline
+      property bool fontOutline: Defaults.values.fontOutline
+      property string wallpaperTransition: Defaults.values.wallpaperTransition
+      property real wallpaperDuration: Defaults.values.wallpaperDuration
+      property string screenshotMode: Defaults.values.screenshotMode
+      property bool screenshotEdit: Defaults.values.screenshotEdit
+      property string screenshotDir: Defaults.values.screenshotDir
+      property int notificationTimeout: Defaults.values.notificationTimeout
+      property int notificationMax: Defaults.values.notificationMax
+      property bool notificationDnd: Defaults.values.notificationDnd
+      property string notificationPosition: Defaults.values.notificationPosition
+      property var barCollapsed: Defaults.values.barCollapsed
+      property var barGroupsOff: Defaults.values.barGroupsOff
+      property var barLastPlace: ({})
+      property var barLeft: Defaults.values.barLeft
+      property var barCenter: Defaults.values.barCenter
+      property var barRight: Defaults.values.barRight
+      property var barDividers: Defaults.values.barDividers
     }
   }
 }

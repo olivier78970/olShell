@@ -1,34 +1,43 @@
 import QtQuick
 import qs.config
 
-// A bar widget's row: its name on the left, then a button for the divider
-// before the widget (lit when `divider` is on; `dividerToggled` on click; dimmed
-// and not clickable when `dividerEnabled` is off, for the first widget of a
-// pill, where a divider would border nothing),
-// where it is on the bar as a row of buttons (`zones`, an array of
-// { value, text }, `zone` the current value) and two arrows moving it earlier
-// / later in its zone. `zoneChosen` fires with the value clicked and `moved`
-// with -1 or 1. The arrows are dimmed when there is nowhere to move
-// (`canMoveBack`, `canMoveForward`), and so is the zone button named by
-// `lockedZone`, which can't be chosen (it stays, so every row lines up).
+// A bar widget's row: its name on the left, then right after it a check box for
+// whether the widget is on the bar at all (`shown`; `shownToggled` on click;
+// dimmed and not clickable when `shownEnabled` is off, for the settings button,
+// which can't be turned off), and on the right a button for the divider before the widget (lit when `divider`
+// is on; `dividerToggled` on click; dimmed and not clickable when
+// `dividerEnabled` is off, for the first widget of a pill, where a divider
+// would border nothing), where it is on the bar as a row of buttons (`zones`,
+// an array of { value, text }, `zone` the current value; none is lit while
+// the widget is off) and two arrows moving it earlier / later in its zone.
+// `zoneChosen` fires with the value clicked and `moved` with -1 or 1. The
+// arrows are dimmed when there is nowhere to move (`canMoveBack`,
+// `canMoveForward`).
 Item {
   id: root
 
   property string label: ""
   property var zones: []
   property string zone: ""
-  property string lockedZone: ""
+  // The width the name gets, the same for every row (the widest name), so the
+  // check boxes after it line up.
+  property real labelWidth: 0
+  property bool shown: true
+  property bool shownEnabled: true
   property bool canMoveBack: false
   property bool canMoveForward: false
   property bool divider: false
   property bool dividerEnabled: true
   property bool selected: false
 
+  signal shownToggled()
   signal dividerToggled()
   signal zoneChosen(string value)
   signal moved(int steps)
   signal activated()
 
+  // The least it needs: the name column, the check box and the buttons.
+  implicitWidth: 12 + root.labelWidth + 12 + 22 + 12 + buttons.implicitWidth + 12
   implicitHeight: 38
 
   Rectangle {
@@ -40,13 +49,37 @@ Item {
   }
 
   ThemedText {
+    id: nameLabel
     anchors.left: parent.left
     anchors.leftMargin: 12
-    anchors.right: buttons.left
-    anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter
+    // As wide as the widest name of all the rows (`labelWidth`), so the check
+    // boxes, which come right after, line up; never into the buttons.
+    width: Math.max(0, Math.min(root.labelWidth, root.width - buttons.width - 12 - 12 - 22 - 12))
     text: root.label
     elide: Text.ElideRight
+  }
+
+  // Whether the widget is on the bar at all.
+  CheckBox {
+    anchors.left: nameLabel.right
+    anchors.leftMargin: 12
+    anchors.verticalCenter: parent.verticalCenter
+    checked: root.shown
+    enabled: root.shownEnabled
+    hovered: shownMouse.containsMouse
+
+    MouseArea {
+      id: shownMouse
+      anchors.fill: parent
+      enabled: root.shownEnabled
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: {
+        root.activated()
+        root.shownToggled()
+      }
+    }
   }
 
   Row {
@@ -103,7 +136,6 @@ Item {
 
         required property var modelData
         readonly property bool active: zoneButton.modelData.value === root.zone
-        readonly property bool locked: zoneButton.modelData.value === root.lockedZone
 
         width: zoneLabel.implicitWidth + 20
         height: 26
@@ -111,7 +143,6 @@ Item {
         color: zoneButton.active ? Theme.accentColor : (zoneMouse.containsMouse ? Theme.borderColor : "transparent")
         border.color: zoneButton.active ? Theme.accentColor : Theme.outlineColor
         border.width: 1
-        opacity: zoneButton.locked ? 0.35 : 1
 
         ThemedText {
           id: zoneLabel
@@ -124,7 +155,6 @@ Item {
         MouseArea {
           id: zoneMouse
           anchors.fill: parent
-          enabled: !zoneButton.locked
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
           onClicked: {
