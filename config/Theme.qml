@@ -6,6 +6,10 @@ import QtQuick
 // Shared visual constants for the shell. Import via `qs.config`.
 Singleton {
   // Adjustable from the settings panel (see Settings.qml).
+  readonly property bool barAutoHide: Settings.barAutoHide
+  readonly property bool barAutoHideAnimated: Settings.barAutoHideAnimated
+  readonly property int barAutoHideDuration: Settings.barAutoHideDuration
+  readonly property int barAutoHideDelay: Settings.barAutoHideDelay
   readonly property string barPosition: Settings.barPosition
   readonly property int barHeight: Settings.barHeight
   readonly property int barMarginLeft: Settings.barMarginLeft
