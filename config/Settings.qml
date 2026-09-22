@@ -18,13 +18,14 @@ Singleton {
   // a hand-edited file from breaking the layout.
   readonly property var limits: ({
     radius: [0, 30],
-    opacity: [0.4, 1],
+    opacity: [0, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
     barMarginTop: [0, 100],
     barMarginBottom: [0, 100],
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
+    barOpacity: [0, 1],
     borderWidth: [0, 6],
     fontSize: [10, 32],
     fontWeight: [100, 900],
@@ -40,6 +41,7 @@ Singleton {
   // --transition-type` ("simple" is left out: "fade" is the same, tunable, and
   // "none" already changes the wallpaper at once).
   readonly property var choices: ({
+    barStyle: ["widgets", "full"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
@@ -59,6 +61,13 @@ Singleton {
   readonly property int barMarginBottom: root.valid("barMarginBottom", file.adapter.barMarginBottom)
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
+  // "widgets": the bar itself is transparent and each widget pill has its
+  // own background (barOpacity has no effect). "full": the bar has one
+  // continuous background and the pills' own backgrounds are transparent
+  // (opacity has no effect on them).
+  readonly property string barStyle: root.valid("barStyle", file.adapter.barStyle)
+  // Opacity of the top bar's own background, used in the "full" barStyle.
+  readonly property real barOpacity: root.valid("barOpacity", file.adapter.barOpacity)
   // Width of the outline around surfaces; 0 for none.
   readonly property int borderWidth: root.valid("borderWidth", file.adapter.borderWidth)
   // Text size in pixels, and the font of all text and icons (a font family
@@ -155,7 +164,7 @@ Singleton {
     const [min, max] = root.limits[key]
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
-    if (key === "opacity") return Math.round(clamped * 100) / 100
+    if (key === "opacity" || key === "barOpacity") return Math.round(clamped * 100) / 100
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
@@ -382,6 +391,8 @@ Singleton {
       property int barMarginBottom: Defaults.values.barMarginBottom
       property int barMarginLeft: Defaults.values.barMarginLeft
       property int barMarginRight: Defaults.values.barMarginRight
+      property string barStyle: Defaults.values.barStyle
+      property real barOpacity: Defaults.values.barOpacity
       property int borderWidth: Defaults.values.borderWidth
       property int fontSize: Defaults.values.fontSize
       property string fontFamily: Defaults.values.fontFamily

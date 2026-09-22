@@ -2,7 +2,9 @@ import QtQuick
 import qs.config
 
 // Rounded pill container that groups a bar section's widgets in a row.
-Rectangle {
+// Theme.widgetOpacity fades only the background/border, not the content, so
+// text and icons stay fully readable even at a low widget opacity.
+Item {
   id: root
 
   default property alias content: row.data
@@ -17,15 +19,21 @@ Rectangle {
 
   implicitWidth: row.implicitWidth + horizontalPadding * 2
   implicitHeight: Theme.pillHeight()
-  opacity: Theme.widgetOpacity
-  radius: Theme.radiusFor(height)
-  bottomRightRadius: flattenBottomRight ? 0 : radius
-  color: Theme.pillColor
-  border.color: Theme.outlineColor
-  border.width: Theme.borderWidth
 
   HoverHandler {
     id: pillHover
+  }
+
+  Rectangle {
+    id: background
+    anchors.fill: parent
+    visible: Theme.barStyle !== "full"
+    opacity: Theme.widgetOpacity
+    radius: Theme.radiusFor(height)
+    bottomRightRadius: root.flattenBottomRight ? 0 : radius
+    color: Theme.pillColor
+    border.color: Theme.outlineColor
+    border.width: Theme.borderWidth
   }
 
   Row {
