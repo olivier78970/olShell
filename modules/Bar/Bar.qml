@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Io
 import QtQuick
 import qs.config
 
@@ -8,10 +9,91 @@ Scope {
     model: Quickshell.screens
 
     PanelWindow {
+      id: root
       property var modelData
       screen: modelData
 
       readonly property bool atTop: Theme.barPosition === "top"
+      readonly property bool autoHide: Theme.barAutoHide
+      // Whether the bar is actually drawn right now: always, unless
+      // auto-hide is on and the pointer has been away from it for a bit
+      // (postponed while one of its own popups is open, so that doesn't
+      // get left floating with nothing under it).
+      property bool revealed: !root.autoHide
+      readonly property bool anyPopupOpen: leftZone.popupOpen || centerZone.popupOpen || rightZone.popupOpen
+      // The margin on the near side (between the true screen edge and the
+      // bar itself): the one a hovering pointer has to cross to reach it.
+      readonly property int nearMargin: atTop ? Theme.barMarginTop : Theme.barMarginBottom
+      // How long showing/tucking the bar away takes, in ms; 0 (snaps
+      // instead) when animating it is turned off.
+      readonly property int revealDuration: Theme.barAutoHideAnimated ? Theme.barAutoHideDuration : 0
+      // Whether the bar's own space is reserved right now (see
+      // exclusiveZone): true the instant it's revealed, so windows make
+      // room for it right as it starts appearing, but only false once its
+      // hide animation has actually finished, so they don't reclaim that
+      // room while it's still visibly there sliding away.
+      property bool spaceReserved: !root.autoHide
+      // Settings load a moment after this window's first frame (even with
+      // the settings file read synchronously), so any setting saved
+      // different from its compile-time default briefly reads that default
+      // first: exclusiveZone can end up flipping through a wrong value and
+      // straight back to the right one within that same startup instant,
+      // which Hyprland doesn't seem to pick up reliably (unlike the same
+      // kind of flip happening later, e.g. from hovering the bar away right
+      // after it's revealed, which works fine). Holding exclusiveZone at 0
+      // until settings have had a moment to settle avoids ever sending that
+      // spurious first value in the first place.
+      property bool settled: false
+
+      Timer {
+        interval: 200
+        running: true
+        onTriggered: root.settled = true
+      }
+
+      onRevealedChanged: {
+        if (root.revealed) {
+          unreserveTimer.stop()
+          root.spaceReserved = true
+        } else {
+          unreserveTimer.restart()
+        }
+      }
+
+      Timer {
+        id: unreserveTimer
+        interval: root.revealDuration
+        onTriggered: root.spaceReserved = false
+      }
+      // Hyprland pads a *stable* reserved layer area with its own gaps_out,
+      // but not one that toggles as fast as auto-hide's does (0 while
+      // tucked away, the full amount the instant it's revealed) - added
+      // into the room reserved below ourselves for that case (see
+      // exclusiveZone), so windows end up exactly as far from the bar
+      // either way. Queried once at startup; a `gaps_out` changed by
+      // reloading the Hyprland config needs the shell restarted too.
+      property real hyprGapsOut: 0
+
+      Process {
+        command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
+        running: true
+        stdout: StdioCollector {
+          onStreamFinished: {
+            try {
+              const values = JSON.parse(text).css.trim().split(/\s+/).map(Number)
+              const value = values[atTop ? Math.min(2, values.length - 1) : 0]
+              if (!isNaN(value)) root.hyprGapsOut = value
+            } catch (e) {}
+          }
+        }
+      }
+
+      onAutoHideChanged: {
+        root.revealed = !root.autoHide || stayOpenHover.hovered
+        unreserveTimer.stop()
+        root.spaceReserved = root.revealed
+      }
+      onAnyPopupOpenChanged: if (!root.anyPopupOpen && !stayOpenHover.hovered && root.autoHide) hideTimer.restart()
 
       anchors {
         top: atTop
@@ -20,51 +102,173 @@ Scope {
         right: true
       }
 
-      margins.top: atTop ? Theme.barMarginTop : 0
-      margins.bottom: atTop ? 0 : Theme.barMarginBottom
-      margins.left: Theme.barMarginLeft
-      margins.right: Theme.barMarginRight
+      // While auto-hiding, the window itself spans edge to edge instead of
+      // sitting inset by the margins, so hovering into what would otherwise
+      // be that gap still counts as reaching for the bar (and the edge the
+      // pointer flicks to is actually inside the window, not short of it).
+      // The margins become padding on barArea instead, below. Otherwise the
+      // window carries them itself, same as always.
+      margins.top: root.autoHide ? 0 : (atTop ? Theme.barMarginTop : 0)
+      margins.bottom: root.autoHide ? 0 : (atTop ? 0 : Theme.barMarginBottom)
+      margins.left: root.autoHide ? 0 : Theme.barMarginLeft
+      margins.right: root.autoHide ? 0 : Theme.barMarginRight
 
-      implicitHeight: Theme.barHeight
+      implicitHeight: Theme.barHeight + (root.autoHide ? root.nearMargin : 0)
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
-      // that much further away.
+      // that much further away. Reserved the instant the bar is revealed,
+      // so windows make room for it as it appears, but kept reserved until
+      // its hide animation has actually finished (spaceReserved, not
+      // revealed directly) so they don't reclaim that room while it's still
+      // visibly sliding away - with Hyprland's own gap added in ourselves,
+      // since it doesn't pad a reservation that comes and goes this fast
+      // the way it pads the always-on case.
       exclusionMode: ExclusionMode.Normal
-      exclusiveZone: Theme.barHeight + (atTop ? Theme.barMarginBottom : Theme.barMarginTop)
+      exclusiveZone: {
+        if (!root.settled) return 0
+        if (root.autoHide && !root.spaceReserved) return 0
+        const zone = Theme.barHeight + (atTop ? Theme.barMarginBottom : Theme.barMarginTop)
+        return root.autoHide ? zone + root.hyprGapsOut : zone
+      }
       color: "transparent"
 
-      // The bar's own background, the same color as its widget pills, shown
-      // only in the "full" barStyle (the pills' own backgrounds go
-      // transparent instead, see Pill.qml). Settings.barOpacity controls it.
-      Rectangle {
-        anchors.fill: parent
-        visible: Theme.barStyle === "full"
-        radius: Theme.radiusFor(height)
-        color: Theme.pillColor
-        border.color: Theme.outlineColor
-        border.width: Theme.borderWidth
-        opacity: Theme.barOpacity
+      // While tucked away, only a thin strip flush with the true screen edge
+      // accepts input (so the pointer can find it again); the rest passes
+      // through to whatever's below. Once revealed, the whole window does
+      // (which, while auto-hiding, includes the near/left/right margins:
+      // straying into them doesn't lose the bar either).
+      mask: Region {
+        item: (root.autoHide && !root.revealed) ? hoverStrip : fullArea
       }
 
-      // Left widgets
-      WidgetZone {
+      // Flush with the true screen edge, for the click-through mask above
+      // and as a natural resting place once revealed by hovering it slowly.
+      Item {
+        id: hoverStrip
         anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        widgets: Settings.layout.left
-      }
-
-      // Middle widgets
-      WidgetZone {
-        anchors.centerIn: parent
-        widgets: Settings.layout.center
-      }
-
-      // Right widgets
-      WidgetZone {
         anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        widgets: Settings.layout.right
-        flattenPopupCorner: popupOpen
+        anchors.top: atTop ? parent.top : undefined
+        anchors.bottom: atTop ? undefined : parent.bottom
+        height: 10
+      }
+
+      // Reveals the bar once the pointer reaches the true screen edge.
+      // Deliberately not a HoverHandler/mask-based edge trigger: a fast
+      // flick to the edge can cross a masked-in strip between two pointer
+      // motion samples without ever generating an event inside it (and, on
+      // this compositor, even the ones that do land often don't repaint the
+      // surface in time). Polling Hyprland's own cursor position instead
+      // doesn't depend on catching a transient crossing event at all.
+      Timer {
+        interval: 50
+        running: root.autoHide && !root.revealed
+        repeat: true
+        onTriggered: edgeCheck.running = true
+      }
+
+      Process {
+        id: edgeCheck
+        command: ["hyprctl", "cursorpos"]
+        stdout: StdioCollector {
+          onStreamFinished: {
+            const parts = text.trim().split(",").map(s => parseInt(s.trim(), 10))
+            if (parts.length !== 2 || parts.some(isNaN)) return
+            const [cx, cy] = parts
+            const withinX = cx >= root.screen.x && cx < root.screen.x + root.screen.width
+            const nearEdge = atTop ? cy <= root.screen.y + hoverStrip.height : cy >= root.screen.y + root.screen.height - hoverStrip.height
+            if (withinX && nearEdge) {
+              hideTimer.stop()
+              root.revealed = true
+            }
+          }
+        }
+      }
+
+      Timer {
+        id: hideTimer
+        interval: Theme.barAutoHideDelay
+        onTriggered: root.revealed = false
+      }
+
+      Item {
+        id: fullArea
+        anchors.fill: parent
+
+        // Once revealed, the pointer being anywhere in the bar or its
+        // margins (not just the edge strip above) keeps it open.
+        HoverHandler {
+          id: stayOpenHover
+          onHoveredChanged: if (!stayOpenHover.hovered && root.autoHide && !root.anyPopupOpen) hideTimer.restart()
+        }
+
+        // Where the bar itself actually sits: fullArea's own size, inset by
+        // the margins that would otherwise have been the window's (only
+        // while auto-hiding put them here instead; the window already
+        // carries them otherwise, so no inset is needed then). Slides
+        // in/out past the near edge and fades, rather than snapping, while
+        // auto-hiding (always at rest, no offset, otherwise).
+        Item {
+          id: barArea
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.leftMargin: root.autoHide ? Theme.barMarginLeft : 0
+          anchors.rightMargin: root.autoHide ? Theme.barMarginRight : 0
+          anchors.top: atTop ? parent.top : undefined
+          anchors.bottom: atTop ? undefined : parent.bottom
+          anchors.topMargin: root.autoHide && atTop ? root.nearMargin : 0
+          anchors.bottomMargin: root.autoHide && !atTop ? root.nearMargin : 0
+          height: Theme.barHeight
+          opacity: root.revealed ? 1 : 0
+
+          Behavior on opacity {
+            NumberAnimation { duration: root.revealDuration; easing.type: Easing.OutCubic }
+          }
+
+          transform: Translate {
+            y: root.revealed ? 0 : (atTop ? -barArea.height : barArea.height)
+
+            Behavior on y {
+              NumberAnimation { duration: root.revealDuration; easing.type: Easing.OutCubic }
+            }
+          }
+
+          // The bar's own background, the same color as its widget pills,
+          // shown only in the "full" barStyle (the pills' own backgrounds go
+          // transparent instead, see Pill.qml). Settings.barOpacity controls it.
+          Rectangle {
+            anchors.fill: parent
+            visible: Theme.barStyle === "full"
+            radius: Theme.radiusFor(height)
+            color: Theme.pillColor
+            border.color: Theme.outlineColor
+            border.width: Theme.borderWidth
+            opacity: Theme.barOpacity
+          }
+
+          // Left widgets
+          WidgetZone {
+            id: leftZone
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            widgets: Settings.layout.left
+          }
+
+          // Middle widgets
+          WidgetZone {
+            id: centerZone
+            anchors.centerIn: parent
+            widgets: Settings.layout.center
+          }
+
+          // Right widgets
+          WidgetZone {
+            id: rightZone
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            widgets: Settings.layout.right
+            flattenPopupCorner: popupOpen
+          }
+        }
       }
     }
   }

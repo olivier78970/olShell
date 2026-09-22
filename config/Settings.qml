@@ -21,6 +21,8 @@ Singleton {
     opacity: [0, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
+    barAutoHideDuration: [0, 600],
+    barAutoHideDelay: [0, 3000],
     barMarginTop: [0, 100],
     barMarginBottom: [0, 100],
     barMarginLeft: [0, 300],
@@ -55,6 +57,16 @@ Singleton {
   readonly property real opacity: root.valid("opacity", file.adapter.opacity)
   // Space between the widgets of a pill.
   readonly property int spacing: root.valid("spacing", file.adapter.spacing)
+  // Whether the bar tucks itself away until the pointer reaches the edge of
+  // the screen it's anchored to.
+  readonly property bool barAutoHide: root.valid("barAutoHide", file.adapter.barAutoHide)
+  // Whether showing/tucking the bar away slides and fades it, or snaps.
+  readonly property bool barAutoHideAnimated: root.valid("barAutoHideAnimated", file.adapter.barAutoHideAnimated)
+  // How long that takes, in milliseconds; has no effect while it doesn't animate.
+  readonly property int barAutoHideDuration: root.valid("barAutoHideDuration", file.adapter.barAutoHideDuration)
+  // How long, in milliseconds, the pointer has to be away from the bar (and
+  // its margins) before it's tucked away again.
+  readonly property int barAutoHideDelay: root.valid("barAutoHideDelay", file.adapter.barAutoHideDelay)
   // Which edge of the screen the bar is on. The top/bottom margins keep
   // their meaning either way: whichever is on the side the bar is anchored
   // to is the gap between the bar and that edge, and the other becomes
@@ -390,6 +402,10 @@ Singleton {
       property int radius: Defaults.values.radius
       property real opacity: Defaults.values.opacity
       property int spacing: Defaults.values.spacing
+      property bool barAutoHide: Defaults.values.barAutoHide
+      property bool barAutoHideAnimated: Defaults.values.barAutoHideAnimated
+      property int barAutoHideDuration: Defaults.values.barAutoHideDuration
+      property int barAutoHideDelay: Defaults.values.barAutoHideDelay
       property string barPosition: Defaults.values.barPosition
       property int barHeight: Defaults.values.barHeight
       property int barMarginTop: Defaults.values.barMarginTop

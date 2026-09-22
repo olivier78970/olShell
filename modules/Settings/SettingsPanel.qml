@@ -37,6 +37,14 @@ ModalPanel {
     { key: "factoryAll", category: "general", kind: "factoryAll", label: I18n.tr("settings.factoryAll") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
+    { key: "barAutoHideRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHide"), toggles: [
+      { key: "barAutoHide", text: "" }
+    ] },
+    { key: "barAutoHideAnimatedRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHideAnimated"), toggles: [
+      { key: "barAutoHideAnimated", text: "" }
+    ] },
+    { key: "barAutoHideDuration", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDuration"), step: 10, format: v => v + " ms" },
+    { key: "barAutoHideDelay", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDelay"), step: 50, format: v => v + " ms" },
     { key: "barPosition", category: "bar", kind: "dropdown", positionIcon: true, overlay: true, label: I18n.tr("settings.barPosition") },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
     { key: "barMarginTop", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
@@ -173,6 +181,8 @@ ModalPanel {
   function rowEnabled(row) {
     if (row.key === "opacity") return Theme.barStyle !== "full"
     if (row.key === "barOpacity") return Theme.barStyle !== "widgets"
+    if (row.key === "barAutoHideAnimatedRow") return Theme.barAutoHide
+    if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
     return true
   }
 
@@ -180,6 +190,9 @@ ModalPanel {
   function disabledReasonOf(row) {
     if (row.key === "opacity" && Theme.barStyle === "full") return I18n.tr("settings.opacity.disabledFull")
     if (row.key === "barOpacity" && Theme.barStyle === "widgets") return I18n.tr("settings.barOpacity.disabledWidgets")
+    if (row.key === "barAutoHideAnimatedRow" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
+    if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
+    if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")
     return ""
   }
 
@@ -280,10 +293,11 @@ ModalPanel {
     }
 
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
-    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, borderWidth,
-    // fontSize, fontWeight, fontLetterSpacing, wallpaperDuration); out-of-range
-    // values are clamped. The font style settings (fontItalic, fontUnderline,
-    // fontOutline) take 1 or 0.
+    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, barOpacity,
+    // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
+    // fontLetterSpacing, wallpaperDuration); out-of-range values are clamped.
+    // The yes/no settings (barAutoHide, barAutoHideAnimated, fontItalic,
+    // fontUnderline, fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }
@@ -599,8 +613,10 @@ ModalPanel {
       root.toggleFocus = Math.max(0, Math.min(last, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
       event.accepted = true
     } else if (kind === "toggles" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      const key = root.rows[root.selected].toggles[root.toggleFocus].key
-      Settings.set(key, !Settings.get(key))
+      if (root.rowEnabled(root.rows[root.selected])) {
+        const key = root.rows[root.selected].toggles[root.toggleFocus].key
+        Settings.set(key, !Settings.get(key))
+      }
       event.accepted = true
     } else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
         && root.rows[root.selected].kind === "dropdown") {
@@ -1022,6 +1038,8 @@ ModalPanel {
                 checked: root.checkedOf(row.modelData)
                 selected: root.selected === row.index
                 focusIndex: root.toggleFocus
+                interactive: root.rowEnabled(row.modelData)
+                disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: {
                   root.selected = row.index
                 }
