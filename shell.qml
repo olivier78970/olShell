@@ -1,6 +1,7 @@
 import Quickshell
 import qs.components
 import qs.modules.Bar
+import qs.modules.Clock
 import qs.modules.Launcher
 import qs.modules.Lock
 import qs.modules.Notifications
@@ -29,6 +30,7 @@ ShellRoot {
   readonly property var blurActive: Blur.active
 
   Bar {}
+  ClockPanel {}
   PowerConfirmDialog {}
   VolumeOsd {}
   LockKeysOsd {}

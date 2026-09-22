@@ -13,6 +13,12 @@ import qs.config
 // Hyprland's Lua config uses its "non-legacy" parser, which `hyprctl keyword`
 // can't set rules on; `hyprctl eval` runs the same layer_rule() call the
 // static config does instead.
+//
+// The namespace match is a regex, searched rather than fully matched (see
+// the commented-out example in the user's own hyprland.lua), so without the
+// ^...$ anchors it would also catch the "quickshell:backdrop" namespace the
+// panels' click-catching backdrops use (ModalPanel, NotificationCenter,
+// ClockPanel...), blurring surfaces meant to stay plainly transparent.
 Singleton {
   id: root
 
@@ -22,7 +28,7 @@ Singleton {
   Component.onCompleted: root.apply()
 
   function apply() {
-    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "quickshell" }, blur = ${root.active} })`]
+    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "^quickshell$" }, blur = ${root.active} })`]
     process.running = true
   }
 

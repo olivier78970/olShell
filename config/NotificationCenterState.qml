@@ -16,6 +16,7 @@ Singleton {
     LauncherState.visible = false
     SettingsPanelState.visible = false
     PowerPanelState.visible = false
+    ClockPanelState.visible = false
     root.visible = !root.visible
   }
 }

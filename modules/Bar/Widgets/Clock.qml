@@ -3,15 +3,18 @@ import qs.components
 import qs.config
 
 // Centered date/time display, in the current language. Clicking it opens (or
-// closes) the popup with the agenda and the performance figures; a click
-// elsewhere closes it too.
+// closes) the clock panel (modules/Clock/ClockPanel.qml) with the agenda and
+// the performance figures; a click elsewhere closes it too.
 Item {
   id: root
 
   readonly property var locale: I18n.locale
   property date now: new Date()
-  // Whether the popup is open (the bar keeps the widget's section open then).
-  readonly property bool menuOpen: popup.visible
+  // Whether this instance's clock is the one with the panel open right now
+  // (the bar keeps the widget's section open then) - the panel is a single
+  // top-level instance shared by every screen's bar, so only the clock that
+  // opened it counts.
+  readonly property bool menuOpen: ClockPanelState.visible && ClockPanelState.anchorItem === root
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: content.implicitWidth
@@ -36,7 +39,7 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: popup.visible = !popup.visible
+    onClicked: ClockPanelState.toggle(root)
   }
 
   Timer {
@@ -44,13 +47,5 @@ Item {
     running: true
     repeat: true
     onTriggered: root.now = new Date()
-  }
-
-  BlurPopupMenu {
-    id: popup
-    anchorItem: root
-    alignCenter: true
-
-    ClockPanel {}
   }
 }
