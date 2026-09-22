@@ -24,7 +24,7 @@ ModalPanel {
     { id: "widgets", icon: "󰀻", label: I18n.tr("settings.category.widgets") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
-    { id: "lock", icon: "\uf023", label: I18n.tr("settings.category.lock") },
+    { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 

@@ -19,7 +19,7 @@ Item {
 
     ThemedText {
       anchors.verticalCenter: parent.verticalCenter
-      text: ""
+      text: "󰍛"
     }
 
     ThemedText {

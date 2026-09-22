@@ -14,7 +14,7 @@ Item {
   ThemedText {
     id: icon
     anchors.centerIn: parent
-    text: ""
+    text: "󰌾"
   }
 
   MouseArea {
