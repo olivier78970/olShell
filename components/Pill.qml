@@ -13,9 +13,11 @@ Item {
   // True while the pointer is over the pill (padding included).
   readonly property bool hovered: pillHover.hovered
 
-  // Square off the bottom-right corner, e.g. while a popup anchored to
-  // this pill's right edge is open, so the pill flows into the popup.
-  property bool flattenBottomRight: false
+  // Square off the corner where a popup anchored to this pill's right edge
+  // attaches, so the pill flows into it: the bottom-right corner normally,
+  // or the top-right one with the bar at the bottom of the screen, where
+  // popups open upward instead.
+  property bool flattenPopupCorner: false
 
   implicitWidth: row.implicitWidth + horizontalPadding * 2
   implicitHeight: Theme.pillHeight()
@@ -30,7 +32,8 @@ Item {
     visible: Theme.barStyle !== "full"
     opacity: Theme.widgetOpacity
     radius: Theme.radiusFor(height)
-    bottomRightRadius: root.flattenBottomRight ? 0 : radius
+    topRightRadius: root.flattenPopupCorner && Theme.barPosition === "bottom" ? 0 : radius
+    bottomRightRadius: root.flattenPopupCorner && Theme.barPosition !== "bottom" ? 0 : radius
     color: Theme.pillColor
     border.color: Theme.outlineColor
     border.width: Theme.borderWidth

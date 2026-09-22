@@ -37,6 +37,7 @@ ModalPanel {
     { key: "factoryAll", category: "general", kind: "factoryAll", label: I18n.tr("settings.factoryAll") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
+    { key: "barPosition", category: "bar", kind: "buttons", label: I18n.tr("settings.barPosition") },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
     { key: "barMarginTop", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
@@ -189,6 +190,7 @@ ModalPanel {
     if (row.key === "wallpaperTransition") return root.transitionOptions
     if (row.key === "notificationPosition") return root.positionOptions
     if (row.key === "barStyle") return root.barStyleOptions
+    if (row.key === "barPosition") return root.barPositionOptions
     return []
   }
 
@@ -196,6 +198,10 @@ ModalPanel {
   // each widget pill has its own ("widgets"), named in the current language.
   readonly property var barStyleOptions: Settings.choices.barStyle
     .map(name => ({ value: name, text: I18n.tr("settings.barStyle." + name) }))
+
+  // Which edge of the screen the bar is on, named in the current language.
+  readonly property var barPositionOptions: Settings.choices.barPosition
+    .map(name => ({ value: name, text: I18n.tr("settings.barPosition." + name) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]
@@ -333,7 +339,7 @@ ModalPanel {
     }
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
-    // fontCaps, barStyle; a value not in the list is ignored) and for the
+    // fontCaps, barStyle, barPosition; a value not in the list is ignored) and for the
     // font family (any installed family, e.g. "DejaVu Sans Mono").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : Settings.choices[key]?.includes(value)
