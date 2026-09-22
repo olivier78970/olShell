@@ -22,7 +22,7 @@ Row {
   // there is no window).
   readonly property Item item: loader.item
   readonly property bool shown: root.item !== null && (root.item.present ?? true)
-  // Whether the widget has a popup menu open (the power menu says so).
+  // Whether the widget has a popup menu open (the clock says so).
   readonly property bool open: root.item?.menuOpen ?? false
 
   // The pill's row centers its widgets vertically by their own anchors.

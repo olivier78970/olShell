@@ -19,6 +19,9 @@ PanelWindow {
   // Opacity of the frame; the settings panel keeps it high so it stays
   // readable while the widget opacity is being adjusted.
   property real panelOpacity: Theme.widgetOpacity
+  // Whether the frame is drawn; without it only the children show, over the
+  // dimmed backdrop.
+  property bool framed: true
   // Gets keyboard focus each time the panel opens (default: the frame).
   property Item focusTarget: frame
 
@@ -89,10 +92,10 @@ PanelWindow {
     width: Math.min(root.maxPanelWidth, root.width * 0.9)
     height: Math.min(root.maxPanelHeight, root.height * 0.9)
     radius: Theme.radiusFor(height)
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
-    border.width: Theme.borderWidth
-    opacity: root.panelOpacity
+    color: root.framed ? Theme.pillColor : "transparent"
+    border.color: root.framed ? Theme.outlineColor : "transparent"
+    border.width: root.framed ? Theme.borderWidth : 0
+    opacity: root.framed ? root.panelOpacity : 1
     focus: true
 
     Keys.onPressed: event => {

@@ -2,8 +2,10 @@ import Quickshell
 import qs.components
 import qs.modules.Bar
 import qs.modules.Launcher
+import qs.modules.Lock
 import qs.modules.Notifications
 import qs.modules.Osd
+import qs.modules.Power
 import qs.modules.Settings
 import qs.modules.Theme
 import qs.modules.Wallpapers
@@ -33,4 +35,6 @@ ShellRoot {
   SettingsPanel {}
   NotificationPopups {}
   NotificationCenter {}
+  PowerPanel {}
+  LockScreen {}
 }

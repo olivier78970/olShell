@@ -14,7 +14,7 @@ Pill {
 
   property var widgets: []
   // Whether any widget of the zone is open in a popup that hangs off the
-  // pill (the power menu), to square off the pill's corner.
+  // pill (the clock popup), to square off the pill's corner.
   readonly property bool popupOpen: {
     root.flags  // look again when the slots change
     for (let i = 0; i < slots.count; i++) {

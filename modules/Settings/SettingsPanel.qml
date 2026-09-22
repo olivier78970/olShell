@@ -24,6 +24,7 @@ ModalPanel {
     { id: "widgets", icon: "󰀻", label: I18n.tr("settings.category.widgets") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
+    { id: "lock", icon: "\uf023", label: I18n.tr("settings.category.lock") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -59,7 +60,8 @@ ModalPanel {
     { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.notificationPosition") },
     { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
       { key: "notificationDnd", text: "" }
-    ] }
+    ] },
+    { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" }
   ].concat(root.widgetRows).concat(root.defaultRows)
 
   // The last row of every category: its defaults (see DefaultsRow).

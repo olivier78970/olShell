@@ -25,6 +25,7 @@ Singleton {
     network: network,
     volume: volume,
     notifications: notifications,
+    lock: lock,
     power: power
   })
 
@@ -43,5 +44,6 @@ Singleton {
   Component { id: network; NetworkSpeed {} }
   Component { id: volume; Volume {} }
   Component { id: notifications; NotificationBell {} }
-  Component { id: power; PowerMenu {} }
+  Component { id: lock; LockButton {} }
+  Component { id: power; PowerTrigger {} }
 }

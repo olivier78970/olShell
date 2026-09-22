@@ -34,11 +34,12 @@ Singleton {
     notificationMax: 4,
     notificationDnd: false,
     notificationPosition: "top-right",
+    lockTimeout: 10,
     barCollapsed: [],
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
     barCenter: ["clock", "wallpaper", "theme", "screenshot"],
-    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"],
-    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
+    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"],
+    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "lock"]
     })
 }

@@ -5,8 +5,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
-// Shared state for the power menu's confirmation dialog. PowerMenu sets
-// `pendingAction` when a menu option is clicked; PowerConfirmDialog reads
+// Shared state for the power confirmation dialog. PowerPanel sets
+// `pendingAction` when an action is picked; PowerConfirmDialog reads
 // it to decide what to show and calls confirm()/cancel().
 Singleton {
   id: root

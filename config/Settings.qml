@@ -31,7 +31,8 @@ Singleton {
     fontLetterSpacing: [-2, 6],
     wallpaperDuration: [0.5, 10],
     notificationTimeout: [2, 30],
-    notificationMax: [1, 8]
+    notificationMax: [1, 8],
+    lockTimeout: [0, 60]
   })
 
   // The values a setting can only take one of, in the order the panel lists
@@ -78,7 +79,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -117,6 +118,8 @@ Singleton {
   readonly property bool notificationDnd: root.valid("notificationDnd", file.adapter.notificationDnd)
   // Where the pop-ups appear on the screen (one of choices.notificationPosition).
   readonly property string notificationPosition: root.valid("notificationPosition", file.adapter.notificationPosition)
+  // Minutes without input before the screen locks by itself (0: never).
+  readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
 
   // `value` for setting `key` kept within its limits (the default if it
   // isn't a number), and rounded to whole numbers except for the opacity
@@ -397,6 +400,7 @@ Singleton {
       property int notificationMax: Defaults.values.notificationMax
       property bool notificationDnd: Defaults.values.notificationDnd
       property string notificationPosition: Defaults.values.notificationPosition
+      property int lockTimeout: Defaults.values.lockTimeout
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff
       property var barLastPlace: ({})
