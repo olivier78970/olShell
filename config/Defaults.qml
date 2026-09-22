@@ -24,6 +24,7 @@ Singleton {
     barStyle: "widgets",
     borderWidth: 2,
     borderOpaque: false,
+    blur: false,
     fontSize: 18,
     fontFamily: "0xProto Nerd Font",
     fontWeight: 400,

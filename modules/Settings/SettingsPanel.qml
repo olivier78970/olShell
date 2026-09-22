@@ -56,6 +56,9 @@ ModalPanel {
     { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
       { key: "borderOpaque", text: "" }
     ] },
+    { key: "blurRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blur"), toggles: [
+      { key: "blur", text: "" }
+    ] },
     { key: "fontSize", category: "text", kind: "slider", label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
@@ -291,7 +294,7 @@ ModalPanel {
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration); out-of-range values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // fontItalic, fontUnderline, fontOutline) take 1 or 0.
+    // blur, fontItalic, fontUnderline, fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

@@ -24,6 +24,9 @@ ShellRoot {
   readonly property var screenshotMode: Screenshot.mode
   // And the notification server, which has to own its D-Bus name from the start.
   readonly property var notificationsDnd: Notifications.dnd
+  // And the blur service, which has to apply Settings.blur's saved value
+  // from the start (Hyprland forgets dynamic layer rules on its own restart).
+  readonly property var blurActive: Blur.active
 
   Bar {}
   PowerConfirmDialog {}

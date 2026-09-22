@@ -86,6 +86,9 @@ Singleton {
   // Whether that outline stays fully opaque instead of fading with the
   // widget opacity.
   readonly property bool borderOpaque: root.valid("borderOpaque", file.adapter.borderOpaque)
+  // Whether Hyprland blurs what's behind every surface the widget opacity
+  // can fade (the bar, pills, popups, panels, OSDs), see services/Blur.qml.
+  readonly property bool blur: root.valid("blur", file.adapter.blur)
   // Text size in pixels, and the font of all text and icons (a font family
   // name; the icons are Nerd Font glyphs, so a Nerd Font is the safe choice).
   readonly property int fontSize: root.valid("fontSize", file.adapter.fontSize)
@@ -415,6 +418,7 @@ Singleton {
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
+      property bool blur: Defaults.values.blur
       property int fontSize: Defaults.values.fontSize
       property string fontFamily: Defaults.values.fontFamily
       property int fontWeight: Defaults.values.fontWeight
