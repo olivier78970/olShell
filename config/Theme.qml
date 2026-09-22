@@ -56,6 +56,10 @@ Singleton {
   // Whether that outline stays fully opaque instead of fading along with the
   // widget opacity (surfaces still fade; just not their border).
   readonly property bool borderOpaque: Settings.borderOpaque
+  // Whether surfaces that can't get Hyprland's own compositor blur (popups,
+  // see services/Blur.qml's own comment) fake it with a blurred copy of the
+  // wallpaper instead, the same way the lock screen does.
+  readonly property bool blur: Settings.blur
   // How far the border color is pulled from the surface color toward the
   // text color (0 = same as the surface, 1 = the text color). Deriving it
   // from the theme's own colors keeps the outline visible on every palette.

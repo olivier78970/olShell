@@ -1,6 +1,8 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import qs.config
+import qs.services
 
 // Rounded popup panel anchored below a widget, styled to match the bar's
 // pills. Put PowerMenuOption (or similar) rows inside it.
@@ -40,20 +42,51 @@ PopupWindow {
   implicitHeight: column.implicitHeight + 16
   color: "transparent"
 
-  Rectangle {
+  Item {
+    id: surface
     anchors.fill: parent
-    radius: Theme.radiusFor(height)
-    // The corner touching the widget's pill is squared off so they flow
-    // together (not when centered): the popup's top corner, on the side
-    // that isn't centered, when it opens below the bar; its bottom corner
-    // when it opens above (the bar's at the bottom of the screen).
-    topLeftRadius: root.barEdge === Edges.Bottom && alignLeft && !alignCenter ? 0 : radius
-    topRightRadius: root.barEdge === Edges.Bottom && !alignLeft && !alignCenter ? 0 : radius
-    bottomLeftRadius: root.barEdge === Edges.Top && alignLeft && !alignCenter ? 0 : radius
-    bottomRightRadius: root.barEdge === Edges.Top && !alignLeft && !alignCenter ? 0 : radius
-    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
-    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
-    border.width: Theme.borderWidth
+    clip: true
+
+    // No compositor blur reaches this surface (it's an xdg-popup, not a
+    // namespaced layer surface like everything else - see services/Blur.qml's
+    // comment), so Theme.blur fakes it the way the lock screen does: a
+    // blurred copy of the wallpaper image, under the tinted, bordered
+    // rectangle below (which has to be the last child, drawn on top of
+    // this, or its own border would just get painted over).
+    Image {
+      id: wallpaper
+      anchors.fill: parent
+      visible: false
+      source: Theme.blur && ThemeState.wallpaper.length > 0 ? "file://" + ThemeState.wallpaper : ""
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+    }
+
+    MultiEffect {
+      anchors.fill: parent
+      visible: Theme.blur && wallpaper.status === Image.Ready
+      source: wallpaper
+      autoPaddingEnabled: false
+      blurEnabled: true
+      blur: 1
+      blurMax: 64
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      radius: Theme.radiusFor(height)
+      // The corner touching the widget's pill is squared off so they flow
+      // together (not when centered): the popup's top corner, on the side
+      // that isn't centered, when it opens below the bar; its bottom corner
+      // when it opens above (the bar's at the bottom of the screen).
+      topLeftRadius: root.barEdge === Edges.Bottom && alignLeft && !alignCenter ? 0 : radius
+      topRightRadius: root.barEdge === Edges.Bottom && !alignLeft && !alignCenter ? 0 : radius
+      bottomLeftRadius: root.barEdge === Edges.Top && alignLeft && !alignCenter ? 0 : radius
+      bottomRightRadius: root.barEdge === Edges.Top && !alignLeft && !alignCenter ? 0 : radius
+      color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+      border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
+      border.width: Theme.borderWidth
+    }
 
     HoverHandler {
       id: hover

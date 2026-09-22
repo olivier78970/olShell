@@ -46,7 +46,7 @@ Item {
     onTriggered: root.now = new Date()
   }
 
-  PopupMenu {
+  BlurPopupMenu {
     id: popup
     anchorItem: root
     alignCenter: true
