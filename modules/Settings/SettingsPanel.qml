@@ -501,8 +501,8 @@ ModalPanel {
     root.openKey = row.key
   }
 
-  // Keys while a list is open: they move in it, pick from it, and nothing
-  // else (Escape, handled by the panel, closes it).
+  // Keys while a list is open: they move in it, pick from it, or (Escape)
+  // just close it, without closing the panel itself.
   function listKeyPressed(event) {
     const row = root.rows.find(candidate => candidate.key === root.openKey)
     const options = root.optionsOf(row)
@@ -517,6 +517,8 @@ ModalPanel {
       // Close first: applying it may rebuild what the list belongs to.
       root.openKey = ""
       Settings.set(row.key, options[root.highlight].value)
+    } else if (event.key === Qt.Key_Escape) {
+      root.openKey = ""
     }
     event.accepted = true
   }

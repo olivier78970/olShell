@@ -5,8 +5,10 @@ import qs.config
 
 // Screen-centered modal panel: a dimmed full-screen backdrop and a framed
 // panel that takes exclusive keyboard focus. Children go inside the frame.
-// Escape or a click outside emits `closeRequested`; other keys are passed on
-// through `keyPressed`.
+// Every key, Escape included, is passed on through `keyPressed` first, so the
+// owner can use it for something of its own (closing a dropdown's list, say);
+// a click outside the panel always emits `closeRequested`, and so does
+// Escape, unless the owner's `keyPressed` accepted it.
 //
 // The owner controls visibility (bind `visible`) and reacts to the signals;
 // this component keeps no state of its own about being open.
@@ -99,11 +101,13 @@ PanelWindow {
     focus: true
 
     Keys.onPressed: event => {
-      if (event.key === Qt.Key_Escape) {
+      // Escape goes to the owner first, so it can use it for something of
+      // its own (closing a dropdown's list, say) instead of the panel; it
+      // only closes the panel if that leaves it unaccepted.
+      root.keyPressed(event)
+      if (event.key === Qt.Key_Escape && !event.accepted) {
         root.closeRequested()
         event.accepted = true
-      } else {
-        root.keyPressed(event)
       }
     }
 
