@@ -28,6 +28,19 @@ Scope {
       exclusiveZone: Theme.barHeight + Theme.barMarginBottom
       color: "transparent"
 
+      // The bar's own background, the same color as its widget pills, shown
+      // only in the "full" barStyle (the pills' own backgrounds go
+      // transparent instead, see Pill.qml). Settings.barOpacity controls it.
+      Rectangle {
+        anchors.fill: parent
+        visible: Theme.barStyle === "full"
+        radius: Theme.radiusFor(height)
+        color: Theme.pillColor
+        border.color: Theme.outlineColor
+        border.width: Theme.borderWidth
+        opacity: Theme.barOpacity
+      }
+
       // Left widgets
       WidgetZone {
         anchors.left: parent.left

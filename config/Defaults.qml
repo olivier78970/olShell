@@ -16,6 +16,8 @@ Singleton {
     barMarginBottom: 0,
     barMarginLeft: 5,
     barMarginRight: 5,
+    barStyle: "widgets",
+    barOpacity: 0.6,
     borderWidth: 2,
     fontSize: 18,
     fontFamily: "0xProto Nerd Font",

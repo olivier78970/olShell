@@ -42,6 +42,8 @@ ModalPanel {
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
+    { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
+    { key: "barOpacity", category: "bar", kind: "slider", label: I18n.tr("settings.barOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
     { key: "fontSize", category: "text", kind: "slider", label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
@@ -162,14 +164,38 @@ ModalPanel {
       capitalization: name === "small" ? Font.SmallCaps : Font.MixedCase
     }))
 
+  // Whether row `row` can be adjusted right now: the widget opacity has no
+  // effect while the bar is in the "full" style (only the bar's own
+  // background shows, Pill.qml's own goes transparent), and the bar's own
+  // opacity has no effect in the "widgets" style (Bar.qml's own background
+  // is hidden, only the pills' own show).
+  function rowEnabled(row) {
+    if (row.key === "opacity") return Theme.barStyle !== "full"
+    if (row.key === "barOpacity") return Theme.barStyle !== "widgets"
+    return true
+  }
+
+  // Why `row` is disabled right now, for its tooltip; "" when it isn't.
+  function disabledReasonOf(row) {
+    if (row.key === "opacity" && Theme.barStyle === "full") return I18n.tr("settings.opacity.disabledFull")
+    if (row.key === "barOpacity" && Theme.barStyle === "widgets") return I18n.tr("settings.barOpacity.disabledWidgets")
+    return ""
+  }
+
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
     if (row.key === "notificationPosition") return root.positionOptions
+    if (row.key === "barStyle") return root.barStyleOptions
     return []
   }
+
+  // Whether the bar has one background behind all its widgets ("full") or
+  // each widget pill has its own ("widgets"), named in the current language.
+  readonly property var barStyleOptions: Settings.choices.barStyle
+    .map(name => ({ value: name, text: I18n.tr("settings.barStyle." + name) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]
@@ -307,9 +333,8 @@ ModalPanel {
     }
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
-    // fontCaps;
-    // a value not in the list is ignored) and for the font family (any
-    // installed family, e.g. "DejaVu Sans Mono").
+    // fontCaps, barStyle; a value not in the list is ignored) and for the
+    // font family (any installed family, e.g. "DejaVu Sans Mono").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : Settings.choices[key]?.includes(value)
       if (allowed) Settings.set(key, value)
@@ -445,6 +470,7 @@ ModalPanel {
   // Moves the selected row's value one step (or `steps` of them) up or down.
   function adjust(direction, steps) {
     const row = root.rows[root.selected]
+    if (!root.rowEnabled(row)) return
     if (row.kind === "slider") {
       Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
     } else if (row.kind === "dropdown" || row.kind === "buttons") {
@@ -923,6 +949,8 @@ ModalPanel {
                 value: row.modelData.kind === "slider" ? Settings.get(row.modelData.key) : 0
                 valueText: row.modelData.kind === "slider" ? row.modelData.format(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
+                interactive: root.rowEnabled(row.modelData)
+                disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: root.selected = row.index
                 onMoved: value => Settings.set(row.modelData.key, value)
               }
