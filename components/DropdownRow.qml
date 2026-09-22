@@ -219,7 +219,7 @@ Item {
     id: inlineList
     visible: root.open && !root.overlay
     anchors.top: header.bottom
-    anchors.topMargin: 4
+    anchors.topMargin: 0
     anchors.right: header.right
     anchors.rightMargin: 12
     width: root.listWidth
@@ -250,7 +250,7 @@ Item {
     anchor.item: button
     anchor.edges: Edges.Bottom | Edges.Right
     anchor.gravity: Edges.Bottom | Edges.Left
-    anchor.margins.bottom: 4
+    anchor.margins.bottom: 0
     // Matches every other popup in the shell (the bar's menus, tooltips):
     // grabbing focus is what makes a click outside it dismiss it.
     grabFocus: true

@@ -28,9 +28,11 @@ PopupWindow {
   // Widgets are vertically centered within their (taller) pill, so their own
   // near edge (bottom normally, top with the bar at the bottom) sits inside
   // the pill's. Push the anchor out by that same gap so the popup starts
-  // flush with the pill/bar edge instead of the widget's.
-  anchor.margins.bottom: anchorItem && root.barEdge === Edges.Bottom ? -(Theme.pillHeight() - anchorItem.height) / 2 - 5 : 0
-  anchor.margins.top: anchorItem && root.barEdge === Edges.Top ? -(Theme.pillHeight() - anchorItem.height) / 2 - 5 : 0
+  // flush with the pill/bar edge instead of the widget's, then in by the
+  // border width so the popup's border overlaps the pill's instead of
+  // doubling up with it.
+  anchor.margins.bottom: anchorItem && root.barEdge === Edges.Bottom ? -(Theme.pillHeight() - anchorItem.height) / 2 + Theme.borderWidth : 0
+  anchor.margins.top: anchorItem && root.barEdge === Edges.Top ? -(Theme.pillHeight() - anchorItem.height) / 2 + Theme.borderWidth : 0
   grabFocus: true
   visible: false
 

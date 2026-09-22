@@ -55,13 +55,15 @@ PanelWindow {
     id: frame
 
     // What the bar reserves at the top; the panel stays out of it, and sits
-    // where the pop-ups do (Settings.notificationPosition).
+    // where the pop-ups do (Settings.notificationPosition). Pulled up into
+    // that zone by the border width so its border overlaps the bar's
+    // instead of doubling up with it, the same as the bar's own popups.
     readonly property real barZone: Theme.barMarginTop + Theme.barHeight + Theme.barMarginBottom
     readonly property real inset: 16
 
     x: Notifications.atLeft ? Theme.barMarginLeft
       : (Notifications.atRight ? root.width - width - Theme.barMarginRight : (root.width - width) / 2)
-    y: Notifications.atTop ? frame.barZone + 10
+    y: Notifications.atTop ? frame.barZone - Theme.borderWidth
       : (Notifications.atBottom ? root.height - height - 10 : frame.barZone + (root.height - frame.barZone - height) / 2)
     width: Math.min(440, root.width * 0.9)
     height: Math.min(root.height - frame.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
