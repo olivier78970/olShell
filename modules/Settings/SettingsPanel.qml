@@ -37,7 +37,7 @@ ModalPanel {
     { key: "factoryAll", category: "general", kind: "factoryAll", label: I18n.tr("settings.factoryAll") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
-    { key: "barPosition", category: "bar", kind: "buttons", label: I18n.tr("settings.barPosition") },
+    { key: "barPosition", category: "bar", kind: "dropdown", positionIcon: true, overlay: true, label: I18n.tr("settings.barPosition") },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
     { key: "barMarginTop", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
@@ -60,7 +60,7 @@ ModalPanel {
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
     { key: "notificationTimeout", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationTimeout"), step: 1, format: v => v + " s" },
     { key: "notificationMax", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationMax"), step: 1, format: v => String(v) },
-    { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.notificationPosition") },
+    { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, overlay: true, label: I18n.tr("settings.notificationPosition") },
     { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
       { key: "notificationDnd", text: "" }
     ] },
@@ -501,8 +501,8 @@ ModalPanel {
     root.openKey = row.key
   }
 
-  // Keys while a list is open: they move in it, pick from it, and nothing
-  // else (Escape, handled by the panel, closes it).
+  // Keys while a list is open: they move in it, pick from it, or (Escape)
+  // just close it, without closing the panel itself.
   function listKeyPressed(event) {
     const row = root.rows.find(candidate => candidate.key === root.openKey)
     const options = root.optionsOf(row)
@@ -517,6 +517,8 @@ ModalPanel {
       // Close first: applying it may rebuild what the list belongs to.
       root.openKey = ""
       Settings.set(row.key, options[root.highlight].value)
+    } else if (event.key === Qt.Key_Escape) {
+      root.openKey = ""
     }
     event.accepted = true
   }
@@ -1060,6 +1062,7 @@ ModalPanel {
                 highlighted: root.highlight
                 previewFonts: row.modelData.key === "fontFamily"
                 positionIcon: row.modelData.positionIcon ?? false
+                overlay: row.modelData.overlay ?? false
                 onActivated: root.selected = row.index
                 onToggled: root.toggleDropdown(row.modelData)
                 onHighlightRequested: index => root.highlight = index
@@ -1068,6 +1071,7 @@ ModalPanel {
                   root.openKey = ""
                   Settings.set(row.modelData.key, value)
                 }
+                onOverlayKeyPressed: event => root.listKeyPressed(event)
               }
 
               ChoiceRow {
