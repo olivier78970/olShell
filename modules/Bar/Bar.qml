@@ -11,21 +11,26 @@ Scope {
       property var modelData
       screen: modelData
 
+      readonly property bool atTop: Theme.barPosition === "top"
+
       anchors {
-        top: true
+        top: atTop
+        bottom: !atTop
         left: true
         right: true
       }
 
-      margins.top: Theme.barMarginTop
+      margins.top: atTop ? Theme.barMarginTop : 0
+      margins.bottom: atTop ? 0 : Theme.barMarginBottom
       margins.left: Theme.barMarginLeft
       margins.right: Theme.barMarginRight
 
       implicitHeight: Theme.barHeight
-      // The room the bar keeps free for itself: its height plus the bottom
-      // margin, so windows start that much lower.
+      // The room the bar keeps free for itself: its height plus the margin
+      // on the far side from the edge it's anchored to, so windows start
+      // that much further away.
       exclusionMode: ExclusionMode.Normal
-      exclusiveZone: Theme.barHeight + Theme.barMarginBottom
+      exclusiveZone: Theme.barHeight + (atTop ? Theme.barMarginBottom : Theme.barMarginTop)
       color: "transparent"
 
       // The bar's own background, the same color as its widget pills, shown
@@ -59,7 +64,7 @@ Scope {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         widgets: Settings.layout.right
-        flattenBottomRight: popupOpen
+        flattenPopupCorner: popupOpen
       }
     }
   }

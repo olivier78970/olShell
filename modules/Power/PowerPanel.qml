@@ -14,9 +14,9 @@ ModalPanel {
   id: root
 
   readonly property var actions: [
-    { id: "logout", icon: "", label: I18n.tr("power.logout") },
-    { id: "restart", icon: "", label: I18n.tr("power.restart") },
-    { id: "shutdown", icon: "", label: I18n.tr("power.shutdown") }
+    { id: "logout", icon: "󰍃", label: I18n.tr("power.logout") },
+    { id: "restart", icon: "󰜉", label: I18n.tr("power.restart") },
+    { id: "shutdown", icon: "󰐥", label: I18n.tr("power.shutdown") }
   ]
   property int current: 0
 

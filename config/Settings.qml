@@ -41,6 +41,7 @@ Singleton {
   // --transition-type` ("simple" is left out: "fade" is the same, tunable, and
   // "none" already changes the wallpaper at once).
   readonly property var choices: ({
+    barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
@@ -54,10 +55,13 @@ Singleton {
   readonly property real opacity: root.valid("opacity", file.adapter.opacity)
   // Space between the widgets of a pill.
   readonly property int spacing: root.valid("spacing", file.adapter.spacing)
+  // Which edge of the screen the bar is on. The top/bottom margins keep
+  // their meaning either way: whichever is on the side the bar is anchored
+  // to is the gap between the bar and that edge, and the other becomes
+  // extra room kept free on the far side of the bar, before windows start.
+  readonly property string barPosition: root.valid("barPosition", file.adapter.barPosition)
   readonly property int barHeight: root.valid("barHeight", file.adapter.barHeight)
   readonly property int barMarginTop: root.valid("barMarginTop", file.adapter.barMarginTop)
-  // Extra room kept free below the bar, on top of the compositor's own gaps,
-  // before the windows start.
   readonly property int barMarginBottom: root.valid("barMarginBottom", file.adapter.barMarginBottom)
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
@@ -386,6 +390,7 @@ Singleton {
       property int radius: Defaults.values.radius
       property real opacity: Defaults.values.opacity
       property int spacing: Defaults.values.spacing
+      property string barPosition: Defaults.values.barPosition
       property int barHeight: Defaults.values.barHeight
       property int barMarginTop: Defaults.values.barMarginTop
       property int barMarginBottom: Defaults.values.barMarginBottom

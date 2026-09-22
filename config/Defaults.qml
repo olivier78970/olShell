@@ -11,6 +11,7 @@ Singleton {
     radius: 5,
     opacity: 0.9,
     spacing: 15,
+    barPosition: "top",
     barHeight: 40,
     barMarginTop: 5,
     barMarginBottom: 0,

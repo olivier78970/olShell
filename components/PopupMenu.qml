@@ -17,14 +17,20 @@ PopupWindow {
   // True while the pointer is over the popup itself.
   readonly property bool containsMouse: hover.hovered
 
+  // The bar's own edge, where the widget's pill is: below it normally, but
+  // above it when the bar is at the bottom of the screen, so the popup
+  // always opens toward the middle of the screen instead of off the edge.
+  readonly property int barEdge: Theme.barPosition === "bottom" ? Edges.Top : Edges.Bottom
+
   anchor.item: anchorItem
-  anchor.edges: alignCenter ? Edges.Bottom : Edges.Bottom | (alignLeft ? Edges.Left : Edges.Right)
-  anchor.gravity: alignCenter ? Edges.Bottom : Edges.Bottom | (alignLeft ? Edges.Right : Edges.Left)
-  // Widgets are vertically centered within their (taller) pill, so their
-  // own bottom edge sits above the pill's. Push the anchor's bottom edge
-  // down by that same gap so the popup starts flush with the pill/bar
-  // bottom instead of the widget's.
-  anchor.margins.bottom: anchorItem ? -(Theme.pillHeight() - anchorItem.height) / 2 - 5 : 0
+  anchor.edges: alignCenter ? barEdge : barEdge | (alignLeft ? Edges.Left : Edges.Right)
+  anchor.gravity: alignCenter ? barEdge : barEdge | (alignLeft ? Edges.Right : Edges.Left)
+  // Widgets are vertically centered within their (taller) pill, so their own
+  // near edge (bottom normally, top with the bar at the bottom) sits inside
+  // the pill's. Push the anchor out by that same gap so the popup starts
+  // flush with the pill/bar edge instead of the widget's.
+  anchor.margins.bottom: anchorItem && root.barEdge === Edges.Bottom ? -(Theme.pillHeight() - anchorItem.height) / 2 - 5 : 0
+  anchor.margins.top: anchorItem && root.barEdge === Edges.Top ? -(Theme.pillHeight() - anchorItem.height) / 2 - 5 : 0
   grabFocus: true
   visible: false
 
@@ -36,9 +42,13 @@ PopupWindow {
     anchors.fill: parent
     radius: Theme.radiusFor(height)
     // The corner touching the widget's pill is squared off so they flow
-    // together (not when centered).
-    topLeftRadius: alignLeft && !alignCenter ? 0 : radius
-    topRightRadius: !alignLeft && !alignCenter ? 0 : radius
+    // together (not when centered): the popup's top corner, on the side
+    // that isn't centered, when it opens below the bar; its bottom corner
+    // when it opens above (the bar's at the bottom of the screen).
+    topLeftRadius: root.barEdge === Edges.Bottom && alignLeft && !alignCenter ? 0 : radius
+    topRightRadius: root.barEdge === Edges.Bottom && !alignLeft && !alignCenter ? 0 : radius
+    bottomLeftRadius: root.barEdge === Edges.Top && alignLeft && !alignCenter ? 0 : radius
+    bottomRightRadius: root.barEdge === Edges.Top && !alignLeft && !alignCenter ? 0 : radius
     color: Theme.pillColor
     border.color: Theme.outlineColor
     border.width: Theme.borderWidth

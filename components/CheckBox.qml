@@ -23,7 +23,7 @@ Rectangle {
   ThemedText {
     visible: root.checked
     anchors.centerIn: parent
-    text: ""
+    text: "󰄬"
     sizeScale: 0.75
     color: Theme.backgroundColor
   }
