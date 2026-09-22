@@ -2,8 +2,9 @@ import QtQuick
 import qs.config
 
 // Rounded pill container that groups a bar section's widgets in a row.
-// Theme.widgetOpacity fades only the background/border, not the content, so
-// text and icons stay fully readable even at a low widget opacity.
+// Theme.widgetOpacity fades only the background (and, unless
+// Theme.borderOpaque is set, the border), not the content, so text and icons
+// stay fully readable even at a low widget opacity.
 Item {
   id: root
 
@@ -30,12 +31,11 @@ Item {
     id: background
     anchors.fill: parent
     visible: Theme.barStyle !== "full"
-    opacity: Theme.widgetOpacity
     radius: Theme.radiusFor(height)
     topRightRadius: root.flattenPopupCorner && Theme.barPosition === "bottom" ? 0 : radius
     bottomRightRadius: root.flattenPopupCorner && Theme.barPosition !== "bottom" ? 0 : radius
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
+    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
   }
 

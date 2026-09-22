@@ -68,10 +68,9 @@ PanelWindow {
     width: content.implicitWidth + 48
     height: content.implicitHeight + 32
     radius: Theme.radiusFor(height)
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
+    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
-    opacity: Theme.widgetOpacity
     focus: true
 
     Keys.onReturnPressed: PowerMenuState.confirm()

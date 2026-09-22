@@ -234,15 +234,16 @@ Scope {
 
           // The bar's own background, the same color as its widget pills,
           // shown only in the "full" barStyle (the pills' own backgrounds go
-          // transparent instead, see Pill.qml). Settings.barOpacity controls it.
+          // transparent instead, see Pill.qml). The same Theme.widgetOpacity
+          // as every other surface controls it, so there's one opacity
+          // setting for the whole shell instead of a separate one for the bar.
           Rectangle {
             anchors.fill: parent
             visible: Theme.barStyle === "full"
             radius: Theme.radiusFor(height)
-            color: Theme.pillColor
-            border.color: Theme.outlineColor
+            color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+            border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
             border.width: Theme.borderWidth
-            opacity: Theme.barOpacity
           }
 
           // Left widgets

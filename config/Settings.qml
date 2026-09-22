@@ -27,7 +27,6 @@ Singleton {
     barMarginBottom: [0, 100],
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
-    barOpacity: [0, 1],
     borderWidth: [0, 6],
     fontSize: [10, 32],
     fontWeight: [100, 900],
@@ -78,14 +77,15 @@ Singleton {
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
   // "widgets": the bar itself is transparent and each widget pill has its
-  // own background (barOpacity has no effect). "full": the bar has one
-  // continuous background and the pills' own backgrounds are transparent
-  // (opacity has no effect on them).
+  // own background. "full": the bar has one continuous background instead
+  // and the pills' own backgrounds are transparent. Either way, `opacity`
+  // fades whichever background is actually drawn.
   readonly property string barStyle: root.valid("barStyle", file.adapter.barStyle)
-  // Opacity of the top bar's own background, used in the "full" barStyle.
-  readonly property real barOpacity: root.valid("barOpacity", file.adapter.barOpacity)
   // Width of the outline around surfaces; 0 for none.
   readonly property int borderWidth: root.valid("borderWidth", file.adapter.borderWidth)
+  // Whether that outline stays fully opaque instead of fading with the
+  // widget opacity.
+  readonly property bool borderOpaque: root.valid("borderOpaque", file.adapter.borderOpaque)
   // Text size in pixels, and the font of all text and icons (a font family
   // name; the icons are Nerd Font glyphs, so a Nerd Font is the safe choice).
   readonly property int fontSize: root.valid("fontSize", file.adapter.fontSize)
@@ -180,7 +180,7 @@ Singleton {
     const [min, max] = root.limits[key]
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
-    if (key === "opacity" || key === "barOpacity") return Math.round(clamped * 100) / 100
+    if (key === "opacity") return Math.round(clamped * 100) / 100
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
@@ -413,8 +413,8 @@ Singleton {
       property int barMarginLeft: Defaults.values.barMarginLeft
       property int barMarginRight: Defaults.values.barMarginRight
       property string barStyle: Defaults.values.barStyle
-      property real barOpacity: Defaults.values.barOpacity
       property int borderWidth: Defaults.values.borderWidth
+      property bool borderOpaque: Defaults.values.borderOpaque
       property int fontSize: Defaults.values.fontSize
       property string fontFamily: Defaults.values.fontFamily
       property int fontWeight: Defaults.values.fontWeight

@@ -52,8 +52,10 @@ ModalPanel {
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
-    { key: "barOpacity", category: "bar", kind: "slider", label: I18n.tr("settings.barOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
+    { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
+      { key: "borderOpaque", text: "" }
+    ] },
     { key: "fontSize", category: "text", kind: "slider", label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
@@ -173,26 +175,20 @@ ModalPanel {
       capitalization: name === "small" ? Font.SmallCaps : Font.MixedCase
     }))
 
-  // Whether row `row` can be adjusted right now: the widget opacity has no
-  // effect while the bar is in the "full" style (only the bar's own
-  // background shows, Pill.qml's own goes transparent), and the bar's own
-  // opacity has no effect in the "widgets" style (Bar.qml's own background
-  // is hidden, only the pills' own show).
+  // Whether row `row` can be adjusted right now.
   function rowEnabled(row) {
-    if (row.key === "opacity") return Theme.barStyle !== "full"
-    if (row.key === "barOpacity") return Theme.barStyle !== "widgets"
     if (row.key === "barAutoHideAnimatedRow") return Theme.barAutoHide
     if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
+    if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     return true
   }
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
-    if (row.key === "opacity" && Theme.barStyle === "full") return I18n.tr("settings.opacity.disabledFull")
-    if (row.key === "barOpacity" && Theme.barStyle === "widgets") return I18n.tr("settings.barOpacity.disabledWidgets")
     if (row.key === "barAutoHideAnimatedRow" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")
+    if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
     return ""
   }
 
@@ -258,8 +254,6 @@ ModalPanel {
   // narrower than the usual size.
   maxPanelWidth: Math.max(920, root.neededWidth)
   maxPanelHeight: 780
-  // Stays readable while the widget opacity is being adjusted.
-  panelOpacity: Math.max(0.92, Theme.widgetOpacity)
 
   visible: SettingsPanelState.visible
   // Escape closes an open list first, then the panel.
@@ -293,11 +287,11 @@ ModalPanel {
     }
 
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
-    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, barOpacity,
+    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration); out-of-range values are clamped.
-    // The yes/no settings (barAutoHide, barAutoHideAnimated, fontItalic,
-    // fontUnderline, fontOutline) take 1 or 0.
+    // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
+    // fontItalic, fontUnderline, fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

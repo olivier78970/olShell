@@ -153,6 +153,7 @@ CarouselPanel {
 
       aspectRatio: 9 / 16
       selectedScale: 1.6
+      bordered: false
       onActivated: root.accept()
 
       Image {

@@ -85,10 +85,9 @@ ModalPanel {
         width: 140
         height: 120
         radius: Theme.radiusFor(height)
-        color: Theme.pillColor
-        border.color: card.selected ? Theme.accentColor : Theme.outlineColor
+        color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+        border.color: Theme.fade(card.selected ? Theme.accentColor : Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
         border.width: card.selected ? 2 : Theme.borderWidth
-        opacity: Theme.widgetOpacity
 
         Column {
           anchors.centerIn: parent

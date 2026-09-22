@@ -39,10 +39,9 @@ Rectangle {
   implicitHeight: content.implicitHeight + 24
   radius: Theme.radiusFor(Math.min(height, 24))
   // A pop-up is a pill; in the center the cards are a shade lighter than the panel.
-  color: root.toast ? Theme.pillColor : Qt.tint(Theme.pillColor, Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.07))
-  border.color: root.critical ? Theme.warningColor : Theme.outlineColor
+  color: Theme.fade(root.toast ? Theme.pillColor : Qt.tint(Theme.pillColor, Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.07)), root.toast ? Theme.widgetOpacity : 1)
+  border.color: Theme.fade(root.critical ? Theme.warningColor : Theme.outlineColor, root.toast && !Theme.borderOpaque ? Theme.widgetOpacity : 1)
   border.width: Theme.borderWidth
-  opacity: root.toast ? Theme.widgetOpacity : 1
   clip: true
 
   HoverHandler {
@@ -59,133 +58,140 @@ Rectangle {
     }
   }
 
-  Row {
-    id: content
-    x: 12
-    y: 12
-    width: parent.width - 24
-    spacing: 12
+  // Content never fades with the widget opacity, only the fill and border
+  // do; kept as a separate item from `root` so it doesn't inherit theirs.
+  Item {
+    id: contentHolder
+    anchors.fill: parent
 
-    Item {
-      width: 36
-      height: 36
+    Row {
+      id: content
+      x: 12
+      y: 12
+      width: parent.width - 24
+      spacing: 12
 
-      Image {
-        id: image
-        anchors.fill: parent
-        source: root.iconSource
-        sourceSize: Qt.size(72, 72)
-        fillMode: Image.PreserveAspectFit
-        asynchronous: true
-        visible: status === Image.Ready
-      }
+      Item {
+        width: 36
+        height: 36
 
-      ThemedText {
-        anchors.centerIn: parent
-        visible: !image.visible
-        text: "󰂚"
-        sizeScale: 1.5
-        color: root.critical ? Theme.warningColor : Theme.accentColor
-      }
-    }
-
-    Column {
-      width: parent.width - 36 - 32 - parent.spacing * 2
-      spacing: 4
-
-      Row {
-        width: parent.width
-        spacing: 8
+        Image {
+          id: image
+          anchors.fill: parent
+          source: root.iconSource
+          sourceSize: Qt.size(72, 72)
+          fillMode: Image.PreserveAspectFit
+          asynchronous: true
+          visible: status === Image.Ready
+        }
 
         ThemedText {
-          width: parent.width - (time.visible ? time.implicitWidth + parent.spacing : 0)
-          text: root.notification.summary
-          font.bold: true
-          elide: Text.ElideRight
-          maximumLineCount: 2
+          anchors.centerIn: parent
+          visible: !image.visible
+          text: "󰂚"
+          sizeScale: 1.5
+          color: root.critical ? Theme.warningColor : Theme.accentColor
+        }
+      }
+
+      Column {
+        width: parent.width - 36 - 32 - parent.spacing * 2
+        spacing: 4
+
+        Row {
+          width: parent.width
+          spacing: 8
+
+          ThemedText {
+            width: parent.width - (time.visible ? time.implicitWidth + parent.spacing : 0)
+            text: root.notification.summary
+            font.bold: true
+            elide: Text.ElideRight
+            maximumLineCount: 2
+            wrapMode: Text.Wrap
+          }
+
+          ThemedText {
+            id: time
+            text: Qt.formatTime(root.entry.time, "HH:mm")
+            sizeScale: 0.7
+            opacity: 0.6
+            visible: !root.toast
+          }
+        }
+
+        ThemedText {
+          width: parent.width
+          visible: text !== ""
+          text: root.notification.body
+          textFormat: Text.StyledText
           wrapMode: Text.Wrap
+          maximumLineCount: root.toast ? 4 : 8
+          elide: Text.ElideRight
+          sizeScale: 0.85
+          opacity: 0.85
+          onLinkActivated: link => Qt.openUrlExternally(link)
         }
 
-        ThemedText {
-          id: time
-          text: Qt.formatTime(root.entry.time, "HH:mm")
-          sizeScale: 0.7
-          opacity: 0.6
-          visible: !root.toast
-        }
-      }
+        Flow {
+          width: parent.width
+          spacing: 8
+          visible: root.buttons.length > 0
 
-      ThemedText {
-        width: parent.width
-        visible: text !== ""
-        text: root.notification.body
-        textFormat: Text.StyledText
-        wrapMode: Text.Wrap
-        maximumLineCount: root.toast ? 4 : 8
-        elide: Text.ElideRight
-        sizeScale: 0.85
-        opacity: 0.85
-        onLinkActivated: link => Qt.openUrlExternally(link)
-      }
+          Repeater {
+            model: root.buttons
 
-      Flow {
-        width: parent.width
-        spacing: 8
-        visible: root.buttons.length > 0
+            Rectangle {
+              id: button
+              required property var modelData
 
-        Repeater {
-          model: root.buttons
+              implicitWidth: label.implicitWidth + 20
+              implicitHeight: label.implicitHeight + 8
+              radius: Theme.radiusFor(height)
+              color: buttonMouse.containsMouse ? Theme.borderColor : "transparent"
+              border.color: buttonMouse.containsMouse ? Theme.accentColor : Theme.outlineColor
+              border.width: 1
 
-          Rectangle {
-            id: button
-            required property var modelData
+              ThemedText {
+                id: label
+                anchors.centerIn: parent
+                text: button.modelData.text
+                sizeScale: 0.8
+                color: buttonMouse.containsMouse ? Theme.accentColor : Theme.textColor
+              }
 
-            implicitWidth: label.implicitWidth + 20
-            implicitHeight: label.implicitHeight + 8
-            radius: Theme.radiusFor(height)
-            color: buttonMouse.containsMouse ? Theme.borderColor : "transparent"
-            border.color: buttonMouse.containsMouse ? Theme.accentColor : Theme.outlineColor
-            border.width: 1
-
-            ThemedText {
-              id: label
-              anchors.centerIn: parent
-              text: button.modelData.text
-              sizeScale: 0.8
-              color: buttonMouse.containsMouse ? Theme.accentColor : Theme.textColor
-            }
-
-            MouseArea {
-              id: buttonMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: {
-                button.modelData.invoke()
-                if (root.toast) Notifications.hidePopup(root.entry)
+              MouseArea {
+                id: buttonMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                  button.modelData.invoke()
+                  if (root.toast) Notifications.hidePopup(root.entry)
+                }
               }
             }
           }
         }
       }
+
+      IconButton {
+        icon: "󰅖"
+        sizeScale: 1
+        onClicked: Notifications.dismiss(root.entry)
+      }
     }
 
-    IconButton {
-      icon: "󰅖"
-      sizeScale: 1
-      onClicked: Notifications.dismiss(root.entry)
+    // The time left, as a thin line along the bottom of a pop-up.
+    Rectangle {
+      visible: root.toast && root.timeout > 0
+      anchors.bottom: parent.bottom
+      anchors.left: parent.left
+      width: parent.width * root.remaining
+      height: 3
+      color: root.critical ? Theme.warningColor : Theme.accentColor
+      opacity: 0.7
     }
-  }
-
-  // The time left, as a thin line along the bottom of a pop-up.
-  Rectangle {
-    visible: root.toast && root.timeout > 0
-    anchors.bottom: parent.bottom
-    anchors.left: parent.left
-    width: parent.width * root.remaining
-    height: 3
-    color: root.critical ? Theme.warningColor : Theme.accentColor
-    opacity: 0.7
   }
 
   NumberAnimation on remaining {

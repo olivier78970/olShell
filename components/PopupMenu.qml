@@ -51,10 +51,9 @@ PopupWindow {
     topRightRadius: root.barEdge === Edges.Bottom && !alignLeft && !alignCenter ? 0 : radius
     bottomLeftRadius: root.barEdge === Edges.Top && alignLeft && !alignCenter ? 0 : radius
     bottomRightRadius: root.barEdge === Edges.Top && !alignLeft && !alignCenter ? 0 : radius
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
+    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
-    opacity: Theme.widgetOpacity
 
     HoverHandler {
       id: hover

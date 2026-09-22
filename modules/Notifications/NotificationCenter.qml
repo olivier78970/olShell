@@ -68,10 +68,9 @@ PanelWindow {
     width: Math.min(440, root.width * 0.9)
     height: Math.min(root.height - frame.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
     radius: Theme.radiusFor(height)
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
+    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
-    opacity: Theme.widgetOpacity
     focus: true
 
     Keys.onPressed: event => {
@@ -86,136 +85,144 @@ PanelWindow {
       anchors.fill: parent
     }
 
-    Row {
-      id: header
-      x: frame.inset
-      y: frame.inset
-      width: parent.width - frame.inset * 2
-      spacing: 4
-
-      ThemedText {
-        anchors.verticalCenter: parent.verticalCenter
-        width: parent.width - buttons.width - parent.spacing
-        text: I18n.tr("notifications.title")
-        sizeScale: 1.1
-        font.bold: true
-        elide: Text.ElideRight
-      }
+    // Content never fades with the widget opacity, only the frame's fill and
+    // border do; kept as a separate item from `frame` so it doesn't inherit
+    // theirs.
+    Item {
+      id: contentHolder
+      anchors.fill: parent
 
       Row {
-        id: buttons
-        anchors.verticalCenter: parent.verticalCenter
+        id: header
+        x: frame.inset
+        y: frame.inset
+        width: parent.width - frame.inset * 2
+        spacing: 4
 
-        IconButton {
-          icon: Notifications.dnd ? "󰂛" : "󰂚"
-          sizeScale: 1.2
-          onClicked: Notifications.setDnd(!Notifications.dnd)
-
-          // Lit while do-not-disturb is on.
-          Rectangle {
-            visible: Notifications.dnd
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: 14
-            height: 2
-            color: Theme.accentColor
-          }
+        ThemedText {
+          anchors.verticalCenter: parent.verticalCenter
+          width: parent.width - buttons.width - parent.spacing
+          text: I18n.tr("notifications.title")
+          sizeScale: 1.1
+          font.bold: true
+          elide: Text.ElideRight
         }
-
-        IconButton {
-          icon: "󰆴"
-          sizeScale: 1.2
-          enabled: Notifications.entries.length > 0
-          onClicked: Notifications.clear()
-        }
-      }
-    }
-
-    // What shows when there is nothing.
-    Column {
-      id: empty
-      visible: Notifications.entries.length === 0
-      anchors.horizontalCenter: parent.horizontalCenter
-      y: frame.inset + header.height + 12
-      spacing: 8
-      height: 120
-
-      Item {
-        width: 1
-        height: 20
-      }
-
-      ThemedText {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: Notifications.dnd ? "󰂛" : "󰂚"
-        sizeScale: 2.5
-        opacity: 0.4
-      }
-
-      ThemedText {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: I18n.tr(Notifications.dnd ? "notifications.emptyDnd" : "notifications.empty")
-        opacity: 0.6
-      }
-    }
-
-    ListView {
-      id: list
-      x: frame.inset
-      y: frame.inset + header.height + 12
-      width: parent.width - frame.inset * 2
-      height: parent.height - y - frame.inset
-      clip: true
-      spacing: 14
-      boundsBehavior: Flickable.StopAtBounds
-      visible: Notifications.entries.length > 0
-
-      model: ScriptModel {
-        values: Notifications.groups
-        objectProp: "app"
-      }
-
-      delegate: Column {
-        id: group
-
-        required property var modelData
-
-        width: list.width
-        spacing: 8
 
         Row {
-          width: parent.width
+          id: buttons
+          anchors.verticalCenter: parent.verticalCenter
 
-          ThemedText {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - clearGroup.width
-            text: group.modelData.app !== "" ? group.modelData.app : I18n.tr("notifications.unknown")
-            sizeScale: 0.8
-            opacity: 0.7
-            font.bold: true
-            elide: Text.ElideRight
+          IconButton {
+            icon: Notifications.dnd ? "󰂛" : "󰂚"
+            sizeScale: 1.2
+            onClicked: Notifications.setDnd(!Notifications.dnd)
+
+            // Lit while do-not-disturb is on.
+            Rectangle {
+              visible: Notifications.dnd
+              anchors.bottom: parent.bottom
+              anchors.horizontalCenter: parent.horizontalCenter
+              width: 14
+              height: 2
+              color: Theme.accentColor
+            }
           }
 
           IconButton {
-            id: clearGroup
-            icon: "󰅖"
-            sizeScale: 0.9
-            onClicked: {
-              for (const entry of group.modelData.entries.slice()) Notifications.dismiss(entry)
-            }
+            icon: "󰆴"
+            sizeScale: 1.2
+            enabled: Notifications.entries.length > 0
+            onClicked: Notifications.clear()
           }
         }
+      }
 
-        Repeater {
-          model: ScriptModel {
-            values: group.modelData.entries
+      // What shows when there is nothing.
+      Column {
+        id: empty
+        visible: Notifications.entries.length === 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: frame.inset + header.height + 12
+        spacing: 8
+        height: 120
+
+        Item {
+          width: 1
+          height: 20
+        }
+
+        ThemedText {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: Notifications.dnd ? "󰂛" : "󰂚"
+          sizeScale: 2.5
+          opacity: 0.4
+        }
+
+        ThemedText {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: I18n.tr(Notifications.dnd ? "notifications.emptyDnd" : "notifications.empty")
+          opacity: 0.6
+        }
+      }
+
+      ListView {
+        id: list
+        x: frame.inset
+        y: frame.inset + header.height + 12
+        width: parent.width - frame.inset * 2
+        height: parent.height - y - frame.inset
+        clip: true
+        spacing: 14
+        boundsBehavior: Flickable.StopAtBounds
+        visible: Notifications.entries.length > 0
+
+        model: ScriptModel {
+          values: Notifications.groups
+          objectProp: "app"
+        }
+
+        delegate: Column {
+          id: group
+
+          required property var modelData
+
+          width: list.width
+          spacing: 8
+
+          Row {
+            width: parent.width
+
+            ThemedText {
+              anchors.verticalCenter: parent.verticalCenter
+              width: parent.width - clearGroup.width
+              text: group.modelData.app !== "" ? group.modelData.app : I18n.tr("notifications.unknown")
+              sizeScale: 0.8
+              opacity: 0.7
+              font.bold: true
+              elide: Text.ElideRight
+            }
+
+            IconButton {
+              id: clearGroup
+              icon: "󰅖"
+              sizeScale: 0.9
+              onClicked: {
+                for (const entry of group.modelData.entries.slice()) Notifications.dismiss(entry)
+              }
+            }
           }
 
-          NotificationCard {
-            required property var modelData
+          Repeater {
+            model: ScriptModel {
+              values: group.modelData.entries
+            }
 
-            width: group.width
-            entry: modelData
+            NotificationCard {
+              required property var modelData
+
+              width: group.width
+              entry: modelData
+            }
           }
         }
       }

@@ -18,8 +18,8 @@ PanelWindow {
   // Design size of the frame; it shrinks to fit smaller screens.
   property real maxPanelWidth: 800
   property real maxPanelHeight: 600
-  // Opacity of the frame; the settings panel keeps it high so it stays
-  // readable while the widget opacity is being adjusted.
+  // Opacity of the frame's own fill (never its content, see contentHolder
+  // below, or its border, which follows Theme.widgetOpacity directly).
   property real panelOpacity: Theme.widgetOpacity
   // Whether the frame is drawn; without it only the children show, over the
   // dimmed backdrop.
@@ -29,7 +29,7 @@ PanelWindow {
 
   // The frame, e.g. to size content from it.
   readonly property Item panel: frame
-  default property alias content: frame.data
+  default property alias content: contentHolder.data
 
   signal closeRequested()
   // Emitted each time the panel becomes visible.
@@ -94,10 +94,13 @@ PanelWindow {
     width: Math.min(root.maxPanelWidth, root.width * 0.9)
     height: Math.min(root.maxPanelHeight, root.height * 0.9)
     radius: Theme.radiusFor(height)
-    color: root.framed ? Theme.pillColor : "transparent"
-    border.color: root.framed ? Theme.outlineColor : "transparent"
+    color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
+    // The border follows the real widget opacity (and Theme.borderOpaque),
+    // not `panelOpacity`: a panel like the settings one can clamp its own
+    // fill higher to stay readable, but that readability floor isn't a
+    // reason to also mute how much the border itself fades.
+    border.color: root.framed ? Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity) : "transparent"
     border.width: root.framed ? Theme.borderWidth : 0
-    opacity: root.framed ? root.panelOpacity : 1
     focus: true
 
     Keys.onPressed: event => {
@@ -114,6 +117,15 @@ PanelWindow {
     // Swallow clicks on the panel itself so they don't fall through to
     // the backdrop's MouseArea and close the panel.
     MouseArea {
+      anchors.fill: parent
+    }
+
+    // Content never fades with the widget opacity, same as a bar pill's:
+    // only the fill and border do, so text and icons stay fully readable.
+    // A separate item from `frame` so it doesn't inherit the fill/border's
+    // own opacity/color handling.
+    Item {
+      id: contentHolder
       anchors.fill: parent
     }
   }

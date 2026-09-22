@@ -70,10 +70,9 @@ PanelWindow {
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 60
     radius: Theme.radiusFor(implicitHeight)
-    color: Theme.pillColor
-    border.color: Theme.outlineColor
+    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
-    opacity: Theme.widgetOpacity
 
     Row {
       id: content

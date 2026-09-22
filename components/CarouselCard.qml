@@ -17,6 +17,10 @@ Item {
   property real selectedScale: 1.6
   // Frame background.
   property color color: Theme.borderColor
+  // Whether the card gets an outline (the centered one highlighted in the
+  // accent color). Off for cards whose own content already fills the frame
+  // edge to edge, e.g. a wallpaper thumbnail, where a border is just noise.
+  property bool bordered: true
 
   // Attached properties only resolve on the delegate's root item, so grab
   // the view here for use by nested handlers.
@@ -46,10 +50,11 @@ Item {
   }
 
   // Drawn above the content (a child Image would otherwise cover a border
-  // on `frame` itself). Every card gets the theme border; the centered one
-  // is highlighted with the accent color, and at least 3px so it stands
-  // out even when borders are thin or off.
+  // on `frame` itself). The centered card is highlighted with the accent
+  // color, and at least 3px so it stands out even when borders are thin or
+  // off.
   Rectangle {
+    visible: root.bordered
     anchors.fill: parent
     radius: Theme.radiusFor(height)
     color: "transparent"
