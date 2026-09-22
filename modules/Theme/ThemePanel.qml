@@ -49,6 +49,7 @@ CarouselPanel {
       aspectRatio: 0.85
       selectedScale: 1.4
       color: card.colors.backgroundColor
+      bordered: false
       onActivated: root.accept()
 
       Column {
