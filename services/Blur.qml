@@ -22,11 +22,7 @@ Singleton {
   Component.onCompleted: root.apply()
 
   function apply() {
-    // xray: without it, a blurred surface (any of ours, over another one of
-    // ours, e.g. a panel's dimmed backdrop over the bar) blurs whatever's
-    // immediately behind it - which can itself already be a blur - instead
-    // of the real desktop, so the backdrop outside a panel stayed sharp.
-    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "quickshell" }, blur = ${root.active}, xray = ${root.active} })`]
+    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "quickshell" }, blur = ${root.active} })`]
     process.running = true
   }
 

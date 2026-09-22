@@ -8,6 +8,10 @@ import qs.config
 // focus, so nothing else can be clicked or typed into until the user
 // answers: Enter or "Confirmer" runs the action; Escape, "Annuler" or a
 // click outside the dialog cancels it.
+//
+// The backdrop and the dialog are two separate layer-shell surfaces (see
+// frameWindow below) so a blur layer rule can target just the dialog - see
+// ModalPanel.qml, which this mirrors.
 PanelWindow {
   id: root
 
@@ -19,9 +23,9 @@ PanelWindow {
   })
 
   WlrLayershell.layer: WlrLayer.Overlay
-  // Grabs all keyboard input while open, so shortcuts/typing never leak
-  // to whatever's behind the dialog.
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+  // A distinct namespace from frameWindow's default one (shared with the
+  // bar, pills, popups and OSDs, all of which do want to blur).
+  WlrLayershell.namespace: "quickshell:backdrop"
 
   // Fills the whole screen (rather than just sizing to the dialog) so the
   // backdrop below covers everything and clicks outside the dialog are
@@ -36,22 +40,22 @@ PanelWindow {
   visible: root.action !== ""
   color: "transparent"
   aboveWindows: true
-  focusable: true
+  // No keyboard focus of its own: frameWindow below takes it instead.
+  focusable: false
   // Ignore the bar's reserved exclusive zone so the backdrop covers the
   // whole screen, including the strip behind the top bar.
   exclusionMode: ExclusionMode.Ignore
 
-  onVisibleChanged: {
-    if (root.visible) dialog.forceActiveFocus()
-  }
-
   // Dimmed backdrop; a click outside the dialog cancels, like clicking
-  // outside any other modal dialog.
+  // outside any other modal dialog. A click actually on the dialog never
+  // reaches this MouseArea to begin with - it's a separate, topmost
+  // surface - but the bounds check is kept as a safety net against
+  // stacking surprises.
   MouseArea {
     anchors.fill: parent
     onClicked: mouse => {
-      const point = mapToItem(dialog, mouse.x, mouse.y)
-      const insideDialog = point.x >= 0 && point.x <= dialog.width && point.y >= 0 && point.y <= dialog.height
+      const insideDialog = mouse.x >= frameWindow.margins.left && mouse.x <= frameWindow.margins.left + dialog.width
+        && mouse.y >= frameWindow.margins.top && mouse.y <= frameWindow.margins.top + dialog.height
       if (!insideDialog) PowerMenuState.cancel()
     }
 
@@ -62,49 +66,83 @@ PanelWindow {
     }
   }
 
-  Rectangle {
-    id: dialog
-    anchors.centerIn: parent
-    width: content.implicitWidth + 48
-    height: content.implicitHeight + 32
-    radius: Theme.radiusFor(height)
-    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
-    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
-    border.width: Theme.borderWidth
-    focus: true
+  // The actual dialog, its own layer-shell surface on Quickshell's default
+  // namespace (like the bar, pills, popups and OSDs, see services/Blur.qml)
+  // rather than root's: Hyprland blurs whatever's behind a whole surface,
+  // and the dialog used to share the backdrop's, which meant the dim
+  // blurred too instead of staying sharp. Centered with explicit margins
+  // (rather than left unanchored) so its on-screen geometry is known here,
+  // for the bounds check above.
+  PanelWindow {
+    id: frameWindow
 
-    Keys.onReturnPressed: PowerMenuState.confirm()
-    Keys.onEnterPressed: PowerMenuState.confirm()
-    Keys.onEscapePressed: PowerMenuState.cancel()
+    visible: root.visible
+    screen: root.screen
 
-    // Swallow clicks on the dialog itself so they don't fall through to
-    // the backdrop's MouseArea and cancel it.
-    MouseArea {
-      anchors.fill: parent
+    WlrLayershell.layer: WlrLayer.Overlay
+    // Grabs all keyboard input while open, so shortcuts/typing never leak
+    // to whatever's behind the dialog.
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+
+    anchors {
+      top: true
+      left: true
+    }
+    margins.left: (root.width - dialog.width) / 2
+    margins.top: (root.height - dialog.height) / 2
+    implicitWidth: dialog.width
+    implicitHeight: dialog.height
+
+    color: "transparent"
+    aboveWindows: true
+    focusable: true
+    exclusionMode: ExclusionMode.Ignore
+
+    // Grabbed here, from this window's own visibility, rather than root's:
+    // frameWindow's `visible` only mirrors root's a binding tick later, so
+    // requesting focus from root's own visibleChanged could fire before
+    // this window (and its surface) actually exists yet to grab it.
+    onVisibleChanged: {
+      if (frameWindow.visible) dialog.forceActiveFocus()
     }
 
-    Column {
-      id: content
-      anchors.centerIn: parent
-      spacing: 20
+    Rectangle {
+      id: dialog
+      width: content.implicitWidth + 48
+      height: content.implicitHeight + 32
+      radius: Theme.radiusFor(height)
+      color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+      border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
+      border.width: Theme.borderWidth
+      focus: true
 
-      ThemedText {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: root.messages[root.action] ?? ""
-      }
+      Keys.onReturnPressed: PowerMenuState.confirm()
+      Keys.onEnterPressed: PowerMenuState.confirm()
+      Keys.onEscapePressed: PowerMenuState.cancel()
 
-      Row {
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 12
+      Column {
+        id: content
+        anchors.centerIn: parent
+        spacing: 20
 
-        PowerMenuOption {
-          label: I18n.tr("common.cancel")
-          onClicked: PowerMenuState.cancel()
+        ThemedText {
+          anchors.horizontalCenter: parent.horizontalCenter
+          text: root.messages[root.action] ?? ""
         }
 
-        PowerMenuOption {
-          label: I18n.tr("common.confirm")
-          onClicked: PowerMenuState.confirm()
+        Row {
+          anchors.horizontalCenter: parent.horizontalCenter
+          spacing: 12
+
+          PowerMenuOption {
+            label: I18n.tr("common.cancel")
+            onClicked: PowerMenuState.cancel()
+          }
+
+          PowerMenuOption {
+            label: I18n.tr("common.confirm")
+            onClicked: PowerMenuState.confirm()
+          }
         }
       }
     }
