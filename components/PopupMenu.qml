@@ -58,9 +58,13 @@ Item {
   }
 
   // Where it goes in the layer (whose origin is on the bar's edge toward
-  // the middle of the screen): off that edge of the widget's pill, its border
-  // overlapping the pill's instead of doubling up with it, and kept within
-  // the bar horizontally. Looked up again as it opens or resizes.
+  // the middle of the screen): off that edge (the pill's too, pills being as
+  // tall as the bar), its border overlapping the bar's instead of doubling
+  // up with it, and kept within the bar horizontally. Taken from the bar's
+  // edge rather than worked out from the widget's own height, which is often
+  // fractional: the popup then landed part of a pixel into the bar, and that
+  // row, drawn twice over, showed as a thin dark line. Looked up again as it
+  // opens or resizes.
   x: {
     if (!root.host || !root.anchorItem) return 0
     const p = root.anchorItem.mapToItem(root.host, 0, 0)
@@ -68,19 +72,12 @@ Item {
     if (root.alignCenter) x = p.x + (root.anchorItem.width - root.width) / 2
     else if (root.alignLeft) x = p.x + root.marginLeft
     else x = p.x + root.anchorItem.width - root.marginRight - root.width
-    return Math.max(0, Math.min(root.host.width - root.width, x))
+    return Math.round(Math.max(0, Math.min(root.host.width - root.width, x)))
   }
-  y: {
-    if (!root.host || !root.anchorItem) return 0
-    const p = root.anchorItem.mapToItem(root.host, 0, 0)
-    // Widgets are vertically centered within their (taller) pill.
-    const pillGap = (Theme.pillHeight() - root.anchorItem.height) / 2
-    return root.barAtTop ? p.y + root.anchorItem.height + pillGap - Theme.borderWidth
-      : p.y - pillGap + Theme.borderWidth - root.height
-  }
+  y: root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
 
-  width: column.implicitWidth + 16
-  height: column.implicitHeight + 16
+  width: Math.ceil(column.implicitWidth + 16)
+  height: Math.ceil(column.implicitHeight + 16)
 
   Item {
     id: surface
