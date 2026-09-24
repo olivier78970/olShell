@@ -5,9 +5,9 @@ import qs.config
 // Concave corners (fillets) on either side of a surface flush against the bar
 // - an attached panel, a widget's menu or tooltip - curving from the bar's
 // edge into the surface's side, so it seems to grow out of the bar rather
-// than hang from it. Only with no gap between them (they don't touch
-// otherwise) and in the "full" bar style (the "widgets" one has no continuous
-// bar edge above them to curve from).
+// than hang from it. Only when turned on (Settings.panelCurves), with no gap
+// between them (they don't touch otherwise) and in the "full" bar style (the
+// "widgets" one has no continuous bar edge above them to curve from).
 //
 // Fills its parent, the surface, and draws just past its sides, level with
 // the bar's edge: under the bar and beside the surface, so it overlaps
@@ -26,7 +26,7 @@ Item {
   property bool showRight: true
 
   readonly property bool barAtTop: Theme.barPosition !== "bottom"
-  readonly property bool active: Theme.panelGap <= 0 && Theme.barStyle === "full" && root.size > 0
+  readonly property bool active: Theme.panelCurves && Theme.panelGap <= 0 && Theme.barStyle === "full" && root.size > 0
 
   anchors.fill: parent
 

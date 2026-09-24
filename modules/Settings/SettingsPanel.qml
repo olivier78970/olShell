@@ -114,6 +114,9 @@ ModalPanel {
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "panelGap", category: "bar", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
+    { key: "panelCurvesRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.panelCurves"), toggles: [
+      { key: "panelCurves", text: "" }
+    ] },
     { key: "workspaceCount", category: "workspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
@@ -252,6 +255,7 @@ ModalPanel {
     if (row.key === "barAutoHideAnimatedRow") return Theme.barAutoHide
     if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
+    if (row.key === "panelCurvesRow") return Theme.panelGap <= 0 && Theme.barStyle === "full"
     return true
   }
 
@@ -261,6 +265,8 @@ ModalPanel {
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
+    if (row.key === "panelCurvesRow" && Theme.panelGap > 0) return I18n.tr("settings.panelCurves.disabledGap")
+    if (row.key === "panelCurvesRow" && Theme.barStyle !== "full") return I18n.tr("settings.panelCurves.disabledStyle")
     return ""
   }
 
@@ -365,7 +371,8 @@ ModalPanel {
     // fontLetterSpacing, wallpaperDuration, zoomMax, zoomStep); out-of-range
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // blur, zoomBlocksInput, fontItalic, fontUnderline, fontOutline) take 1 or 0.
+    // blur, panelCurves, zoomBlocksInput, fontItalic, fontUnderline,
+    // fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }
