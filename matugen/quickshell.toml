@@ -22,6 +22,14 @@ output_path = "~/.config/hypr/colors.lua"
 input_path = "zen-theme.css.template"
 output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
 
+# The same for another Zen profile (here the "gmail" one, the Gmail window);
+# drop it if you don't have it. Such a profile also needs
+# toolkit.legacyUserProfileCustomizations.stylesheets set to true, as the
+# README's Zen section says.
+[templates.zengmail]
+input_path = "zen-theme.css.template"
+output_path = "~/.config/zen/q8dicdeq.gmail/chrome/userChrome.css"
+
 [templates.alacritty]
 input_path = "alacritty-theme.toml.template"
 output_path = "~/.config/alacritty/theme.toml"
