@@ -28,19 +28,28 @@ Item {
 
   // Column (used by PopupMenu) lays out and sizes itself from children's
   // `width`/`height`, not `implicitWidth`/`implicitHeight` - bind both so
-  // this row actually takes up space.
-  width: option.width
-  height: modelData.isSeparator ? 9 : option.height
+  // this row actually takes up space. A separator, which has no label of its
+  // own to size it, spans the whole menu instead (as wide as its widest
+  // entry), rather than being a short stub at its left.
+  anchors.left: modelData.isSeparator ? parent?.left : undefined
+  anchors.right: modelData.isSeparator ? parent?.right : undefined
+  width: modelData.isSeparator ? 0 : option.width
+  height: modelData.isSeparator ? 11 : option.height
   implicitWidth: width
   implicitHeight: height
 
+  // A soft hairline, inset from the menu's rounded sides, with rounded ends.
   Rectangle {
     visible: root.modelData.isSeparator
     anchors.left: parent.left
     anchors.right: parent.right
+    anchors.leftMargin: 10
+    anchors.rightMargin: 10
     anchors.verticalCenter: parent.verticalCenter
     height: 1
+    radius: 0.5
     color: Theme.separatorColor
+    opacity: 0.5
   }
 
   PowerMenuOption {
