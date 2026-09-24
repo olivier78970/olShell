@@ -84,6 +84,10 @@ Item {
   // row, drawn twice over, showed as a thin dark line. Looked up again as it
   // opens or resizes.
   x: {
+    // Read so it's looked up again each time it's shown: the widget can have
+    // moved in the bar since (layout changed in the settings), which nothing
+    // below would otherwise notice.
+    root.visible
     if (!root.host || !root.anchorItem) return 0
     if (root.parentMenu) {
       // A submenu: beside its menu, on the left (tray menus open from the
@@ -120,6 +124,7 @@ Item {
   // upward), its bottom with the entry's bottom. Looked up again as the menu
   // moves or scrolls.
   readonly property real entryEdge: {
+    root.visible
     if (!root.parentMenu || !root.host || !root.anchorItem) return 0
     root.parentMenu.y
     root.parentMenu.scrollY
