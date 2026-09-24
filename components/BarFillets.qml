@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Shapes
 import qs.config
 
 // Concave corners (fillets) on either side of a surface flush against the bar
@@ -30,71 +29,29 @@ Item {
 
   anchors.fill: parent
 
-  // One fillet, drawn as the one left of a surface under a top bar: the
-  // square it fits in, less the quarter circle centered on its bottom-left
-  // corner. Mirrored for the other side and for a bottom bar.
-  component Fillet: Shape {
-    id: fillet
-
-    property bool mirrorX: false
-
-    width: root.size
-    height: root.size
-    // The surface overlaps the bar's border by the border width, so the
-    // bar's edge is that far into it.
-    y: root.barAtTop ? Theme.borderWidth : root.height - Theme.borderWidth - root.size
-    preferredRendererType: Shape.CurveRenderer
-
-    transform: Scale {
-      origin.x: root.size / 2
-      origin.y: root.size / 2
-      xScale: fillet.mirrorX ? -1 : 1
-      yScale: root.barAtTop ? 1 : -1
-    }
-
-    ShapePath {
-      fillColor: root.color
-      strokeColor: "transparent"
-      startX: 0
-      startY: 0
-
-      PathLine { x: root.size; y: 0 }
-      PathLine { x: root.size; y: root.size }
-      PathArc {
-        x: 0
-        y: 0
-        radiusX: root.size
-        radiusY: root.size
-        direction: PathArc.Counterclockwise
-      }
-    }
-
-    // The border carries on along the curve.
-    ShapePath {
-      fillColor: "transparent"
-      strokeColor: Theme.borderWidth > 0 ? root.borderColor : "transparent"
-      strokeWidth: Theme.borderWidth
-      startX: root.size
-      startY: root.size
-
-      PathArc {
-        x: 0
-        y: 0
-        radiusX: root.size
-        radiusY: root.size
-        direction: PathArc.Counterclockwise
-      }
-    }
-  }
+  // The fillets hug the bar's edge and the surface's side: drawn level with
+  // that edge (the surface overlaps the bar's border by the border width, so
+  // it's that far into it), on either side of the surface.
+  readonly property real filletY: root.barAtTop ? Theme.borderWidth : root.height - Theme.borderWidth - root.size
 
   Fillet {
     visible: root.active && root.showLeft
     x: -root.size
+    y: root.filletY
+    size: root.size
+    color: root.color
+    borderColor: root.borderColor
+    mirrorY: !root.barAtTop
   }
 
   Fillet {
     visible: root.active && root.showRight
     x: root.width
+    y: root.filletY
+    size: root.size
+    color: root.color
+    borderColor: root.borderColor
     mirrorX: true
+    mirrorY: !root.barAtTop
   }
 }

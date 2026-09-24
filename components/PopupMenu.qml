@@ -190,6 +190,78 @@ Item {
     showRight: root.host !== null && root.x + root.width < root.host.barRight - 0.5
   }
 
+  // For a submenu flush against its menu (no gap set): concave corners
+  // where one of the two runs past the other's end, curving from the longer
+  // one's side into the shorter one's end, so they read as one shape: above
+  // and below the submenu when its menu is longer, above and below the menu
+  // where the submenu is. Each kept small enough to stay off the rounded
+  // corner of the side it curves from.
+  readonly property bool curvesActive: root.parentMenu !== null && (root.flushLeft || root.flushRight) && Theme.panelCurves
+  readonly property real curveSize: Theme.radius
+  // On which side of its menu it is, and the shared edge, in its own
+  // coordinates; and where its menu starts and ends, in the same ones.
+  readonly property bool onMenuLeft: root.flushRight
+  readonly property real sharedEdge: root.onMenuLeft ? root.width : 0
+  readonly property real menuTop: root.parentMenu ? root.parentMenu.y - root.y : 0
+  readonly property real menuBottom: root.parentMenu ? root.parentMenu.y + root.parentMenu.height - root.y : 0
+  // The corner radii of the menu's and its own sides facing each other.
+  readonly property real menuCornerTop: !root.parentMenu ? 0 : root.onMenuLeft ? root.parentMenu.cornerTopLeft : root.parentMenu.cornerTopRight
+  readonly property real menuCornerBottom: !root.parentMenu ? 0 : root.onMenuLeft ? root.parentMenu.cornerBottomLeft : root.parentMenu.cornerBottomRight
+  readonly property real ownCornerTop: root.onMenuLeft ? root.cornerTopRight : root.cornerTopLeft
+  readonly property real ownCornerBottom: root.onMenuLeft ? root.cornerBottomRight : root.cornerBottomLeft
+
+  // Above it, from its menu's side (the menu starts higher).
+  Fillet {
+    size: Math.min(root.curveSize, -root.menuTop - root.menuCornerTop)
+    visible: root.curvesActive && size >= 1
+    x: root.onMenuLeft ? root.sharedEdge - size : 0
+    y: -size
+    color: background.color
+    borderColor: background.border.color
+    mirrorX: !root.onMenuLeft
+    mirrorY: true
+  }
+
+  // Above its menu, from its own side (it starts higher).
+  Fillet {
+    size: Math.min(root.curveSize, root.menuTop - root.ownCornerTop)
+    visible: root.curvesActive && size >= 1
+    x: root.onMenuLeft ? root.sharedEdge : -size
+    y: root.menuTop - size
+    color: background.color
+    borderColor: background.border.color
+    mirrorX: root.onMenuLeft
+    mirrorY: true
+  }
+
+  // Below it, from its menu's side (the menu ends lower).
+  Fillet {
+    size: Math.min(root.curveSize, root.menuBottom - root.height - root.menuCornerBottom)
+    visible: root.curvesActive && size >= 1
+    x: root.onMenuLeft ? root.sharedEdge - size : 0
+    y: root.height
+    color: background.color
+    borderColor: background.border.color
+    mirrorX: !root.onMenuLeft
+  }
+
+  // Below its menu, from its own side (it ends lower).
+  Fillet {
+    size: Math.min(root.curveSize, root.height - root.menuBottom - root.ownCornerBottom)
+    visible: root.curvesActive && size >= 1
+    x: root.onMenuLeft ? root.sharedEdge : -size
+    y: root.menuBottom
+    color: background.color
+    borderColor: background.border.color
+    mirrorX: root.onMenuLeft
+  }
+
+  // Its corner radii, for a submenu's curves to keep clear of them.
+  readonly property real cornerTopLeft: background.topLeftRadius
+  readonly property real cornerTopRight: background.topRightRadius
+  readonly property real cornerBottomLeft: background.bottomLeftRadius
+  readonly property real cornerBottomRight: background.bottomRightRadius
+
   Item {
     id: surface
     anchors.fill: parent
