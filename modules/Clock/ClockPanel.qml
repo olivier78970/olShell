@@ -112,7 +112,11 @@ Item {
   PanelWindow {
     id: frameWindow
 
-    visible: backdrop.visible
+    // Only once the backdrop's own window is actually up, not just when
+    // it's asked to be: Hyprland stacks surfaces on the same layer in
+    // creation order, so a frame created first would end up under the
+    // backdrop, which would then swallow every click meant for it.
+    visible: backdrop.backingWindowVisible
     screen: root.targetScreen
 
     WlrLayershell.layer: WlrLayer.Overlay
