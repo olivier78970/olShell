@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Wayland
 import qs.components
 import qs.config
-import qs.modules.Bar.Widgets
 
 // The clock's popup: a tab bar over the page of the current tab (agenda,
 // performance), toggled from the clock widget on whichever screen it's
@@ -129,6 +128,7 @@ Item {
     implicitHeight: frame.height
 
     color: "transparent"
+  
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
