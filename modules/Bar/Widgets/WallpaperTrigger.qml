@@ -2,7 +2,7 @@ import QtQuick
 import qs.components
 import qs.config
 
-// Icon that opens the screen-centered wallpaper panel.
+// Icon that opens the wallpaper panel, attached below it on the bar.
 Item {
   id: root
 
@@ -19,6 +19,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: WallpaperPanelState.toggle()
+    onClicked: WallpaperPanelState.toggle(root)
   }
 }

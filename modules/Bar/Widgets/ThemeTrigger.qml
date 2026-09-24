@@ -2,7 +2,7 @@ import QtQuick
 import qs.components
 import qs.config
 
-// Icon that opens the screen-centered theme panel.
+// Icon that opens the theme panel, attached below it on the bar.
 Item {
   id: root
 
@@ -19,6 +19,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: ThemePanelState.toggle()
+    onClicked: ThemePanelState.toggle(root)
   }
 }

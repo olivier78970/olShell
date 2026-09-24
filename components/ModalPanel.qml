@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.config
 
@@ -15,6 +16,12 @@ import qs.config
 //
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame.
+//
+// With `attached`, the panel opens against the bar instead, like the clock
+// panel: horizontally centered on the screen, flush below (or above, on a
+// bottom bar) `anchorItem`'s pill, on its screen - or, without an
+// anchorItem (when opened by IPC), flush with the focused screen's bar. Nothing is
+// dimmed then: the backdrop only catches the click outside.
 PanelWindow {
   id: root
 
@@ -29,6 +36,10 @@ PanelWindow {
   property bool framed: true
   // Gets keyboard focus each time the panel opens (default: the frame).
   property Item focusTarget: frame
+  // Opens against the bar rather than centered on the screen (see above).
+  property bool attached: false
+  // The bar widget an attached panel opens from, if any.
+  property Item anchorItem: null
 
   // The frame, e.g. to size content from it.
   readonly property Item panel: frame
@@ -69,6 +80,61 @@ PanelWindow {
     if (root.visible) root.opened()
   }
 
+  readonly property bool barAtTop: Theme.barPosition !== "bottom"
+  // What the bar takes up at its edge of the screen, margins included.
+  readonly property real barZone: Theme.barMarginTop + Theme.barHeight + Theme.barMarginBottom
+
+  // An attached panel's screen: anchorItem's own (asked of the window it
+  // belongs to, the only thing a Wayland client can know about where an
+  // item is), or else the focused one.
+  readonly property var targetScreen: {
+    const win = root.anchorItem ? root.anchorItem.QsWindow.window : null
+    if (win) return win.screen
+    return Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0] ?? null
+  }
+
+  // Only attached panels move; the others keep the default screen.
+  Binding {
+    target: root
+    property: "screen"
+    value: root.targetScreen
+    when: root.attached && root.targetScreen !== null
+  }
+
+  // anchorItem's on-screen position, reconstructed as ClockPanel does:
+  // its position within its bar's window, plus that window's own origin.
+  readonly property point anchorPos: {
+    const item = root.anchorItem
+    if (!item) return Qt.point(0, 0)
+    const p = item.mapToItem(null, 0, 0)
+    const originX = Theme.barAutoHide ? 0 : Theme.barMarginLeft
+    const originY = Theme.barAutoHide ? 0
+      : (root.barAtTop ? Theme.barMarginTop : root.height - Theme.barMarginBottom - Theme.barHeight)
+    return Qt.point(p.x + originX, p.y + originY)
+  }
+
+  // Where an attached frame's top-left goes, in screen coordinates.
+  // Always horizontally centered on the screen, like every panel attached
+  // to the bar; anchorItem only decides the screen and the vertical edge.
+  function attachedX() {
+    return (root.width - frame.width) / 2
+  }
+
+  function attachedY() {
+    const item = root.anchorItem
+    if (!item) {
+      // Against the bar, Theme.panelOffset() away from it.
+      return root.barAtTop ? root.barZone - Theme.barMarginBottom + Theme.panelOffset()
+        : root.height - root.barZone + Theme.barMarginTop - Theme.panelOffset() - frame.height
+    }
+    // Against the widget's pill, as the clock panel is (widgets sit
+    // vertically centered in their taller pill), Theme.panelOffset() away.
+    const pillGap = (Theme.pillHeight() - item.height) / 2
+    return root.barAtTop
+      ? root.anchorPos.y + item.height + pillGap + Theme.panelOffset()
+      : root.anchorPos.y - pillGap - Theme.panelOffset() - frame.height
+  }
+
   // Dimmed backdrop covering the whole screen; clicking it closes the
   // panel, like clicking outside any other modal dialog. A click actually
   // on the frame never reaches this MouseArea to begin with - it's a
@@ -83,6 +149,7 @@ PanelWindow {
     }
 
     Rectangle {
+      visible: !root.attached
       anchors.fill: parent
       color: "black"
       opacity: 0.4
@@ -117,8 +184,8 @@ PanelWindow {
       top: true
       left: true
     }
-    margins.left: (root.width - frame.width) / 2
-    margins.top: (root.height - frame.height) / 2
+    margins.left: root.attached ? root.attachedX() : (root.width - frame.width) / 2
+    margins.top: root.attached ? root.attachedY() : (root.height - frame.height) / 2
     implicitWidth: frame.width
     implicitHeight: frame.height
 
@@ -137,8 +204,10 @@ PanelWindow {
 
     Rectangle {
       id: frame
-      width: Math.min(root.maxPanelWidth, root.width * 0.9)
-      height: Math.min(root.maxPanelHeight, root.height * 0.9)
+      // An attached frame stays within the bar's span, and leaves room for
+      // the bar itself.
+      width: Math.min(root.maxPanelWidth, root.attached ? root.width - Theme.barMarginLeft - Theme.barMarginRight : root.width * 0.9)
+      height: Math.min(root.maxPanelHeight, root.attached ? root.height - root.barZone - 20 : root.height * 0.9)
       radius: Theme.radiusFor(height)
       color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
       // The border follows the real widget opacity (and Theme.borderOpaque),

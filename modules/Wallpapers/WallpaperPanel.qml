@@ -4,7 +4,7 @@ import qs.components
 import qs.config
 import qs.services
 
-// Screen-centered wallpaper picker, toggled from outside via:
+// Wallpaper picker, attached to the bar (see ModalPanel's `attached`), toggled from outside via:
 //   quickshell -p . ipc call wallpapers wallpapersToggle
 // Wallpapers are browsed in a carousel (centered item large, neighbors
 // smaller); Enter or a click applies one with awww.
@@ -27,6 +27,8 @@ CarouselPanel {
   maxPanelHeight: 650
 
   visible: WallpaperPanelState.visible
+  attached: true
+  anchorItem: WallpaperPanelState.anchorItem
   onCloseRequested: WallpaperPanelState.visible = false
   onOpened: listProcess.running = true
   onAccepted: index => root.applyPath(root.wallpapers[index])

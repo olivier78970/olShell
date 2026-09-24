@@ -51,6 +51,7 @@ ModalPanel {
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
+    { key: "panelGap", category: "bar", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
     { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
@@ -290,7 +291,7 @@ ModalPanel {
     }
 
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
-    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight,
+    // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration); out-of-range values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,

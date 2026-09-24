@@ -57,24 +57,24 @@ Item {
     return Qt.point(p.x + root.barOriginX(), p.y + root.barOriginY())
   }
 
-  // Where the frame's top-left goes, in screen coordinates: centered below
-  // (or above, on a bottom bar) the clock widget.
+  // Where the frame's top-left goes, in screen coordinates: horizontally
+  // centered on the screen, like every panel attached to the bar, and
+  // below (or above, on a bottom bar) the clock widget.
   function frameX() {
-    const item = ClockPanelState.anchorItem
-    if (!item) return 0
-    return root.anchorPos.x + item.width / 2 - frame.width / 2
+    if (!root.targetScreen) return 0
+    return (root.targetScreen.width - frame.width) / 2
   }
 
   function frameY() {
     const item = ClockPanelState.anchorItem
     if (!item) return 0
     // Widgets are vertically centered within their (taller) pill; start the
-    // popup flush with the pill's edge instead of the widget's, then
-    // overlap the border width instead of doubling up with the pill's.
+    // popup from the pill's edge instead of the widget's, Theme.panelOffset()
+    // away from it (overlapping the border width, with no gap set).
     const pillGap = (Theme.pillHeight() - item.height) / 2
     return root.barAtTop
-      ? root.anchorPos.y + item.height + pillGap - Theme.borderWidth
-      : root.anchorPos.y - pillGap + Theme.borderWidth - frame.height
+      ? root.anchorPos.y + item.height + pillGap + Theme.panelOffset()
+      : root.anchorPos.y - pillGap - Theme.panelOffset() - frame.height
   }
 
   // Invisible full-screen surface, just to catch a click outside the frame

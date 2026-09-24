@@ -27,6 +27,7 @@ Singleton {
     barMarginBottom: [0, 100],
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
+    panelGap: [0, 50],
     borderWidth: [0, 6],
     fontSize: [10, 32],
     fontWeight: [100, 900],
@@ -76,6 +77,10 @@ Singleton {
   readonly property int barMarginBottom: root.valid("barMarginBottom", file.adapter.barMarginBottom)
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
+  // Space between the bar and the panels attached to it (the clock and
+  // notification panels, the wallpaper and theme pickers); 0 keeps them
+  // flush, their border overlapping the bar's.
+  readonly property int panelGap: root.valid("panelGap", file.adapter.panelGap)
   // "widgets": the bar itself is transparent and each widget pill has its
   // own background. "full": the bar has one continuous background instead
   // and the pills' own backgrounds are transparent. Either way, `opacity`
@@ -415,6 +420,7 @@ Singleton {
       property int barMarginBottom: Defaults.values.barMarginBottom
       property int barMarginLeft: Defaults.values.barMarginLeft
       property int barMarginRight: Defaults.values.barMarginRight
+      property int panelGap: Defaults.values.panelGap
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
