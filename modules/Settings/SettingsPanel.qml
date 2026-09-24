@@ -113,7 +113,6 @@ ModalPanel {
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
-    { key: "panelGap", category: "bar", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
     { key: "workspaceCount", category: "workspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
@@ -123,6 +122,7 @@ ModalPanel {
     { key: "blurRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blur"), toggles: [
       { key: "blur", text: "" }
     ] },
+    { key: "panelGap", category: "appearance", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
     { key: "curvedJoinsRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoins"), toggles: [
       { key: "curvedJoins", text: "" }
     ] },

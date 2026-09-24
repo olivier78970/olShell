@@ -80,9 +80,11 @@ Singleton {
   readonly property int barMarginBottom: root.valid("barMarginBottom", file.adapter.barMarginBottom)
   readonly property int barMarginLeft: root.valid("barMarginLeft", file.adapter.barMarginLeft)
   readonly property int barMarginRight: root.valid("barMarginRight", file.adapter.barMarginRight)
-  // Space between the bar and the panels attached to it (the clock and
-  // notification panels, the wallpaper and theme pickers); 0 keeps them
-  // flush, their border overlapping the bar's.
+  // Space between elements flush against each other: the bar and the panels
+  // attached to it (the clock and notification panels, the wallpaper and theme
+  // pickers), its widgets' menus and tooltips, and the notification pop-ups
+  // under it; a submenu and its menu; and the pop-ups between themselves. 0 keeps them flush, their borders
+  // overlapping (and lets them join with curves, see curvedJoins).
   readonly property int panelGap: root.valid("panelGap", file.adapter.panelGap)
   // Whether surfaces flush against each other join with concave corners
   // (see components/Fillet.qml): the panels attached to the bar and the
