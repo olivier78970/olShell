@@ -25,6 +25,7 @@ ModalPanel {
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
+    { id: "zoom", icon: "󱡴", label: I18n.tr("settings.category.zoom") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -78,7 +79,12 @@ ModalPanel {
     { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
       { key: "notificationDnd", text: "" }
     ] },
-    { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" }
+    { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
+    { key: "zoomMax", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
+    { key: "zoomStep", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
+    { key: "zoomBlocksInputRow", category: "zoom", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
+      { key: "zoomBlocksInput", text: "" }
+    ] }
   ].concat(root.widgetRows).concat(root.defaultRows)
 
   // The last row of every category: its defaults (see DefaultsRow).
@@ -293,9 +299,10 @@ ModalPanel {
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
-    // fontLetterSpacing, wallpaperDuration); out-of-range values are clamped.
+    // fontLetterSpacing, wallpaperDuration, zoomMax, zoomStep); out-of-range
+    // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // blur, fontItalic, fontUnderline, fontOutline) take 1 or 0.
+    // blur, zoomBlocksInput, fontItalic, fontUnderline, fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

@@ -26,6 +26,9 @@ Singleton {
     borderWidth: 2,
     borderOpaque: false,
     blur: false,
+    zoomBlocksInput: false,
+    zoomMax: 8,
+    zoomStep: 0.5,
     fontSize: 18,
     fontFamily: "0xProto Nerd Font",
     fontWeight: 400,
@@ -47,7 +50,7 @@ Singleton {
     barCollapsed: [],
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
-    barCenter: ["clock", "wallpaper", "theme", "screenshot"],
+    barCenter: ["clock", "wallpaper", "theme", "screenshot", "zoom"],
     barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"],
     barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "lock"]
     })

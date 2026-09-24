@@ -62,59 +62,9 @@ PanelWindow {
     onTriggered: root.visible = false
   }
 
-  Rectangle {
-    id: osdRectangle
-    implicitWidth : content.width  
-    implicitHeight: content.height + Theme.pillPadding
+  VolumePill {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
     anchors.bottomMargin: 60
-    radius: Theme.radiusFor(implicitHeight)
-    color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
-    border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
-    border.width: Theme.borderWidth
-
-    Row {
-      id: content
-      anchors.centerIn: parent
-      spacing: 12
-      leftPadding: Theme.pillPadding
-      rightPadding: Theme.pillPadding
-      anchors.verticalCenter: parent.verticalCenter
-      height: 40
-
-      ThemedText {
-        anchors.verticalCenter: parent.verticalCenter
-        text: Audio.icon
-        sizeScale: 1.4
-      }
-
-      Rectangle {
-        id: track
-        anchors.verticalCenter: parent.verticalCenter
-        width: 160
-        height: 8
-        radius: Theme.radiusFor(height)
-        color: Theme.borderColor
-
-        Rectangle {
-          anchors.left: parent.left
-          anchors.top: parent.top
-          anchors.bottom: parent.bottom
-          radius: Theme.radiusFor(height)
-          width: track.width * (root.muted ? 0 : root.volume)
-          color: Theme.accentColor
-
-          Behavior on width {
-            NumberAnimation { duration: 120 }
-          }
-        }
-      }
-
-      ThemedText {
-        anchors.verticalCenter: parent.verticalCenter
-        text: Audio.percent + "%"
-      }
-    }
   }
 }

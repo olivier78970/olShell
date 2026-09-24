@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.components
 import qs.config
+import qs.modules.Osd
 import qs.services
 
 // The lock screen: a session lock (the compositor shows nothing but these
@@ -140,6 +141,33 @@ Scope {
           visible: Lock.error.length > 0
           text: Lock.error
           color: Theme.warningColor
+        }
+      }
+
+      // The volume keys still work while locked (their Hyprland binds are
+      // `locked`), but the volume OSD can't show over the session lock:
+      // the same pill shows here instead, for a moment after each change.
+      VolumePill {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 60
+        visible: volumeTimer.running
+      }
+
+      Timer {
+        id: volumeTimer
+        interval: 1500
+      }
+
+      Connections {
+        target: Audio
+
+        function onVolumeChanged() {
+          volumeTimer.restart()
+        }
+
+        function onMutedChanged() {
+          volumeTimer.restart()
         }
       }
     }

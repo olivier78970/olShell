@@ -35,7 +35,9 @@ Singleton {
     wallpaperDuration: [0.5, 10],
     notificationTimeout: [2, 30],
     notificationMax: [1, 8],
-    lockTimeout: [0, 60]
+    lockTimeout: [0, 60],
+    zoomMax: [2, 10],
+    zoomStep: [0.1, 2]
   })
 
   // The values a setting can only take one of, in the order the panel lists
@@ -94,6 +96,14 @@ Singleton {
   // Whether Hyprland blurs what's behind every surface the widget opacity
   // can fade (the bar, pills, popups, panels, OSDs), see services/Blur.qml.
   readonly property bool blur: root.valid("blur", file.adapter.blur)
+  // Whether the screen zoom (services/Zoom.qml) is look-only: while zoomed,
+  // the pointer, clicks and the wheel go to the shell instead of the apps
+  // (the wheel zooms, a click or Escape zooms back out).
+  readonly property bool zoomBlocksInput: root.valid("zoomBlocksInput", file.adapter.zoomBlocksInput)
+  // How far the screen zoom goes, and how much one wheel notch (or one
+  // zoomIn/zoomOut IPC call) changes it.
+  readonly property int zoomMax: root.valid("zoomMax", file.adapter.zoomMax)
+  readonly property real zoomStep: root.valid("zoomStep", file.adapter.zoomStep)
   // Text size in pixels, and the font of all text and icons (a font family
   // name; the icons are Nerd Font glyphs, so a Nerd Font is the safe choice).
   readonly property int fontSize: root.valid("fontSize", file.adapter.fontSize)
@@ -112,7 +122,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -190,7 +200,7 @@ Singleton {
     const clamped = Math.max(min, Math.min(max, value))
     if (key === "opacity") return Math.round(clamped * 100) / 100
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
-    return key === "wallpaperDuration" || key === "fontLetterSpacing" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
+    return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
 
   // `list` as a real array: a list read from the saved file is an array-like
@@ -425,6 +435,9 @@ Singleton {
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
       property bool blur: Defaults.values.blur
+      property bool zoomBlocksInput: Defaults.values.zoomBlocksInput
+      property int zoomMax: Defaults.values.zoomMax
+      property real zoomStep: Defaults.values.zoomStep
       property int fontSize: Defaults.values.fontSize
       property string fontFamily: Defaults.values.fontFamily
       property int fontWeight: Defaults.values.fontWeight

@@ -28,11 +28,15 @@ ShellRoot {
   // And the blur service, which has to apply Settings.blur's saved value
   // from the start (Hyprland forgets dynamic layer rules on its own restart).
   readonly property var blurActive: Blur.active
+  // And the zoom service, which answers the `zoom` IPC calls.
+  readonly property var zoomFactor: Zoom.factor
 
   Bar {}
   ClockPanel {}
   PowerConfirmDialog {}
   VolumeOsd {}
+  ZoomOsd {}
+  ZoomShield {}
   LockKeysOsd {}
   WallpaperPanel {}
   ThemePanel {}
