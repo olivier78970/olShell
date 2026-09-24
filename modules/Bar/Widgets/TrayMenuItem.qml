@@ -5,20 +5,42 @@ import qs.config
 // One row in a tray item's context menu: a separator line, or a
 // PowerMenuOption-styled clickable entry.
 //
-// Entries with children (submenus) are shown with a "›" marker but are
-// not yet openable. Two approaches were tried and both fail in this
-// environment: (1) a second custom PopupWindow anchored to an item that
-// lives inside another PopupWindow's content reports the right visible
-// state and size but never actually maps as a surface (renders nothing,
-// anywhere); (2) the platform-native QsMenuEntry.display() call requires
-// a real QWindow, but anything hosted inside a PanelWindow only exposes
-// Quickshell's own ProxiedWindow wrapper, which display() rejects with
-// "must be called with a window". Revisit if a future Quickshell version
-// changes either of those.
+// An entry with children (marked "›") opens them in a submenu beside its
+// menu (TraySubmenu) as it's hovered or clicked, and keeps it open until
+// another entry of the same menu is hovered or the menu closes. Menus are
+// plain items drawn in the bar (see components/PopupMenu.qml), so a submenu
+// is just one more of them - which the popup surfaces menus used to be
+// couldn't do: one anchored inside another never mapped.
 Item {
   id: root
 
   required property var modelData
+  // The menu this entry is in, and the top-level one it opened from.
+  required property Item menu
+  required property Item rootMenu
+
+  readonly property bool hasSubmenu: root.modelData.hasChildren && !root.modelData.isSeparator
+  // Whether its submenu is open (it's its menu's active entry).
+  readonly property bool submenuOpen: root.hasSubmenu && root.menu.activeEntry === root
+
+  // Hovering an entry makes it its menu's active one: opens its own submenu,
+  // if any, and closes whichever other one was open.
+  HoverHandler {
+    onHoveredChanged: {
+      if (hovered && !root.modelData.isSeparator) root.menu.activeEntry = root
+    }
+  }
+
+  // Created the first time it opens, and kept.
+  Loader {
+    id: submenuLoader
+  }
+
+  onSubmenuOpenChanged: {
+    if (root.submenuOpen && !submenuLoader.item) {
+      submenuLoader.setSource("TraySubmenu.qml", { entry: root, rootMenu: root.rootMenu })
+    }
+  }
 
   // Emitted (with no arguments) after this entry's own action has been
   // triggered, so the parent can close the popup without needing to
@@ -55,9 +77,15 @@ Item {
   PowerMenuOption {
     id: option
     visible: !root.modelData.isSeparator
-    enabled: root.modelData.enabled && !root.modelData.hasChildren
-    label: root.modelData.text + (root.modelData.hasChildren ? "  ›" : "")
+    enabled: root.modelData.enabled
+    // Lit while its submenu is open.
+    active: root.submenuOpen
+    label: root.modelData.text + (root.hasSubmenu ? "  ›" : "")
     onClicked: {
+      if (root.hasSubmenu) {
+        root.menu.activeEntry = root
+        return
+      }
       root.modelData.triggered()
       root.activated()
     }

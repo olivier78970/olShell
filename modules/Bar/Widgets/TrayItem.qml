@@ -43,7 +43,7 @@ Item {
       } else if (mouse.button === Qt.MiddleButton) {
         root.trayItem.secondaryActivate()
       } else if (root.trayItem.hasMenu) {
-        menu.visible = !menu.visible
+        contextMenu.visible = !contextMenu.visible
       }
     }
 
@@ -57,7 +57,7 @@ Item {
   }
 
   PopupMenu {
-    id: menu
+    id: contextMenu
     anchorItem: root
     marginRight: -Theme.pillPadding
 
@@ -65,7 +65,9 @@ Item {
       model: menuOpener.children
 
       TrayMenuItem {
-        onActivated: menu.visible = false
+        menu: contextMenu
+        rootMenu: contextMenu
+        onActivated: contextMenu.visible = false
       }
     }
   }
@@ -74,7 +76,7 @@ Item {
     id: tooltip
     anchorItem: root
     marginRight: -Theme.pillPadding
-    showWhen: !menu.visible
+    showWhen: !contextMenu.visible
 
     ThemedText {
       text: root.trayItem.tooltipTitle || root.trayItem.title || root.trayItem.id

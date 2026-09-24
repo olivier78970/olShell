@@ -27,6 +27,12 @@ Item {
   property real marginRight: 0
   // Closes on a click outside the bar and its popups.
   property bool grabFocus: true
+  // Set for a submenu: the menu it opens from. It then opens beside that
+  // menu, level with its entry (anchorItem), rather than off the bar.
+  property Item parentMenu: null
+  // The entry of this menu whose submenu is open, if any (the last one
+  // hovered or clicked); cleared as the menu closes.
+  property Item activeEntry: null
   // True while the pointer is over the popup itself.
   readonly property bool containsMouse: hover.hovered
 
@@ -50,6 +56,10 @@ Item {
 
   visible: false
 
+  onVisibleChanged: {
+    if (!root.visible) root.activeEntry = null
+  }
+
   Binding {
     target: root
     property: "parent"
@@ -67,6 +77,13 @@ Item {
   // opens or resizes.
   x: {
     if (!root.host || !root.anchorItem) return 0
+    if (root.parentMenu) {
+      // A submenu: beside its menu, on the left (tray menus open from the
+      // bar's right end), or on the right when there's no room there.
+      const menu = root.parentMenu
+      const left = menu.x - root.width - root.submenuGap
+      return Math.round(left >= 0 ? left : menu.x + menu.width + root.submenuGap)
+    }
     const p = root.anchorItem.mapToItem(root.host, 0, 0)
     let x
     if (root.alignCenter) x = p.x + (root.anchorItem.width - root.width) / 2
@@ -74,10 +91,22 @@ Item {
     else x = p.x + root.anchorItem.width - root.marginRight - root.width
     return Math.round(Math.max(0, Math.min(root.host.width - root.width, x)))
   }
-  y: root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
+  y: {
+    if (!root.parentMenu) return root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
+    // A submenu: its first entry level with the one it opens from (past the
+    // padding), but never over the bar. Looked up again as the menu moves.
+    if (!root.host || !root.anchorItem) return 0
+    root.parentMenu.y
+    const top = root.anchorItem.mapToItem(root.host, 0, 0).y - root.padding
+    return Math.round(root.barAtTop ? Math.max(0, top) : Math.min(-root.height, top))
+  }
+  // Space between a submenu and its menu.
+  readonly property real submenuGap: 4
+  // Room around the entries, on every side.
+  readonly property real padding: 8
 
-  width: Math.ceil(column.implicitWidth + 16)
-  height: Math.ceil(column.implicitHeight + 16)
+  width: Math.ceil(column.implicitWidth + root.padding * 2)
+  height: Math.ceil(column.implicitHeight + root.padding * 2)
 
   Item {
     id: surface
@@ -96,10 +125,11 @@ Item {
       // screen). And only in the "widgets" bar style, which has a pill to
       // flow into - "full" style's single bar-wide background has no
       // per-widget edge to match, so the popup keeps its full radius there.
-      topLeftRadius: Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter) ? 0 : radius
-      topRightRadius: Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter) ? 0 : radius
-      bottomLeftRadius: Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter) ? 0 : radius
-      bottomRightRadius: Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter) ? 0 : radius
+      // A submenu, beside its menu rather than against the bar, always does.
+      topLeftRadius: !root.parentMenu && (Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter)) ? 0 : radius
+      topRightRadius: !root.parentMenu && (Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter)) ? 0 : radius
+      bottomLeftRadius: !root.parentMenu && (Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter)) ? 0 : radius
+      bottomRightRadius: !root.parentMenu && (Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter)) ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth
