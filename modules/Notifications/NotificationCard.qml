@@ -14,6 +14,13 @@ Rectangle {
 
   required property var entry
   property bool toast: false
+  // A pop-up in the stack (see NotificationPopups), and whether it's the
+  // last one: with no gap set, the stack is one block against the bar, every
+  // corner squared off but the last one's bottom ones.
+  property bool inStack: false
+  property bool lastInStack: false
+  readonly property bool squareTop: root.inStack && Theme.panelGap <= 0
+  readonly property bool squareBottom: root.inStack && !root.lastInStack && Theme.panelGap <= 0
 
   readonly property var notification: root.entry.notification
   readonly property bool critical: root.notification.urgency === NotificationUrgency.Critical
@@ -38,6 +45,10 @@ Rectangle {
 
   implicitHeight: content.implicitHeight + 24
   radius: Theme.radiusFor(Math.min(height, 24))
+  topLeftRadius: root.squareTop ? 0 : radius
+  topRightRadius: root.squareTop ? 0 : radius
+  bottomLeftRadius: root.squareBottom ? 0 : radius
+  bottomRightRadius: root.squareBottom ? 0 : radius
   // A pop-up is a pill; in the center the cards are a shade lighter than the panel.
   color: Theme.fade(root.toast ? Theme.pillColor : Qt.tint(Theme.pillColor, Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.07)), root.toast ? Theme.widgetOpacity : 1)
   border.color: Theme.fade(root.critical ? Theme.warningColor : Theme.outlineColor, root.toast && !Theme.borderOpaque ? Theme.widgetOpacity : 1)
@@ -182,13 +193,19 @@ Rectangle {
       }
     }
 
-    // The time left, as a thin line along the bottom of a pop-up.
+    // The time left, as a thin line along the bottom of a pop-up: inset like
+    // the content (clear of the rounded corners), shrinking toward its left
+    // end, with rounded ends.
     Rectangle {
+      readonly property real inset: 12
+
       visible: root.toast && root.timeout > 0
       anchors.bottom: parent.bottom
-      anchors.left: parent.left
-      width: parent.width * root.remaining
+      anchors.bottomMargin: 6
+      x: inset
+      width: (parent.width - inset * 2) * root.remaining
       height: 3
+      radius: height / 2
       color: root.critical ? Theme.warningColor : Theme.accentColor
       opacity: 0.7
     }
