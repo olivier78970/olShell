@@ -3,11 +3,12 @@
  * Written by matugen from the current wallpaper - do not edit: change
  * matugen/gtk-theme.css.template in olShell instead.
  *
- * Used as ~/.config/gtk-4.0/gtk.css and ~/.config/gtk-3.0/gtk.css. It only
- * defines named colors; the toolkit builds the widgets from them:
+ * Used as ~/.config/gtk-4.0/gtk.css, and as the colors of the olShell GTK3
+ * theme (see matugen/gtk3-theme-index.css.template). It only defines named
+ * colors; the toolkit builds the widgets from them:
  *   - libadwaita apps (GTK4) read the first group, whatever GTK theme is set;
- *   - GTK3 apps read the second group, but only a theme built on those names
- *     (Adwaita, adw-gtk3...) follows it: a theme with hardcoded colors ignores it.
+ *   - GTK3 apps read the second group, through the olShell theme (adw-gtk3,
+ *     which is built on those names; a theme with hardcoded colors ignores them).
  * Semantic colors (success, warning) keep the toolkit's own.
  */
 

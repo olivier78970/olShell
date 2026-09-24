@@ -1,0 +1,10 @@
+/* The olShell theme's GTK4 part, for plain GTK4 apps (pavucontrol,
+ * HandBrake...; libadwaita apps use ~/.config/gtk-4.0/gtk.css instead):
+ * adw-gtk3-dark's, in the shell's colors - its libadwaita-like styles are
+ * built on the named colors colors.css defines.
+ *
+ * Written by matugen - do not edit: change
+ * matugen/gtk4-theme-index.css.template in olShell instead.
+ */
+@import url("file:///usr/share/themes/adw-gtk3-dark/gtk-4.0/gtk.css");
+@import url("colors.css");
