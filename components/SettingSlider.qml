@@ -5,6 +5,13 @@ import qs.config
 // One adjustable number: its label on the left, then a slider and the
 // current value on the right. The owner gives the value and reacts to
 // `moved`; `activated` fires when the row is pressed (to select it).
+//
+// With `stepper`, a − button, the value in a field and a + button take the
+// slider's place: the buttons move it a step (held down, repeatedly), and the
+// field can be typed in, like PathRow's - a click on it emits
+// `editRequested` and the owner sets `editing` (as it does for Enter on the
+// row); Enter emits `committed` with the number typed, Escape `cancelled`,
+// and the owner then clears `editing`.
 Item {
   id: root
 
@@ -34,13 +41,35 @@ Item {
   property real controlX: -1
   readonly property bool aligned: root.controlX >= 0
 
+  property bool stepper: false
+  property bool editing: false
+
   signal moved(real value)
   signal activated()
+  signal editRequested()
+  signal committed(real value)
+  signal cancelled()
+  // The row wants keyboard focus back to the owner (editing ended).
+  signal released()
+
+  onEditingChanged: {
+    if (root.editing) {
+      field.text = String(root.value)
+      field.forceActiveFocus()
+      field.selectAll()
+    } else {
+      field.focus = false
+      root.released()
+    }
+  }
 
   readonly property real fraction: root.to > root.from ? Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from))) : 0
 
-  // The least it needs: the name, a short track and the value.
-  implicitWidth: (root.aligned ? root.controlX : 12 + labelText.implicitWidth + 12) + 100 + 14 + valueLabel.width + 12
+  // The least it needs: the name, a short track and the value (or the
+  // stepper's buttons and field).
+  implicitWidth: root.stepper
+    ? Math.max(12 + labelText.implicitWidth + 16, root.controlX) + stepperRow.implicitWidth + 12
+    : (root.aligned ? root.controlX : 12 + labelText.implicitWidth + 12) + 100 + 14 + valueLabel.width + 12
   implicitHeight: 54
 
   // `raw` (anywhere between from and to) rounded to the nearest step.
@@ -68,8 +97,10 @@ Item {
     Column {
       anchors.left: parent.left
       anchors.leftMargin: 12
-      anchors.right: track.left
-      anchors.rightMargin: 12
+      // Up to the control: the track, a sibling, or the stepper, which isn't
+      // one (it's above the row's MouseArea), so it's reached by a margin.
+      anchors.right: root.stepper ? parent.right : track.left
+      anchors.rightMargin: root.stepper ? root.width - stepperRow.x + 12 : 12
       anchors.verticalCenter: parent.verticalCenter
 
       ThemedText {
@@ -91,6 +122,7 @@ Item {
 
     ThemedText {
       id: valueLabel
+      visible: !root.stepper
       anchors.right: parent.right
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
@@ -103,6 +135,7 @@ Item {
     // The slider itself, on the right of the row, before the value.
     Rectangle {
       id: track
+      visible: !root.stepper
       anchors.right: valueLabel.left
       anchors.rightMargin: 14
       anchors.verticalCenter: parent.verticalCenter
@@ -149,14 +182,156 @@ Item {
     onPressed: mouse => {
       root.activated()
       // Only the slider (with a little room around its knob) sets the value;
-      // the rest of the row is just to select it.
-      area.dragging = mouse.x >= track.x - 10 && mouse.x <= track.x + track.width + 10
+      // the rest of the row is just to select it (all of it, for a stepper,
+      // whose own buttons and field are above this).
+      area.dragging = !root.stepper && mouse.x >= track.x - 10 && mouse.x <= track.x + track.width + 10
       if (area.dragging) setFrom(mouse.x)
     }
     onPositionChanged: mouse => {
       if (pressed && area.dragging) setFrom(mouse.x)
     }
     onReleased: area.dragging = false
+  }
+
+  // A − / + button of the stepper; held down, it repeats.
+  component StepButton: Rectangle {
+    id: button
+
+    property string symbol: ""
+    property real direction: 1
+
+    width: 32
+    height: 32
+    radius: Theme.radiusFor(height)
+    color: buttonArea.pressed ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.3)
+      : buttonArea.containsMouse ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.14) : "transparent"
+    border.color: Theme.outlineColor
+    border.width: 1
+
+    function step() {
+      root.moved(root.snap(root.value + button.direction * root.stepSize))
+    }
+
+    ThemedText {
+      anchors.centerIn: parent
+      text: button.symbol
+      color: Theme.accentColor
+    }
+
+    MouseArea {
+      id: buttonArea
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onPressed: {
+        root.activated()
+        // A step ends typing in the field (what was typed is dropped: the step
+        // goes from the value as it was).
+        if (root.editing) root.cancelled()
+        button.step()
+      }
+      onPressAndHold: repeat.start()
+      onReleased: repeat.stop()
+      onCanceled: repeat.stop()
+    }
+
+    Timer {
+      id: repeat
+      interval: 80
+      repeat: true
+      onTriggered: button.step()
+    }
+  }
+
+  // The stepper: − button, the value in a field, + button, against the
+  // row's right edge like the check boxes and dropdowns. Above the row's own
+  // MouseArea, so its buttons and field get their clicks.
+  Row {
+    id: stepperRow
+    visible: root.stepper
+    enabled: root.interactive
+    opacity: root.interactive ? 1 : 0.45
+    anchors.right: parent.right
+    anchors.rightMargin: 12
+    anchors.verticalCenter: parent.verticalCenter
+    spacing: 8
+
+    StepButton {
+      symbol: "−"
+      direction: -1
+    }
+
+    Rectangle {
+      width: 110
+      height: 32
+      radius: Theme.radiusFor(height)
+      color: "transparent"
+      border.color: root.editing ? Theme.accentColor : Theme.outlineColor
+      border.width: 1
+
+      // Shown when not editing: the value with its unit.
+      ThemedText {
+        anchors.centerIn: parent
+        visible: !root.editing
+        text: root.valueText
+        color: Theme.accentColor
+      }
+
+      TextInput {
+        id: field
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+        anchors.right: parent.right
+        anchors.rightMargin: 10
+        anchors.verticalCenter: parent.verticalCenter
+        visible: root.editing
+        clip: true
+        horizontalAlignment: TextInput.AlignHCenter
+        color: Theme.textColor
+        selectionColor: Theme.accentColor
+        selectedTextColor: Theme.backgroundColor
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize()
+        font.weight: Theme.fontWeight
+        font.letterSpacing: Theme.fontLetterSpacing
+        // Only a number can be typed: digits, one decimal point (or comma),
+        // and a minus sign only where the value can go below zero.
+        validator: RegularExpressionValidator {
+          regularExpression: root.from < 0 ? /-?\d*([.,]\d*)?/ : /\d*([.,]\d*)?/
+        }
+
+        // A number, with a comma accepted as the decimal point; an unfinished
+        // one ("", "-", ".") leaves the value as it was.
+        onAccepted: {
+          const typed = parseFloat(field.text.replace(",", "."))
+          if (isNaN(typed)) root.cancelled()
+          else root.committed(root.snap(typed))
+        }
+        Keys.onEscapePressed: event => {
+          root.cancelled()
+          event.accepted = true
+        }
+        // Not row navigation while typing.
+        Keys.onUpPressed: event => event.accepted = true
+        Keys.onDownPressed: event => event.accepted = true
+        Keys.onTabPressed: event => event.accepted = true
+      }
+
+      MouseArea {
+        anchors.fill: parent
+        enabled: !root.editing
+        cursorShape: Qt.IBeamCursor
+        onClicked: {
+          root.activated()
+          root.editRequested()
+        }
+      }
+    }
+
+    StepButton {
+      symbol: "+"
+      direction: 1
+    }
   }
 
   // Hover works even while the slider itself is disabled, so the tooltip

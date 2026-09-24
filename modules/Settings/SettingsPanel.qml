@@ -130,9 +130,9 @@ ModalPanel {
     { key: "curvedJoinsRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoins"), toggles: [
       { key: "curvedJoins", text: "" }
     ] },
-    { key: "fontSize", category: "text", kind: "slider", label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
+    { key: "fontSize", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
-    { key: "fontLetterSpacing", category: "text", kind: "slider", label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
+    { key: "fontLetterSpacing", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
     { key: "fontCaps", category: "text", kind: "buttons", label: I18n.tr("settings.fontCaps") },
     { key: "fontStyle", category: "text", kind: "toggles", label: I18n.tr("settings.fontStyle"), toggles: [
       { key: "fontItalic", text: I18n.tr("settings.fontItalic"), italic: true },
@@ -392,7 +392,8 @@ ModalPanel {
 
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
-    // clock, wallpaper, theme, tray, cpu, ram, disk, network, volume, power),
+    // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
+    // disk, network, volume, notifications, lock, power),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
@@ -642,8 +643,8 @@ ModalPanel {
     if (kind === "widget" && event.key === Qt.Key_D && Settings.layout[Settings.zoneOf(root.rows[root.selected].widget)]?.[0] === root.rows[root.selected].widget) {
       // The first widget of a pill has no divider to switch.
       event.accepted = true
-    } else if (kind === "path" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
-      // Enter: type in the field.
+    } else if ((kind === "path" || (kind === "slider" && root.rows[root.selected].stepper)) && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+      // Enter: type in the field (a path's, or a stepper's value).
       root.editKey = root.rows[root.selected].key
       event.accepted = true
     } else if (kind === "group" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
@@ -1117,6 +1118,15 @@ ModalPanel {
                 interactive: root.rowEnabled(row.modelData)
                 disabledReason: root.disabledReasonOf(row.modelData)
                 tooltip: row.modelData.tooltip ?? ""
+                stepper: row.modelData.stepper ?? false
+                editing: root.editKey === row.modelData.key
+                onEditRequested: root.editKey = row.modelData.key
+                onCommitted: value => {
+                  root.editKey = ""
+                  Settings.set(row.modelData.key, value)
+                }
+                onCancelled: root.editKey = ""
+                onReleased: root.focusTarget.forceActiveFocus()
                 note: row.modelData.key === "workspaceCount" ? I18n.tr("settings.workspaceCount.note", WorkspaceRules.configured.length) : ""
                 onActivated: root.selected = row.index
                 onMoved: value => Settings.set(row.modelData.key, value)
