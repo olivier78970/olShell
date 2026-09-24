@@ -84,10 +84,11 @@ Singleton {
   // notification panels, the wallpaper and theme pickers); 0 keeps them
   // flush, their border overlapping the bar's.
   readonly property int panelGap: root.valid("panelGap", file.adapter.panelGap)
-  // Whether the panels attached to the bar, and the widgets' menus and
-  // tooltips, curve out of it (see components/BarFillets.qml) - with no gap
-  // set, and in the "full" bar style.
-  readonly property bool panelCurves: root.valid("panelCurves", file.adapter.panelCurves)
+  // Whether surfaces flush against each other join with concave corners
+  // (see components/Fillet.qml): the panels attached to the bar and the
+  // widgets' menus and tooltips curve out of it (in the "full" bar style),
+  // and submenus into their menu - all only with no gap set.
+  readonly property bool curvedJoins: root.valid("curvedJoins", file.adapter.curvedJoins)
   // How many workspace indicators the bar's workspaces widget shows (1 to
   // this number).
   readonly property int workspaceCount: root.valid("workspaceCount", file.adapter.workspaceCount)
@@ -439,7 +440,7 @@ Singleton {
       property int barMarginLeft: Defaults.values.barMarginLeft
       property int barMarginRight: Defaults.values.barMarginRight
       property int panelGap: Defaults.values.panelGap
-      property bool panelCurves: Defaults.values.panelCurves
+      property bool curvedJoins: Defaults.values.curvedJoins
       property int workspaceCount: Defaults.values.workspaceCount
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
