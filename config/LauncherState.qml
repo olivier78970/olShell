@@ -18,6 +18,7 @@ Singleton {
     PowerPanelState.visible = false
     ClockPanelState.visible = false
     ShortcutsPanelState.visible = false
+    NotificationActionsState.visible = false
     root.visible = !root.visible
   }
 }

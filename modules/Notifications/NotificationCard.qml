@@ -186,10 +186,21 @@ Rectangle {
         }
       }
 
-      IconButton {
-        icon: "󰅖"
-        sizeScale: 1
-        onClicked: Notifications.dismiss(root.entry)
+      Column {
+        IconButton {
+          icon: "󰅖"
+          sizeScale: 1
+          onClicked: Notifications.dismiss(root.entry)
+        }
+
+        // In the center: make a notification action from this notification
+        // (a command run when one like it comes again).
+        IconButton {
+          visible: !root.toast
+          icon: "󱐋"
+          sizeScale: 1
+          onClicked: NotificationActionsState.openFor(root.notification)
+        }
       }
     }
 

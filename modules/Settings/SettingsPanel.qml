@@ -148,6 +148,7 @@ ModalPanel {
     { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
       { key: "notificationDnd", text: "" }
     ] },
+    { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "zoomMax", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
@@ -253,6 +254,16 @@ ModalPanel {
       text: I18n.tr("settings.caps." + name),
       capitalization: name === "small" ? Font.SmallCaps : Font.MixedCase
     }))
+
+  // An "action" row's button: what it says, and what it does.
+  function actionButtonText(row) {
+    if (row.key === "notificationActions") return I18n.tr("settings.notificationActions.manage", NotificationActions.rules.length)
+    return ""
+  }
+
+  function runAction(row) {
+    if (row.key === "notificationActions") NotificationActionsState.open(true)
+  }
 
   // Whether row `row` can be adjusted right now.
   function rowEnabled(row) {
@@ -687,6 +698,9 @@ ModalPanel {
       // Move between Confirm and Cancel, while asking.
       root.toggleFocus = Math.max(0, Math.min(root.confirmAll ? 1 : 0, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
       event.accepted = true
+    } else if (kind === "action" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.runAction(root.rows[root.selected])
+      event.accepted = true
     } else if (kind === "factoryAll" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
       root.pressFactoryAll(root.toggleFocus)
       event.accepted = true
@@ -1028,6 +1042,19 @@ ModalPanel {
                 height: 1
                 color: Theme.separatorColor
                 opacity: 0.6
+              }
+
+              // A row with a button that opens something (the notification
+              // actions panel).
+              DefaultsRow {
+                visible: row.modelData.kind === "action"
+                anchors.fill: parent
+                label: row.modelData.label
+                buttons: row.modelData.kind === "action" ? [{ text: root.actionButtonText(row.modelData), enabled: true }] : []
+                selected: root.selected === row.index
+                focusIndex: 0
+                onActivated: root.selected = row.index
+                onPressed: root.runAction(row.modelData)
               }
 
               // The factory reset of every category, with its confirmation.

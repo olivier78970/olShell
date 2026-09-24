@@ -44,6 +44,7 @@ ShellRoot {
   ShortcutsPanel {}
   NotificationPopups {}
   NotificationCenter {}
+  NotificationActionsPanel {}
   PowerPanel {}
   LockScreen {}
 }

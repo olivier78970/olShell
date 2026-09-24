@@ -22,6 +22,9 @@ Singleton {
   readonly property string settings: Quickshell.shellPath("config/Settings.json")
   // The values the user saved as their own defaults (see Settings.qml).
   readonly property string userDefaults: Quickshell.shellPath("config/UserDefaults.json")
+  // The notification actions (see NotificationActions.qml); like the two
+  // above, only there once something has been saved.
+  readonly property string notificationActions: Quickshell.shellPath("config/NotificationActions.json")
 
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")

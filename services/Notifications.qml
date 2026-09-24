@@ -12,7 +12,10 @@ import qs.config
 // Every notification is an entry in `entries`, newest first, kept until it is
 // dismissed or the sender closes it (in memory: they are gone when the shell
 // restarts). Entries with `popup` set are shown as pop-ups by NotificationPopups;
-// all of them are listed by NotificationCenter. Also reachable from outside with:
+// all of them are listed by NotificationCenter. A new notification can also run
+// a command (config/NotificationActions.qml, set up in the notification
+// actions panel: e.g. start the game launcher as the game controller
+// connects). Also reachable from outside with:
 //   quickshell -p . ipc call notifications toggle       # open or close the center
 //   quickshell -p . ipc call notifications dnd 1        # do not disturb on (0: off)
 //   quickshell -p . ipc call notifications toggleDnd
@@ -130,7 +133,9 @@ Singleton {
 
     onNotification: notification => {
       notification.tracked = true
-      root.add(notification, true)
+      const rules = NotificationActions.matching(notification)
+      root.add(notification, !rules.some(rule => rule.silent))
+      for (const rule of rules) NotificationActions.run(rule, notification)
     }
 
     Component.onCompleted: {

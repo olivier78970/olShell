@@ -5,4 +5,5 @@ config/ThemeState.json
 config/LocaleState.json
 config/Settings.json
 config/UserDefaults.json
+config/NotificationActions.json
 .qmlls.ini
