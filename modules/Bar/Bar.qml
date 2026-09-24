@@ -157,9 +157,11 @@ Scope {
       // closed. What's left past the bar is transparent and masked out from
       // input, so it only costs Hyprland blurring behind it when what's
       // under it changes.
-      implicitHeight: root.barBlock + Math.max(root.grownBy, root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
+      implicitHeight: root.barBlock + Math.max(root.grownBy, root.neededPast)
+      // How far past the bar the open panel and popups reach right now.
+      readonly property real neededPast: Math.max(root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
       property real grownBy: 0
-      onImplicitHeightChanged: root.grownBy = Math.max(root.grownBy, root.implicitHeight - root.barBlock)
+      onNeededPastChanged: root.grownBy = Math.max(root.grownBy, root.neededPast)
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
       // that much further away. Reserved the instant the bar is revealed,
