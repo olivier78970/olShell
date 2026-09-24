@@ -107,6 +107,27 @@ Scope {
         if (root.hosting) {
           hideTimer.stop()
           root.revealed = true
+          // A panel opening closes any menu still open.
+          popupLayer.dismissed()
+        }
+      }
+
+      // Whether a panel or a menu is open (not just a tooltip): anything
+      // else done meanwhile closes it (see dismissAll).
+      readonly property bool anyOpen: root.hosting || popupLayer.grabbing
+
+      // Closes the open panel and menus.
+      function dismissAll() {
+        panelSlot.dismissed()
+        popupLayer.dismissed()
+      }
+
+      // Switching workspace (by a shortcut, say) closes them too.
+      Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+          if (root.anyOpen && event.name === "workspace") root.dismissAll()
         }
       }
 
@@ -174,14 +195,69 @@ Scope {
       // An attached panel takes the keyboard while it's open, and a click
       // anywhere outside the bar and its panel or popups closes the panel
       // and any menu (the focus grab ends).
-      WlrLayershell.keyboardFocus: root.hosting || popupLayer.grabbing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+      WlrLayershell.keyboardFocus: root.anyOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
       HyprlandFocusGrab {
-        active: root.hosting || popupLayer.grabbing
+        active: root.anyOpen
         windows: [root]
-        onCleared: {
-          panelSlot.dismissed()
-          popupLayer.dismissed()
+        onCleared: root.dismissAll()
+      }
+
+      // While a panel or menu is open, an invisible surface over the whole
+      // screen but that panel or menu (the bar included) takes any click
+      // elsewhere, closes them and swallows it, as a click outside a menu
+      // usually does: on another bar widget, a window or the desktop. Its
+      // own namespace keeps it out of the blur rule (see services/Blur.qml).
+      PanelWindow {
+        id: clickCatcher
+
+        // The bar window's own on-screen origin (see its anchors and
+        // margins above), to place the panel and popups' holes.
+        readonly property real originX: root.autoHide ? 0 : Theme.barMarginLeft
+        readonly property real originY: atTop ? (root.autoHide ? 0 : Theme.barMarginTop)
+          : root.screen.height - (root.autoHide ? 0 : Theme.barMarginBottom) - root.height
+
+        visible: root.anyOpen
+        screen: root.screen
+
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.namespace: "quickshell:backdrop"
+
+        anchors {
+          top: true
+          bottom: true
+          left: true
+          right: true
+        }
+        color: "transparent"
+        focusable: false
+        exclusionMode: ExclusionMode.Ignore
+
+        mask: Region {
+          item: catcherArea
+
+          Region {
+            intersection: Intersection.Subtract
+            x: clickCatcher.originX + panelSlot.x
+            y: clickCatcher.originY + panelSlot.y
+            width: panelSlot.width
+            height: panelSlot.height
+          }
+
+          Region {
+            intersection: Intersection.Subtract
+            x: clickCatcher.originX + popupLayer.bounds.x
+            y: clickCatcher.originY + popupLayer.y + popupLayer.bounds.y
+            width: popupLayer.bounds.width
+            height: popupLayer.bounds.height
+          }
+        }
+
+        MouseArea {
+          id: catcherArea
+          anchors.fill: parent
+          acceptedButtons: Qt.AllButtons
+          onPressed: root.dismissAll()
         }
       }
 
