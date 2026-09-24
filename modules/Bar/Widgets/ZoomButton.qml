@@ -4,7 +4,7 @@ import qs.config
 import qs.services
 
 // Magnifier icon for the screen zoom (services/Zoom.qml): the wheel over it
-// zooms in and out, and a click zooms back out.
+// zooms in and out, and a click zooms back out, as its tooltip says.
 // While zoomed, the factor shows next to the icon.
 Item {
   id: root
@@ -40,7 +40,11 @@ Item {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: Zoom.reset()
-    onExited: root.wheelAccumulated = 0
+    onEntered: hint.hoverEntered()
+    onExited: {
+      root.wheelAccumulated = 0
+      hint.hoverExited()
+    }
     onWheel: wheel => {
       root.wheelAccumulated += wheel.angleDelta.y
       while (Math.abs(root.wheelAccumulated) >= 120) {
@@ -49,6 +53,17 @@ Item {
         else Zoom.zoomOut()
         root.wheelAccumulated -= up ? 120 : -120
       }
+    }
+  }
+
+  // How to use it, since nothing on it says the wheel zooms.
+  HoverPopup {
+    id: hint
+    anchorItem: root
+    alignCenter: true
+
+    ThemedText {
+      text: I18n.tr("zoom.hint")
     }
   }
 }

@@ -44,6 +44,7 @@ Singleton {
     "screenshot.window": "Window",
     "screenshot.saved": "Screenshot saved",
     "screenshot.edit": "Annotate with Satty",
+    "zoom.hint": "Scroll to zoom in or out, click to zoom back out",
 
     "lock.caps": "Caps Lock",
     "lock.num": "Num Lock",
@@ -247,6 +248,7 @@ Singleton {
     "screenshot.window": "Fenêtre",
     "screenshot.saved": "Capture enregistrée",
     "screenshot.edit": "Annoter avec Satty",
+    "zoom.hint": "Molette pour zoomer ou dézoomer, clic pour revenir",
 
     "lock.caps": "Verrouillage majuscules",
     "lock.num": "Verrouillage numérique",
@@ -450,6 +452,7 @@ Singleton {
     "screenshot.window": "Ventana",
     "screenshot.saved": "Captura guardada",
     "screenshot.edit": "Anotar con Satty",
+    "zoom.hint": "Rueda para acercar o alejar, clic para volver",
 
     "lock.caps": "Bloq Mayús",
     "lock.num": "Bloq Num",
