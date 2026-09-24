@@ -13,7 +13,7 @@ import qs.config
 Scope {
   id: root
 
-  // The application to start: "btop" or "wiremix".
+  // The application to start: "btop", "bluetui" or "gdu".
   required property string app
   // The terminal command, without the `-e APP` part. Its window class is how
   // the window is found again to close it.
