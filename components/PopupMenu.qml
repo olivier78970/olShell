@@ -33,6 +33,8 @@ Item {
   // The entry of this menu whose submenu is open, if any (the last one
   // hovered or clicked); cleared as the menu closes.
   property Item activeEntry: null
+  // The submenu open beside this menu, if any (each one says so itself).
+  property Item openSubmenu: null
   // True while the pointer is over the popup itself.
   readonly property bool containsMouse: hover.hovered
 
@@ -58,6 +60,10 @@ Item {
 
   onVisibleChanged: {
     if (!root.visible) root.activeEntry = null
+    if (root.parentMenu) {
+      if (root.visible) root.parentMenu.openSubmenu = root
+      else if (root.parentMenu.openSubmenu === root) root.parentMenu.openSubmenu = null
+    }
   }
 
   Binding {
@@ -144,6 +150,15 @@ Item {
   // menu (a long submenu can reach past its menu's end).
   readonly property bool topTouchesMenu: root.parentMenu !== null && root.y >= root.parentMenu.y && root.y <= root.parentMenu.y + root.parentMenu.height
   readonly property bool bottomTouchesMenu: root.parentMenu !== null && root.y + root.height >= root.parentMenu.y && root.y + root.height <= root.parentMenu.y + root.parentMenu.height
+  // For a menu with a submenu open flush against its left or right side:
+  // whether its own top and bottom corners on that side touch the submenu
+  // (which can reach past this menu's end), and so are squared off too.
+  readonly property Item flushSubmenu: root.openSubmenu && (root.openSubmenu.flushLeft || root.openSubmenu.flushRight) ? root.openSubmenu : null
+  readonly property bool topTouchesSubmenu: root.flushSubmenu !== null && root.y >= root.flushSubmenu.y && root.y <= root.flushSubmenu.y + root.flushSubmenu.height
+  readonly property bool bottomTouchesSubmenu: root.flushSubmenu !== null && root.y + root.height >= root.flushSubmenu.y && root.y + root.height <= root.flushSubmenu.y + root.flushSubmenu.height
+  // The submenu is on this menu's right when it's flush on its own left.
+  readonly property bool submenuOnRight: root.flushSubmenu !== null && root.flushSubmenu.flushLeft
+  readonly property bool submenuOnLeft: root.flushSubmenu !== null && root.flushSubmenu.flushRight
   // Room around the entries, on every side.
   readonly property real padding: 8
 
@@ -162,11 +177,12 @@ Item {
       // corners against it are squared off so the popup flows out of the
       // bar (and its widget's pill, see Pill.flattenPopupCorner), like the
       // attached panels. A submenu squares off, the same way, those on the
-      // side against its menu that actually touch it instead.
-      topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
-      topRightRadius: (root.flushRight && root.topTouchesMenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
-      bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
-      bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
+      // side against its menu that actually touch it instead, and so does
+      // the menu, those on the side against its submenu that touch it.
+      topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (root.submenuOnLeft && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
+      topRightRadius: (root.flushRight && root.topTouchesMenu) || (root.submenuOnRight && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
+      bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (root.submenuOnLeft && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
+      bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (root.submenuOnRight && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth
