@@ -23,6 +23,10 @@ ModalPanel {
   maxPanelWidth: 452
   maxPanelHeight: 120
   framed: false
+  // The screen darkens behind it, the only panel that does: shutting down or
+  // logging out is worth that pause.
+  dimmed: true
+  dimOpacity: 0.65
 
   open: PowerPanelState.visible
   onCloseRequested: PowerPanelState.visible = false

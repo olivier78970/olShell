@@ -4,8 +4,8 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.config
 
-// Screen-centered modal panel: a dimmed full-screen backdrop and a framed
-// panel that takes exclusive keyboard focus. Children go inside the frame.
+// Screen-centered modal panel: a full-screen backdrop (dimmed, with `dimmed`)
+// and a framed panel that takes exclusive keyboard focus. Children go inside the frame.
 // Every key, Escape included, is passed on through `keyPressed` first, so the
 // owner can use it for something of its own (closing a dropdown's list, say);
 // a click outside the panel always emits `closeRequested`, and so does
@@ -32,8 +32,13 @@ PanelWindow {
   // below, or its border, which follows Theme.widgetOpacity directly).
   property real panelOpacity: Theme.widgetOpacity
   // Whether the frame is drawn; without it only the children show, over the
-  // dimmed backdrop.
+  // backdrop.
   property bool framed: true
+  // Whether the rest of the screen is darkened while it's open (only the
+  // power panel's is); the backdrop still catches a click outside either way.
+  property bool dimmed: false
+  // How dark it gets then (the opacity of the black laid over the screen).
+  property real dimOpacity: 0.4
   // Gets keyboard focus each time the panel opens (default: the frame).
   property Item focusTarget: frame
   // Whether the panel is open; the owner binds it (not `visible`, which an
@@ -118,7 +123,7 @@ PanelWindow {
     }
   }
 
-  // Dimmed backdrop covering the whole screen; clicking it closes the
+  // Backdrop covering the whole screen (dimmed with `dimmed`); clicking it closes the
   // panel, like clicking outside any other modal dialog. A click actually
   // on the frame never reaches this MouseArea to begin with - it's a
   // separate, topmost surface - but the bounds check is kept as a safety
@@ -132,9 +137,10 @@ PanelWindow {
     }
 
     Rectangle {
+      visible: root.dimmed
       anchors.fill: parent
       color: "black"
-      opacity: 0.4
+      opacity: root.dimOpacity
     }
   }
 
