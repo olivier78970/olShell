@@ -49,7 +49,7 @@ Row {
     id: tooltip
     anchorItem: root
     alignLeft: true
-    anchor.margins.left: -Theme.pillPadding
+    marginLeft: -Theme.pillPadding
     // Only worth showing when the title is actually cut off.
     showWhen: titleText.truncated
 

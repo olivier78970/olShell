@@ -41,7 +41,7 @@ Item {
   HoverPopup {
     id: popup
     anchorItem: root
-    anchor.margins.right: -Theme.pillPadding
+    marginRight: -Theme.pillPadding
 
     ThemedText {
       text: I18n.tr("ram.used", SystemStats.formatBytes(SystemStats.ramUsedKb * 1024), SystemStats.formatBytes(SystemStats.ramTotalKb * 1024))

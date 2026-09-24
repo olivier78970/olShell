@@ -22,7 +22,7 @@ Scope {
       // (postponed while one of its own popups is open, so that doesn't
       // get left floating with nothing under it).
       property bool revealed: !root.autoHide
-      readonly property bool anyPopupOpen: leftZone.popupOpen || centerZone.popupOpen || rightZone.popupOpen || root.hosting
+      readonly property bool anyPopupOpen: leftZone.popupOpen || centerZone.popupOpen || rightZone.popupOpen || root.hosting || popupLayer.extent > 0
       // Whether a panel attached to the bar is open on this screen, drawn
       // in panelSlot below.
       readonly property bool hosting: panelSlot.frame !== null
@@ -130,7 +130,7 @@ Scope {
 
       // Grows (away from the edge) to also hold an open attached panel; the
       // room reserved for the bar (exclusiveZone below) stays the same.
-      implicitHeight: root.barBlock + (root.hosting ? panelSlot.height + Theme.panelOffset() : 0)
+      implicitHeight: root.barBlock + Math.max(root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
       // that much further away. Reserved the instant the bar is revealed,
@@ -162,16 +162,27 @@ Scope {
         Region {
           item: panelSlot
         }
+
+        Region {
+          x: popupLayer.bounds.x
+          y: popupLayer.y + popupLayer.bounds.y
+          width: popupLayer.bounds.width
+          height: popupLayer.bounds.height
+        }
       }
 
       // An attached panel takes the keyboard while it's open, and a click
-      // anywhere outside the bar and panel closes it (the focus grab ends).
-      WlrLayershell.keyboardFocus: root.hosting ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+      // anywhere outside the bar and its panel or popups closes the panel
+      // and any menu (the focus grab ends).
+      WlrLayershell.keyboardFocus: root.hosting || popupLayer.grabbing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
       HyprlandFocusGrab {
-        active: root.hosting
+        active: root.hosting || popupLayer.grabbing
         windows: [root]
-        onCleared: panelSlot.dismissed()
+        onCleared: {
+          panelSlot.dismissed()
+          popupLayer.dismissed()
+        }
       }
 
       // Flush with the true screen edge, for the click-through mask above
@@ -328,6 +339,47 @@ Scope {
 
         Component.onCompleted: BarSlots.register(panelSlot)
         Component.onDestruction: BarSlots.unregister(panelSlot)
+      }
+
+      // Where the widgets' popups and menus are drawn while shown (see
+      // components/PopupMenu.qml), each placing itself off its widget. Its
+      // origin is on the bar's edge toward the middle of the screen, so the
+      // popups' positions don't depend on how far the window grows for them.
+      Item {
+        id: popupLayer
+
+        readonly property var screen: root.screen
+        // The popups showing now.
+        readonly property var shown: {
+          const items = []
+          for (const child of popupLayer.children) {
+            if (child.visible) items.push(child)
+          }
+          return items
+        }
+        // How far past the bar they reach, for the window to grow by.
+        readonly property real extent: popupLayer.shown.reduce((most, item) => Math.max(most, atTop ? item.y + item.height : -item.y), 0)
+        // The rectangle they span (in this layer), for the input mask.
+        readonly property rect bounds: {
+          if (popupLayer.shown.length === 0) return Qt.rect(0, 0, 0, 0)
+          const left = Math.min(...popupLayer.shown.map(item => item.x))
+          const top = Math.min(...popupLayer.shown.map(item => item.y))
+          const right = Math.max(...popupLayer.shown.map(item => item.x + item.width))
+          const bottom = Math.max(...popupLayer.shown.map(item => item.y + item.height))
+          return Qt.rect(left, top, right - left, bottom - top)
+        }
+        // Whether one of them closes on a click outside (a menu, not a tooltip).
+        readonly property bool grabbing: popupLayer.shown.some(item => item.grabFocus)
+
+        // A click outside the bar and its popups: menus should close.
+        signal dismissed()
+
+        width: parent.width
+        height: 0
+        y: atTop ? root.barBlock : root.height - root.barBlock
+
+        Component.onCompleted: BarSlots.registerPopupLayer(popupLayer)
+        Component.onDestruction: BarSlots.unregisterPopupLayer(popupLayer)
       }
     }
   }

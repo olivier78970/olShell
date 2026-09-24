@@ -59,7 +59,7 @@ Item {
   PopupMenu {
     id: menu
     anchorItem: root
-    anchor.margins.right: -Theme.pillPadding
+    marginRight: -Theme.pillPadding
 
     Repeater {
       model: menuOpener.children
@@ -73,7 +73,7 @@ Item {
   HoverPopup {
     id: tooltip
     anchorItem: root
-    anchor.margins.right: -Theme.pillPadding
+    marginRight: -Theme.pillPadding
     showWhen: !menu.visible
 
     ThemedText {

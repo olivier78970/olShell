@@ -4,7 +4,13 @@ import qs.config
 
 // Rounded popup panel anchored below a widget, styled to match the bar's
 // pills. Put PowerMenuOption (or similar) rows inside it.
-PopupWindow {
+//
+// Not a popup surface of its own: while shown, it's drawn inside its bar's
+// own surface instead (see Bar.qml's popupLayer and config/BarSlots.qml), so
+// bar and popup are blurred together, once. As a separate surface on top, its
+// blur also picked up the bar's own fill right under it, which left the popup
+// visibly darker along the seam.
+Item {
   id: root
 
   default property alias content: column.data
@@ -14,31 +20,66 @@ PopupWindow {
   property bool alignLeft: false
   // Center below the widget instead (overrides alignLeft).
   property bool alignCenter: false
+  // How far past the widget's own left/right edge the popup's matching edge
+  // goes (negative: further out, e.g. -Theme.pillPadding to line up with the
+  // pill's edge rather than the widget's).
+  property real marginLeft: 0
+  property real marginRight: 0
+  // Closes on a click outside the bar and its popups.
+  property bool grabFocus: true
   // True while the pointer is over the popup itself.
   readonly property bool containsMouse: hover.hovered
 
-  // The bar's own edge, where the widget's pill is: below it normally, but
-  // above it when the bar is at the bottom of the screen, so the popup
-  // always opens toward the middle of the screen instead of off the edge.
-  readonly property int barEdge: Theme.barPosition === "bottom" ? Edges.Top : Edges.Bottom
+  readonly property bool barAtTop: Theme.barPosition !== "bottom"
+  // The bar's popup layer this is drawn in while shown.
+  readonly property Item host: {
+    if (!root.visible || !root.anchorItem) return null
+    const win = root.anchorItem.QsWindow.window
+    return win ? BarSlots.popupLayerFor(win.screen) : null
+  }
 
-  anchor.item: anchorItem
-  anchor.edges: alignCenter ? barEdge : barEdge | (alignLeft ? Edges.Left : Edges.Right)
-  anchor.gravity: alignCenter ? barEdge : barEdge | (alignLeft ? Edges.Right : Edges.Left)
-  // Widgets are vertically centered within their (taller) pill, so their own
-  // near edge (bottom normally, top with the bar at the bottom) sits inside
-  // the pill's. Push the anchor out by that same gap so the popup starts
-  // flush with the pill/bar edge instead of the widget's, then in by the
-  // border width so the popup's border overlaps the pill's instead of
-  // doubling up with it.
-  anchor.margins.bottom: anchorItem && root.barEdge === Edges.Bottom ? -(Theme.pillHeight() - anchorItem.height) / 2 + Theme.borderWidth : 0
-  anchor.margins.top: anchorItem && root.barEdge === Edges.Top ? -(Theme.pillHeight() - anchorItem.height) / 2 + Theme.borderWidth : 0
-  grabFocus: true
+  // A click outside the bar and its popups closes it (see grabFocus).
+  Connections {
+    target: root.grabFocus ? root.host : null
+
+    function onDismissed() {
+      root.visible = false
+    }
+  }
+
   visible: false
 
-  implicitWidth: column.implicitWidth + 16
-  implicitHeight: column.implicitHeight + 16
-  color: "transparent"
+  Binding {
+    target: root
+    property: "parent"
+    value: root.host
+    when: root.host !== null
+  }
+
+  // Where it goes in the layer (whose origin is on the bar's edge toward
+  // the middle of the screen): off that edge of the widget's pill, its border
+  // overlapping the pill's instead of doubling up with it, and kept within
+  // the bar horizontally. Looked up again as it opens or resizes.
+  x: {
+    if (!root.host || !root.anchorItem) return 0
+    const p = root.anchorItem.mapToItem(root.host, 0, 0)
+    let x
+    if (root.alignCenter) x = p.x + (root.anchorItem.width - root.width) / 2
+    else if (root.alignLeft) x = p.x + root.marginLeft
+    else x = p.x + root.anchorItem.width - root.marginRight - root.width
+    return Math.max(0, Math.min(root.host.width - root.width, x))
+  }
+  y: {
+    if (!root.host || !root.anchorItem) return 0
+    const p = root.anchorItem.mapToItem(root.host, 0, 0)
+    // Widgets are vertically centered within their (taller) pill.
+    const pillGap = (Theme.pillHeight() - root.anchorItem.height) / 2
+    return root.barAtTop ? p.y + root.anchorItem.height + pillGap - Theme.borderWidth
+      : p.y - pillGap + Theme.borderWidth - root.height
+  }
+
+  width: column.implicitWidth + 16
+  height: column.implicitHeight + 16
 
   Item {
     id: surface
@@ -55,10 +96,10 @@ PopupWindow {
       // the "widgets" bar style, which has a pill to flow into - "full"
       // style's single bar-wide background has no per-widget edge to match,
       // so the popup keeps its full radius there.
-      topLeftRadius: Theme.barStyle !== "full" && root.barEdge === Edges.Bottom && alignLeft && !alignCenter ? 0 : radius
-      topRightRadius: Theme.barStyle !== "full" && root.barEdge === Edges.Bottom && !alignLeft && !alignCenter ? 0 : radius
-      bottomLeftRadius: Theme.barStyle !== "full" && root.barEdge === Edges.Top && alignLeft && !alignCenter ? 0 : radius
-      bottomRightRadius: Theme.barStyle !== "full" && root.barEdge === Edges.Top && !alignLeft && !alignCenter ? 0 : radius
+      topLeftRadius: Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter ? 0 : radius
+      topRightRadius: Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter ? 0 : radius
+      bottomLeftRadius: Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter ? 0 : radius
+      bottomRightRadius: Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth

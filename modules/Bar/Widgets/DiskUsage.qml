@@ -45,7 +45,7 @@ Item {
   HoverPopup {
     id: popup
     anchorItem: root
-    anchor.margins.right: -Theme.pillPadding
+    marginRight: -Theme.pillPadding
 
     ThemedText {
       text: SystemStats.rootDisk
