@@ -14,12 +14,12 @@ Item {
   // True while the pointer is over the pill (padding included).
   readonly property bool hovered: pillHover.hovered
 
-  // Square off the corner where a popup anchored to this pill's right edge
-  // attaches, so the pill flows into it: the bottom-right corner normally,
-  // or the top-right one with the bar at the bottom of the screen, where
-  // popups open upward instead. Only with no gap set between the bar and its
-  // popups, when they actually touch.
-  property bool flattenPopupCorner: false
+  // Square off the corner on the pill's right (or left) end where a popup
+  // flush with it attaches, so the pill flows into it: the bottom one
+  // normally, or the top one with the bar at the bottom of the screen, where
+  // popups open upward instead.
+  property bool flattenRightPopupCorner: false
+  property bool flattenLeftPopupCorner: false
 
   implicitWidth: row.implicitWidth + horizontalPadding * 2
   implicitHeight: Theme.pillHeight()
@@ -33,8 +33,10 @@ Item {
     anchors.fill: parent
     visible: Theme.barStyle !== "full"
     radius: Theme.radiusFor(height)
-    topRightRadius: root.flattenPopupCorner && Theme.panelGap <= 0 && Theme.barPosition === "bottom" ? 0 : radius
-    bottomRightRadius: root.flattenPopupCorner && Theme.panelGap <= 0 && Theme.barPosition !== "bottom" ? 0 : radius
+    topRightRadius: root.flattenRightPopupCorner && Theme.barPosition === "bottom" ? 0 : radius
+    bottomRightRadius: root.flattenRightPopupCorner && Theme.barPosition !== "bottom" ? 0 : radius
+    topLeftRadius: root.flattenLeftPopupCorner && Theme.barPosition === "bottom" ? 0 : radius
+    bottomLeftRadius: root.flattenLeftPopupCorner && Theme.barPosition !== "bottom" ? 0 : radius
     color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
     border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth

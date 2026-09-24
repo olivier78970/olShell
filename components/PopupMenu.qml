@@ -180,7 +180,7 @@ Item {
       radius: Theme.radiusFor(height)
       // Flush with the bar (no gap set, see Theme.attachedCorner), both
       // corners against it are squared off so the popup flows out of the
-      // bar (and its widget's pill, see Pill.flattenPopupCorner), like the
+      // bar (and the bar's or its end pill's corner, see Bar.qml's popupLayer), like the
       // attached panels. A submenu squares off, the same way, those on the
       // side against its menu that actually touch it instead, and so does
       // the menu, those on the side against its submenu that touch it.

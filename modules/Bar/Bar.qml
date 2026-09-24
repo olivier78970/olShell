@@ -373,6 +373,11 @@ Scope {
             anchors.fill: parent
             visible: Theme.barStyle === "full"
             radius: Theme.radiusFor(height)
+            // Squared off where a popup flush with an end of the bar joins it.
+            topLeftRadius: !atTop && popupLayer.atLeftEnd ? 0 : radius
+            topRightRadius: !atTop && popupLayer.atRightEnd ? 0 : radius
+            bottomLeftRadius: atTop && popupLayer.atLeftEnd ? 0 : radius
+            bottomRightRadius: atTop && popupLayer.atRightEnd ? 0 : radius
             color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
             border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
             border.width: Theme.borderWidth
@@ -384,6 +389,7 @@ Scope {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             widgets: Settings.layout.left
+            flattenLeftPopupCorner: popupLayer.atLeftEnd
           }
 
           // Middle widgets
@@ -399,7 +405,7 @@ Scope {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             widgets: Settings.layout.right
-            flattenPopupCorner: popupOpen
+            flattenRightPopupCorner: popupLayer.atRightEnd
           }
         }
       }
@@ -452,6 +458,18 @@ Scope {
           const bottom = Math.max(...popupLayer.shown.map(item => item.y + item.height))
           return Qt.rect(left, top, right - left, bottom - top)
         }
+        // Whether one of them, flush with the bar (no gap set), reaches its
+        // left or right end: that corner of the bar (or of its end pill) is
+        // squared off so the two join up, as they do along the bar's edge.
+        readonly property bool atLeftEnd: Theme.panelGap <= 0
+          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= barArea.x + 0.5)
+        readonly property bool atRightEnd: Theme.panelGap <= 0
+          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= barArea.x + barArea.width - 0.5)
+
+        function touchesBar(item) {
+          return atTop ? item.y <= 0 : item.y + item.height >= 0
+        }
+
         // Whether one of them closes on a click outside (a menu, not a tooltip).
         readonly property bool grabbing: popupLayer.shown.some(item => item.grabFocus)
 
