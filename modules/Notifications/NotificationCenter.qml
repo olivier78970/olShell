@@ -153,6 +153,10 @@ PanelWindow {
       width: Math.min(440, root.areaWidth * 0.9)
       height: Math.min(root.areaHeight - frameWindow.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
       radius: Theme.radiusFor(height)
+      topLeftRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
+      topRightRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
+      bottomLeftRadius: root.attached ? Theme.attachedCorner(radius, false) : radius
+      bottomRightRadius: root.attached ? Theme.attachedCorner(radius, false) : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth

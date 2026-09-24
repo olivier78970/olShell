@@ -31,9 +31,10 @@ Item {
   readonly property bool containsMouse: hover.hovered
 
   readonly property bool barAtTop: Theme.barPosition !== "bottom"
-  // The bar's popup layer this is drawn in while shown.
+  // The bar's popup layer this is drawn in, shown or not (so `visible`,
+  // which moving it changes, never decides where it lives).
   readonly property Item host: {
-    if (!root.visible || !root.anchorItem) return null
+    if (!root.anchorItem) return null
     const win = root.anchorItem.QsWindow.window
     return win ? BarSlots.popupLayerFor(win.screen) : null
   }

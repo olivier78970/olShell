@@ -85,6 +85,13 @@ Singleton {
     return panelGap > 0 ? panelGap : -borderWidth
   }
 
+  // Radius for an attached panel's corner on its top (`top`) or bottom
+  // side: squared off on the side against the bar when there's no gap
+  // between them, so the panel flows out of the bar, `radius` otherwise.
+  function attachedCorner(radius, top) {
+    return panelGap <= 0 && top === (barPosition !== "bottom") ? 0 : radius
+  }
+
   function radiusFor(size) {
     return Math.min(radius, size / 2)
   }

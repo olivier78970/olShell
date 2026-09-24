@@ -194,6 +194,10 @@ PanelWindow {
       width: Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9)
       height: Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9)
       radius: Theme.radiusFor(height)
+      topLeftRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
+      topRightRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
+      bottomLeftRadius: root.attached ? Theme.attachedCorner(radius, false) : radius
+      bottomRightRadius: root.attached ? Theme.attachedCorner(radius, false) : radius
       color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
       // The border follows the real widget opacity (and Theme.borderOpaque),
       // not `panelOpacity`: a panel like the settings one can clamp its own

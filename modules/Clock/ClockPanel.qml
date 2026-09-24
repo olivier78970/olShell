@@ -61,6 +61,10 @@ Item {
     width: Math.max(frame.minWidth, tabBar.implicitWidth) + frame.inset * 2
     height: tabBar.implicitHeight + 12 + pages.height + frame.inset * 2
     radius: Theme.radiusFor(height)
+    topLeftRadius: Theme.attachedCorner(radius, true)
+    topRightRadius: Theme.attachedCorner(radius, true)
+    bottomLeftRadius: Theme.attachedCorner(radius, false)
+    bottomRightRadius: Theme.attachedCorner(radius, false)
     color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
     border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
