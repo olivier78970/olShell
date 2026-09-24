@@ -11,7 +11,7 @@ import Quickshell.Hyprland
 Singleton {
   id: root
 
-  // "" | "logout" | "restart" | "shutdown"
+  // "" | "logout" | "restart" | "firmware" | "shutdown"
   property string pendingAction: ""
 
   function request(action) {
@@ -29,9 +29,16 @@ Singleton {
       Hyprland.dispatch("hl.dsp.exit()")
     } else if (action === "restart") {
       restartProcess.running = true
+    } else if (action === "firmware") {
+      firmwareProcess.running = true
     } else if (action === "shutdown") {
       shutdownProcess.running = true
     }
+  }
+
+  // Suspends at once (it needs no confirmation).
+  function suspend() {
+    suspendProcess.running = true
   }
 
   Process {
@@ -42,5 +49,16 @@ Singleton {
   Process {
     id: shutdownProcess
     command: ["systemctl", "poweroff"]
+  }
+
+  // Restarts into the firmware's (UEFI's) setup screen.
+  Process {
+    id: firmwareProcess
+    command: ["systemctl", "reboot", "--firmware-setup"]
+  }
+
+  Process {
+    id: suspendProcess
+    command: ["systemctl", "suspend"]
   }
 }

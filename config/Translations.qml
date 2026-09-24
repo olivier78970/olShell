@@ -116,6 +116,10 @@ Singleton {
     "power.confirm.logout": "Log out?",
     "power.confirm.restart": "Restart the computer?",
     "power.confirm.shutdown": "Shut down the computer?",
+    "power.lock": "Lock",
+    "power.suspend": "Suspend",
+    "power.firmware": "UEFI setup",
+    "power.confirm.firmware": "Restart into the UEFI setup?",
 
     "carousel.apply": "Enter: apply",
     "wallpaper.title": "Wallpapers",
@@ -383,6 +387,10 @@ Singleton {
     "power.confirm.logout": "Se déconnecter ?",
     "power.confirm.restart": "Redémarrer l'ordinateur ?",
     "power.confirm.shutdown": "Éteindre l'ordinateur ?",
+    "power.lock": "Verrouiller",
+    "power.suspend": "Veille",
+    "power.firmware": "Réglages UEFI",
+    "power.confirm.firmware": "Redémarrer dans les réglages UEFI ?",
 
     "carousel.apply": "Entrée : appliquer",
     "wallpaper.title": "Fonds d'écran",
@@ -650,6 +658,10 @@ Singleton {
     "power.confirm.logout": "¿Cerrar sesión?",
     "power.confirm.restart": "¿Reiniciar el equipo?",
     "power.confirm.shutdown": "¿Apagar el equipo?",
+    "power.lock": "Bloquear",
+    "power.suspend": "Suspender",
+    "power.firmware": "Ajustes UEFI",
+    "power.confirm.firmware": "¿Reiniciar en los ajustes UEFI?",
 
     "carousel.apply": "Intro: aplicar",
     "wallpaper.title": "Fondos de pantalla",

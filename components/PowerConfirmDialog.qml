@@ -19,6 +19,7 @@ PanelWindow {
   readonly property var messages: ({
     logout: I18n.tr("power.confirm.logout"),
     restart: I18n.tr("power.confirm.restart"),
+    firmware: I18n.tr("power.confirm.firmware"),
     shutdown: I18n.tr("power.confirm.shutdown")
   })
 

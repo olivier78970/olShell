@@ -2,25 +2,31 @@ import QtQuick
 import Quickshell.Io
 import qs.components
 import qs.config
+import qs.services
 
-// Screen-centered power panel (no frame: just the three buttons, over the
-// dimmed screen) with the three actions (log out, restart, shut
-// down), toggled from the bar's power button or from outside via:
+// Screen-centered power panel (no frame: just the buttons, over the dimmed
+// screen) with the power actions (lock, suspend, log out, restart, restart
+// into the UEFI setup, shut down), toggled from the bar's power button or
+// from outside via:
 //   quickshell -p . ipc call power toggle
 // Left/Right (or Tab) move between the actions, Enter or a click picks one,
-// Escape or a click outside closes. Picking one closes the panel and asks for
-// confirmation (PowerConfirmDialog) before anything runs.
+// Escape or a click outside closes. Picking one closes the panel; lock and
+// suspend then happen at once, the others ask for confirmation
+// (PowerConfirmDialog) before anything runs.
 ModalPanel {
   id: root
 
   readonly property var actions: [
+    { id: "lock", icon: "󰌾", label: I18n.tr("power.lock") },
+    { id: "suspend", icon: "󰒲", label: I18n.tr("power.suspend") },
     { id: "logout", icon: "󰍃", label: I18n.tr("power.logout") },
     { id: "restart", icon: "󰜉", label: I18n.tr("power.restart") },
+    { id: "firmware", icon: "󰍛", label: I18n.tr("power.firmware") },
     { id: "shutdown", icon: "󰐥", label: I18n.tr("power.shutdown") }
   ]
   property int current: 0
 
-  maxPanelWidth: 452
+  maxPanelWidth: 940
   maxPanelHeight: 120
   framed: false
   // The screen darkens behind it, the only panel that does: shutting down or
@@ -34,7 +40,12 @@ ModalPanel {
 
   function pick(id) {
     PowerPanelState.visible = false
-    PowerMenuState.request(id)
+    // Nothing to lose in these two: no confirmation. (Suspending locks the
+    // screen first if the idle daemon is set to, as hypridle's
+    // before_sleep_cmd does.)
+    if (id === "lock") Lock.lock()
+    else if (id === "suspend") PowerMenuState.suspend()
+    else PowerMenuState.request(id)
   }
 
   onKeyPressed: event => {
@@ -50,8 +61,8 @@ ModalPanel {
     }
   }
 
-  // `power toggle` opens or closes the panel; the others go straight to the
-  // confirmation for that action.
+  // `power toggle` opens or closes the panel; the others do what its buttons
+  // do (suspend at once, the rest through the confirmation).
   IpcHandler {
     target: "power"
 
@@ -69,6 +80,14 @@ ModalPanel {
 
     function shutdown(): void {
       root.pick("shutdown")
+    }
+
+    function suspend(): void {
+      root.pick("suspend")
+    }
+
+    function firmware(): void {
+      root.pick("firmware")
     }
   }
 
