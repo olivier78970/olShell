@@ -28,6 +28,7 @@ Singleton {
     barMarginLeft: [0, 300],
     barMarginRight: [0, 300],
     panelGap: [0, 50],
+    workspaceCount: [1, 20],
     borderWidth: [0, 6],
     fontSize: [10, 32],
     fontWeight: [100, 900],
@@ -83,6 +84,9 @@ Singleton {
   // notification panels, the wallpaper and theme pickers); 0 keeps them
   // flush, their border overlapping the bar's.
   readonly property int panelGap: root.valid("panelGap", file.adapter.panelGap)
+  // How many workspace indicators the bar's workspaces widget shows (1 to
+  // this number).
+  readonly property int workspaceCount: root.valid("workspaceCount", file.adapter.workspaceCount)
   // "widgets": the bar itself is transparent and each widget pill has its
   // own background. "full": the bar has one continuous background instead
   // and the pills' own backgrounds are transparent. Either way, `opacity`
@@ -431,6 +435,7 @@ Singleton {
       property int barMarginLeft: Defaults.values.barMarginLeft
       property int barMarginRight: Defaults.values.barMarginRight
       property int panelGap: Defaults.values.panelGap
+      property int workspaceCount: Defaults.values.workspaceCount
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque

@@ -22,6 +22,7 @@ Singleton {
     barMarginLeft: 5,
     barMarginRight: 5,
     panelGap: 0,
+    workspaceCount: 5,
     barStyle: "widgets",
     borderWidth: 2,
     borderOpaque: false,

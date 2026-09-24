@@ -20,6 +20,11 @@ Item {
   // `disabledReason`, if set, explains why in a tooltip on hover.
   property bool interactive: true
   property string disabledReason: ""
+  // A note about the setting, in a tooltip on hover (while the row is
+  // enabled; a disabled row's `disabledReason` takes its place).
+  property string tooltip: ""
+  // What the tooltip says right now, if anything.
+  readonly property string tooltipText: !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
 
   signal moved(real value)
   signal activated()
@@ -133,7 +138,7 @@ Item {
   }
 
   // Hover works even while the slider itself is disabled, so the tooltip
-  // explaining why still shows.
+  // explaining why still shows (and over an enabled one, for `tooltip`).
   HoverHandler {
     id: hover
   }
@@ -144,15 +149,15 @@ Item {
   // color is. A separate window is immune to that, so the tooltip stays
   // fully opaque no matter how translucent the panel behind it is.
   PopupWindow {
-    id: tooltip
-    visible: hover.hovered && !root.interactive && root.disabledReason.length > 0
+    id: tooltipPopup
+    visible: hover.hovered && root.tooltipText.length > 0
     color: "transparent"
     anchor.item: root
     anchor.edges: Edges.Bottom
     anchor.gravity: Edges.Bottom
     anchor.margins.top: 6
-    implicitWidth: Math.min(280, tooltipText.implicitWidth + 24)
-    implicitHeight: tooltipText.implicitHeight + 16
+    implicitWidth: Math.min(280, tooltipLabel.implicitWidth + 24)
+    implicitHeight: tooltipLabel.implicitHeight + 16
 
     Rectangle {
       anchors.fill: parent
@@ -163,10 +168,10 @@ Item {
     }
 
     ThemedText {
-      id: tooltipText
+      id: tooltipLabel
       anchors.fill: parent
       anchors.margins: 8
-      text: root.disabledReason
+      text: root.tooltipText
       wrapMode: Text.WordWrap
       horizontalAlignment: Text.AlignHCenter
     }
