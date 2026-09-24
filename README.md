@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English or French.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), a wiremix audio mixer window (click the volume widget), a bluetui Bluetooth window (left-click the Bluetooth tray icon), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Settings.qml          # Adjustable values (look-and-feel, wallpaper transition), saved in Settings.json (Theme reads them), and the user's own defaults in UserDefaults.json
 │   ├── Defaults.qml          # The built-in default of every setting (read-only: nothing writes to it)
 │   ├── SettingsPanelState.qml   # Shared visibility of the settings panel
-│   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French texts
+│   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French / Spanish texts
 │   ├── ThemePanelState.qml   # Shared visibility of the theme panel
 │   ├── LauncherState.qml     # Shared visibility of the launcher
 │   ├── NotificationCenterState.qml   # Shared visibility of the notification center
@@ -144,7 +144,7 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Notifications | Pop-ups at once | 1 – 8 | 4 |
 | Notifications | Notification position (a list of small screens with a block where the pop-ups go, and the name) | Top right / Top center / Top left / Right center / Left center / Bottom right / Bottom center / Bottom left | Top right |
 | Notifications | Do not disturb | check box | off |
-| General | Language | Automatic / English / Français | Automatic |
+| General | Language | Automatic / English / Français / Español | Automatic |
 | General | Screenshot folder | an absolute path (`~` is your home folder), typed in | `~/Pictures/Screenshots` |
 
 **The bar's layout.** The widgets category has a row per bar widget (launcher, settings button, workspaces, window title, clock, wallpaper, theme and screenshot buttons, tray, CPU, RAM, disk, network, volume, notifications, lock, power) with a check box to put it on the bar or take it off (hidden; turned on again it goes back where it was, else to its default pill), and buttons to put it in the **Left**, **Center** or **Right** pill (which also turns it on), and ‹ › arrows to move it earlier or later in its pill. Putting a widget in a pill adds it at the end. The rows are listed as the widgets are on the bar: a section at a time (**Left**, **Center**, **Right**, then the ones that are **Off**), each with its name above it, and each **group** (see below) drawn as a block, with a bar on its left, so what the dividers separate is visible; a row that changes section moves to its new place in the list, and the selection follows it. Each row also has a **│** button: the divider drawn before that widget (lit when on; **D** on the keys). A divider only shows when its widget does and something shown comes before it in the pill, so there is none at the start of a pill or for a widget with nothing to show (the window title when no window is open), and it goes with its widget when that is moved; a pill with nothing left in it disappears. By default there is one before every widget except the launcher, the settings button, the clock and the tray, which is how the bar looked before this was adjustable. The widgets between two dividers form a **group**, which starts at the first widget of a pill and at each widget with a divider before it. Each group is headed by a **Group** row with a check box (right after the name, in the same column as the widgets' check boxes), an **On hover** button and ‹ › arrows. Ticked means the group is shown; unticked, it is off and never shown (its widgets stay in the group, so it can be turned on again). **On hover** lit means that, while it is on, it is shown only while the pointer is over its pill: its widgets slide open when you hover the pill and shut again half a second after you leave it (the group of a widget whose popup is showing, such as the clock, stays open until the popup closes, so the popup keeps its anchor; the other groups shut as usual). The arrows move the whole group earlier or later in its pill, past whole groups (the dividers follow, so the groups stay what they were). A pill whose groups are all on hover keeps a small dots icon to hover, and a pill whose groups are all off is not drawn. Dividers are drawn against what is showing, so hiding a group also drops the divider it would have had. The settings button can go anywhere but off, so this panel stays reachable by clicking. The layout is saved as three lists (`barLeft`, `barCenter`, `barRight`), the widgets with a divider before them (`barDividers`) and the widgets starting a group shown only on hover (`barCollapsed`) or off (`barGroupsOff`) in `config/Settings.json`; a widget listed twice or unknown is ignored. On the keys, **←/→** on a widget row change its pill (Off, Left, Center, Right) and **Shift+←/→** move it within the pill; on a group row, **←/→** move between the check box and the button, **Enter** or **Space** switches the one the keys are on, and **Shift+←/→** move the group.
@@ -159,10 +159,10 @@ Values live in [config/Settings.qml](config/Settings.qml), which `Theme` reads, 
 
 ## Localization
 
-The shell speaks **English** and **French**. By default it follows the system language (`LC_ALL`, `LC_MESSAGES` or `LANG`; English if that isn't one of the two). The **EN / FR** button at the right end of the middle pill switches to the other language, and the choice is remembered in `config/LocaleState.json` (git-ignored). It can also be set from a key binding or a script:
+The shell speaks **English**, **French** and **Spanish**. By default it follows the system language (`LC_ALL`, `LC_MESSAGES` or `LANG`; English if that isn't one of them). The language can be chosen in the settings panel (General), and the choice is remembered in `config/LocaleState.json` (git-ignored). It can also be set from a key binding or a script (`toggle` goes to the next language, English → French → Spanish):
 
 ```sh
-quickshell -p . ipc call language set fr      # or en, or auto to follow the system again
+quickshell -p . ipc call language set es      # or en, fr, or auto to follow the system again
 quickshell -p . ipc call language toggle
 quickshell -p . ipc call language get
 ```

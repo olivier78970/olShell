@@ -15,10 +15,10 @@ import Quickshell.Io
 Singleton {
   id: root
 
-  readonly property var supported: ["en", "fr"]
+  readonly property var supported: ["en", "fr", "es"]
   readonly property string fallback: "en"
   // Each language's name in that language, as shown in the settings panel.
-  readonly property var languageNames: ({ en: "English", fr: "Français" })
+  readonly property var languageNames: ({ en: "English", fr: "Français", es: "Español" })
 
   // "auto" or one of `supported`, as chosen by the user.
   readonly property string setting: file.adapter.setting
@@ -41,7 +41,8 @@ Singleton {
     return true
   }
 
-  // Switches between the two supported languages (from whichever is in use).
+  // Switches to the next supported language (from whichever is in use),
+  // back to the first after the last.
   function toggle() {
     const index = root.supported.indexOf(root.language)
     root.select(root.supported[(index + 1) % root.supported.length])
@@ -77,7 +78,7 @@ Singleton {
   IpcHandler {
     target: "language"
 
-    // set auto | en | fr
+    // set auto | en | fr | es
     function set(language: string): void {
       root.select(language)
     }
