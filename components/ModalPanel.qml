@@ -207,6 +207,13 @@ PanelWindow {
       border.width: root.framed ? Theme.borderWidth : 0
       focus: true
 
+      // Curves it out of the bar when attached flush against it.
+      BarFillets {
+        visible: root.attached && root.framed
+        color: frame.color
+        borderColor: frame.border.color
+      }
+
       Keys.onPressed: event => {
         // Escape goes to the owner first, so it can use it for something of
         // its own (closing a dropdown's list, say) instead of the panel; it

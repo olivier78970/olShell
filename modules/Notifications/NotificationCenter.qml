@@ -162,6 +162,13 @@ PanelWindow {
       border.width: Theme.borderWidth
       focus: true
 
+      // Curves it out of the bar when attached flush against it.
+      BarFillets {
+        visible: root.attached
+        color: frame.color
+        borderColor: frame.border.color
+      }
+
       Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape) {
           NotificationCenterState.visible = false

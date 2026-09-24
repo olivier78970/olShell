@@ -69,6 +69,12 @@ Item {
     border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
 
+    // Curves it out of the bar when flush against it.
+    BarFillets {
+      color: frame.color
+      borderColor: frame.border.color
+    }
+
     TabBar {
       id: tabBar
       anchors.left: parent.left

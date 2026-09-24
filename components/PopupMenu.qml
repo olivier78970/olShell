@@ -179,12 +179,24 @@ Item {
   width: Math.ceil(column.implicitWidth + root.padding * 2)
   height: Math.ceil(Math.min(root.maxHeight, root.contentHeight))
 
+  // Curves it out of the bar when flush against it (not a submenu, beside
+  // its menu), on each side that isn't flush with an end of the bar, where
+  // the bar's own corner is squared off instead (see Bar.qml's popupLayer).
+  BarFillets {
+    visible: !root.parentMenu && root.host !== null
+    color: background.color
+    borderColor: background.border.color
+    showLeft: root.host !== null && root.x > root.host.barLeft + 0.5
+    showRight: root.host !== null && root.x + root.width < root.host.barRight - 0.5
+  }
+
   Item {
     id: surface
     anchors.fill: parent
     clip: true
 
     Rectangle {
+      id: background
       anchors.fill: parent
       radius: Theme.radiusFor(height)
       // Flush with the bar (no gap set, see Theme.attachedCorner), both
