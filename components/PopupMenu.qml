@@ -90,17 +90,19 @@ Item {
     Rectangle {
       anchors.fill: parent
       radius: Theme.radiusFor(height)
-      // The corner touching the widget's pill is squared off so they flow
-      // together (not when centered): the popup's top corner, on the side
-      // that isn't centered, when it opens below the bar; its bottom corner
-      // when it opens above (the bar's at the bottom of the screen). Only in
-      // the "widgets" bar style, which has a pill to flow into - "full"
-      // style's single bar-wide background has no per-widget edge to match,
-      // so the popup keeps its full radius there.
-      topLeftRadius: Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter ? 0 : radius
-      topRightRadius: Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter ? 0 : radius
-      bottomLeftRadius: Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter ? 0 : radius
-      bottomRightRadius: Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter ? 0 : radius
+      // Flush with the bar (no gap set, see Theme.attachedCorner), both
+      // corners against it are squared off so the popup flows out of the
+      // bar, like the attached panels. Otherwise only the corner touching
+      // the widget's pill is (not when centered): the popup's top corner, on
+      // the side that isn't centered, when it opens below the bar; its
+      // bottom corner when it opens above (the bar's at the bottom of the
+      // screen). And only in the "widgets" bar style, which has a pill to
+      // flow into - "full" style's single bar-wide background has no
+      // per-widget edge to match, so the popup keeps its full radius there.
+      topLeftRadius: Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter) ? 0 : radius
+      topRightRadius: Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter) ? 0 : radius
+      bottomLeftRadius: Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter) ? 0 : radius
+      bottomRightRadius: Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter) ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth
