@@ -149,9 +149,17 @@ Scope {
       margins.left: root.autoHide ? 0 : Theme.barMarginLeft
       margins.right: root.autoHide ? 0 : Theme.barMarginRight
 
-      // Grows (away from the edge) to also hold an open attached panel; the
-      // room reserved for the bar (exclusiveZone below) stays the same.
-      implicitHeight: root.barBlock + Math.max(root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
+      // Grows (away from the edge) to also hold an open attached panel or
+      // popup; the room reserved for the bar (exclusiveZone below) stays the
+      // same. It never shrinks back, though, only grows to the most it has
+      // needed so far (grownBy): Hyprland shows a layer surface's shrink a
+      // frame late, and the bar visibly blinked each time a panel or menu
+      // closed. What's left past the bar is transparent and masked out from
+      // input, so it only costs Hyprland blurring behind it when what's
+      // under it changes.
+      implicitHeight: root.barBlock + Math.max(root.grownBy, root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
+      property real grownBy: 0
+      onImplicitHeightChanged: root.grownBy = Math.max(root.grownBy, root.implicitHeight - root.barBlock)
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
       // that much further away. Reserved the instant the bar is revealed,
