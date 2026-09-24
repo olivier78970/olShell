@@ -24,6 +24,7 @@ Singleton {
     panelGap: 0,
     curvedJoins: true,
     workspaceCount: 5,
+    workspaceCountFromHyprland: false,
     barStyle: "widgets",
     borderWidth: 2,
     borderOpaque: false,

@@ -23,6 +23,8 @@ Item {
   // A note about the setting, in a tooltip on hover (while the row is
   // enabled; a disabled row's `disabledReason` takes its place).
   property string tooltip: ""
+  // A short, dimmed second line under the label (e.g. a related fact).
+  property string note: ""
   // What the tooltip says right now, if anything.
   readonly property string tooltipText: !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
 
@@ -63,15 +65,28 @@ Item {
       border.width: 1
     }
 
-    ThemedText {
-      id: labelText
+    Column {
       anchors.left: parent.left
       anchors.leftMargin: 12
       anchors.right: track.left
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
-      text: root.label
-      elide: Text.ElideRight
+
+      ThemedText {
+        id: labelText
+        width: parent.width
+        text: root.label
+        elide: Text.ElideRight
+      }
+
+      ThemedText {
+        visible: root.note.length > 0
+        width: parent.width
+        text: root.note
+        sizeScale: 0.8
+        opacity: 0.6
+        elide: Text.ElideRight
+      }
     }
 
     ThemedText {

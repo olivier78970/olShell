@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import qs.components
 import qs.config
+import qs.services
 
 // Settings panel, toggled from outside via:
 //   quickshell -p . ipc call settings toggle
@@ -114,6 +115,9 @@ ModalPanel {
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "workspaceCount", category: "workspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
+    { key: "workspaceCountFromHyprlandRow", category: "workspaces", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspaceCountFromHyprland"), toggles: [
+      { key: "workspaceCountFromHyprland", text: "" }
+    ] },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
     { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
@@ -256,7 +260,15 @@ ModalPanel {
     if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0
+    if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
     return true
+  }
+
+  // What slider `row` shows: its setting's value, or for the workspace
+  // count while it follows the Hyprland config, the count the bar shows.
+  function sliderValueOf(row) {
+    if (row.key === "workspaceCount") return WorkspaceRules.shownCount
+    return Settings.get(row.key)
   }
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
@@ -265,6 +277,7 @@ ModalPanel {
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
+    if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
     return ""
   }
@@ -370,6 +383,7 @@ ModalPanel {
     // fontLetterSpacing, wallpaperDuration, zoomMax, zoomStep); out-of-range
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
+    // workspaceCountFromHyprland,
     // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline) take 1 or 0.
     function set(key: string, value: real): void {
@@ -1097,12 +1111,13 @@ ModalPanel {
                 from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
                 to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
                 stepSize: row.modelData.step ?? 1
-                value: row.modelData.kind === "slider" ? Settings.get(row.modelData.key) : 0
-                valueText: row.modelData.kind === "slider" ? row.modelData.format(Settings.get(row.modelData.key)) : ""
+                value: row.modelData.kind === "slider" ? root.sliderValueOf(row.modelData) : 0
+                valueText: row.modelData.kind === "slider" ? row.modelData.format(root.sliderValueOf(row.modelData)) : ""
                 selected: root.selected === row.index
                 interactive: root.rowEnabled(row.modelData)
                 disabledReason: root.disabledReasonOf(row.modelData)
                 tooltip: row.modelData.tooltip ?? ""
+                note: row.modelData.key === "workspaceCount" ? I18n.tr("settings.workspaceCount.note", WorkspaceRules.configured.length) : ""
                 onActivated: root.selected = row.index
                 onMoved: value => Settings.set(row.modelData.key, value)
               }

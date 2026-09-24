@@ -94,6 +94,9 @@ Singleton {
   // How many workspace indicators the bar's workspaces widget shows (1 to
   // this number).
   readonly property int workspaceCount: root.valid("workspaceCount", file.adapter.workspaceCount)
+  // Whether the bar shows as many as the Hyprland config sets up instead
+  // (see services/WorkspaceRules.qml's shownCount).
+  readonly property bool workspaceCountFromHyprland: root.valid("workspaceCountFromHyprland", file.adapter.workspaceCountFromHyprland)
   // "widgets": the bar itself is transparent and each widget pill has its
   // own background. "full": the bar has one continuous background instead
   // and the pills' own backgrounds are transparent. Either way, `opacity`
@@ -444,6 +447,7 @@ Singleton {
       property int panelGap: Defaults.values.panelGap
       property bool curvedJoins: Defaults.values.curvedJoins
       property int workspaceCount: Defaults.values.workspaceCount
+      property bool workspaceCountFromHyprland: Defaults.values.workspaceCountFromHyprland
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
