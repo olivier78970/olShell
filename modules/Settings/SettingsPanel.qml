@@ -22,12 +22,73 @@ ModalPanel {
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
     { id: "widgets", icon: "󰀻", label: I18n.tr("settings.category.widgets") },
+    { id: "workspaces", parent: "widgetSettings", icon: "󰄷", label: I18n.tr("settings.category.workspaces") },
+    { id: "zoom", parent: "widgetSettings", icon: "󱡴", label: I18n.tr("settings.category.zoom") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
-    { id: "zoom", icon: "󱡴", label: I18n.tr("settings.category.zoom") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
+
+  // Headings in the rail over sub-categories (the categories with that
+  // `parent`), which are listed under it, indented, while it's expanded. A
+  // heading isn't a page of its own: clicking it expands it and opens its
+  // first sub-category, or collapses it (see toggleGroup()).
+  readonly property var categoryGroups: ({
+    widgetSettings: { icon: "󱍕", label: I18n.tr("settings.category.widgetSettings") }
+  })
+
+  // The groups expanded in the rail, by id. A group opens by itself when
+  // one of its sub-categories becomes the current page (PageUp/PageDown).
+  property var expandedGroups: ({})
+
+  onCategoryChanged: {
+    const parent = root.categories[root.category].parent
+    if (parent && !root.expandedGroups[parent]) root.setGroupExpanded(parent, true)
+  }
+
+  function setGroupExpanded(id, expanded) {
+    const groups = Object.assign({}, root.expandedGroups)
+    groups[id] = expanded
+    root.expandedGroups = groups
+  }
+
+  // A heading clicked: a collapsed group expands and opens its first
+  // sub-category; an expanded one collapses (the page shown stays).
+  function toggleGroup(id, firstIndex) {
+    if (root.expandedGroups[id]) {
+      root.setGroupExpanded(id, false)
+    } else {
+      root.setGroupExpanded(id, true)
+      root.selectCategory(firstIndex)
+    }
+  }
+
+  // Every entry the rail can list: every category, with its group's heading
+  // before the first of a group's sub-categories. `index` is the category's
+  // index in `categories` (a heading's is its first sub-category's).
+  readonly property var railAllEntries: {
+    const entries = []
+    root.categories.forEach((category, index) => {
+      const previous = index > 0 ? root.categories[index - 1] : null
+      if (category.parent && (!previous || previous.parent !== category.parent)) {
+        const group = root.categoryGroups[category.parent]
+        entries.push({ heading: true, id: category.parent, icon: group.icon, label: group.label, index: index })
+      }
+      entries.push({ heading: false, id: category.id, icon: category.icon, label: category.label, sub: !!category.parent, parent: category.parent ?? "", index: index })
+    })
+    return entries
+  }
+
+  // What the rail shows: the sub-categories of collapsed groups left out.
+  readonly property var railEntries: root.railAllEntries.filter(entry => !entry.sub || root.expandedGroups[entry.parent])
+
+  // The name of category `index` as the page's title: a sub-category's
+  // with its group's before it.
+  function titleOf(index) {
+    const category = root.categories[index]
+    return category.parent ? root.categoryGroups[category.parent].label + "  ›  " + category.label : category.label
+  }
 
   // The rows of every category, top to bottom. Sliders take their range from
   // Settings.limits.
@@ -53,7 +114,7 @@ ModalPanel {
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "panelGap", category: "bar", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
-    { key: "workspaceCount", category: "bar", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
+    { key: "workspaceCount", category: "workspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
     { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
@@ -385,7 +446,8 @@ ModalPanel {
     }
 
     // Saves the current values of a category (appearance, text, bar, widgets,
-    // wallpaper, notifications or general) as your own defaults.
+    // workspaces, zoom, wallpaper, notifications, lock or general) as your
+    // own defaults.
     function saveDefaults(category: string): void {
       if (root.categories.some(candidate => candidate.id === category)) root.saveDefaults(category)
     }
@@ -651,16 +713,19 @@ ModalPanel {
   }
 
   // Not shown: the category names, only to find the widest one (in the
-  // current font and language) so every rail button can be that wide.
+  // current font and language) so every rail button can be that wide;
+  // a sub-category's counts its indent.
   Column {
     id: railLabels
     opacity: 0
 
     Repeater {
-      model: root.categories
+      model: root.railAllEntries
 
       ThemedText {
         required property var modelData
+        leftPadding: modelData.sub ? root.railIndent : 0
+        rightPadding: modelData.heading ? root.railChevronWidth : 0
         text: modelData.label
       }
     }
@@ -682,7 +747,14 @@ ModalPanel {
     }
   }
 
-  // Category buttons, one per page of settings: an icon and the name.
+  // How far sub-categories are indented under their heading in the rail,
+  // and the room a heading's chevron takes after its name.
+  readonly property real railIndent: 18
+  readonly property real railChevronWidth: 26
+
+  // Category buttons, one per page of settings: an icon and the name. A
+  // group's heading comes before its sub-categories, which are indented;
+  // it shows as current while one of them is (without its frame).
   Column {
     id: rail
     anchors.left: parent.left
@@ -692,31 +764,37 @@ ModalPanel {
     spacing: 6
 
     Repeater {
-      model: root.categories
+      model: root.railEntries
 
       Item {
         id: categoryButton
 
         required property var modelData
-        required property int index
-        readonly property bool current: categoryButton.index === root.category
+        readonly property bool heading: categoryButton.modelData.heading
+        readonly property real indent: categoryButton.modelData.sub ? root.railIndent : 0
+        readonly property bool current: categoryButton.heading
+          ? root.categories[root.category].parent === categoryButton.modelData.id
+          : categoryButton.modelData.index === root.category
+        // The frame and tint only on the page's own button, not its heading.
+        readonly property bool framed: categoryButton.current && !categoryButton.heading
 
         width: 44 + railLabels.implicitWidth + 14
         height: 44
 
         Rectangle {
           anchors.fill: parent
+          anchors.leftMargin: categoryButton.indent
           radius: Theme.radiusFor(height)
-          color: categoryButton.current
+          color: categoryButton.framed
             ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.14)
             : (categoryMouse.containsMouse ? Theme.borderColor : "transparent")
-          border.color: categoryButton.current ? Theme.accentColor : "transparent"
+          border.color: categoryButton.framed ? Theme.accentColor : "transparent"
           border.width: 1
         }
 
-        // The icon, centered in the first 44 pixels.
+        // The icon, centered in the first 44 pixels (after the indent).
         ThemedText {
-          x: 0
+          x: categoryButton.indent
           width: 44
           horizontalAlignment: Text.AlignHCenter
           anchors.verticalCenter: parent.verticalCenter
@@ -727,9 +805,20 @@ ModalPanel {
 
         ThemedText {
           anchors.left: parent.left
-          anchors.leftMargin: 44
+          anchors.leftMargin: categoryButton.indent + 44
           anchors.verticalCenter: parent.verticalCenter
           text: categoryButton.modelData.label
+          color: categoryButton.current || categoryMouse.containsMouse ? Theme.accentColor : Theme.textColor
+        }
+
+        // A heading's chevron: right while collapsed, down while expanded.
+        ThemedText {
+          visible: categoryButton.heading
+          anchors.right: parent.right
+          anchors.rightMargin: 12
+          anchors.verticalCenter: parent.verticalCenter
+          text: root.expandedGroups[categoryButton.modelData.id] ? "󰅀" : "󰅂"
+          sizeScale: 0.9
           color: categoryButton.current || categoryMouse.containsMouse ? Theme.accentColor : Theme.textColor
         }
 
@@ -738,7 +827,7 @@ ModalPanel {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.selectCategory(categoryButton.index)
+          onClicked: categoryButton.heading ? root.toggleGroup(categoryButton.modelData.id, categoryButton.modelData.index) : root.selectCategory(categoryButton.modelData.index)
         }
       }
     }
@@ -783,7 +872,7 @@ ModalPanel {
       ThemedText {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        text: root.categories[root.category].label
+        text: root.titleOf(root.category)
         sizeScale: 1.2
       }
 
