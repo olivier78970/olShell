@@ -114,8 +114,10 @@ Item {
   }
   // How far its entries are scrolled, for a submenu to follow its entry.
   readonly property real scrollY: flick.contentY
-  // Space between a submenu and its menu.
-  readonly property real submenuGap: 4
+  // Space between a submenu and its menu: the same as between the bar and
+  // the panels attached to it (Theme.panelOffset: the gap setting, or with
+  // none, flush, their borders overlapping).
+  readonly property real submenuGap: Theme.panelOffset()
   // Room around the entries, on every side.
   readonly property real padding: 8
 
