@@ -93,16 +93,11 @@ Item {
   }
   y: {
     if (!root.parentMenu) return root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
-    // A submenu: its top level with the top of the entry it opens from,
-    // but never over the bar. Kept within the room past the bar too, moved
-    // back from the far edge of the screen as needed. Looked up again as the
-    // menu moves or scrolls.
-    if (!root.host || !root.anchorItem) return 0
-    root.parentMenu.y
-    root.parentMenu.scrollY
-    const top = root.anchorItem.mapToItem(root.host, 0, 0).y
-    return Math.round(root.barAtTop ? Math.max(0, Math.min(root.room - root.height, top))
-      : Math.min(-root.height, Math.max(-root.room, top)))
+    // A submenu: from the entry it opens from (see entryEdge), moved back
+    // from the far edge of the screen only when there isn't even
+    // minSubmenuHeight left past the entry.
+    return Math.round(root.barAtTop ? Math.min(root.entryEdge, root.room - root.height)
+      : Math.max(root.entryEdge - root.height, -root.room))
   }
   // How tall it can get: the room between the bar and the far edge of the
   // screen, less a margin. Longer entry lists scroll.
@@ -111,6 +106,27 @@ Item {
     if (!screen) return 10000
     const margin = root.barAtTop ? Theme.barMarginTop : Theme.barMarginBottom
     return screen.height - margin - Theme.barHeight - 10
+  }
+  // For a submenu: where it starts, level with the entry it opens from -
+  // its top with the entry's top, or on a bottom bar (where it grows
+  // upward), its bottom with the entry's bottom. Looked up again as the menu
+  // moves or scrolls.
+  readonly property real entryEdge: {
+    if (!root.parentMenu || !root.host || !root.anchorItem) return 0
+    root.parentMenu.y
+    root.parentMenu.scrollY
+    return root.anchorItem.mapToItem(root.host, 0, root.barAtTop ? 0 : root.anchorItem.height).y
+  }
+  // How tall its entries want it to be.
+  readonly property real contentHeight: column.implicitHeight + root.padding * 2
+  // A submenu takes only the room left past its entry (scrolling the rest),
+  // so a long one still starts at its entry - but at least this much, when
+  // its entry is near the far edge of the screen.
+  readonly property real minSubmenuHeight: 200
+  readonly property real maxHeight: {
+    if (!root.parentMenu) return root.room
+    const left = root.barAtTop ? root.room - root.entryEdge : root.room + root.entryEdge
+    return Math.min(root.room, Math.max(left, root.minSubmenuHeight))
   }
   // How far its entries are scrolled, for a submenu to follow its entry.
   readonly property real scrollY: flick.contentY
@@ -122,7 +138,7 @@ Item {
   readonly property real padding: 8
 
   width: Math.ceil(column.implicitWidth + root.padding * 2)
-  height: Math.ceil(Math.min(root.room, column.implicitHeight + root.padding * 2))
+  height: Math.ceil(Math.min(root.maxHeight, root.contentHeight))
 
   Item {
     id: surface
