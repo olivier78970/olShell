@@ -12,9 +12,7 @@ import qs.config
 //
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame - see
-// NotificationCenter.qml, which this mirrors. Being on Quickshell's default
-// namespace (unlike PopupMenu's xdg-popups, see services/Blur.qml), the
-// frame gets real compositor blur instead of PopupMenu's fake wallpaper one.
+// NotificationCenter.qml, which this mirrors.
 //
 // To add a feature, append an entry to `tabs` and a matching page inside
 // the StackLayout below (same order).

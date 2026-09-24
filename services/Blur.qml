@@ -20,6 +20,14 @@ import qs.config
 // ^...$ anchors it would also catch the "quickshell:backdrop" namespace the
 // panels' click-catching backdrops use (ModalPanel, NotificationCenter,
 // ClockPanel...), blurring surfaces meant to stay plainly transparent.
+//
+// The widget popups and menus (PopupMenu) aren't layer surfaces but
+// xdg-popups of the bar's, which `blur` alone doesn't reach: `blur_popups`
+// extends it to them. And since a popup's blur covers its whole rectangle,
+// `ignore_alpha` leaves out the (fully transparent) pixels past its rounded
+// corners, which would otherwise show as blurred square corners. Kept low
+// so it never cuts into a surface's own fill, however far
+// Theme.widgetOpacity fades it.
 Singleton {
   id: root
 
@@ -61,7 +69,7 @@ Singleton {
   }
 
   function apply() {
-    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "^quickshell$" }, blur = ${root.active} })`]
+    process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "^quickshell$" }, blur = ${root.active}, blur_popups = ${root.active}, ignore_alpha = 0.1 })`]
     process.running = true
   }
 
