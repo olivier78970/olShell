@@ -12,12 +12,24 @@ import qs.services
 //
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame - see
-// ModalPanel.qml, which this mirrors.
+// ModalPanel.qml, which this mirrors. Neither shows when the panel is
+// attached to the bar (the pop-ups at the top, under a top bar): the frame is
+// drawn inside the bar then (see config/BarSlots.qml), which also takes care
+// of the click outside.
 PanelWindow {
   id: root
 
+  readonly property bool open: NotificationCenterState.visible
+  readonly property bool attached: Notifications.atTop && Theme.barPosition !== "bottom"
+  // The bar slot an open attached panel's frame is drawn in, if any.
+  readonly property Item hostSlot: root.open && root.attached ? BarSlots.slotFor(Notifications.screen) : null
+  // The room the frame sizes itself to: the backdrop's, or the screen's
+  // when attached (the backdrop never shows then).
+  readonly property real areaWidth: root.attached && Notifications.screen ? Notifications.screen.width : root.width
+  readonly property real areaHeight: root.attached && Notifications.screen ? Notifications.screen.height : root.height
+
   screen: Notifications.screen
-  visible: NotificationCenterState.visible
+  visible: root.open && !root.attached
 
   WlrLayershell.layer: WlrLayer.Overlay
   // A distinct namespace from frameWindow's default one (shared with the
@@ -37,8 +49,22 @@ PanelWindow {
   // Covers the strip behind the bar too, so a click there closes the panel.
   exclusionMode: ExclusionMode.Ignore
 
-  onVisibleChanged: {
-    if (root.visible) Notifications.hideAllPopups()
+  onOpenChanged: {
+    if (root.open) Notifications.hideAllPopups()
+  }
+
+  // Takes the keyboard once in the bar (its window gets it from the bar's
+  // focus grab), a tick later so the frame has actually moved there.
+  onHostSlotChanged: {
+    if (root.hostSlot) Qt.callLater(() => frame.forceActiveFocus())
+  }
+
+  Connections {
+    target: root.hostSlot
+
+    function onDismissed() {
+      NotificationCenterState.visible = false
+    }
   }
 
   // A notification arriving while the center is open shows in it, not as a pop-up.
@@ -46,7 +72,7 @@ PanelWindow {
     target: Notifications
 
     function onEntriesChanged() {
-      if (root.visible) Notifications.hideAllPopups()
+      if (root.open) Notifications.hideAllPopups()
     }
   }
 
@@ -122,8 +148,10 @@ PanelWindow {
 
       readonly property real inset: 16
 
-      width: Math.min(440, root.width * 0.9)
-      height: Math.min(root.height - frameWindow.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
+      // In the bar's slot while attached and open, in frameWindow otherwise.
+      parent: root.hostSlot ?? frameWindow.contentItem
+      width: Math.min(440, root.areaWidth * 0.9)
+      height: Math.min(root.areaHeight - frameWindow.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
       radius: Theme.radiusFor(height)
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)

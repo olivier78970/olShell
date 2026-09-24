@@ -1,5 +1,7 @@
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
+import Quickshell.Wayland
 import QtQuick
 import qs.config
 
@@ -20,7 +22,13 @@ Scope {
       // (postponed while one of its own popups is open, so that doesn't
       // get left floating with nothing under it).
       property bool revealed: !root.autoHide
-      readonly property bool anyPopupOpen: leftZone.popupOpen || centerZone.popupOpen || rightZone.popupOpen
+      readonly property bool anyPopupOpen: leftZone.popupOpen || centerZone.popupOpen || rightZone.popupOpen || root.hosting
+      // Whether a panel attached to the bar is open on this screen, drawn
+      // in panelSlot below.
+      readonly property bool hosting: panelSlot.frame !== null
+      // The bar's own strip: its height, plus the near margin while
+      // auto-hiding (see margins below).
+      readonly property real barBlock: Theme.barHeight + (root.autoHide ? root.nearMargin : 0)
       // The margin on the near side (between the true screen edge and the
       // bar itself): the one a hovering pointer has to cross to reach it.
       readonly property int nearMargin: atTop ? Theme.barMarginTop : Theme.barMarginBottom
@@ -94,6 +102,13 @@ Scope {
         root.spaceReserved = root.revealed
       }
       onAnyPopupOpenChanged: if (!root.anyPopupOpen && !stayOpenHover.hovered && root.autoHide) hideTimer.restart()
+      // A panel opened by IPC while the bar is tucked away brings it back.
+      onHostingChanged: {
+        if (root.hosting) {
+          hideTimer.stop()
+          root.revealed = true
+        }
+      }
 
       anchors {
         top: atTop
@@ -113,7 +128,9 @@ Scope {
       margins.left: root.autoHide ? 0 : Theme.barMarginLeft
       margins.right: root.autoHide ? 0 : Theme.barMarginRight
 
-      implicitHeight: Theme.barHeight + (root.autoHide ? root.nearMargin : 0)
+      // Grows (away from the edge) to also hold an open attached panel; the
+      // room reserved for the bar (exclusiveZone below) stays the same.
+      implicitHeight: root.barBlock + (root.hosting ? panelSlot.height + Theme.panelOffset() : 0)
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
       // that much further away. Reserved the instant the bar is revealed,
@@ -137,8 +154,24 @@ Scope {
       // through to whatever's below. Once revealed, the whole window does
       // (which, while auto-hiding, includes the near/left/right margins:
       // straying into them doesn't lose the bar either).
+      // An open attached panel takes input too, but not the rest of the
+      // (otherwise transparent) width it grows the window by.
       mask: Region {
         item: (root.autoHide && !root.revealed) ? hoverStrip : fullArea
+
+        Region {
+          item: panelSlot
+        }
+      }
+
+      // An attached panel takes the keyboard while it's open, and a click
+      // anywhere outside the bar and panel closes it (the focus grab ends).
+      WlrLayershell.keyboardFocus: root.hosting ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+
+      HyprlandFocusGrab {
+        active: root.hosting
+        windows: [root]
+        onCleared: panelSlot.dismissed()
       }
 
       // Flush with the true screen edge, for the click-through mask above
@@ -192,7 +225,11 @@ Scope {
 
       Item {
         id: fullArea
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: atTop ? parent.top : undefined
+        anchors.bottom: atTop ? undefined : parent.bottom
+        height: root.barBlock
 
         // Once revealed, the pointer being anywhere in the bar or its
         // margins (not just the edge strip above) keeps it open.
@@ -270,6 +307,27 @@ Scope {
             flattenPopupCorner: popupOpen
           }
         }
+      }
+
+      // Where an attached panel's frame is drawn while it's open on this
+      // screen (see config/BarSlots.qml): sized to the frame, horizontally
+      // centered on the screen, Theme.panelOffset() away from the bar.
+      Item {
+        id: panelSlot
+
+        readonly property var screen: root.screen
+        readonly property Item frame: panelSlot.children.length > 0 ? panelSlot.children[0] : null
+
+        // A click outside the bar and panel: the panel should close.
+        signal dismissed()
+
+        x: root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2
+        y: atTop ? root.barBlock + Theme.panelOffset() : 0
+        width: panelSlot.frame ? panelSlot.frame.width : 0
+        height: panelSlot.frame ? panelSlot.frame.height : 0
+
+        Component.onCompleted: BarSlots.register(panelSlot)
+        Component.onDestruction: BarSlots.unregister(panelSlot)
       }
     }
   }

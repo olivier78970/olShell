@@ -20,7 +20,7 @@ CarouselPanel {
   maxPanelWidth: 1700
   maxPanelHeight: 520
 
-  visible: ThemePanelState.visible
+  open: ThemePanelState.visible
   attached: true
   anchorItem: ThemePanelState.anchorItem
   onCloseRequested: ThemePanelState.visible = false

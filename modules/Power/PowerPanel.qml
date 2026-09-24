@@ -24,7 +24,7 @@ ModalPanel {
   maxPanelHeight: 120
   framed: false
 
-  visible: PowerPanelState.visible
+  open: PowerPanelState.visible
   onCloseRequested: PowerPanelState.visible = false
   onOpened: root.current = 0
 

@@ -28,7 +28,7 @@ ModalPanel {
   maxPanelHeight: 520
   focusTarget: input
 
-  visible: LauncherState.visible
+  open: LauncherState.visible
   onCloseRequested: LauncherState.visible = false
   onOpened: {
     input.text = ""

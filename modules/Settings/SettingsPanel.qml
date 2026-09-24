@@ -327,7 +327,7 @@ ModalPanel {
   maxPanelWidth: Math.max(920, root.neededWidth)
   maxPanelHeight: 780
 
-  visible: SettingsPanelState.visible
+  open: SettingsPanelState.visible
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
     if (root.confirmAll) root.confirmAll = false

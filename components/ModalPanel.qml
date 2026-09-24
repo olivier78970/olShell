@@ -11,17 +11,17 @@ import qs.config
 // a click outside the panel always emits `closeRequested`, and so does
 // Escape, unless the owner's `keyPressed` accepted it.
 //
-// The owner controls visibility (bind `visible`) and reacts to the signals;
+// The owner controls visibility (bind `open`) and reacts to the signals;
 // this component keeps no state of its own about being open.
 //
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame.
 //
 // With `attached`, the panel opens against the bar instead, like the clock
-// panel: horizontally centered on the screen, flush below (or above, on a
-// bottom bar) `anchorItem`'s pill, on its screen - or, without an
-// anchorItem (when opened by IPC), flush with the focused screen's bar. Nothing is
-// dimmed then: the backdrop only catches the click outside.
+// panel: on `anchorItem`'s screen - or, without an anchorItem (when opened
+// by IPC), the focused one - with nothing dimmed. Neither of these windows
+// shows then: the frame is drawn inside that screen's bar (see
+// config/BarSlots.qml), which also takes care of the click outside.
 PanelWindow {
   id: root
 
@@ -36,6 +36,9 @@ PanelWindow {
   property bool framed: true
   // Gets keyboard focus each time the panel opens (default: the frame).
   property Item focusTarget: frame
+  // Whether the panel is open; the owner binds it (not `visible`, which an
+  // attached panel keeps false).
+  property bool open: false
   // Opens against the bar rather than centered on the screen (see above).
   property bool attached: false
   // The bar widget an attached panel opens from, if any.
@@ -46,7 +49,7 @@ PanelWindow {
   default property alias content: contentHolder.data
 
   signal closeRequested()
-  // Emitted each time the panel becomes visible.
+  // Emitted each time the panel opens.
   signal opened()
   // A key that neither Escape nor the focused item used; set
   // `event.accepted = true` to consume it.
@@ -76,11 +79,12 @@ PanelWindow {
   // whole screen, including the strip behind the top bar.
   exclusionMode: ExclusionMode.Ignore
 
-  onVisibleChanged: {
-    if (root.visible) root.opened()
+  visible: root.open && !root.attached
+
+  onOpenChanged: {
+    if (root.open) root.opened()
   }
 
-  readonly property bool barAtTop: Theme.barPosition !== "bottom"
   // What the bar takes up at its edge of the screen, margins included.
   readonly property real barZone: Theme.barMarginTop + Theme.barHeight + Theme.barMarginBottom
 
@@ -93,46 +97,25 @@ PanelWindow {
     return Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0] ?? null
   }
 
-  // Only attached panels move; the others keep the default screen.
-  Binding {
-    target: root
-    property: "screen"
-    value: root.targetScreen
-    when: root.attached && root.targetScreen !== null
+  // The bar slot an open attached panel's frame is drawn in, if any.
+  readonly property Item hostSlot: root.open && root.attached ? BarSlots.slotFor(root.targetScreen) : null
+  // The room the frame sizes itself to: the backdrop's, or the target
+  // screen's for an attached panel (whose backdrop never shows).
+  readonly property real areaWidth: root.attached && root.targetScreen ? root.targetScreen.width : root.width
+  readonly property real areaHeight: root.attached && root.targetScreen ? root.targetScreen.height : root.height
+
+  // Takes the keyboard once in the bar (its window gets it from the bar's
+  // focus grab), a tick later so the frame has actually moved there.
+  onHostSlotChanged: {
+    if (root.hostSlot) Qt.callLater(() => root.focusTarget.forceActiveFocus())
   }
 
-  // anchorItem's on-screen position, reconstructed as ClockPanel does:
-  // its position within its bar's window, plus that window's own origin.
-  readonly property point anchorPos: {
-    const item = root.anchorItem
-    if (!item) return Qt.point(0, 0)
-    const p = item.mapToItem(null, 0, 0)
-    const originX = Theme.barAutoHide ? 0 : Theme.barMarginLeft
-    const originY = Theme.barAutoHide ? 0
-      : (root.barAtTop ? Theme.barMarginTop : root.height - Theme.barMarginBottom - Theme.barHeight)
-    return Qt.point(p.x + originX, p.y + originY)
-  }
+  Connections {
+    target: root.hostSlot
 
-  // Where an attached frame's top-left goes, in screen coordinates.
-  // Always horizontally centered on the screen, like every panel attached
-  // to the bar; anchorItem only decides the screen and the vertical edge.
-  function attachedX() {
-    return (root.width - frame.width) / 2
-  }
-
-  function attachedY() {
-    const item = root.anchorItem
-    if (!item) {
-      // Against the bar, Theme.panelOffset() away from it.
-      return root.barAtTop ? root.barZone - Theme.barMarginBottom + Theme.panelOffset()
-        : root.height - root.barZone + Theme.barMarginTop - Theme.panelOffset() - frame.height
+    function onDismissed() {
+      root.closeRequested()
     }
-    // Against the widget's pill, as the clock panel is (widgets sit
-    // vertically centered in their taller pill), Theme.panelOffset() away.
-    const pillGap = (Theme.pillHeight() - item.height) / 2
-    return root.barAtTop
-      ? root.anchorPos.y + item.height + pillGap + Theme.panelOffset()
-      : root.anchorPos.y - pillGap - Theme.panelOffset() - frame.height
   }
 
   // Dimmed backdrop covering the whole screen; clicking it closes the
@@ -149,7 +132,6 @@ PanelWindow {
     }
 
     Rectangle {
-      visible: !root.attached
       anchors.fill: parent
       color: "black"
       opacity: 0.4
@@ -184,8 +166,8 @@ PanelWindow {
       top: true
       left: true
     }
-    margins.left: root.attached ? root.attachedX() : (root.width - frame.width) / 2
-    margins.top: root.attached ? root.attachedY() : (root.height - frame.height) / 2
+    margins.left: (root.width - frame.width) / 2
+    margins.top: (root.height - frame.height) / 2
     implicitWidth: frame.width
     implicitHeight: frame.height
 
@@ -204,10 +186,13 @@ PanelWindow {
 
     Rectangle {
       id: frame
+      // In the bar's slot while an attached panel is open, in frameWindow
+      // otherwise.
+      parent: root.hostSlot ?? frameWindow.contentItem
       // An attached frame stays within the bar's span, and leaves room for
       // the bar itself.
-      width: Math.min(root.maxPanelWidth, root.attached ? root.width - Theme.barMarginLeft - Theme.barMarginRight : root.width * 0.9)
-      height: Math.min(root.maxPanelHeight, root.attached ? root.height - root.barZone - 20 : root.height * 0.9)
+      width: Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9)
+      height: Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9)
       radius: Theme.radiusFor(height)
       color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
       // The border follows the real widget opacity (and Theme.borderOpaque),
