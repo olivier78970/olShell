@@ -136,6 +136,10 @@ Item {
   // the panels attached to it (Theme.panelOffset: the gap setting, or with
   // none, flush, their borders overlapping).
   readonly property real submenuGap: Theme.panelOffset()
+  // For a submenu with no gap set: whether its menu is flush against its
+  // left side (it opened on the menu's right) or its right one.
+  readonly property bool flushLeft: root.parentMenu !== null && Theme.panelGap <= 0 && root.x > root.parentMenu.x
+  readonly property bool flushRight: root.parentMenu !== null && Theme.panelGap <= 0 && root.x < root.parentMenu.x
   // Room around the entries, on every side.
   readonly property real padding: 8
 
@@ -153,12 +157,12 @@ Item {
       // Flush with the bar (no gap set, see Theme.attachedCorner), both
       // corners against it are squared off so the popup flows out of the
       // bar (and its widget's pill, see Pill.flattenPopupCorner), like the
-      // attached panels. A submenu, beside its menu rather than against the
-      // bar, keeps its full radius.
-      topLeftRadius: !root.parentMenu && Theme.attachedCorner(radius, true) === 0 ? 0 : radius
-      topRightRadius: !root.parentMenu && Theme.attachedCorner(radius, true) === 0 ? 0 : radius
-      bottomLeftRadius: !root.parentMenu && Theme.attachedCorner(radius, false) === 0 ? 0 : radius
-      bottomRightRadius: !root.parentMenu && Theme.attachedCorner(radius, false) === 0 ? 0 : radius
+      // attached panels. A submenu squares off, the same way, the two on
+      // the side against its menu instead.
+      topLeftRadius: root.flushLeft || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
+      topRightRadius: root.flushRight || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
+      bottomLeftRadius: root.flushLeft || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
+      bottomRightRadius: root.flushRight || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth
