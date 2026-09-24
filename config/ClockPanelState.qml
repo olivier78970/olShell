@@ -27,6 +27,7 @@ Singleton {
     SettingsPanelState.visible = false
     NotificationCenterState.visible = false
     PowerPanelState.visible = false
+    ShortcutsPanelState.visible = false
     root.anchorItem = item
     root.visible = true
   }

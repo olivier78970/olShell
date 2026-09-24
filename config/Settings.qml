@@ -136,7 +136,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists

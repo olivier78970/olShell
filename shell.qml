@@ -8,6 +8,7 @@ import qs.modules.Notifications
 import qs.modules.Osd
 import qs.modules.Power
 import qs.modules.Settings
+import qs.modules.Shortcuts
 import qs.modules.Theme
 import qs.modules.Wallpapers
 import qs.services
@@ -40,6 +41,7 @@ ShellRoot {
   ThemePanel {}
   LauncherPanel {}
   SettingsPanel {}
+  ShortcutsPanel {}
   NotificationPopups {}
   NotificationCenter {}
   PowerPanel {}

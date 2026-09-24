@@ -30,6 +30,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── I18n.qml, Translations.qml   # Localization: language choice + lookup, and the English / French / Spanish texts
 │   ├── ThemePanelState.qml   # Shared visibility of the theme panel
 │   ├── LauncherState.qml     # Shared visibility of the launcher
+│   ├── ShortcutsPanelState.qml # Shared visibility of the keyboard shortcuts panel
 │   ├── NotificationCenterState.qml   # Shared visibility of the notification center
 │   ├── Paths.qml             # Wallpaper, matugen and palette locations
 │   ├── Apps.qml              # Commands launched by clicking widgets
@@ -69,6 +70,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   │       ├── CpuUsage, RamUsage, DiskUsage, NetworkSpeed, Volume, NotificationBell, LockButton
 │   │       └── PowerTrigger
 │   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
+│   ├── Shortcuts/ShortcutsPanel.qml   # The Hyprland config's shortcuts, grouped and searchable
 │   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard
 │   ├── Lock/LockScreen.qml   # The lock screen (session lock) + the idle timer
 │   ├── Power/PowerPanel.qml  # The power panel: log out, restart, shut down (ModalPanel)
@@ -81,6 +83,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
 ├── scripts/screenshot.py        # Takes a screenshot (screen, rectangle or window), saves and copies it (used by services/Screenshot.qml)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
+├── scripts/list-shortcuts.py # Reads the shortcuts from the Hyprland config, as JSON (for the shortcuts panel)
 ├── scripts/tui-launch.py     # Themes and starts btop or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
     ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, GTK, starship)
@@ -196,6 +199,12 @@ gdu is started with `--no-cross`, so it stays on the filesystem of `/` (other di
 
 The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher toggle` (bind it to a key), opens a search box over the installed applications (their `.desktop` entries). Type to filter: matches names first (exact, prefix, word prefix, anywhere), then generic name, keywords, category and description, and finally letters in order (`ffx` finds Firefox). **↑/↓**, **Tab / Shift+Tab**, **Ctrl+N / Ctrl+P** (or **Ctrl+J / Ctrl+K**) and **Page Up / Down** move the selection, **Enter** launches it, **Escape** or a click outside closes. Hovering moves the selection too and a click launches; resting the pointer on an entry for half a second shows a tooltip with the real process name (e.g. "Fichiers" → `nautilus`), its full command and its desktop-entry id. With an empty search the list is alphabetical.
 
+
+## Keyboard shortcuts
+
+`quickshell -p . ipc call shortcuts toggle` (bind it to a key) opens a panel centered on the screen listing the shortcuts of the Hyprland config that use the **Super** key, keyboard and mouse (media keys, Print Screen and other keys without Super are left out), grouped (applications, shell, windows, workspaces) and described in the shell's language: "Go to workspace 1", "Open the launcher" for a shell IPC call, "Open zen-browser" with its full command under it. Type to filter (keys, description or command); **↑/↓** and **Page Up / Down** scroll, **Escape** or a click outside closes. A bind's own `description` option, if it has one, is shown instead.
+
+A Lua config binds each shortcut to a Lua function, so Hyprland itself (`hyprctl binds`) only knows its keys: [scripts/list-shortcuts.py](scripts/list-shortcuts.py) reads what they do from the config's `hl.bind(...)` calls instead, each time the panel opens, following its `require(...)`s and resolving its string variables (`terminal`, `mainMod`...). Binds it can't read (built in a loop, say) are counted against Hyprland's own list of Super binds, and the panel says how many are missing.
 ## Themes
 
 The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique** followed by ten fixed themes: Catppuccin Mocha, Dracula, Nord, Gruvbox Dark, Tokyo Night, Solarized Dark, One Dark, Rosé Pine, Everforest Dark and Kanagawa. The **Automatique** button in the top-right corner jumps to its card and applies it. Left/Right browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
@@ -295,6 +304,7 @@ quickshell -p . ipc call btop toggle                   # open/close the full bto
 quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
 quickshell -p . ipc call gdu toggle                    # open/close the gdu window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
+quickshell -p . ipc call shortcuts toggle              # open/close the keyboard shortcuts panel
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call notifications toggle          # open/close the notification center
 quickshell -p . ipc call notifications dnd 1           # do not disturb on (0: off); also toggleDnd, clear, count

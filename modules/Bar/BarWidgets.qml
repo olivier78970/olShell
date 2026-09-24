@@ -19,6 +19,7 @@ Singleton {
     theme: theme,
     screenshot: screenshot,
     zoom: zoom,
+    shortcuts: shortcuts,
     tray: tray,
     cpu: cpu,
     ram: ram,
@@ -39,6 +40,7 @@ Singleton {
   Component { id: theme; ThemeTrigger {} }
   Component { id: screenshot; ScreenshotButton {} }
   Component { id: zoom; ZoomButton {} }
+  Component { id: shortcuts; ShortcutsTrigger {} }
   Component { id: tray; Tray {} }
   Component { id: cpu; CpuUsage {} }
   Component { id: ram; RamUsage {} }

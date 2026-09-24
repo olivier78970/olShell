@@ -32,6 +32,9 @@ Singleton {
   // Applies a wallpaper with awww, starting its daemon if needed.
   readonly property string applyWallpaperScript: Quickshell.shellPath("scripts/apply-wallpaper.py")
 
+  // Lists the Hyprland config's shortcuts, for the shortcuts panel.
+  readonly property string listShortcutsScript: Quickshell.shellPath("scripts/list-shortcuts.py")
+
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")
