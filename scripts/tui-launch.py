@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Starts a TUI application (btop, bluetui or gdu) in a terminal, themed with the shell's colors.
+"""Starts a TUI application (btop or gdu) in a terminal, themed with the shell's colors.
 
-Usage: tui-launch.py --app btop|bluetui|gdu --background #rrggbb --surface #rrggbb
+Usage: tui-launch.py --app btop|gdu --background #rrggbb --surface #rrggbb
                      --text #rrggbb --accent #rrggbb --outline #rrggbb
                      --warning #rrggbb --opacity 0-1 [--boxes "net"] [--set KEY=VALUE]... -- TERMINAL...
 
@@ -10,7 +10,7 @@ part, which is added here. A theme is generated from the colors into
 $XDG_RUNTIME_DIR/quickshell-APP/, along with a copy of your own configuration
 file for the application that selects it, so your own configuration is left
 alone (settings changed inside the application are saved to the copy, not to
-your file). bluetui has no theme option: it takes the terminal's colors. gdu is given a
+your file). gdu is given a
 configuration file of its own (you have none by default) with the styles set.
 --boxes (btop only) is the list of boxes to show, e.g. "net" or "cpu mem"
 (btop's `shown_boxes`), instead of the ones in your configuration. --set (btop
@@ -26,7 +26,7 @@ import os
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--app", required=True, choices=("btop", "bluetui", "gdu"))
+parser.add_argument("--app", required=True, choices=("btop", "gdu"))
 for name in ("background", "surface", "text", "accent", "outline", "warning"):
     parser.add_argument("--" + name, required=True)
 parser.add_argument("--opacity", type=float, default=1.0)
@@ -146,11 +146,6 @@ def gdu():
     return ["gdu", "--config-file", config_path, "--no-cross", "/"]
 
 
-def bluetui():
-    """bluetui has no theme of its own: it uses the terminal's palette, set below."""
-    return ["bluetui"]
-
-
 # Terminal colors too: the applications leave their background to the
 # terminal (btop's `theme_background` is off), and so does
 # the padding around them. The window's opacity is the shell's.
@@ -166,5 +161,5 @@ if os.path.basename(terminal[0]) == "alacritty":
     ):
         extra += ["-o", "%s=%s" % (key, value)]
 
-command = terminal + extra + ["-e"] + {"btop": btop, "bluetui": bluetui, "gdu": gdu}[args.app]()
+command = terminal + extra + ["-e"] + {"btop": btop, "gdu": gdu}[args.app]()
 os.execvp(command[0], command)

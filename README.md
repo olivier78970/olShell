@@ -1,13 +1,12 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), pavucontrol for the audio mixer (click the volume widget), a bluetui Bluetooth window, a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), pavucontrol for the audio mixer (click the volume widget), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
 
 ## Requirements
 
 - [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
 - [matugen](https://github.com/InioX/matugen) and [awww](https://codeberg.org/LGFae/awww) for the wallpaper picker (awww is the wallpaper daemon; the shell starts it when it isn't running)
 - [`pavucontrol`](https://freedesktop.org/software/pulseaudio/pavucontrol/) for the audio mixer (volume click)
-- [`bluetui`](https://github.com/pythops/bluetui) for the Bluetooth window (optional: opened by its IPC call, or a tray icon set to it)
 - [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
 - PipeWire (volume)
 - `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
@@ -46,7 +45,6 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── DesktopLocale.qml     # Application names/descriptions in the shell's language, read from the .desktop files
 │   ├── TuiWindow.qml         # A TUI app in a floating, themed terminal window that opens/closes like a panel
 │   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
-│   ├── Bluetui.qml           # The bluetui window (toggle + `bluetui` IPC target)
 │   ├── Gdu.qml               # The gdu window (toggle + `gdu` IPC target)
 │   ├── Matugen.qml           # Runs matugen when a wallpaper is applied or a theme is selected
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
@@ -83,7 +81,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
 ├── scripts/screenshot.py        # Takes a screenshot (screen, rectangle or window), saves and copies it (used by services/Screenshot.qml)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
-├── scripts/tui-launch.py     # Themes and starts btop, bluetui or gdu in a terminal (used by services/TuiWindow.qml)
+├── scripts/tui-launch.py     # Themes and starts btop or gdu in a terminal (used by services/TuiWindow.qml)
 └── matugen/                  # Everything matugen: its config and every template it fills
     ├── quickshell.toml       # The config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, GTK, starship)
     ├── quickshell-theme.json.template   # Template of the shell's palette (written to config/GeneratedColors.json)
@@ -176,7 +174,7 @@ The texts are in [config/Translations.qml](config/Translations.qml), one diction
 
 ## btop
 
-Clicking the CPU, RAM or network-speed widget opens btop in a terminal window showing only that widget's box (its **cpu**, **mem** or **net** box), and clicking again closes it. The same from a key binding: `quickshell -p . ipc call btop cpu` (or `memory`, `network`); `quickshell -p . ipc call btop toggle` opens the full btop, with the boxes of your own configuration, which no widget does. A single-box window is smaller (50% × 50% of the monitor; `btopBoxWidth` and `btopBoxHeight` in [config/Apps.qml](config/Apps.qml)); the full one is 85% × 90%. The box is chosen by setting `shown_boxes` in the copy of your `btop.conf` described below (for the memory box, `show_disks` is turned off too, since btop would draw the disks inside it; see `boxSettings` in [services/Btop.qml](services/Btop.qml)), so your own configuration and its layout are not touched. There is one btop window, so a click on another widget while it is open closes it instead of switching to that widget's box. [services/TuiWindow.qml](services/TuiWindow.qml) (shared with the bluetui and gdu windows, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
+Clicking the CPU, RAM or network-speed widget opens btop in a terminal window showing only that widget's box (its **cpu**, **mem** or **net** box), and clicking again closes it. The same from a key binding: `quickshell -p . ipc call btop cpu` (or `memory`, `network`); `quickshell -p . ipc call btop toggle` opens the full btop, with the boxes of your own configuration, which no widget does. A single-box window is smaller (50% × 50% of the monitor; `btopBoxWidth` and `btopBoxHeight` in [config/Apps.qml](config/Apps.qml)); the full one is 85% × 90%. The box is chosen by setting `shown_boxes` in the copy of your `btop.conf` described below (for the memory box, `show_disks` is turned off too, since btop would draw the disks inside it; see `boxSettings` in [services/Btop.qml](services/Btop.qml)), so your own configuration and its layout are not touched. There is one btop window, so a click on another widget while it is open closes it instead of switching to that widget's box. [services/TuiWindow.qml](services/TuiWindow.qml) (shared with the gdu window, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config. The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
 
 The window is themed with the shell's current colors: [scripts/tui-launch.py](scripts/tui-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty). Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
 
@@ -187,12 +185,6 @@ It is a real terminal window, so btop works completely (mouse, copy/paste, resiz
 Clicking the volume widget opens [pavucontrol](https://freedesktop.org/software/pulseaudio/pavucontrol/), and clicking again closes it (whichever way it was opened). It's an ordinary window of its own, in the shell's colors through the olShell GTK theme (see [GTK](#gtk)). Scrolling over the volume widget adjusts the volume.
 
 The btop window is as translucent as the widgets (the **Widget opacity** setting, read each time a window opens), so Hyprland blurs what's behind them if its blur is enabled. To make that possible the applications don't paint a background of their own (btop's `theme_background` is turned off in the copy of its config) and the terminal window's opacity is set to the widget opacity, overriding your terminal's own setting (only alacritty is handled, as for the colors).
-
-## bluetui
-
-`quickshell -p . ipc call bluetui toggle` opens [bluetui](https://github.com/pythops/bluetui), a TUI Bluetooth manager, in a terminal window (50% × 60% of the monitor by default), and the same call closes it. It is the same machinery as the btop window: [services/TuiWindow.qml](services/TuiWindow.qml) opens it floating and centered with its own window class (`quickshell-bluetui`), and the window is as translucent as the widgets. bluetui has no theme option, so it takes the colors of the terminal, which [scripts/tui-launch.py](scripts/tui-launch.py) sets from the shell's palette (alacritty only).
-
-A tray icon's left click can open it instead of the application's own action: [config/Apps.qml](config/Apps.qml)'s `trayLeftClick` is a table from a tray item's id (the application's name: `blueman` for Blueman's icon) to what its left click does, and `"bluetui"` is the only such action (e.g. `"blueman": "bluetui"`). It's empty by default, so every icon does its own thing. Right and middle clicks are never changed. The terminal and size are `bluetuiTerminal`, `bluetuiWidth` and `bluetuiHeight`.
 
 ## gdu
 
@@ -249,7 +241,7 @@ The template sets Zen's accent color (`--zen-primary-color`, which every other `
 import = ["~/.config/alacritty/theme.toml"]
 ```
 
-Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Remove the `[templates.alacritty]` block from `quickshell.toml` if you don't use alacritty. The same goes for the `[templates.hyprland]` (writes `~/.config/hypr/colors.lua`) and `[templates.starship]` (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template) blocks. The btop, bluetui and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
+Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Remove the `[templates.alacritty]` block from `quickshell.toml` if you don't use alacritty. The same goes for the `[templates.hyprland]` (writes `~/.config/hypr/colors.lua`) and `[templates.starship]` (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template) blocks. The btop and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
 
 ## GTK
 
@@ -301,7 +293,6 @@ quickshell -p . ipc call wallpapers applyRandom        # apply a random wallpape
 quickshell -p . ipc call wallpapers applyLast          # apply the last applied wallpaper again (e.g. after a new picture of the day was downloaded)
 quickshell -p . ipc call btop toggle                   # open/close the full btop window
 quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
-quickshell -p . ipc call bluetui toggle                # open/close the bluetui window
 quickshell -p . ipc call gdu toggle                    # open/close the gdu window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call settings toggle               # open/close the settings panel

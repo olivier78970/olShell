@@ -2,7 +2,7 @@ pragma Singleton
 
 import Quickshell
 
-// The applications the shell opens in a terminal (btop, bluetui, gdu).
+// The applications the shell opens in a terminal (btop, gdu).
 // (The volume widget opens pavucontrol, a window of its own.)
 // Edit here to swap the terminal or the window size.
 Singleton {
@@ -21,14 +21,6 @@ Singleton {
   readonly property real btopBoxWidth: 0.5
   readonly property real btopBoxHeight: 0.5
 
-  // The bluetui window (see services/Bluetui.qml), opened by its IPC call
-  // (`bluetui toggle`), or by left-clicking a tray icon set to it in
-  // trayLeftClick below.
-  readonly property string bluetuiClass: "quickshell-bluetui"
-  readonly property var bluetuiTerminal: ["alacritty", "--class", bluetuiClass, "-T", "bluetui"]
-  readonly property real bluetuiWidth: 0.5
-  readonly property real bluetuiHeight: 0.6
-
   // The gdu window (see services/Gdu.qml), opened by clicking the disk widget:
   // a disk usage analyzer for the disk mounted on /.
   readonly property string gduClass: "quickshell-gdu"
@@ -41,10 +33,4 @@ Singleton {
   // fills the screen, and the transition's smoothness. The transition's type
   // and duration are settings (see config/Settings.qml), added after these.
   readonly property var wallpaperOptions: ["--resize", "crop", "--transition-step", "63", "--transition-fps", "60"]
-
-  // What a left click does on some tray icons, by tray item id, instead of
-  // the application's own action: "bluetui" opens/closes the bluetui window
-  // (e.g. "blueman": "bluetui"). None by default: every icon does its own.
-  // (An item's id is the application's name, e.g. "blueman" for Blueman.)
-  readonly property var trayLeftClick: ({})
 }

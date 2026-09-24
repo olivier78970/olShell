@@ -3,11 +3,9 @@ import Quickshell
 import Quickshell.Widgets
 import qs.components
 import qs.config
-import qs.services
 
-// A single system tray icon: left click activates (or does what
-// Apps.trayLeftClick says for this icon), right click opens its context menu
-// (if any), middle click triggers secondary activation.
+// A single system tray icon: left click activates it, right click opens its
+// context menu (if any), middle click triggers secondary activation.
 Item {
   id: root
 
@@ -16,9 +14,6 @@ Item {
   // ancestor's own `property var modelData` (e.g. the screen Variants).
   required property var modelData
   readonly property var trayItem: modelData
-
-  // Replaces the left click's usual activation, if Apps.trayLeftClick says so.
-  readonly property string leftClick: Apps.trayLeftClick[trayItem.id] ?? ""
 
   implicitWidth: Theme.trayIconSize()
   implicitHeight: Theme.trayIconSize()
@@ -36,9 +31,7 @@ Item {
     cursorShape: Qt.PointingHandCursor
 
     onClicked: mouse => {
-      if (mouse.button === Qt.LeftButton && root.leftClick === "bluetui") {
-        Bluetui.toggle()
-      } else if (mouse.button === Qt.LeftButton && !root.trayItem.onlyMenu) {
+      if (mouse.button === Qt.LeftButton && !root.trayItem.onlyMenu) {
         root.trayItem.activate()
       } else if (mouse.button === Qt.MiddleButton) {
         root.trayItem.secondaryActivate()
