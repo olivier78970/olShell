@@ -95,18 +95,32 @@ Item {
     if (!root.parentMenu) return root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
     // A submenu: its first entry level with the one it opens from (past the
     // padding), but never over the bar. Looked up again as the menu moves.
+    // Kept within the room past the bar too, moved back from the far edge
+    // of the screen as needed.
     if (!root.host || !root.anchorItem) return 0
     root.parentMenu.y
+    root.parentMenu.scrollY
     const top = root.anchorItem.mapToItem(root.host, 0, 0).y - root.padding
-    return Math.round(root.barAtTop ? Math.max(0, top) : Math.min(-root.height, top))
+    return Math.round(root.barAtTop ? Math.max(0, Math.min(root.room - root.height, top))
+      : Math.min(-root.height, Math.max(-root.room, top)))
   }
+  // How tall it can get: the room between the bar and the far edge of the
+  // screen, less a margin. Longer entry lists scroll.
+  readonly property real room: {
+    const screen = root.host?.screen
+    if (!screen) return 10000
+    const margin = root.barAtTop ? Theme.barMarginTop : Theme.barMarginBottom
+    return screen.height - margin - Theme.barHeight - 10
+  }
+  // How far its entries are scrolled, for a submenu to follow its entry.
+  readonly property real scrollY: flick.contentY
   // Space between a submenu and its menu.
   readonly property real submenuGap: 4
   // Room around the entries, on every side.
   readonly property real padding: 8
 
   width: Math.ceil(column.implicitWidth + root.padding * 2)
-  height: Math.ceil(column.implicitHeight + root.padding * 2)
+  height: Math.ceil(Math.min(root.room, column.implicitHeight + root.padding * 2))
 
   Item {
     id: surface
@@ -139,10 +153,33 @@ Item {
       id: hover
     }
 
-    Column {
-      id: column
-      anchors.centerIn: parent
-      spacing: 6
+    // Scrolls (mouse wheel, or dragging) when the entries don't all fit.
+    Flickable {
+      id: flick
+      anchors.fill: parent
+      anchors.margins: root.padding
+      contentWidth: column.implicitWidth
+      contentHeight: column.implicitHeight
+      interactive: flick.contentHeight > flick.height
+      boundsBehavior: Flickable.StopAtBounds
+      clip: true
+
+      Column {
+        id: column
+        spacing: 6
+      }
+    }
+
+    // A slim scroll position indicator, in the right padding, while it scrolls.
+    Rectangle {
+      visible: flick.interactive
+      x: parent.width - root.padding / 2 - width / 2
+      y: root.padding + flick.visibleArea.yPosition * flick.height
+      width: 3
+      height: flick.visibleArea.heightRatio * flick.height
+      radius: width / 2
+      color: Theme.textColor
+      opacity: 0.35
     }
   }
 }
