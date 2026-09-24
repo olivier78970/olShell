@@ -69,8 +69,10 @@ Item {
 
   // Where it goes in the layer (whose origin is on the bar's edge toward
   // the middle of the screen): off that edge (the pill's too, pills being as
-  // tall as the bar), its border overlapping the bar's instead of doubling
-  // up with it, and kept within the bar horizontally. Taken from the bar's
+  // tall as the bar) by the same gap as the panels attached to the bar
+  // (Theme.panelOffset: the gap setting, or with none, flush, its border
+  // overlapping the bar's instead of doubling up with it), and kept within
+  // the bar horizontally. Taken from the bar's
   // edge rather than worked out from the widget's own height, which is often
   // fractional: the popup then landed part of a pixel into the bar, and that
   // row, drawn twice over, showed as a thin dark line. Looked up again as it
@@ -92,7 +94,7 @@ Item {
     return Math.round(Math.max(0, Math.min(root.host.width - root.width, x)))
   }
   y: {
-    if (!root.parentMenu) return root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
+    if (!root.parentMenu) return root.barAtTop ? Theme.panelOffset() : -Theme.panelOffset() - root.height
     // A submenu: from the entry it opens from (see entryEdge), moved back
     // from the far edge of the screen only when there isn't even
     // minSubmenuHeight left past the entry.
@@ -150,18 +152,13 @@ Item {
       radius: Theme.radiusFor(height)
       // Flush with the bar (no gap set, see Theme.attachedCorner), both
       // corners against it are squared off so the popup flows out of the
-      // bar, like the attached panels. Otherwise only the corner touching
-      // the widget's pill is (not when centered): the popup's top corner, on
-      // the side that isn't centered, when it opens below the bar; its
-      // bottom corner when it opens above (the bar's at the bottom of the
-      // screen). And only in the "widgets" bar style, which has a pill to
-      // flow into - "full" style's single bar-wide background has no
-      // per-widget edge to match, so the popup keeps its full radius there.
-      // A submenu, beside its menu rather than against the bar, always does.
-      topLeftRadius: !root.parentMenu && (Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && alignLeft && !alignCenter)) ? 0 : radius
-      topRightRadius: !root.parentMenu && (Theme.attachedCorner(radius, true) === 0 || (Theme.barStyle !== "full" && root.barAtTop && !alignLeft && !alignCenter)) ? 0 : radius
-      bottomLeftRadius: !root.parentMenu && (Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && alignLeft && !alignCenter)) ? 0 : radius
-      bottomRightRadius: !root.parentMenu && (Theme.attachedCorner(radius, false) === 0 || (Theme.barStyle !== "full" && !root.barAtTop && !alignLeft && !alignCenter)) ? 0 : radius
+      // bar (and its widget's pill, see Pill.flattenPopupCorner), like the
+      // attached panels. A submenu, beside its menu rather than against the
+      // bar, keeps its full radius.
+      topLeftRadius: !root.parentMenu && Theme.attachedCorner(radius, true) === 0 ? 0 : radius
+      topRightRadius: !root.parentMenu && Theme.attachedCorner(radius, true) === 0 ? 0 : radius
+      bottomLeftRadius: !root.parentMenu && Theme.attachedCorner(radius, false) === 0 ? 0 : radius
+      bottomRightRadius: !root.parentMenu && Theme.attachedCorner(radius, false) === 0 ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth

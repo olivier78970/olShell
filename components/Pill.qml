@@ -17,7 +17,8 @@ Item {
   // Square off the corner where a popup anchored to this pill's right edge
   // attaches, so the pill flows into it: the bottom-right corner normally,
   // or the top-right one with the bar at the bottom of the screen, where
-  // popups open upward instead.
+  // popups open upward instead. Only with no gap set between the bar and its
+  // popups, when they actually touch.
   property bool flattenPopupCorner: false
 
   implicitWidth: row.implicitWidth + horizontalPadding * 2
@@ -32,8 +33,8 @@ Item {
     anchors.fill: parent
     visible: Theme.barStyle !== "full"
     radius: Theme.radiusFor(height)
-    topRightRadius: root.flattenPopupCorner && Theme.barPosition === "bottom" ? 0 : radius
-    bottomRightRadius: root.flattenPopupCorner && Theme.barPosition !== "bottom" ? 0 : radius
+    topRightRadius: root.flattenPopupCorner && Theme.panelGap <= 0 && Theme.barPosition === "bottom" ? 0 : radius
+    bottomRightRadius: root.flattenPopupCorner && Theme.panelGap <= 0 && Theme.barPosition !== "bottom" ? 0 : radius
     color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
     border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
     border.width: Theme.borderWidth
