@@ -101,7 +101,16 @@ Item {
     if (root.alignCenter) x = p.x + (root.anchorItem.width - root.width) / 2
     else if (root.alignLeft) x = p.x + root.marginLeft
     else x = p.x + root.anchorItem.width - root.marginRight - root.width
-    return Math.round(Math.max(0, Math.min(root.host.width - root.width, x)))
+    // Kept within the bar; and snapped to either end of it from a couple of
+    // pixels off, which Qt rounding the widget's centered position in its pill
+    // can leave it short by, so it's seen as reaching that end (see Bar.qml's
+    // popupLayer.atLeftEnd).
+    const left = root.host.barLeft
+    const right = root.host.barRight - root.width
+    x = Math.max(left, Math.min(right, x))
+    if (x - left < 2) x = left
+    if (right - x < 2) x = right
+    return Math.round(x)
   }
   y: {
     if (!root.parentMenu) return root.barAtTop ? Theme.panelOffset() : -Theme.panelOffset() - root.height

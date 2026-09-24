@@ -462,9 +462,14 @@ Scope {
         // left or right end: that corner of the bar (or of its end pill) is
         // squared off so the two join up, as they do along the bar's edge.
         readonly property bool atLeftEnd: Theme.panelGap <= 0
-          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= barArea.x + 0.5)
+          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= popupLayer.barLeft + 0.5)
         readonly property bool atRightEnd: Theme.panelGap <= 0
-          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= barArea.x + barArea.width - 0.5)
+          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= popupLayer.barRight - 0.5)
+
+        // Where the bar itself starts and ends in the layer (narrower than the
+        // window while auto-hiding, see barArea), which popups stay within.
+        readonly property real barLeft: barArea.x
+        readonly property real barRight: barArea.x + barArea.width
 
         function touchesBar(item) {
           return atTop ? item.y <= 0 : item.y + item.height >= 0
