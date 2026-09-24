@@ -731,6 +731,30 @@ ModalPanel {
     }
   }
 
+  // The column of controls: past the longest label of these kinds of rows
+  // on the current page. Sliders and text fields start in it; check boxes,
+  // buttons and lists stay against the right edge, but the page is as wide
+  // as if they started in it too. Not shown: the labels, only to measure
+  // them in the current font and language.
+  readonly property var alignedKinds: ["slider", "toggles", "path", "dropdown", "buttons", "choice"]
+  // The space between the longest label and the column.
+  readonly property real labelGap: 32
+  readonly property real controlX: 12 + rowLabels.implicitWidth + root.labelGap
+
+  Column {
+    id: rowLabels
+    opacity: 0
+
+    Repeater {
+      model: root.rows.filter(row => root.alignedKinds.includes(row.kind))
+
+      ThemedText {
+        required property var modelData
+        text: modelData.label
+      }
+    }
+  }
+
   // Not shown either: the widget names, to give them all the width of the
   // widest so the check boxes after them line up.
   Column {
@@ -1060,6 +1084,7 @@ ModalPanel {
 
               SettingSlider {
                 id: sliderRow
+                controlX: root.controlX
                 visible: row.modelData.kind === "slider"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -1127,6 +1152,7 @@ ModalPanel {
 
               ToggleRow {
                 id: toggleRow
+                controlX: root.controlX
                 visible: row.modelData.kind === "toggles"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -1148,6 +1174,7 @@ ModalPanel {
 
               PathRow {
                 id: pathRow
+                controlX: root.controlX
                 visible: row.modelData.kind === "path"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -1166,6 +1193,7 @@ ModalPanel {
 
               DropdownRow {
                 id: dropdown
+                controlX: root.controlX
                 visible: row.modelData.kind === "dropdown"
                 anchors.fill: parent
                 label: row.modelData.label
@@ -1191,6 +1219,7 @@ ModalPanel {
 
               ChoiceRow {
                 id: buttonsRow
+                controlX: root.controlX
                 visible: row.modelData.kind === "buttons"
                 anchors.fill: parent
                 literal: true
@@ -1204,6 +1233,7 @@ ModalPanel {
 
               ChoiceRow {
                 id: choiceRow
+                controlX: root.controlX
                 visible: row.modelData.kind === "choice"
                 anchors.fill: parent
                 label: row.modelData.label

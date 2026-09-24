@@ -26,13 +26,19 @@ Item {
   // What the tooltip says right now, if anything.
   readonly property string tooltipText: !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
 
+  // Where the control starts, from the row's left edge, to line it up with
+  // the other rows' (the settings panel gives every row the same one); -1
+  // keeps it against the right edge instead.
+  property real controlX: -1
+  readonly property bool aligned: root.controlX >= 0
+
   signal moved(real value)
   signal activated()
 
   readonly property real fraction: root.to > root.from ? Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from))) : 0
 
   // The least it needs: the name, a short track and the value.
-  implicitWidth: 12 + labelText.implicitWidth + 12 + 100 + 14 + valueLabel.width + 12
+  implicitWidth: (root.aligned ? root.controlX : 12 + labelText.implicitWidth + 12) + 100 + 14 + valueLabel.width + 12
   implicitHeight: 54
 
   // `raw` (anywhere between from and to) rounded to the nearest step.
@@ -85,9 +91,10 @@ Item {
       anchors.right: valueLabel.left
       anchors.rightMargin: 14
       anchors.verticalCenter: parent.verticalCenter
-      // 35% of the row, but never so much that the label gets cut off, and at
-      // least a short slider.
-      width: Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - valueLabel.width - 12 - 12 - 14 - 12))
+      // Aligned: from `controlX` to the value. Otherwise 35% of the row, but
+      // never so much that the label gets cut off, and at least a short slider.
+      width: root.aligned ? Math.max(100, root.width - root.controlX - valueLabel.width - 14 - 12)
+        : Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - valueLabel.width - 12 - 12 - 14 - 12))
       height: 6
       radius: Theme.radiusFor(height)
       color: Theme.borderColor

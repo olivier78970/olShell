@@ -18,8 +18,14 @@ Item {
   signal chosen(var value)
   signal activated()
 
+  // Where the settings panel's column of controls starts (-1: none). The
+  // control here stays against the right edge; the row just asks to be at
+  // least as wide as it would be with the control lined up in that column,
+  // so the panel is as wide as a page lined up that way.
+  property real controlX: -1
+
   // The least it needs: the name and the buttons.
-  implicitWidth: 12 + nameText.implicitWidth + 16 + optionRow.implicitWidth + 12
+  implicitWidth: Math.max(12 + nameText.implicitWidth + 16, root.controlX) + optionRow.implicitWidth + 12
   implicitHeight: 54
 
   Rectangle {

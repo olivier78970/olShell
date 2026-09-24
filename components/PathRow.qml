@@ -22,8 +22,14 @@ Item {
   // The row wants keyboard focus back to the owner (editing ended).
   signal released()
 
+  // Where the control starts, from the row's left edge, to line it up with
+  // the other rows' (the settings panel gives every row the same one); -1
+  // keeps it against the right edge instead.
+  property real controlX: -1
+  readonly property bool aligned: root.controlX >= 0
+
   // The least it needs: the name and a field of some width.
-  implicitWidth: 12 + labelText.implicitWidth + 16 + 220 + 12
+  implicitWidth: (root.aligned ? root.controlX : 12 + labelText.implicitWidth + 16) + 220 + 12
   implicitHeight: 54
 
   onEditingChanged: {
@@ -56,8 +62,8 @@ Item {
   // The field: the value in a box, an edit cursor when editing.
   Rectangle {
     id: box
-    anchors.left: labelText.right
-    anchors.leftMargin: 16
+    anchors.left: root.aligned ? parent.left : labelText.right
+    anchors.leftMargin: root.aligned ? root.controlX : 16
     anchors.right: parent.right
     anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter
