@@ -93,14 +93,14 @@ Item {
   }
   y: {
     if (!root.parentMenu) return root.barAtTop ? -Theme.borderWidth : Theme.borderWidth - root.height
-    // A submenu: its first entry level with the one it opens from (past the
-    // padding), but never over the bar. Looked up again as the menu moves.
-    // Kept within the room past the bar too, moved back from the far edge
-    // of the screen as needed.
+    // A submenu: its top level with the top of the entry it opens from,
+    // but never over the bar. Kept within the room past the bar too, moved
+    // back from the far edge of the screen as needed. Looked up again as the
+    // menu moves or scrolls.
     if (!root.host || !root.anchorItem) return 0
     root.parentMenu.y
     root.parentMenu.scrollY
-    const top = root.anchorItem.mapToItem(root.host, 0, 0).y - root.padding
+    const top = root.anchorItem.mapToItem(root.host, 0, 0).y
     return Math.round(root.barAtTop ? Math.max(0, Math.min(root.room - root.height, top))
       : Math.min(-root.height, Math.max(-root.room, top)))
   }
