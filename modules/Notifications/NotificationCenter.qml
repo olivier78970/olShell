@@ -76,9 +76,11 @@ PanelWindow {
     screen: root.screen
 
     WlrLayershell.layer: WlrLayer.Overlay
-    // Grabs all keyboard input while open, so shortcuts/typing never leak
-    // to whatever's behind the panel.
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    // Takes the keyboard when it opens (Hyprland focuses a newly mapped
+    // OnDemand surface). Not Exclusive: Hyprland then only sends pointer
+    // input to this surface, so a click outside would never reach the
+    // backdrop and the panel couldn't be closed that way.
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     anchors {
       top: true
