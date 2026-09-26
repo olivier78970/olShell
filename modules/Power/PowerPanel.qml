@@ -9,7 +9,8 @@ import qs.services
 // into the UEFI setup, shut down), toggled from the bar's power button or
 // from outside via:
 //   quickshell -p . ipc call power toggle
-// Left/Right (or Tab) move between the actions, Enter or a click picks one,
+// The buttons are on two rows of three. The arrows move between them (Tab
+// and Shift+Tab go through them in order), Enter or a click picks one,
 // Escape or a click outside closes. Picking one closes the panel; lock and
 // suspend then happen at once, the others ask for confirmation
 // (PowerConfirmDialog) before anything runs.
@@ -24,10 +25,12 @@ ModalPanel {
     { id: "firmware", icon: "󰍛", label: I18n.tr("power.firmware") },
     { id: "shutdown", icon: "󰐥", label: I18n.tr("power.shutdown") }
   ]
+  // The buttons per row: the six actions make two rows of three.
+  readonly property int columns: 3
   property int current: 0
 
-  maxPanelWidth: 940
-  maxPanelHeight: 120
+  maxPanelWidth: 452
+  maxPanelHeight: 256
   framed: false
   // The screen darkens behind it, the only panel that does: shutting down or
   // logging out is worth that pause.
@@ -49,11 +52,16 @@ ModalPanel {
   }
 
   onKeyPressed: event => {
+    const count = root.actions.length
     if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab) {
-      root.current = (root.current + root.actions.length - 1) % root.actions.length
+      root.current = (root.current + count - 1) % count
       event.accepted = true
     } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
-      root.current = (root.current + 1) % root.actions.length
+      root.current = (root.current + 1) % count
+      event.accepted = true
+    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+      // Up and Down switch rows, keeping the column.
+      root.current = (root.current + root.columns) % count
       event.accepted = true
     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
       root.pick(root.actions[root.current].id)
@@ -91,8 +99,9 @@ ModalPanel {
     }
   }
 
-  Row {
+  Grid {
     anchors.centerIn: parent
+    columns: root.columns
     spacing: 16
 
     Repeater {
