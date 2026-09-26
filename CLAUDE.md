@@ -16,17 +16,14 @@ quickshell -p . ipc call <target> <function> [args]   # e.g. launcher toggle, se
 Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards.
 
 The shell the user runs day to day is a deployed copy in `~/.config/olShell`, not this checkout. 
-To test ask for killing the deployed shell, start the checkout shell and set QS_CONFIG_PATH to the checkout shell
+To test ask for killing the deployed shell, then start the checkout shell.
 Deploy only when asked.
-After deployment kill the checkout shell, restart the deployed one and set QS_CONFIG_PATH to the deployed shell
+After deployment kill the checkout shell and restart the deployed one.
 
-Commands to set the QS_CONFIG_PATH are :
+The running shell points Hyprland's `QS_CONFIG_PATH` (which the shortcuts' `qs ipc` calls use) at its own folder about a second after it starts and after every Hyprland config reload (`services/ConfigPath.qml`), so it doesn't need setting by hand. To check it:
 ```sh
-hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/dev/olShell")'    # checkout
-hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/.config/olShell")' # deployed
+hyprctl eval "hl.exec_cmd(\"sh -c 'env | grep QS_ > /tmp/qs-env'\")"; cat /tmp/qs-env
 ```
-
-A Hyprland config reload (matugen triggers one) sets it back to the deployed copy.
 
 ## Architecture
 

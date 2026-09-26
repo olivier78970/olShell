@@ -32,6 +32,8 @@ ShellRoot {
   readonly property var zoomFactor: Zoom.factor
   // And the polkit agent, which has to register with polkit from the start.
   readonly property var polkitRegistered: Polkit.registered
+  // And the service pointing Hyprland's QS_CONFIG_PATH at this shell.
+  readonly property var configPath: ConfigPath.path
 
   Bar {}
   ClockPanel {}

@@ -69,10 +69,11 @@ CarouselPanel {
 
   // Applies the last wallpaper again: the one remembered in ThemeState. The
   // colors are regenerated too: the file may have changed since (a new picture
-  // of the day is saved over the same pod.jpg).
-  function applyLast() {
+  // of the day is saved over the same pod.jpg). `onlyIfChanged` regenerates
+  // them only if it did, or the theme changed (see services/Matugen.qml).
+  function applyLast(onlyIfChanged) {
     if (ThemeState.wallpaper.length > 0)
-      root.applyPath(ThemeState.wallpaper)
+      root.applyPath(ThemeState.wallpaper, onlyIfChanged)
   }
 
   // awww's daemon draws nothing until a wallpaper is sent to it, so the last
@@ -82,7 +83,7 @@ CarouselPanel {
   Timer {
     running: true
     interval: 1000
-    onTriggered: root.applyLast()
+    onTriggered: root.applyLast(true)
   }
 
   // A new picture of the day may have been downloaded at login since, over the
@@ -92,7 +93,7 @@ CarouselPanel {
     interval: 5000
     onTriggered: {
       if (ThemeState.wallpaper === root.podPath)
-        root.applyLast()
+        root.applyLast(true)
     }
   }
 
@@ -105,7 +106,7 @@ CarouselPanel {
     root.applyPath(root.wallpapers[index])
   }
 
-  function applyPath(path) {
+  function applyPath(path, onlyIfChanged) {
     // The script starts awww's daemon when it isn't running, detached from us.
     const transition = ["--transition-type", Settings.wallpaperTransition, "--transition-duration", String(Settings.wallpaperDuration)]
     applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, transition, [path])
@@ -113,7 +114,7 @@ CarouselPanel {
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
     // it doesn't spawn in the same tick as the wallpaper command above.
-    Matugen.applyWallpaper(path)
+    Matugen.applyWallpaper(path, onlyIfChanged === true)
   }
 
   Process {

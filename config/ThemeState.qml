@@ -12,6 +12,9 @@ Singleton {
 
   readonly property var active: ThemePresets.byId(file.adapter.selected)
   readonly property string wallpaper: file.adapter.wallpaper
+  // What matugen last made the colors from (see services/Matugen.qml's
+  // stamps), so a run that would make the same colors can be skipped.
+  readonly property string generated: file.adapter.generated
 
   function select(id) {
     file.adapter.selected = id
@@ -20,6 +23,11 @@ Singleton {
 
   function setWallpaper(path) {
     file.adapter.wallpaper = path
+    file.writeAdapter()
+  }
+
+  function setGenerated(stamp) {
+    file.adapter.generated = stamp
     file.writeAdapter()
   }
 
@@ -33,6 +41,7 @@ Singleton {
     JsonAdapter {
       property string selected: "auto"
       property string wallpaper: ""
+      property string generated: ""
     }
   }
 }

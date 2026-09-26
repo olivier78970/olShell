@@ -49,6 +49,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
 │   ├── Gdu.qml               # The gdu window (toggle + `gdu` IPC target)
 │   ├── Matugen.qml           # Runs matugen when a wallpaper is applied or a theme is selected
+│   ├── ConfigPath.qml        # Points Hyprland's QS_CONFIG_PATH at the folder the running shell comes from
 │   ├── Polkit.qml            # The polkit authentication agent (the requests PolkitDialog answers)
 │   ├── NetworkManager.qml    # What the connection widget reads and does through nmcli (networking on/off, VPNs, connection details)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
@@ -233,7 +234,8 @@ Colors come from `config/GeneratedColors.json`, which matugen writes from the cu
 [matugen/quickshell.toml](matugen/quickshell.toml) is a dedicated matugen config holding this shell's templates (its palette, and the colors of Hyprland, [Zen](#zen-browser), [alacritty](#alacritty) and starship), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`. [services/Matugen.qml](services/Matugen.qml) runs it:
 
 - applying a wallpaper regenerates everything from it when **Automatique** is selected; a fixed theme ignores the wallpaper, which is only remembered;
-- selecting a theme regenerates everything: from the wallpaper for **Automatique**, or from the theme's accent color for a fixed one.
+- selecting a theme regenerates everything: from the wallpaper for **Automatique**, or from the theme's accent color for a fixed one;
+- restoring the last wallpaper when the shell starts only regenerates the colors if the theme, the wallpaper or its file changed since the last run (remembered in `config/ThemeState.json`): rewriting `~/.config/hypr/colors.lua` makes Hyprland reload its config, which would otherwise happen on every start of the shell for nothing. `ipc call wallpapers applyLast` always regenerates them.
 
 A fixed theme has no image, only five colors, so matugen builds a full palette around its accent: the apps get colors in the theme's family, not its exact palette (Dracula's purple accent gives a purple-tinted dark background, not Dracula's own `#282a36`). The shell itself always uses a fixed theme's exact colors. Every run also rewrites `config/GeneratedColors.json`, which **Automatique** reads: while a fixed theme is selected it holds that theme's palette, so the "Automatique" card of the theme panel previews those colors, not the wallpaper's, and selecting **Automatique** regenerates it from the wallpaper (the shell shows the previous palette until matugen has finished, about a second). The last wallpaper is remembered in `config/ThemeState.json` for that; until a wallpaper has been applied once, that state is empty and selecting **Automatique** regenerates nothing.
 
