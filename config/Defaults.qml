@@ -61,7 +61,7 @@ Singleton {
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],
     barCenter: ["clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts"],
-    barRight: ["tray", "cpu", "ram", "disk", "network", "volume", "notifications", "lock", "power"],
-    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "volume", "notifications", "lock"]
+    barRight: ["tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power"],
+    barDividers: ["workspaces", "activeWindow", "wallpaper", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock"]
     })
 }

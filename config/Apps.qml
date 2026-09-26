@@ -2,7 +2,7 @@ pragma Singleton
 
 import Quickshell
 
-// The applications the shell opens in a terminal (btop, gdu).
+// The applications the shell opens in a terminal (btop, gdu, nmcli).
 // (The volume widget opens pavucontrol, a window of its own.)
 // Edit here to swap the terminal or the window size.
 Singleton {
@@ -27,6 +27,11 @@ Singleton {
   readonly property var gduTerminal: ["alacritty", "--class", gduClass, "-T", "gdu"]
   readonly property real gduWidth: 0.6
   readonly property real gduHeight: 0.7
+
+  // The terminal the connection widget opens to ask for a Wi-Fi password, or
+  // a hidden network's name (see services/NetworkManager.qml), without the
+  // `-e ...` part.
+  readonly property var networkTerminal: ["alacritty", "--class", "quickshell-network", "-T", "nmcli"]
 
   // The options of `awww img` used when a wallpaper is applied (see
   // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image

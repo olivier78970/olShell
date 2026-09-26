@@ -25,6 +25,8 @@ Singleton {
     ram: ram,
     disk: disk,
     network: network,
+    connection: connection,
+    bluetooth: bluetooth,
     volume: volume,
     notifications: notifications,
     lock: lock,
@@ -46,6 +48,8 @@ Singleton {
   Component { id: ram; RamUsage {} }
   Component { id: disk; DiskUsage {} }
   Component { id: network; NetworkSpeed {} }
+  Component { id: connection; ConnectionButton {} }
+  Component { id: bluetooth; BluetoothButton {} }
   Component { id: volume; Volume {} }
   Component { id: notifications; NotificationBell {} }
   Component { id: lock; LockButton {} }

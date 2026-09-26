@@ -418,7 +418,7 @@ ModalPanel {
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
-    // disk, network, volume, notifications, lock, power),
+    // disk, network, connection, bluetooth, volume, notifications, lock, power),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
