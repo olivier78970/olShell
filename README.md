@@ -49,6 +49,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Btop.qml              # The btop window (toggle + `btop` IPC target)
 │   ├── Gdu.qml               # The gdu window (toggle + `gdu` IPC target)
 │   ├── Matugen.qml           # Runs matugen when a wallpaper is applied or a theme is selected
+│   ├── Polkit.qml            # The polkit authentication agent (the requests PolkitDialog answers)
 │   ├── NetworkManager.qml    # What the connection widget reads and does through nmcli (networking on/off, VPNs, connection details)
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
@@ -75,6 +76,7 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── Shortcuts/ShortcutsPanel.qml   # The Hyprland config's shortcuts, grouped and searchable
 │   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard
 │   ├── Lock/LockScreen.qml   # The lock screen (session lock) + the idle timer
+│   ├── Polkit/PolkitDialog.qml    # The password dialog of the polkit agent (ModalPanel)
 │   ├── Power/PowerPanel.qml  # The power panel: log out, restart, shut down (ModalPanel)
 │   ├── Osd/                  # Bottom-of-screen popups
 │   │   ├── VolumeOsd.qml     # Volume
@@ -375,6 +377,10 @@ The power icon at the end of the bar (or `quickshell -p . ipc call power toggle`
 The padlock icon just before the power icon (or `quickshell -p . ipc call lock lock`, to bind to a key) locks the screen. It is a Wayland session lock ([modules/Lock/LockScreen.qml](modules/Lock/LockScreen.qml)): the compositor shows only the lock surfaces, one per monitor, with the time, the date and a password field over the current wallpaper, blurred and slightly darkened (the theme background when there is none), until the password is right. Type it and press **Enter**; it is checked by PAM against your own login (the `login` stack, [services/Lock.qml](services/Lock.qml)), so it is the password you log in with. A wrong one says so and empties the field. The **Lock screen** category of the settings has **Lock after**: the minutes without keyboard or mouse input before the screen locks by itself, from 1 to 60, or **never** (0); the default is 10 (`lockTimeout` in `config/Settings.json`; `settings set lockTimeout 5`). Anything that inhibits idling (a video playing, for one) holds the timer off. `ipc call lock status` prints 1 while the screen is locked, else 0. There is no unlock call, on purpose.
 
 Reloading the shell (saving a file while developing it) while the screen is locked breaks the lock, and Hyprland then shows a lock-crashed message. To get out, switch to a text console (Ctrl+Alt+F3), log in, and run `hyprctl --instance 0 'keyword misc:allow_session_lock_restore 1'` then `hyprctl --instance 0 dispatch exec hyprlock` (Hyprland's hyprlock takes the lock over and unlocks with your password); or set `misc:allow_session_lock_restore = true` in your Hyprland config beforehand, so that starting the shell again is enough.
+
+## Authentication (polkit)
+
+The shell is the session's polkit authentication agent ([services/Polkit.qml](services/Polkit.qml), through Quickshell's Polkit module): when an application asks for administrator rights (`pkexec`, a package manager or a system settings window), a dialog ([modules/Polkit/PolkitDialog.qml](modules/Polkit/PolkitDialog.qml)) shows over the dimmed screen with the application's icon, what it wants to do, who authenticates (a choice when several administrators can) and a password field. **Enter** or **Authenticate** sends the password; a wrong one says so and empties the field for another try. **Escape**, **Cancel** or a click outside refuses the request. polkit accepts a single agent per session, so no other one (polkit-gnome, polkit-kde-agent...) may be started with Hyprland; while the shell isn't running, nothing can ask for the password and those requests fail.
 
 ## Lock keys OSD
 

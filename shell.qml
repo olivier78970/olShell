@@ -6,6 +6,7 @@ import qs.modules.Launcher
 import qs.modules.Lock
 import qs.modules.Notifications
 import qs.modules.Osd
+import qs.modules.Polkit
 import qs.modules.Power
 import qs.modules.Settings
 import qs.modules.Shortcuts
@@ -29,6 +30,8 @@ ShellRoot {
   readonly property var blurActive: Blur.active
   // And the zoom service, which answers the `zoom` IPC calls.
   readonly property var zoomFactor: Zoom.factor
+  // And the polkit agent, which has to register with polkit from the start.
+  readonly property var polkitRegistered: Polkit.registered
 
   Bar {}
   ClockPanel {}
@@ -46,5 +49,6 @@ ShellRoot {
   NotificationCenter {}
   NotificationActionsPanel {}
   PowerPanel {}
+  PolkitDialog {}
   LockScreen {}
 }
