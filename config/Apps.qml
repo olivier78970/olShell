@@ -33,4 +33,13 @@ Singleton {
   // fills the screen, and the transition's smoothness. The transition's type
   // and duration are settings (see config/Settings.qml), added after these.
   readonly property var wallpaperOptions: ["--resize", "crop", "--transition-step", "63", "--transition-fps", "60"]
+
+  // The web tab of the launcher offers a search with each of these, in this
+  // order (%s is where the search goes); opened in the default browser.
+  readonly property var webSearchEngines: [
+    { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=%s", icon: "󰇥" },
+    { name: "Google", url: "https://www.google.com/search?q=%s", icon: "󰊭" },
+    { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", icon: "󰗃" },
+    { name: "Wikipedia", url: "https://fr.wikipedia.org/w/index.php?search=%s", icon: "󰖬" }
+  ]
 }
