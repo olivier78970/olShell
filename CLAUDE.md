@@ -20,6 +20,15 @@ To test ask for killing the deployed shell and start a second instance from this
 Deploy only when asked.
 After deployment kill the checkout shell and restart the deployed one
 
+The Hyprland shortcuts call the shell with `qs ipc call ...` and no `-p`, so `qs` finds it through `QS_CONFIG_PATH`, which `~/.config/hypr/env.lua` sets to the deployed copy. Change it in the running Hyprland, without a reload, to point the shortcuts at the running instance:
+
+```sh
+hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/dev/olShell")'    # checkout
+hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/.config/olShell")' # deployed
+```
+
+A Hyprland config reload (matugen triggers one) sets it back to the deployed copy.
+
 ## Architecture
 
 - **Imports:** Quickshell turns every directory into a module, so files are imported as `qs.<path>` (`import qs.config`, `qs.services`, `qs.components`, `qs.modules.Bar.Widgets`), never by relative path.
