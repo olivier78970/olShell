@@ -16,12 +16,11 @@ quickshell -p . ipc call <target> <function> [args]   # e.g. launcher toggle, se
 Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards.
 
 The shell the user runs day to day is a deployed copy in `~/.config/olShell`, not this checkout. 
-To test ask for killing the deployed shell and start a second instance from this checkout.
+To test ask for killing the deployed shell, start the checkout shell and set QS_CONFIG_PATH to the checkout shell
 Deploy only when asked.
-After deployment kill the checkout shell and restart the deployed one
+After deployment kill the checkout shell, restart the deployed one and set QS_CONFIG_PATH to the deployed shell
 
-The Hyprland shortcuts call the shell with `qs ipc call ...` and no `-p`, so `qs` finds it through `QS_CONFIG_PATH`, which `~/.config/hypr/env.lua` sets to the deployed copy. Change it in the running Hyprland, without a reload, to point the shortcuts at the running instance:
-
+Commands to set the QS_CONFIG_PATH are :
 ```sh
 hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/dev/olShell")'    # checkout
 hyprctl eval 'hl.env("QS_CONFIG_PATH", "/home/olivier/.config/olShell")' # deployed
