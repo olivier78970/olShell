@@ -6,7 +6,7 @@ import qs.config
 // current value on the right. The owner gives the value and reacts to
 // `moved`; `activated` fires when the row is pressed (to select it).
 //
-// With `stepper`, a − button, the value in a field and a + button take the
+// With `stepper`, the value in a field, then a − and a + button, take the
 // slider's place: the buttons move it a step (held down, repeatedly), and the
 // field can be typed in, like PathRow's - a click on it emits
 // `editRequested` and the owner sets `editing` (as it does for Enter on the
@@ -43,6 +43,10 @@ Item {
 
   property bool stepper: false
   property bool editing: false
+  // The width of the value on the right, the same for every row (the
+  // settings panel gives the widest any slider can show) so the sliders line
+  // up.
+  property real valueWidth: 80
 
   signal moved(real value)
   signal activated()
@@ -126,7 +130,7 @@ Item {
       anchors.right: parent.right
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
-      width: 80
+      width: root.valueWidth
       horizontalAlignment: Text.AlignRight
       text: root.valueText
       color: Theme.accentColor
@@ -243,7 +247,7 @@ Item {
     }
   }
 
-  // The stepper: − button, the value in a field, + button, against the
+  // The stepper: the value in a field, then the − and + buttons, against the
   // row's right edge like the check boxes and dropdowns. Above the row's own
   // MouseArea, so its buttons and field get their clicks.
   Row {
@@ -255,11 +259,6 @@ Item {
     anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter
     spacing: 8
-
-    StepButton {
-      symbol: "−"
-      direction: -1
-    }
 
     Rectangle {
       width: 110
@@ -326,6 +325,11 @@ Item {
           root.editRequested()
         }
       }
+    }
+
+    StepButton {
+      symbol: "−"
+      direction: -1
     }
 
     StepButton {

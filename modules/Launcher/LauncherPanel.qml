@@ -10,9 +10,10 @@ import qs.services
 //   quickshell -p . ipc call launcher toggle
 // or from the bar's launcher icon. Three tabs search what's typed: the
 // installed applications, the files and folders of the home folder (with fd),
-// and the web (the engines of Apps.webSearchEngines, or an address typed in).
-// Ctrl+Tab / Ctrl+Shift+Tab (or Alt+1..3, or a click) switch tabs, keeping
-// the text; Up/Down (or Tab, Ctrl+N/P) move, Enter opens, Escape closes.
+// and the web (the default browser's default engine, or an address typed in).
+// Tab / Shift+Tab (with or without Ctrl, or Alt+1..4, or a click) switch
+// tabs, keeping the text; Up/Down (or Ctrl+N/P) move, Enter opens, Escape
+// closes.
 ModalPanel {
   id: root
 
@@ -52,14 +53,30 @@ ModalPanel {
   property real tipY: 0
   property bool tipShown: false
 
+  // The height of a result and of a section's heading (the all tab).
+  readonly property real resultHeight: 52
+  readonly property real headingHeight: 30
+  // The list is as tall as the results it shows, up to as many as the
+  // settings ask for (Settings.launcherResults), the rest scrolling; and at
+  // least one row, for the hint or "no results".
+  readonly property real maxListHeight: Settings.launcherResults * (root.resultHeight + list.spacing) - list.spacing
+  readonly property real resultsHeight: root.results.reduce((sum, item) => sum + (item.kind === "heading" ? root.headingHeight : root.resultHeight) + list.spacing, -list.spacing)
+  readonly property real listHeight: Math.max(root.resultHeight, Math.min(root.maxListHeight, root.resultsHeight))
+  // The margins, the tabs and the search box, with the space between them
+  // and the list.
+  readonly property real chromeHeight: 32 + tabBar.height + searchBox.height + 24
+
   maxPanelWidth: 640
-  maxPanelHeight: 520
+  maxPanelHeight: root.chromeHeight + root.listHeight
+  // The search box stays put while the list grows and shrinks.
+  placementHeight: root.chromeHeight + root.maxListHeight
   focusTarget: input
 
   open: LauncherState.visible
   onCloseRequested: LauncherState.visible = false
   onOpened: {
-    root.switchTab(0)
+    // The tab chosen in the settings (their ids are in the tabs' order).
+    root.switchTab(Math.max(0, Settings.choices.launcherTab.indexOf(Settings.launcherTab)))
     root.fileResults = []
     root.fileResultsQuery = ""
     input.text = ""
@@ -67,6 +84,8 @@ ModalPanel {
     root.leaveEntry()
     // Pick up applications installed since the last look.
     DesktopLocale.refresh()
+    // Pick up a change of the browser's default search engine.
+    WebSearch.refresh()
   }
 
   IpcHandler {
@@ -240,22 +259,23 @@ ModalPanel {
   // ---- Web ----
 
   // What the web tab offers for `query`: the address, if it looks like one,
-  // then a search with each engine.
+  // then a search with each engine of WebSearch.engines (set in the settings'
+  // launcher category).
   function webResults(query) {
     const q = query.trim()
     if (q === "") return []
     const items = []
     if (/^[a-z][a-z0-9+.-]*:\/\//i.test(q) || (/^[^\s]+\.[a-z]{2,}(\/\S*)?$/i.test(q))) {
       const url = /^[a-z][a-z0-9+.-]*:\/\//i.test(q) ? q : "https://" + q
-      items.push({ kind: "web", url: url, title: I18n.tr("launcher.web.open", q), subtitle: url, icon: "󰌷", isAddress: true })
+      items.push({ kind: "web", url: url, title: I18n.tr("launcher.web.open", q), subtitle: url, icon: "󰌷" })
     }
-    for (const engine of Apps.webSearchEngines) {
+    for (const engine of WebSearch.engines) {
       items.push({
         kind: "web",
         url: engine.url.replace("%s", encodeURIComponent(q)),
         title: I18n.tr("launcher.web.search", engine.name, q),
         subtitle: engine.name,
-        icon: engine.icon ?? "󰍉"
+        icon: engine.icon
       })
     }
     return items
@@ -277,9 +297,9 @@ ModalPanel {
   }
 
   // The all tab: with a query, the best applications, then files, then the
-  // web (the address if it looks like one, and the first engine), each under
-  // its heading; without one, just the applications (there's nothing to look
-  // for in files or on the web).
+  // web (everything the web tab offers), each under its heading; without one,
+  // just the applications (there's nothing to look for in files or on the
+  // web).
   function allResults(query) {
     const q = query.trim()
     const apps = root.appResults(query)
@@ -292,8 +312,7 @@ ModalPanel {
     }
     section(I18n.tr("launcher.tab.apps"), apps.slice(0, root.allAppCount))
     section(I18n.tr("launcher.tab.files"), root.fileResultsQuery === q ? root.fileResults.slice(0, root.allFileCount) : [])
-    const web = root.webResults(query)
-    section(I18n.tr("launcher.tab.web"), web.filter(item => item.isAddress).concat(web.filter(item => !item.isAddress).slice(0, 1)))
+    section(I18n.tr("launcher.tab.web"), root.webResults(query))
     return items
   }
 
@@ -331,16 +350,16 @@ ModalPanel {
   onKeyPressed: event => {
     const ctrl = (event.modifiers & Qt.ControlModifier) !== 0
     const alt = (event.modifiers & Qt.AltModifier) !== 0
-    if (ctrl && (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab)) {
+    if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
       root.switchTab(root.tab + (event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1))
       event.accepted = true
     } else if (alt && event.key >= Qt.Key_1 && event.key < Qt.Key_1 + root.tabs.length) {
       root.switchTab(event.key - Qt.Key_1)
       event.accepted = true
-    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || (ctrl && (event.key === Qt.Key_N || event.key === Qt.Key_J))) {
+    } else if (event.key === Qt.Key_Down || (ctrl && (event.key === Qt.Key_N || event.key === Qt.Key_J))) {
       root.move(1)
       event.accepted = true
-    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (ctrl && (event.key === Qt.Key_P || event.key === Qt.Key_K))) {
+    } else if (event.key === Qt.Key_Up || (ctrl && (event.key === Qt.Key_P || event.key === Qt.Key_K))) {
       root.move(-1)
       event.accepted = true
     } else if (event.key === Qt.Key_PageDown) {
@@ -443,7 +462,7 @@ ModalPanel {
         readonly property bool heading: entry.modelData.kind === "heading"
 
         width: list.width
-        height: entry.heading ? 30 : 52
+        height: entry.heading ? root.headingHeight : root.resultHeight
         radius: Theme.radiusFor(height)
         color: entry.current && !entry.heading ? Theme.accentColor : "transparent"
 

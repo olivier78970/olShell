@@ -28,6 +28,11 @@ PanelWindow {
   // Design size of the frame; it shrinks to fit smaller screens.
   property real maxPanelWidth: 800
   property real maxPanelHeight: 600
+  // The height the frame is placed for when it's shorter: a frame whose
+  // height follows its content (the launcher's) keeps its top where a frame
+  // this tall would have it, rather than moving as it grows and shrinks. 0
+  // centers it on its own height.
+  property real placementHeight: 0
   // Opacity of the frame's own fill (never its content, see contentHolder
   // below, or its border, which follows Theme.widgetOpacity directly).
   property real panelOpacity: Theme.widgetOpacity
@@ -173,7 +178,7 @@ PanelWindow {
       left: true
     }
     margins.left: (root.width - frame.width) / 2
-    margins.top: (root.height - frame.height) / 2
+    margins.top: (root.height - Math.max(frame.height, Math.min(root.placementHeight, root.areaHeight * 0.9))) / 2
     implicitWidth: frame.width
     implicitHeight: frame.height
 

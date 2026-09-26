@@ -50,6 +50,13 @@ Singleton {
     notificationDnd: false,
     notificationPosition: "top-right",
     lockTimeout: 10,
+    launcherTab: "all",
+    launcherResults: 7,
+    launcherEngines: [
+      { browser: true, on: true },
+      { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", on: true },
+      { name: "Wikipedia", url: "https://fr.wikipedia.org/w/index.php?search=%s", on: true }
+    ],
     barCollapsed: [],
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow"],

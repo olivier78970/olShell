@@ -38,6 +38,9 @@ Singleton {
   // Lists the Hyprland config's shortcuts, for the shortcuts panel.
   readonly property string listShortcutsScript: Quickshell.shellPath("scripts/list-shortcuts.py")
 
+  // Reads the default browser's default search engine, for the launcher.
+  readonly property string defaultSearchEngineScript: Quickshell.shellPath("scripts/default-search-engine.py")
+
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")

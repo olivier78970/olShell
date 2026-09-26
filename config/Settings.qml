@@ -37,6 +37,7 @@ Singleton {
     notificationTimeout: [2, 30],
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
+    launcherResults: [3, 20],
     zoomMax: [2, 10],
     zoomStep: [0.1, 2]
   })
@@ -48,6 +49,7 @@ Singleton {
   readonly property var choices: ({
     barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
+    launcherTab: ["all", "apps", "files", "web"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
@@ -177,6 +179,56 @@ Singleton {
   readonly property string notificationPosition: root.valid("notificationPosition", file.adapter.notificationPosition)
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
+  // The launcher: the tab it opens on (one of choices.launcherTab), and how
+  // many results its list is tall enough to show at once (more scroll).
+  readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
+  readonly property int launcherResults: root.valid("launcherResults", file.adapter.launcherResults)
+  // The engines the launcher's web search offers, in order: each
+  // { name, url, on } (%s in `url` is where the search goes), or
+  // { browser: true, on } for the default browser's own default engine (see
+  // services/WebSearch.qml), which is always in the list once. Those not `on`
+  // are left out of the launcher.
+  readonly property var launcherEngines: root.valid("launcherEngines", file.adapter.launcherEngines)
+
+  // Whether `name` and `url` make a search engine: a name, and a web address
+  // with %s in it.
+  function validEngine(name, url) {
+    return typeof name === "string" && name.trim().length > 0
+      && typeof url === "string" && /^https?:\/\/\S+$/.test(url.trim()) && url.includes("%s")
+  }
+
+  // Changes `fields` ({ name, url, on }, any of them) of engine `index`.
+  // Returns false, changing nothing, when that doesn't make a valid engine.
+  function setEngine(index, fields) {
+    const list = root.launcherEngines.map(engine => Object.assign({}, engine))
+    if (index < 0 || index >= list.length) return false
+    const engine = Object.assign(list[index], fields)
+    if (!engine.browser && !root.validEngine(engine.name, engine.url)) return false
+    root.set("launcherEngines", list)
+    return true
+  }
+
+  // Adds an engine at the end of the list (on); false if it isn't valid.
+  function addEngine(name, url) {
+    if (!root.validEngine(name, url)) return false
+    root.set("launcherEngines", root.launcherEngines.concat([{ name: name, url: url, on: true }]))
+    return true
+  }
+
+  // Takes engine `index` out of the list; the browser's can't be.
+  function removeEngine(index) {
+    if (root.launcherEngines[index] === undefined || root.launcherEngines[index].browser) return
+    root.set("launcherEngines", root.launcherEngines.filter((engine, other) => other !== index))
+  }
+
+  // Moves engine `index` `steps` places later (negative: earlier).
+  function moveEngine(index, steps) {
+    const list = root.launcherEngines.slice()
+    const target = Math.max(0, Math.min(list.length - 1, index + steps))
+    if (index < 0 || index >= list.length || target === index) return
+    list.splice(target, 0, list.splice(index, 1)[0])
+    root.set("launcherEngines", list)
+  }
 
   // `value` for setting `key` kept within its limits (the default if it
   // isn't a number), and rounded to whole numbers except for the opacity
@@ -186,6 +238,23 @@ Singleton {
   // is any non-empty name (whether it is installed isn't checked here), and a
   // yes/no setting is true or false.
   function valid(key, value) {
+    // The search engines: the valid ones, with the browser's once (put first
+    // if it went missing).
+    if (key === "launcherEngines") {
+      if (value === null || typeof value !== "object") return root.defaults[key]
+      const list = []
+      for (const engine of root.asArray(value)) {
+        if (engine === null || typeof engine !== "object") continue
+        const on = typeof engine.on === "boolean" ? engine.on : true
+        if (engine.browser === true) {
+          if (!list.some(other => other.browser)) list.push({ browser: true, on: on })
+        } else if (root.validEngine(engine.name, engine.url)) {
+          list.push({ name: engine.name.trim(), url: engine.url.trim(), on: on })
+        }
+      }
+      if (!list.some(engine => engine.browser)) list.unshift({ browser: true, on: true })
+      return list
+    }
     // A list of widgets: only known ones (the layout also drops duplicates).
     if (Array.isArray(root.defaults[key])) {
       const list = root.asArray(value)
@@ -473,6 +542,9 @@ Singleton {
       property bool notificationDnd: Defaults.values.notificationDnd
       property string notificationPosition: Defaults.values.notificationPosition
       property int lockTimeout: Defaults.values.lockTimeout
+      property string launcherTab: Defaults.values.launcherTab
+      property int launcherResults: Defaults.values.launcherResults
+      property var launcherEngines: Defaults.values.launcherEngines
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff
       property var barLastPlace: ({})

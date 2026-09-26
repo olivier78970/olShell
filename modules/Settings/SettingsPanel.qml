@@ -28,6 +28,7 @@ ModalPanel {
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
+    { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -150,12 +151,14 @@ ModalPanel {
     ] },
     { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
+    { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
+    { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
     { key: "zoomMax", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "zoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
     { key: "zoomBlocksInputRow", category: "zoom", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
       { key: "zoomBlocksInput", text: "" }
     ] }
-  ].concat(root.widgetRows).concat(root.defaultRows)
+  ].concat(root.widgetRows).concat(root.engineRows).concat(root.defaultRows)
 
   // The last row of every category: its defaults (see DefaultsRow).
   readonly property var defaultRows: root.categories.map(category => ({
@@ -209,6 +212,54 @@ ModalPanel {
     return rows
   }
 
+  // The launcher category's search engines, a row each in their order (the
+  // first with the list's title above it), then a row adding one. A row's
+  // `engineIndex` is its engine's place in Settings.launcherEngines.
+  readonly property var engineRows: Settings.launcherEngines.map((engine, index) => ({
+    key: "engine:" + index,
+    category: "launcher",
+    kind: "engine",
+    engine: engine,
+    engineIndex: index,
+    label: !engine.browser ? engine.name
+      : WebSearch.browserEngine ? I18n.tr("settings.launcherEngines.browser", WebSearch.browserEngine.name)
+      : I18n.tr("settings.launcherEngines.browserUnknown", Apps.webSearchFallback.name),
+    title: index === 0 ? I18n.tr("settings.launcherEngines") : "",
+    canMoveBack: index > 0,
+    canMoveForward: index < Settings.launcherEngines.length - 1
+  })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
+
+  // What the keys do on an engine row, on what they are on (see
+  // SearchEngineRow's focusIndex): switch it on or off, type in its name or
+  // address, or remove it.
+  function pressEngine(row, index) {
+    if (index === 0) Settings.setEngine(row.engineIndex, { on: !row.engine.on })
+    else if (index === 1) root.editKey = row.key + ":name"
+    else if (index === 2) root.editKey = row.key + ":url"
+    else if (index === 3) Settings.removeEngine(row.engineIndex)
+  }
+
+  // Moves the engine of `row` `steps` places, the selection going with it.
+  function moveEngine(row, steps) {
+    const target = Math.max(0, Math.min(Settings.launcherEngines.length - 1, row.engineIndex + steps))
+    root.selectedKey = "engine:" + target
+    Settings.moveEngine(row.engineIndex, steps)
+  }
+
+  // Adds a search engine with a name and an address to be replaced, selects
+  // its row and starts typing its name.
+  function addEngine() {
+    if (!Settings.addEngine(I18n.tr("settings.launcherEngines.new"), "https://example.com/search?q=%s")) return
+    const key = "engine:" + (Settings.launcherEngines.length - 1)
+    Qt.callLater(() => {
+      const index = root.rows.findIndex(row => row.key === key)
+      if (index < 0) return
+      root.selected = index
+      root.toggleFocus = 1
+      root.editKey = key + ":name"
+    })
+  }
+
   // The pop-up positions, named in the current language.
   readonly property var positionOptions: Settings.choices.notificationPosition
     .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
@@ -258,11 +309,13 @@ ModalPanel {
   // An "action" row's button: what it says, and what it does.
   function actionButtonText(row) {
     if (row.key === "notificationActions") return I18n.tr("settings.notificationActions.manage", NotificationActions.rules.length)
+    if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
     return ""
   }
 
   function runAction(row) {
     if (row.key === "notificationActions") NotificationActionsState.open(true)
+    if (row.key === "addEngine") root.addEngine()
   }
 
   // Whether row `row` can be adjusted right now.
@@ -301,6 +354,7 @@ ModalPanel {
     if (row.key === "notificationPosition") return root.positionOptions
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
+    if (row.key === "launcherTab") return root.launcherTabOptions
     return []
   }
 
@@ -312,6 +366,10 @@ ModalPanel {
   // Which edge of the screen the bar is on, named in the current language.
   readonly property var barPositionOptions: Settings.choices.barPosition
     .map(name => ({ value: name, text: I18n.tr("settings.barPosition." + name) }))
+
+  // The launcher's tabs, named as in the launcher.
+  readonly property var launcherTabOptions: Settings.choices.launcherTab
+    .map(name => ({ value: name, text: I18n.tr("launcher.tab." + name) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]
@@ -370,6 +428,8 @@ ModalPanel {
     root.selected = 0
     root.openKey = ""
     root.refreshFontOptions()
+    // For the browser's engine row, in case it changed.
+    WebSearch.refresh()
   }
   onSelectedChanged: {
     root.syncSelectedKey()
@@ -389,7 +449,7 @@ ModalPanel {
 
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
-    // workspaceCount,
+    // workspaceCount, launcherResults,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, zoomMax, zoomStep); out-of-range
     // values are clamped.
@@ -452,8 +512,36 @@ ModalPanel {
       return Settings.get(key)
     }
 
+    // The launcher's search engines as JSON, in order: [{ "name", "url",
+    // "on" }, ...], with { "browser": true, "on" } for the default browser's
+    // own. The calls below take an engine's place in that list, from 0.
+    function engines(): string {
+      return JSON.stringify(Settings.launcherEngines)
+    }
+
+    // Adds an engine at the end (the address with %s where the search goes);
+    // ignored without a name or %s.
+    function addEngine(name: string, url: string): void {
+      Settings.addEngine(name, url)
+    }
+
+    // Takes an engine out of the list (not the browser's).
+    function removeEngine(index: int): void {
+      Settings.removeEngine(index)
+    }
+
+    // Moves an engine `steps` places later (negative: earlier).
+    function moveEngine(index: int, steps: int): void {
+      Settings.moveEngine(index, steps)
+    }
+
+    // Offers an engine in the launcher (1) or not (0).
+    function engineOn(index: int, on: int): void {
+      Settings.setEngine(index, { on: on !== 0 })
+    }
+
     // The same for a setting with a fixed list of choices (wallpaperTransition,
-    // fontCaps, barStyle, barPosition; a value not in the list is ignored) and for the
+    // fontCaps, barStyle, barPosition, launcherTab; a value not in the list is ignored) and for the
     // font family (any installed family, e.g. "DejaVu Sans Mono").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : Settings.choices[key]?.includes(value)
@@ -478,7 +566,7 @@ ModalPanel {
     }
 
     // Saves the current values of a category (appearance, text, bar, widgets,
-    // workspaces, zoom, wallpaper, notifications, lock or general) as your
+    // workspaces, zoom, wallpaper, notifications, lock, launcher or general) as your
     // own defaults.
     function saveDefaults(category: string): void {
       if (root.categories.some(candidate => candidate.id === category)) root.saveDefaults(category)
@@ -511,6 +599,8 @@ ModalPanel {
       if (Settings.defaults[row.key] !== undefined) keys.push(row.key)
       for (const toggle of row.toggles ?? []) keys.push(toggle.key)
     }
+    // The launcher's engines have a row each, none named after the setting.
+    if (categoryId === "launcher") keys.push("launcherEngines")
     return keys
   }
 
@@ -694,6 +784,17 @@ ModalPanel {
         if (next >= 0 && next < zones.length) Settings.place(id, zones[next])
       }
       event.accepted = true
+    } else if (kind === "engine" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: what the keys are on (check box, name, address,
+      // remove); with Shift: the engine earlier / later in the list.
+      const row = root.rows[root.selected]
+      const direction = event.key === Qt.Key_Left ? -1 : 1
+      if (big) root.moveEngine(row, direction)
+      else root.toggleFocus = Math.max(0, Math.min(row.engine.browser ? 0 : 3, root.toggleFocus + direction))
+      event.accepted = true
+    } else if (kind === "engine" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.pressEngine(root.rows[root.selected], root.toggleFocus)
+      event.accepted = true
     } else if (kind === "factoryAll" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Move between Confirm and Cancel, while asking.
       root.toggleFocus = Math.max(0, Math.min(root.confirmAll ? 1 : 0, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
@@ -786,6 +887,37 @@ ModalPanel {
       ThemedText {
         required property var modelData
         text: modelData.label
+      }
+    }
+  }
+
+  // Every value a slider (not a stepper) of any category can show: its
+  // steps, up to a hundred of them evenly spread, and both ends.
+  readonly property var sliderValueTexts: {
+    const texts = new Set()
+    for (const row of root.allRows) {
+      if (row.kind !== "slider" || row.stepper) continue
+      const [from, to] = Settings.limits[row.key]
+      const count = Math.round((to - from) / row.step)
+      const every = Math.max(1, Math.ceil(count / 100))
+      for (let i = 0; i <= count; i += every) texts.add(row.format(Math.round((from + i * row.step) * 1000) / 1000))
+      texts.add(row.format(to))
+    }
+    return Array.from(texts)
+  }
+
+  // Not shown: those values, to give every slider's value the width of the
+  // widest, in the current font and language.
+  Column {
+    id: sliderValues
+    opacity: 0
+
+    Repeater {
+      model: root.sliderValueTexts
+
+      ThemedText {
+        required property string modelData
+        text: modelData
       }
     }
   }
@@ -1007,17 +1139,20 @@ ModalPanel {
               // A widget row that starts a section has that section's name
               // above it, and one that starts a group has a gap above it.
               readonly property bool isWidget: row.modelData.kind === "widget" || row.modelData.kind === "group"
-              readonly property real titleHeight: row.isWidget && row.modelData.zoneStart ? 34 : 0
+              // A title over the row: a section's name, or the row's own
+              // `title` (the launcher's engines).
+              readonly property string title: row.isWidget && row.modelData.zoneStart ? I18n.tr("settings.zone." + row.modelData.zone) : (row.modelData.title ?? "")
+              readonly property real titleHeight: row.title !== "" ? 34 : 0
               readonly property real gapHeight: row.modelData.kind === "defaults" ? 16 : (row.isWidget && row.modelData.groupStart && !row.modelData.zoneStart ? 12 : 0)
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, groupRow, widgetRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
               // A dropdown row grows to hold its list while it's open.
-              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64)))
+              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : (row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64))))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1027,7 +1162,7 @@ ModalPanel {
                 anchors.leftMargin: 4
                 anchors.bottom: parent.top
                 anchors.bottomMargin: -row.titleHeight + 6
-                text: row.isWidget ? I18n.tr("settings.zone." + row.modelData.zone) : ""
+                text: row.title
                 sizeScale: 0.75
                 font.bold: true
                 opacity: 0.7
@@ -1139,6 +1274,7 @@ ModalPanel {
                 from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
                 to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
                 stepSize: row.modelData.step ?? 1
+                valueWidth: sliderValues.implicitWidth
                 value: row.modelData.kind === "slider" ? root.sliderValueOf(row.modelData) : 0
                 valueText: row.modelData.kind === "slider" ? row.modelData.format(root.sliderValueOf(row.modelData)) : ""
                 selected: root.selected === row.index
@@ -1206,6 +1342,42 @@ ModalPanel {
                 onShownToggled: Settings.setWidgetShown(widgetId, zoneNow === "off")
                 onZoneChosen: value => Settings.place(widgetId, value)
                 onMoved: steps => Settings.move(widgetId, steps)
+              }
+
+              SearchEngineRow {
+                id: engineRow
+                readonly property string prefix: row.modelData.key + ":"
+
+                visible: row.modelData.kind === "engine"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                browser: row.modelData.engine?.browser ?? false
+                label: row.modelData.label
+                name: row.modelData.engine?.name ?? ""
+                url: row.modelData.engine?.url ?? ""
+                on: row.modelData.engine?.on ?? false
+                canMoveBack: row.modelData.canMoveBack ?? false
+                canMoveForward: row.modelData.canMoveForward ?? false
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                editing: root.editKey.startsWith(engineRow.prefix) ? root.editKey.slice(engineRow.prefix.length) : ""
+                onActivated: root.selected = row.index
+                onToggled: Settings.setEngine(row.modelData.engineIndex, { on: !row.modelData.engine.on })
+                onMoved: steps => root.moveEngine(row.modelData, steps)
+                onRemoved: Settings.removeEngine(row.modelData.engineIndex)
+                onEditRequested: field => {
+                  root.toggleFocus = field === "name" ? 1 : 2
+                  root.editKey = engineRow.prefix + field
+                }
+                // A refused value (no name, or an address without %s)
+                // leaves the field open to be typed again.
+                onCommitted: (field, text) => {
+                  const fields = {}
+                  fields[field] = text.trim()
+                  if (Settings.setEngine(row.modelData.engineIndex, fields)) root.editKey = ""
+                }
+                onCancelled: root.editKey = ""
+                onReleased: root.focusTarget.forceActiveFocus()
               }
 
               ToggleRow {

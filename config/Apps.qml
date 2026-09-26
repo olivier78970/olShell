@@ -34,12 +34,11 @@ Singleton {
   // and duration are settings (see config/Settings.qml), added after these.
   readonly property var wallpaperOptions: ["--resize", "crop", "--transition-step", "63", "--transition-fps", "60"]
 
-  // The web tab of the launcher offers a search with each of these, in this
-  // order (%s is where the search goes); opened in the default browser.
-  readonly property var webSearchEngines: [
-    { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=%s", icon: "󰇥" },
-    { name: "Google", url: "https://www.google.com/search?q=%s", icon: "󰊭" },
-    { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", icon: "󰗃" },
-    { name: "Wikipedia", url: "https://fr.wikipedia.org/w/index.php?search=%s", icon: "󰖬" }
-  ]
+  // The engine the launcher's web search uses for the default browser's
+  // entry when that browser's own can't be read (see services/WebSearch.qml;
+  // %s is where the search goes).
+  readonly property var webSearchFallback: ({ name: "DuckDuckGo", url: "https://duckduckgo.com/?q=%s" })
+  // The icons of the search engines, by the start of their name in lower
+  // case; any other has a magnifier.
+  readonly property var webSearchIcons: ({ duckduckgo: "󰇥", google: "󰊭", bing: "󰂤", wikip: "󰖬", youtube: "󰗃" })
 }
