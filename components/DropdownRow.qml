@@ -45,7 +45,7 @@ Item {
 
   readonly property int currentIndex: root.options.findIndex(option => option.value === root.current)
   readonly property int entryHeight: root.positionIcon ? 38 : 30
-  readonly property int visibleEntries: root.positionIcon ? 8 : 6
+  readonly property int visibleEntries: root.positionIcon ? 9 : 6
   // The label and button line, and (unless overlaid) the list below it when open.
   property real headerHeight: 54
   readonly property real listHeight: Math.min(root.options.length, root.visibleEntries) * root.entryHeight + 8

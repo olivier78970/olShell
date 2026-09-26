@@ -148,9 +148,8 @@ Scope {
       // `locked`), but the volume OSD can't show over the session lock:
       // the same pill shows here instead, for a moment after each change.
       VolumePill {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 60
+        x: Theme.osdOffset(Theme.volumeOsdPosition, Theme.volumeOsdMargin, parent.width, width, false)
+        y: Theme.osdOffset(Theme.volumeOsdPosition, Theme.volumeOsdMargin, parent.height, height, true)
         visible: volumeTimer.running
       }
 

@@ -38,9 +38,15 @@ Singleton {
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
     launcherResults: [3, 20],
+    volumeOsdMargin: [0, 400],
+    lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
     zoomStep: [0.1, 2]
   })
+
+  // Where an OSD can be put on the screen: the vertical place, a dash, the
+  // horizontal one.
+  readonly property var osdPositions: ["bottom-center", "bottom-left", "bottom-right", "center-center", "center-left", "center-right", "top-center", "top-left", "top-right"]
 
   // The values a setting can only take one of, in the order the panel lists
   // them. The wallpaper transitions are those of `awww img
@@ -53,6 +59,8 @@ Singleton {
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
+    volumeOsdPosition: root.osdPositions,
+    lockKeysOsdPosition: root.osdPositions,
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"]
   })
 
@@ -177,6 +185,13 @@ Singleton {
   readonly property bool notificationDnd: root.valid("notificationDnd", file.adapter.notificationDnd)
   // Where the pop-ups appear on the screen (one of choices.notificationPosition).
   readonly property string notificationPosition: root.valid("notificationPosition", file.adapter.notificationPosition)
+  // Where the volume OSD and the lock keys OSD appear on the screen (one of
+  // osdPositions each), and how far from the edges they are, in pixels (from
+  // the edge of the area the bar leaves free on its side).
+  readonly property string volumeOsdPosition: root.valid("volumeOsdPosition", file.adapter.volumeOsdPosition)
+  readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
+  readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
+  readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
   // The launcher: the tab it opens on (one of choices.launcherTab), and how
@@ -541,6 +556,10 @@ Singleton {
       property int notificationMax: Defaults.values.notificationMax
       property bool notificationDnd: Defaults.values.notificationDnd
       property string notificationPosition: Defaults.values.notificationPosition
+      property string volumeOsdPosition: Defaults.values.volumeOsdPosition
+      property int volumeOsdMargin: Defaults.values.volumeOsdMargin
+      property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
+      property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
       property string launcherTab: Defaults.values.launcherTab
       property int launcherResults: Defaults.values.launcherResults

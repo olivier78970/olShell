@@ -4,8 +4,8 @@ import qs.components
 import qs.config
 import qs.services
 
-// Bottom-of-screen popup that briefly appears when Caps Lock or Num Lock is
-// switched on or off. Same approach as VolumeOsd: the surface covers the
+// Popup that briefly appears when Caps Lock or Num Lock is switched on or
+// off, where its position setting puts it. Same approach as VolumeOsd: the surface covers the
 // whole screen with an empty input region, so clicks pass through.
 PanelWindow {
   id: root
@@ -45,9 +45,8 @@ PanelWindow {
   Rectangle {
     implicitWidth: content.width
     implicitHeight: content.height + Theme.pillPadding
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 60
+    x: Theme.osdOffset(Theme.lockKeysOsdPosition, Theme.lockKeysOsdMargin, root.width, width, false)
+    y: Theme.osdOffset(Theme.lockKeysOsdPosition, Theme.lockKeysOsdMargin, root.height, height, true)
     radius: Theme.radiusFor(implicitHeight)
     color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
     border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)

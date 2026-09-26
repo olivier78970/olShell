@@ -32,6 +32,7 @@ ModalPanel {
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
+    { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
@@ -104,6 +105,10 @@ ModalPanel {
       { key: "notificationDnd", text: "" }
     ] },
     { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
+    { key: "volumeOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, overlay: true, title: I18n.tr("settings.osd.volume"), label: I18n.tr("settings.osdPosition") },
+    { key: "volumeOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, overlay: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
+    { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
@@ -218,6 +223,10 @@ ModalPanel {
   readonly property var positionOptions: Settings.choices.notificationPosition
     .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
 
+  // The OSD positions, named in the current language.
+  readonly property var osdPositionOptions: Settings.osdPositions
+    .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
+
   // The wallpaper transitions, named in the current language.
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
     .map(name => ({ value: name, text: I18n.tr("settings.transition." + name) }))
@@ -306,6 +315,7 @@ ModalPanel {
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
     if (row.key === "notificationPosition") return root.positionOptions
+    if (row.key === "volumeOsdPosition" || row.key === "lockKeysOsdPosition") return root.osdPositionOptions
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
@@ -495,7 +505,8 @@ ModalPanel {
     }
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
-    // fontCaps, barStyle, barPosition, launcherTab; a value not in the list is ignored) and for the
+    // fontCaps, barStyle, barPosition, launcherTab, notificationPosition,
+    // volumeOsdPosition, lockKeysOsdPosition; a value not in the list is ignored) and for the
     // font family (any installed family, e.g. "DejaVu Sans Mono").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : Settings.choices[key]?.includes(value)
@@ -520,7 +531,7 @@ ModalPanel {
     }
 
     // Saves the current values of a page (appearance, text, bar, widgets,
-    // widgetSettings, wallpaper, notifications, lock, launcher or general) as
+    // widgetSettings, wallpaper, notifications, osd, lock, launcher or general) as
     // your own defaults.
     function saveDefaults(category: string): void {
       if (root.pages.includes(category)) root.saveDefaults(category)

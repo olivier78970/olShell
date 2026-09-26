@@ -4,8 +4,9 @@ import qs.components
 import qs.config
 import qs.services
 
-// Bottom-of-screen popup that briefly appears whenever the output volume
-// or mute state changes (from the bar widget, media keys, pavucontrol...).
+// Popup that briefly appears whenever the output volume
+// or mute state changes (from the bar widget, media keys, pavucontrol...),
+// where its position setting puts it (Theme.osdOffset).
 // The surface covers the whole screen (the pill is positioned inside it),
 // but its input region is empty so clicks pass through to whatever is below.
 PanelWindow {
@@ -63,8 +64,7 @@ PanelWindow {
   }
 
   VolumePill {
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 60
+    x: Theme.osdOffset(Theme.volumeOsdPosition, Theme.volumeOsdMargin, root.width, width, false)
+    y: Theme.osdOffset(Theme.volumeOsdPosition, Theme.volumeOsdMargin, root.height, height, true)
   }
 }
