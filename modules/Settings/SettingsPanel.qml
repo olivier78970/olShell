@@ -629,11 +629,12 @@ ModalPanel {
   }
 
   // The column of controls: past the longest label of these kinds of rows
-  // on the current page. Sliders and text fields start in it; check boxes,
-  // buttons and lists stay against the right edge, but the page is as wide
-  // as if they started in it too. Not shown: the labels (with a slider's
-  // SameButton), only to measure them in the current font and language.
-  readonly property var alignedKinds: ["slider", "toggles", "path", "dropdown", "buttons", "choice"]
+  // (and of the steppers) on the current page. Text fields and steppers
+  // start in it; check boxes, buttons and lists stay against the right edge,
+  // but the page is as wide as if they started in it too. A slider is under
+  // its label, so it doesn't count. Not shown: the labels, only to measure
+  // them in the current font and language.
+  readonly property var alignedKinds: ["toggles", "path", "dropdown", "buttons", "choice"]
   // The space between the longest label and the column.
   readonly property real labelGap: 32
   readonly property real controlX: 12 + rowLabels.implicitWidth + root.labelGap
@@ -643,19 +644,11 @@ ModalPanel {
     opacity: 0
 
     Repeater {
-      model: root.rows.filter(row => root.alignedKinds.includes(row.kind))
+      model: root.rows.filter(row => root.alignedKinds.includes(row.kind) || (row.kind === "slider" && row.stepper))
 
-      Row {
+      ThemedText {
         required property var modelData
-        spacing: 8
-
-        ThemedText {
-          text: modelData.label
-        }
-
-        SameButton {
-          visible: !!modelData.sameText
-        }
+        text: modelData.label
       }
     }
   }
@@ -887,7 +880,7 @@ ModalPanel {
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above))
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
 
               // The name of the section, with a line after it.
               ThemedText {

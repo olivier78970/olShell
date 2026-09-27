@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import qs.config
 
-// One adjustable number: its label on the left, then a slider and the
-// current value on the right. The owner gives the value and reacts to
+// One adjustable number: its label on the left and the current value on the
+// right, with a slider the whole width of the row below them. The owner gives the value and reacts to
 // `moved`; `activated` fires when the row is pressed (to select it).
 //
 // With `stepper`, the value in a field, then a − and a + button, take the
@@ -13,9 +13,9 @@ import qs.config
 // row); Enter emits `committed` with the number typed, Escape `cancelled`,
 // and the owner then clears `editing`.
 //
-// With `sameText`, a SameButton sits just before the slider (or the
-// stepper), so those of every row line up, for a value that can follow one
-// of the shell's: `same` says whether it does, `sameToggled` fires
+// With `sameText`, a SameButton sits just before the value (or the stepper),
+// so those of every row line up, for a value that can follow one of the
+// shell's: `same` says whether it does, `sameToggled` fires
 // when the button is pressed, and hovering it shows `sameText`. It stays
 // usable while the row is disabled (which following the shell makes it).
 Item {
@@ -43,20 +43,20 @@ Item {
   // What the tooltip says right now, if anything.
   readonly property string tooltipText: sameButton.visible && sameButton.hovered ? root.sameText
     : !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
-  // The room the SameButton takes before the control, if there is one.
+  // The room the SameButton takes before the value, if there is one.
   readonly property real sameWidth: sameButton.visible ? sameButton.width + 8 : 0
 
-  // Where the control starts, from the row's left edge, to line it up with
-  // the other rows' (the settings panel gives every row the same one); -1
-  // keeps it against the right edge instead.
+  // Where a stepper's control starts at the least, from the row's left edge,
+  // to line it up with the other rows' (the settings panel gives every row
+  // the same one); -1 keeps it against the right edge instead. A slider is
+  // under the label, the whole width of the row.
   property real controlX: -1
-  readonly property bool aligned: root.controlX >= 0
 
   property bool stepper: false
   property bool editing: false
   // The width of the value on the right, the same for every row (the
-  // settings panel gives the widest any slider can show) so the sliders line
-  // up.
+  // settings panel gives the widest any slider can show) so the SameButtons
+  // line up.
   property real valueWidth: 80
 
   signal moved(real value)
@@ -81,12 +81,13 @@ Item {
 
   readonly property real fraction: root.to > root.from ? Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from))) : 0
 
-  // The least it needs: the name, a short track and the value (or the
-  // stepper's buttons and field).
+  // The least it needs: the name and the value (or the stepper's buttons and
+  // field), and a track of 200 px.
   implicitWidth: root.stepper
     ? Math.max(12 + labelText.implicitWidth + root.sameWidth + 16, root.controlX) + stepperRow.implicitWidth + 12
-    : (root.aligned ? root.controlX : 12 + labelText.implicitWidth + root.sameWidth + 12) + 100 + 14 + valueLabel.width + 12
-  implicitHeight: 54
+    : Math.max(12 + labelText.implicitWidth + 16 + root.sameWidth + valueLabel.width + 12, 12 + 200 + 12)
+  // A stepper on one line; a slider under the label and value.
+  implicitHeight: root.stepper ? 54 : header.y + header.height + 12 + 14 + 12
 
   // `raw` (anywhere between from and to) rounded to the nearest step.
   function snap(raw) {
@@ -110,56 +111,66 @@ Item {
       border.width: 1
     }
 
-    Column {
+    // The label (and note) on the left and the value on the right: at the
+    // top of a slider's row, in the middle of a stepper's.
+    Item {
+      id: header
       anchors.left: parent.left
       anchors.leftMargin: 12
-      // Up to the control: the track, a sibling, or the stepper, which isn't
-      // one (it's above the row's MouseArea), so it's reached by a margin.
-      // The SameButton's room is kept before the control.
-      anchors.right: root.stepper ? parent.right : track.left
-      anchors.rightMargin: (root.stepper ? root.width - stepperRow.x + 12 : 12) + root.sameWidth
-      anchors.verticalCenter: parent.verticalCenter
-
-      ThemedText {
-        id: labelText
-        width: parent.width
-        text: root.label
-        elide: Text.ElideRight
-      }
-
-      ThemedText {
-        visible: root.note.length > 0
-        width: parent.width
-        text: root.note
-        sizeScale: 0.8
-        opacity: 0.6
-        elide: Text.ElideRight
-      }
-    }
-
-    ThemedText {
-      id: valueLabel
-      visible: !root.stepper
       anchors.right: parent.right
-      anchors.rightMargin: 12
-      anchors.verticalCenter: parent.verticalCenter
-      width: root.valueWidth
-      horizontalAlignment: Text.AlignRight
-      text: root.valueText
-      color: Theme.accentColor
+      // Up to the stepper, which isn't a sibling (it's above the row's
+      // MouseArea), so it's reached by a margin.
+      anchors.rightMargin: root.stepper ? root.width - stepperRow.x + 12 : 12
+      y: root.stepper ? (parent.height - height) / 2 : 10
+      height: Math.max(labelColumn.implicitHeight, valueLabel.implicitHeight)
+
+      Column {
+        id: labelColumn
+        anchors.left: parent.left
+        // The SameButton's room is kept before the value (or the stepper).
+        anchors.right: root.stepper ? parent.right : valueLabel.left
+        anchors.rightMargin: root.sameWidth + (root.stepper ? 0 : 16)
+        anchors.verticalCenter: parent.verticalCenter
+
+        ThemedText {
+          id: labelText
+          width: parent.width
+          text: root.label
+          elide: Text.ElideRight
+        }
+
+        ThemedText {
+          visible: root.note.length > 0
+          width: parent.width
+          text: root.note
+          sizeScale: 0.8
+          opacity: 0.6
+          elide: Text.ElideRight
+        }
+      }
+
+      ThemedText {
+        id: valueLabel
+        visible: !root.stepper
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: root.valueWidth
+        horizontalAlignment: Text.AlignRight
+        text: root.valueText
+        color: Theme.accentColor
+      }
     }
 
-    // The slider itself, on the right of the row, before the value.
+    // The slider itself, the whole width of the row under the label; inset
+    // by half the knob so the knob stays inside the row at both ends.
     Rectangle {
       id: track
       visible: !root.stepper
-      anchors.right: valueLabel.left
-      anchors.rightMargin: 14
-      anchors.verticalCenter: parent.verticalCenter
-      // Aligned: from `controlX` to the value. Otherwise 35% of the row, but
-      // never so much that the label gets cut off, and at least a short slider.
-      width: root.aligned ? Math.max(100, root.width - root.controlX - valueLabel.width - 14 - 12)
-        : Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - root.sameWidth - valueLabel.width - 12 - 12 - 14 - 12))
+      anchors.left: parent.left
+      anchors.leftMargin: 12 + 7
+      anchors.right: parent.right
+      anchors.rightMargin: 12 + 7
+      y: header.y + header.height + 12 + (14 - height) / 2
       height: 6
       radius: Theme.radiusFor(height)
       color: Theme.borderColor
@@ -199,9 +210,11 @@ Item {
     onPressed: mouse => {
       root.activated()
       // Only the slider (with a little room around its knob) sets the value;
-      // the rest of the row is just to select it (all of it, for a stepper,
-      // whose own buttons and field are above this).
-      area.dragging = !root.stepper && mouse.x >= track.x - 10 && mouse.x <= track.x + track.width + 10
+      // the rest of the row, its label line included, is just to select it
+      // (all of it, for a stepper, whose own buttons and field are above
+      // this).
+      area.dragging = !root.stepper && mouse.y >= track.y - 10
+        && mouse.x >= track.x - 10 && mouse.x <= track.x + track.width + 10
       if (area.dragging) setFrom(mouse.x)
     }
     onPositionChanged: mouse => {
@@ -210,14 +223,14 @@ Item {
     onReleased: area.dragging = false
   }
 
-  // Just before the control, above the row's MouseArea so it gets its
-  // clicks, and outside the dimmed content: following the shell disables the
-  // row, and the button has to stay usable to stop following it.
+  // Just before the value (or the stepper), above the row's MouseArea so it
+  // gets its clicks, and outside the dimmed content: following the shell
+  // disables the row, and the button has to stay usable to stop following it.
   SameButton {
     id: sameButton
     visible: root.sameText.length > 0
-    x: (root.stepper ? stepperRow.x : track.x) - 8 - width
-    anchors.verticalCenter: parent.verticalCenter
+    x: root.stepper ? stepperRow.x - 8 - width : header.x + valueLabel.x - 16 - width
+    y: header.y + (header.height - height) / 2
     on: root.same
     onToggled: {
       root.activated()
