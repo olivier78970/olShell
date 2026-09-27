@@ -16,7 +16,10 @@ Singleton {
   // others are one page. A row's `category` is the page it's on: the
   // category's id, or its tab's.
   readonly property var categories: [
-    { id: "appearance", icon: "󰏘", label: I18n.tr("settings.category.appearance") },
+    { id: "appearanceCategory", icon: "󰏘", label: I18n.tr("settings.category.appearance"), tabs: [
+      { id: "appearance", label: I18n.tr("settings.tab.appearance") },
+      { id: "blur", label: I18n.tr("settings.tab.blur") }
+    ] },
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
     { id: "barWidgets", icon: "󰀻", label: I18n.tr("settings.category.barWidgets"), tabs: [
@@ -68,16 +71,16 @@ Singleton {
     { key: "borderOpaqueRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.borderOpaque"), toggles: [
       { key: "borderOpaque", text: "" }
     ] },
-    { key: "blurRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blur"), toggles: [
+    { key: "blurRow", category: "blur", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blur"), toggles: [
       { key: "blur", text: "" }
     ] },
-    { key: "blurSize", category: "appearance", kind: "slider", label: I18n.tr("settings.blurSize"), step: 1, format: v => v + " px" },
-    { key: "blurPasses", category: "appearance", kind: "slider", label: I18n.tr("settings.blurPasses"), step: 1, format: v => String(v) },
-    { key: "blurVibrancy", category: "appearance", kind: "slider", label: I18n.tr("settings.blurVibrancy"), step: 0.05, format: v => Math.round(v * 100) + " %" },
-    { key: "blurContrast", category: "appearance", kind: "slider", label: I18n.tr("settings.blurContrast"), step: 0.05, format: v => Math.round(v * 100) + " %" },
-    { key: "blurBrightness", category: "appearance", kind: "slider", label: I18n.tr("settings.blurBrightness"), step: 0.05, format: v => Math.round(v * 100) + " %" },
-    { key: "blurNoise", category: "appearance", kind: "slider", label: I18n.tr("settings.blurNoise"), step: 0.005, format: v => (v * 100).toFixed(1) + " %" },
-    { key: "blurXrayRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
+    { key: "blurSize", category: "blur", kind: "slider", label: I18n.tr("settings.blurSize"), step: 1, format: v => v + " px" },
+    { key: "blurPasses", category: "blur", kind: "slider", label: I18n.tr("settings.blurPasses"), step: 1, format: v => String(v) },
+    { key: "blurVibrancy", category: "blur", kind: "slider", label: I18n.tr("settings.blurVibrancy"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurContrast", category: "blur", kind: "slider", label: I18n.tr("settings.blurContrast"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurBrightness", category: "blur", kind: "slider", label: I18n.tr("settings.blurBrightness"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurNoise", category: "blur", kind: "slider", label: I18n.tr("settings.blurNoise"), step: 0.005, format: v => (v * 100).toFixed(1) + " %" },
+    { key: "blurXrayRow", category: "blur", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
       { key: "blurXray", text: "" }
     ] },
     { key: "panelGap", category: "appearance", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },

@@ -167,7 +167,7 @@ Scope {
       SettingsPages.resetAll()
     }
 
-    // Saves the current values of a page (appearance, text, bar, widgets,
+    // Saves the current values of a page (appearance, blur, text, bar, layout,
     // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher or
     // general) as your own defaults.
     function saveDefaults(category: string): void {
