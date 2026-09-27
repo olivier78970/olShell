@@ -56,14 +56,6 @@ ModalPanel {
     reader.running = true
   }
 
-  IpcHandler {
-    target: "shortcuts"
-
-    function toggle(): void {
-      ShortcutsPanelState.toggle()
-    }
-  }
-
   // Read again at each opening, so a config just edited shows.
   Process {
     id: reader

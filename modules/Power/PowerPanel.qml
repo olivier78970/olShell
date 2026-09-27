@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Io
 import qs.components
 import qs.config
 import qs.services
@@ -66,36 +65,6 @@ ModalPanel {
     } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
       root.pick(root.actions[root.current].id)
       event.accepted = true
-    }
-  }
-
-  // `power toggle` opens or closes the panel; the others do what its buttons
-  // do (suspend at once, the rest through the confirmation).
-  IpcHandler {
-    target: "power"
-
-    function toggle(): void {
-      PowerPanelState.toggle()
-    }
-
-    function logout(): void {
-      root.pick("logout")
-    }
-
-    function restart(): void {
-      root.pick("restart")
-    }
-
-    function shutdown(): void {
-      root.pick("shutdown")
-    }
-
-    function suspend(): void {
-      root.pick("suspend")
-    }
-
-    function firmware(): void {
-      root.pick("firmware")
     }
   }
 

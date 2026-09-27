@@ -92,14 +92,6 @@ ModalPanel {
     WebSearch.refresh()
   }
 
-  IpcHandler {
-    target: "launcher"
-
-    function toggle(): void {
-      LauncherState.toggle()
-    }
-  }
-
   // The texts of an application in the shell's language, read from its
   // .desktop file (see DesktopLocale); Quickshell's own, which are in the
   // system's language, when that file can't be found.

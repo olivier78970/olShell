@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Io
 import qs.components
 import qs.config
 import qs.services
@@ -32,14 +31,6 @@ CarouselPanel {
     ThemeState.select(ThemePresets.presets[index].id)
     // Re-colors the other apps (Zen...) with the new theme.
     Matugen.applyTheme()
-  }
-
-  IpcHandler {
-    target: "themes"
-
-    function themesToggle(): void {
-      ThemePanelState.toggle()
-    }
   }
 
   delegate: Component {

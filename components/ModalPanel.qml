@@ -95,6 +95,15 @@ PanelWindow {
     if (root.open) root.opened()
   }
 
+  // A panel only built when it opens (see the *Module.qml files, which load
+  // it with a LazyLoader) is open from the start, so `open` and `hostSlot`
+  // never change for it: it opens here instead.
+  Component.onCompleted: {
+    if (!root.open) return
+    root.opened()
+    if (root.hostSlot) Qt.callLater(() => root.focusTarget.forceActiveFocus())
+  }
+
   // What the bar takes up at its edge of the screen, margins included.
   readonly property real barZone: Theme.barMarginTop + Theme.barHeight + Theme.barMarginBottom
 
