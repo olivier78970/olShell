@@ -39,6 +39,11 @@ Singleton {
   // window opens).
   readonly property var hiddenTrayItems: ["blueman"]
 
+  // Applications in the Game category that aren't games but launchers and
+  // tools for them, by desktop entry id: the launcher's Games tab leaves them
+  // out (they stay in its Applications tab).
+  readonly property var notGames: ["steam", "com.heroicgameslauncher.hgl", "io.github.Faugus.faugus-launcher", "io.github.benjamimgois.goverlay"]
+
   // The terminal the launcher runs a terminal application in (a desktop
   // entry with Terminal=true, such as yazi or htop), followed by its command,
   // and the size of its floating, centered window, as fractions of the

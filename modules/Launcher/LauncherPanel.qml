@@ -140,9 +140,10 @@ ModalPanel {
 
   // Whether an application is a game: its desktop entry is in the Game
   // category (Categories=Game;), as the games' shortcuts made by Faugus,
-  // Heroic or Steam are, and those launchers themselves.
+  // Heroic or Steam are, and it isn't one of the launchers and tools that
+  // also put themselves there (Apps.notGames).
   function isGame(entry) {
-    return (entry.categories ?? []).includes("Game")
+    return (entry.categories ?? []).includes("Game") && !Apps.notGames.includes(entry.id)
   }
 
   // Visible applications matching the query, best first; alphabetical when
