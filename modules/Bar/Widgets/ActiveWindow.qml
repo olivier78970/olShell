@@ -6,13 +6,23 @@ import qs.components
 import qs.config
 
 // Icon and title of the currently focused window (any compositor
-// supporting wlr-foreign-toplevel-management, not just Hyprland).
+// supporting wlr-foreign-toplevel-management, not just Hyprland). A window
+// whose icon can't be found gets a generic application glyph instead.
 Row {
   id: root
 
   readonly property var toplevel: ToplevelManager.activeToplevel
   readonly property var desktopEntry: root.toplevel ? DesktopEntries.byId(root.toplevel.appId) : null
   readonly property int maxTitleWidth: 700
+  // The window's icon: its desktop entry's (a theme icon, or a file for an
+  // absolute path), or else one named after its app id; "" when the icon
+  // theme has neither.
+  readonly property string iconSource: {
+    const icon = root.desktopEntry ? root.desktopEntry.icon : ""
+    if (icon.startsWith("/")) return "file://" + icon
+    if (icon !== "") return Quickshell.iconPath(icon, true)
+    return root.toplevel ? Quickshell.iconPath(root.toplevel.appId, true) : ""
+  }
 
   anchors.verticalCenter: parent.verticalCenter
   spacing: 8
@@ -22,11 +32,22 @@ Row {
   visible: root.present
 
   IconImage {
+    id: icon
+    visible: root.iconSource !== "" && icon.status !== Image.Error
     anchors.verticalCenter: parent.verticalCenter
     width: Theme.trayIconSize()
     height: Theme.trayIconSize()
-    source: root.desktopEntry ? Quickshell.iconPath(root.desktopEntry.icon)
-      : (root.toplevel ? Quickshell.iconPath(root.toplevel.appId, true) : "")
+    source: root.iconSource
+  }
+
+  // The generic glyph, where there's no icon to show (the launcher uses the
+  // same for an application without one).
+  ThemedText {
+    visible: !icon.visible
+    anchors.verticalCenter: parent.verticalCenter
+    width: Theme.trayIconSize()
+    horizontalAlignment: Text.AlignHCenter
+    text: "󰀻"
   }
 
   ThemedText {
