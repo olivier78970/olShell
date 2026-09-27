@@ -27,7 +27,6 @@ ModalPanel {
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
     { id: "barWidgets", icon: "󰀻", label: I18n.tr("settings.category.barWidgets"), tabs: [
-      { id: "widgets", label: I18n.tr("settings.tab.widgets") },
       { id: "layout", label: I18n.tr("settings.tab.layout") },
       { id: "widgetSettings", label: I18n.tr("settings.tab.widgetSettings") }
     ] },
@@ -144,59 +143,12 @@ ModalPanel {
     { key: "zoomBlocksInputRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
       { key: "zoomBlocksInput", text: "" }
     ] }
-  ].concat(root.widgetRows).concat(root.engineRows).concat(root.matugenAppRows).concat(root.defaultRows)
+  ].concat(root.engineRows).concat(root.matugenAppRows).concat(root.defaultRows)
 
   // The last row of every page: its defaults (see DefaultsRow).
   readonly property var defaultRows: root.pages.map(page => ({
     key: "defaults:" + page, category: page, kind: "defaults", label: I18n.tr("settings.defaults")
   }))
-
-  // The widgets category, in the order things are on the bar: for each
-  // section (left, center, right) its groups (the widgets between two
-  // dividers), each a "group" row (its mode, and moving it) followed by a row
-  // per widget; then the widgets that are off. Rows say where they are in
-  // their section and group so the panel can draw each group as a block:
-  // `zoneStart` for the first row of a section, `groupStart` for a group's
-  // first row and `groupEnd` for its last. A group row's `widget` is the
-  // widget that starts the group, which names it.
-  readonly property var widgetRows: {
-    const rows = []
-    const widgetRow = (id, zone, zoneStart, groupEnd) => ({
-      key: "widget:" + id,
-      widget: id,
-      category: "widgets",
-      kind: "widget",
-      label: I18n.tr("settings.widget." + id),
-      zone: zone,
-      zoneStart: zoneStart,
-      groupStart: false,
-      groupEnd: groupEnd
-    })
-    for (const zone of Settings.zones) {
-      const groups = Settings.groupsOf(zone)
-      groups.forEach((group, groupIndex) => {
-        rows.push({
-          key: "group:" + group[0],
-          widget: group[0],
-          category: "widgets",
-          kind: "group",
-          label: I18n.tr("settings.group") + " " + (groupIndex + 1),
-          zone: zone,
-          shown: !Settings.hiddenGroups.includes(group[0]),
-          hover: Settings.collapsed.includes(group[0]),
-          canMoveBack: groupIndex > 0,
-          canMoveForward: groupIndex < groups.length - 1,
-          zoneStart: groupIndex === 0,
-          groupStart: true,
-          groupEnd: false
-        })
-        group.forEach((id, index) => rows.push(widgetRow(id, zone, false, index === group.length - 1)))
-      })
-    }
-    const off = Settings.widgetIds.filter(id => Settings.zoneOf(id) === "off")
-    off.forEach((id, index) => rows.push(widgetRow(id, "off", index === 0, false)))
-    return rows
-  }
 
   // The launcher category's search engines, a row each in their order (the
   // first with the list's title above it), then a row adding one. A row's
@@ -346,11 +298,6 @@ ModalPanel {
 
   // The button of the selected toggle row the keys are on.
   property int toggleFocus: 0
-
-  // Where a widget can be put, for its row: one of the three zones (off is
-  // the check box).
-  readonly property var zoneOptions: Settings.zones
-    .map(name => ({ value: name, text: I18n.tr("settings.zone." + name) }))
 
   // The capitalizations, named in the current language.
   readonly property var capsOptions: Settings.choices.fontCaps
@@ -722,7 +669,7 @@ ModalPanel {
   // widgets category has the bar's layout lists). The language, which the
   // general category also holds, is not a setting: see the functions below.
   function keysOf(categoryId) {
-    if (categoryId === "widgets" || categoryId === "layout") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
+    if (categoryId === "layout") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
     const keys = []
     for (const row of root.allRows) {
       if (row.category !== categoryId) continue
@@ -885,48 +832,9 @@ ModalPanel {
     }
     const big = (event.modifiers & Qt.ShiftModifier) !== 0
     const kind = root.rows[root.selected].kind
-    if (kind === "widget" && event.key === Qt.Key_D && Settings.layout[Settings.zoneOf(root.rows[root.selected].widget)]?.[0] === root.rows[root.selected].widget) {
-      // The first widget of a pill has no divider to switch.
-      event.accepted = true
-    } else if ((kind === "path" || (kind === "slider" && root.rows[root.selected].stepper)) && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
+    if ((kind === "path" || (kind === "slider" && root.rows[root.selected].stepper)) && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
       // Enter: type in the field (a path's, or a stepper's value).
       root.editKey = root.rows[root.selected].key
-      event.accepted = true
-    } else if (kind === "group" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
-      // Left / Right: the check box the keys are on (on, on hover); with
-      // Shift: the whole group earlier / later in its pill.
-      const row = root.rows[root.selected]
-      const direction = event.key === Qt.Key_Left ? -1 : 1
-      if (big) Settings.moveGroup(row.widget, direction)
-      else root.toggleFocus = Math.max(0, Math.min(1, root.toggleFocus + direction))
-      event.accepted = true
-    } else if (kind === "group" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      // Enter / Space: tick or untick the check box the keys are on.
-      const row = root.rows[root.selected]
-      if (root.toggleFocus === 0) Settings.setGroupShown(row.widget, !row.shown)
-      else Settings.setGroupHover(row.widget, !row.hover)
-      event.accepted = true
-    } else if (kind === "widget" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      // Enter / Space: put the widget on the bar or take it off.
-      const id = root.rows[root.selected].widget
-      Settings.setWidgetShown(id, Settings.zoneOf(id) === "off")
-      event.accepted = true
-    } else if (kind === "widget" && event.key === Qt.Key_D) {
-      // D: the divider before the widget, on or off.
-      const id = root.rows[root.selected].widget
-      Settings.setDivider(id, !Settings.dividers.includes(id))
-      event.accepted = true
-    } else if (kind === "widget" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
-      // Left / Right: another zone; with Shift: earlier / later in this one.
-      const id = root.rows[root.selected].widget
-      const direction = event.key === Qt.Key_Left ? -1 : 1
-      if (big) {
-        Settings.move(id, direction)
-      } else {
-        const zones = id === "settings" ? Settings.zones : ["off"].concat(Settings.zones)
-        const next = zones.indexOf(Settings.zoneOf(id)) + direction
-        if (next >= 0 && next < zones.length) Settings.place(id, zones[next])
-      }
       event.accepted = true
     } else if (kind === "engine" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Left / Right: what the keys are on (check box, name, address,
@@ -1070,22 +978,6 @@ ModalPanel {
       ThemedText {
         required property string modelData
         text: modelData
-      }
-    }
-  }
-
-  // Not shown either: the widget names, to give them all the width of the
-  // widest so the check boxes after them line up.
-  Column {
-    id: widgetLabels
-    opacity: 0
-
-    Repeater {
-      model: Settings.widgetIds
-
-      ThemedText {
-        required property string modelData
-        text: I18n.tr("settings.widget." + modelData)
       }
     }
   }
@@ -1272,26 +1164,23 @@ ModalPanel {
               required property var modelData
               required property int index
 
-              // A widget row that starts a section has that section's name
-              // above it, and one that starts a group has a gap above it.
-              readonly property bool isWidget: row.modelData.kind === "widget" || row.modelData.kind === "group"
-              // A title over the row: a section's name, or the row's own
-              // `title` (the launcher's engines, the widget settings' sections).
-              readonly property string title: row.isWidget && row.modelData.zoneStart ? I18n.tr("settings.zone." + row.modelData.zone) : (row.modelData.title ?? "")
+              // A title over the row: the row's own `title` (the launcher's
+              // engines, the settings' sections).
+              readonly property string title: row.modelData.title ?? ""
               readonly property real titleHeight: row.title !== "" ? 34 : 0
-              readonly property real gapHeight: row.modelData.kind === "defaults" ? 16 : (row.isWidget && row.modelData.groupStart && !row.modelData.zoneStart ? 12 : 0)
+              readonly property real gapHeight: row.modelData.kind === "defaults" ? 16 : 0
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, engineRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.isWidget ? 38 + row.above : (row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above)))
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above))
 
               // The name of the section, with a line after it.
               ThemedText {
-                id: zoneTitle
+                id: titleText
                 visible: row.titleHeight > 0
                 anchors.left: parent.left
                 anchors.leftMargin: 4
@@ -1305,10 +1194,10 @@ ModalPanel {
 
               Rectangle {
                 visible: row.titleHeight > 0
-                anchors.left: zoneTitle.right
+                anchors.left: titleText.right
                 anchors.leftMargin: 10
                 anchors.right: parent.right
-                anchors.verticalCenter: zoneTitle.verticalCenter
+                anchors.verticalCenter: titleText.verticalCenter
                 height: 1
                 color: Theme.separatorColor
                 opacity: 0.6
@@ -1377,30 +1266,6 @@ ModalPanel {
                 onPressed: index => root.pressDefaults(row.modelData.category, index)
               }
 
-              // The group as a block: a tinted background and a bar on its left,
-              // continuing through the little gap between its rows.
-              Rectangle {
-                id: groupBlock
-                readonly property real bridge: 3
-                visible: row.isWidget && row.modelData.zone !== "off"
-                x: 0
-                y: row.above - (row.modelData.groupStart ? 0 : groupBlock.bridge)
-                width: parent.width
-                height: 38 + (row.modelData.groupStart ? 0 : groupBlock.bridge) + (row.modelData.groupEnd ? 0 : groupBlock.bridge)
-                topLeftRadius: row.modelData.groupStart ? 10 : 0
-                topRightRadius: row.modelData.groupStart ? 10 : 0
-                bottomLeftRadius: row.modelData.groupEnd ? 10 : 0
-                bottomRightRadius: row.modelData.groupEnd ? 10 : 0
-                color: Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.06)
-
-                Rectangle {
-                  width: 3
-                  height: parent.height
-                  color: Theme.accentColor
-                  opacity: 0.8
-                }
-              }
-
               SettingSlider {
                 id: sliderRow
                 controlX: root.controlX
@@ -1430,55 +1295,6 @@ ModalPanel {
                 note: row.modelData.key === "workspaceCount" ? I18n.tr("settings.workspaceCount.note", WorkspaceRules.configured.length) : ""
                 onActivated: root.selected = row.index
                 onMoved: value => Settings.set(row.modelData.key, value)
-              }
-
-              GroupRow {
-                id: groupRow
-                visible: row.modelData.kind === "group"
-                anchors.fill: parent
-                anchors.topMargin: row.above
-                anchors.leftMargin: 8
-                label: row.modelData.label
-                labelWidth: widgetLabels.implicitWidth
-                hoverText: I18n.tr("settings.groupMode.hover")
-                shown: row.modelData.shown ?? true
-                hover: row.modelData.hover ?? false
-                focusIndex: root.toggleFocus
-                canMoveBack: row.modelData.canMoveBack ?? false
-                canMoveForward: row.modelData.canMoveForward ?? false
-                selected: root.selected === row.index
-                onActivated: root.selected = row.index
-                onShownToggled: Settings.setGroupShown(row.modelData.widget, !row.modelData.shown)
-                onHoverToggled: Settings.setGroupHover(row.modelData.widget, !row.modelData.hover)
-                onMoved: steps => Settings.moveGroup(row.modelData.widget, steps)
-              }
-
-              WidgetRow {
-                id: widgetRow
-                readonly property string widgetId: row.modelData.widget ?? ""
-                readonly property string zoneNow: row.modelData.kind === "widget" ? Settings.zoneOf(widgetId) : "off"
-                readonly property var placed: Settings.layout[zoneNow] ?? []
-
-                visible: row.modelData.kind === "widget"
-                anchors.fill: parent
-                anchors.topMargin: row.above
-                anchors.leftMargin: 8
-                label: row.modelData.label
-                zones: root.zoneOptions
-                labelWidth: widgetLabels.implicitWidth
-                shown: zoneNow !== "off"
-                shownEnabled: widgetId !== "settings"
-                zone: zoneNow
-                divider: Settings.dividers.includes(widgetId)
-                dividerEnabled: placed.indexOf(widgetId) !== 0
-                canMoveBack: placed.indexOf(widgetId) > 0
-                canMoveForward: placed.indexOf(widgetId) >= 0 && placed.indexOf(widgetId) < placed.length - 1
-                selected: root.selected === row.index
-                onActivated: root.selected = row.index
-                onDividerToggled: Settings.setDivider(widgetId, !Settings.dividers.includes(widgetId))
-                onShownToggled: Settings.setWidgetShown(widgetId, zoneNow === "off")
-                onZoneChosen: value => Settings.place(widgetId, value)
-                onMoved: steps => Settings.move(widgetId, steps)
               }
 
               SearchEngineRow {
