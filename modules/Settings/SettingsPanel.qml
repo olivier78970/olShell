@@ -31,6 +31,7 @@ ModalPanel {
       { id: "widgetSettings", label: I18n.tr("settings.tab.widgetSettings") }
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
+    { id: "theme", icon: "󰸌", label: I18n.tr("settings.category.theme") },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
     { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
@@ -64,7 +65,7 @@ ModalPanel {
     ] },
     { key: "barAutoHideDuration", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDuration"), step: 10, format: v => v + " ms" },
     { key: "barAutoHideDelay", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDelay"), step: 50, format: v => v + " ms" },
-    { key: "barPosition", category: "bar", kind: "dropdown", positionIcon: true, overlay: true, label: I18n.tr("settings.barPosition") },
+    { key: "barPosition", category: "bar", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.barPosition") },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
     { key: "barMarginTop", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginTop"), step: 1, format: v => v + " px" },
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
@@ -98,16 +99,40 @@ ModalPanel {
     { key: "fontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.fontFamily") },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
+    { key: "themeMode", category: "theme", kind: "buttons", title: I18n.tr("settings.theme.all"), label: I18n.tr("settings.themeMode") },
+    { key: "themePill", category: "theme", kind: "dropdown", label: I18n.tr("settings.themePill") },
+    { key: "matugenScheme", category: "theme", kind: "dropdown", title: I18n.tr("settings.matugen"), label: I18n.tr("settings.matugenScheme") },
+    { key: "matugenSource", category: "theme", kind: "dropdown", label: I18n.tr("settings.matugenSource") },
+    { key: "matugenContrast", category: "theme", kind: "slider", label: I18n.tr("settings.matugenContrast"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : "+" + Math.round(v * 100) + " %" },
+    { key: "matugenLightness", category: "theme", kind: "slider", label: I18n.tr("settings.matugenLightness"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : (v > 0 ? "+" : "") + Math.round(v * 100) + " %" },
+    { key: "matugenAccent", category: "theme", kind: "buttons", label: I18n.tr("settings.matugenAccent") },
+    { key: "themeAccent", category: "theme", kind: "buttons", title: I18n.tr("settings.theme.fixed"), label: I18n.tr("settings.themeAccent") },
+    { key: "themeExactAppsRow", category: "theme", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.themeExactApps"), toggles: [
+      { key: "themeExactApps", text: "" }
+    ] },
+    { key: "customBackground", category: "theme", kind: "path", swatch: true, title: I18n.tr("settings.theme.custom"), label: I18n.tr("settings.custom.background") },
+    { key: "customPill", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.pill") },
+    { key: "customBorder", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.border") },
+    { key: "customText", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.text") },
+    { key: "customAccent", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.accent") },
+    { key: "customCopy", category: "theme", kind: "action", label: I18n.tr("settings.custom.copy") },
+    { key: "matugenAppsRow", category: "theme", kind: "toggles", title: I18n.tr("settings.matugenApps.title"), label: I18n.tr("settings.matugenApps"), toggles: [
+      { key: "matugenHyprland", text: "Hyprland" },
+      { key: "matugenZen", text: "Zen" },
+      { key: "matugenAlacritty", text: "Alacritty" },
+      { key: "matugenGtk", text: "GTK" },
+      { key: "matugenStarship", text: "Starship" }
+    ] },
     { key: "notificationTimeout", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationTimeout"), step: 1, format: v => v + " s" },
     { key: "notificationMax", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationMax"), step: 1, format: v => String(v) },
-    { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, overlay: true, label: I18n.tr("settings.notificationPosition") },
+    { key: "notificationPosition", category: "notifications", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.notificationPosition") },
     { key: "notificationDndRow", category: "notifications", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.notificationDnd"), toggles: [
       { key: "notificationDnd", text: "" }
     ] },
     { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
-    { key: "volumeOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, overlay: true, title: I18n.tr("settings.osd.volume"), label: I18n.tr("settings.osdPosition") },
+    { key: "volumeOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.volume"), label: I18n.tr("settings.osdPosition") },
     { key: "volumeOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
-    { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, overlay: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
+    { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
     { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
@@ -117,7 +142,7 @@ ModalPanel {
     { key: "zoomBlocksInputRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
       { key: "zoomBlocksInput", text: "" }
     ] }
-  ].concat(root.widgetRows).concat(root.engineRows).concat(root.defaultRows)
+  ].concat(root.widgetRows).concat(root.engineRows).concat(root.matugenAppRows).concat(root.defaultRows)
 
   // The last row of every page: its defaults (see DefaultsRow).
   readonly property var defaultRows: root.pages.map(page => ({
@@ -188,6 +213,41 @@ ModalPanel {
     canMoveForward: index < Settings.launcherEngines.length - 1
   })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
 
+  // The theme category's added apps (after the other apps' row), a row each,
+  // and the row adding one. `appIndex` is its app's place in
+  // Settings.matugenApps.
+  readonly property var matugenAppRows: Settings.matugenApps.map((app, index) => ({
+    key: "matugenApp:" + index,
+    category: "theme",
+    kind: "matugenApp",
+    app: app,
+    appIndex: index
+  })).concat([{ key: "addMatugenApp", category: "theme", kind: "action", label: I18n.tr("settings.matugenApps.add") }])
+
+  // The fields of an added app's row, by its focusIndex (see ThemeAppRow).
+  readonly property var matugenAppFields: ["", "name", "template", "output", "hook"]
+
+  // What the keys do on an added app's row, on what they are on: switch it
+  // on or off, type in one of its fields, or remove it.
+  function pressMatugenApp(row, index) {
+    if (index === 0) Settings.setMatugenApp(row.appIndex, { on: !row.app.on })
+    else if (index >= 1 && index <= 4) root.editKey = row.key + ":" + root.matugenAppFields[index]
+    else if (index === 5) Settings.removeMatugenApp(row.appIndex)
+  }
+
+  // Adds an app, selects its row and starts typing its name.
+  function addMatugenApp() {
+    Settings.addMatugenApp(I18n.tr("settings.matugenApps.new"))
+    const key = "matugenApp:" + (Settings.matugenApps.length - 1)
+    Qt.callLater(() => {
+      const index = root.rows.findIndex(row => row.key === key)
+      if (index < 0) return
+      root.selected = index
+      root.toggleFocus = 1
+      root.editKey = key + ":name"
+    })
+  }
+
   // What the keys do on an engine row, on what they are on (see
   // SearchEngineRow's focusIndex): switch it on or off, type in its name or
   // address, or remove it.
@@ -231,6 +291,35 @@ ModalPanel {
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
     .map(name => ({ value: name, text: I18n.tr("settings.transition." + name) }))
 
+  // The choices of the theme rows (mode, widget background, and the
+  // "Automatique" palette style, starting color and accent), named in the
+  // current language; the accents show their color from the current palette.
+  readonly property var matugenOptions: ({
+    themeMode: Settings.choices.themeMode.map(name => ({ value: name, text: I18n.tr("settings.themeMode." + name) })),
+    matugenScheme: Settings.choices.matugenScheme.map(name => ({ value: name, text: I18n.tr("settings.matugenScheme." + name) })),
+    matugenSource: Settings.choices.matugenSource.map(name => ({ value: name, text: I18n.tr("settings.matugenSource." + name) })),
+    matugenAccent: Settings.choices.matugenAccent.map(name => ({ value: name, text: I18n.tr("settings.matugenAccent." + name), swatch: GeneratedColors.matugenAccents[name] })),
+    themePill: Settings.choices.themePill.map(name => ({ value: name, text: I18n.tr("settings.themePill." + name) }))
+  })
+
+  // The rows that only apply to the "Automatique" theme.
+  readonly property var matugenAutoRows: ["matugenScheme", "matugenSource", "matugenContrast", "matugenLightness", "matugenAccent"]
+
+  // The fixed theme's accents, as color dots, after its own default one
+  // (none but the default while another kind of theme is used), and the
+  // one of them in use: the default for a color the theme doesn't have.
+  readonly property var themeAccentOptions: [{ value: "default", text: I18n.tr("settings.themeAccent.default") }]
+    .concat(ThemePresets.accentNames
+      .filter(name => ThemeState.active.accents?.[name] !== undefined)
+      .map(name => ({ value: name, text: "", swatch: ThemeState.active.accents[name] })))
+  readonly property string themeAccentCurrent: root.themeAccentOptions.some(option => option.value === Settings.themeAccent) ? Settings.themeAccent : "default"
+
+  // The value a buttons or dropdown row shows as current.
+  function currentOf(row) {
+    if (row.key === "themeAccent") return root.themeAccentCurrent
+    return Settings.get(row.key)
+  }
+
   // The Nerd Font families installed (the shell's icons are Nerd Font glyphs),
   // plus the current one if it isn't among them, e.g. set by hand. Any other
   // installed family can be set with `ipc call settings choose fontFamily`.
@@ -273,12 +362,27 @@ ModalPanel {
   function actionButtonText(row) {
     if (row.key === "notificationActions") return I18n.tr("settings.notificationActions.manage", NotificationActions.rules.length)
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
+    if (row.key === "customCopy") return I18n.tr("settings.custom.copyButton")
+    if (row.key === "addMatugenApp") return I18n.tr("settings.launcherEngines.addButton")
     return ""
   }
 
   function runAction(row) {
     if (row.key === "notificationActions") NotificationActionsState.open(true)
     if (row.key === "addEngine") root.addEngine()
+    if (row.key === "customCopy") root.copyToCustom()
+    if (row.key === "addMatugenApp") root.addMatugenApp()
+  }
+
+  // Makes the custom theme's colors those of the theme in use (without its
+  // widget background level, which the custom theme applies too).
+  function copyToCustom() {
+    const colors = ThemeState.active.baseColors ?? GeneratedColors.matugenBaseColors
+    Settings.set("customBackground", String(colors.backgroundColor))
+    Settings.set("customPill", String(colors.pillColor))
+    Settings.set("customBorder", String(colors.borderColor))
+    Settings.set("customText", String(colors.textColor))
+    Settings.set("customAccent", String(colors.accentColor))
   }
 
   // Whether row `row` can be adjusted right now.
@@ -288,6 +392,16 @@ ModalPanel {
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
+    // An OSD in the center of the screen touches no edge.
+    if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
+    if (row.key === "lockKeysOsdMargin") return Settings.lockKeysOsdPosition !== "center-center"
+    // A fixed theme doesn't take its colors from the wallpaper.
+    if (root.matugenAutoRows.includes(row.key)) return ThemeState.active.kind === "auto"
+    // Only the "Automatique" theme and the fixed ones with a light version
+    // can be light or dark.
+    if (row.key === "themeMode") return ThemeState.active.hasLight
+    if (row.key === "themeAccent") return ThemeState.active.kind === "fixed"
+    if (row.key === "themeExactAppsRow") return ThemeState.active.kind !== "auto"
     return true
   }
 
@@ -306,6 +420,13 @@ ModalPanel {
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
     if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
+    if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
+    if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
+    if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")
+    if (row.key === "themeMode" && ThemeState.active.kind === "custom") return I18n.tr("settings.themeMode.disabledCustom")
+    if (row.key === "themeMode" && !ThemeState.active.hasLight) return I18n.tr("settings.themeMode.disabledNoLight")
+    if (row.key === "themeAccent" && ThemeState.active.kind !== "fixed") return I18n.tr("settings.themeAccent.disabled")
+    if (row.key === "themeExactAppsRow" && ThemeState.active.kind === "auto") return I18n.tr("settings.themeExactApps.disabled")
     return ""
   }
 
@@ -314,6 +435,8 @@ ModalPanel {
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
+    if (root.matugenOptions[row.key] !== undefined) return root.matugenOptions[row.key]
+    if (row.key === "themeAccent") return root.themeAccentOptions
     if (row.key === "notificationPosition") return root.positionOptions
     if (row.key === "volumeOsdPosition" || row.key === "lockKeysOsdPosition") return root.osdPositionOptions
     if (row.key === "barStyle") return root.barStyleOptions
@@ -389,6 +512,10 @@ ModalPanel {
   }
   Component.onCompleted: root.refreshFontOptions()
   onOpened: {
+    if (SettingsPanelState.resuming) {
+      SettingsPanelState.resuming = false
+      return
+    }
     root.selected = 0
     root.openKey = ""
     root.refreshFontOptions()
@@ -415,12 +542,14 @@ ModalPanel {
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
     // workspaceCount, launcherResults,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
-    // fontLetterSpacing, wallpaperDuration, zoomMax, zoomStep); out-of-range
+    // fontLetterSpacing, wallpaperDuration, matugenContrast,
+    // matugenLightness, zoomMax, zoomStep); out-of-range
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
     // workspaceCountFromHyprland,
     // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
-    // fontOutline) take 1 or 0.
+    // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
+    // matugenStarship, themeExactApps) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }
@@ -504,12 +633,41 @@ ModalPanel {
       Settings.setEngine(index, { on: on !== 0 })
     }
 
+    // The apps added to the themed apps as JSON, in order: [{ "name",
+    // "template", "output", "hook", "on" }]. The calls below take an app's
+    // place in that list, from 0.
+    function matugenApps(): string {
+      return JSON.stringify(Settings.matugenApps)
+    }
+
+    // Adds an app: its name, its matugen template, the file matugen writes
+    // from it, and a shell command run after ("" for none).
+    function addMatugenApp(name: string, template: string, output: string, hook: string): void {
+      if (name.trim().length === 0) return
+      Settings.addMatugenApp(name.trim())
+      Settings.setMatugenApp(Settings.matugenApps.length - 1, { template: template.trim(), output: output.trim(), hook: hook.trim() })
+    }
+
+    // Takes an added app out of the list.
+    function removeMatugenApp(index: int): void {
+      Settings.removeMatugenApp(index)
+    }
+
+    // Has matugen color an added app (1) or not (0).
+    function matugenAppOn(index: int, on: int): void {
+      Settings.setMatugenApp(index, { on: on !== 0 })
+    }
+
     // The same for a setting with a fixed list of choices (wallpaperTransition,
-    // fontCaps, barStyle, barPosition, launcherTab, notificationPosition,
-    // volumeOsdPosition, lockKeysOsdPosition; a value not in the list is ignored) and for the
-    // font family (any installed family, e.g. "DejaVu Sans Mono").
+    // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
+    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab,
+    // notificationPosition, volumeOsdPosition, lockKeysOsdPosition; a value
+    // not in the list is ignored), for the font family (any installed family,
+    // e.g. "DejaVu Sans Mono") and for the custom theme's colors
+    // (customBackground, customPill, customBorder, customText, customAccent:
+    // a "#rrggbb" color).
     function choose(key: string, value: string): void {
-      const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : Settings.choices[key]?.includes(value)
+      const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
     }
 
@@ -531,8 +689,8 @@ ModalPanel {
     }
 
     // Saves the current values of a page (appearance, text, bar, widgets,
-    // widgetSettings, wallpaper, notifications, osd, lock, launcher or general) as
-    // your own defaults.
+    // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher or
+    // general) as your own defaults.
     function saveDefaults(category: string): void {
       if (root.pages.includes(category)) root.saveDefaults(category)
     }
@@ -566,6 +724,8 @@ ModalPanel {
     }
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
+    // Nor do the theme's added apps.
+    if (categoryId === "theme") keys.push("matugenApps")
     return keys
   }
 
@@ -663,7 +823,7 @@ ModalPanel {
       Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
     } else if (row.kind === "dropdown" || row.kind === "buttons") {
       const values = root.optionsOf(row).map(option => option.value)
-      const next = ((values.indexOf(Settings.get(row.key)) + direction * steps) % values.length + values.length) % values.length
+      const next = ((values.indexOf(root.currentOf(row)) + direction * steps) % values.length + values.length) % values.length
       Settings.set(row.key, values[next])
     } else if (row.kind === "choice") {
       const values = root.languageOptions.map(option => option.value)
@@ -768,6 +928,13 @@ ModalPanel {
       const direction = event.key === Qt.Key_Left ? -1 : 1
       if (big) root.moveEngine(row, direction)
       else root.toggleFocus = Math.max(0, Math.min(row.engine.browser ? 0 : 3, root.toggleFocus + direction))
+      event.accepted = true
+    } else if (kind === "matugenApp" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: what the keys are on (check box, the fields, remove).
+      root.toggleFocus = Math.max(0, Math.min(5, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+      event.accepted = true
+    } else if (kind === "matugenApp" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.pressMatugenApp(root.rows[root.selected], root.toggleFocus)
       event.accepted = true
     } else if (kind === "engine" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
       root.pressEngine(root.rows[root.selected], root.toggleFocus)
@@ -1109,12 +1276,11 @@ ModalPanel {
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, matugenAppRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              // A dropdown row grows to hold its list while it's open.
-              height: row.modelData.kind === "dropdown" ? dropdown.implicitHeight : (row.isWidget ? 38 + row.above : (row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above))))
+              height: row.isWidget ? 38 + row.above : (row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above)))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1344,6 +1510,38 @@ ModalPanel {
                 onReleased: root.focusTarget.forceActiveFocus()
               }
 
+              ThemeAppRow {
+                id: matugenAppRow
+                readonly property string prefix: row.modelData.key + ":"
+
+                visible: row.modelData.kind === "matugenApp"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                name: row.modelData.app?.name ?? ""
+                template: row.modelData.app?.template ?? ""
+                output: row.modelData.app?.output ?? ""
+                hook: row.modelData.app?.hook ?? ""
+                on: row.modelData.app?.on ?? false
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                editing: root.editKey.startsWith(matugenAppRow.prefix) ? root.editKey.slice(matugenAppRow.prefix.length) : ""
+                onActivated: root.selected = row.index
+                onToggled: Settings.setMatugenApp(row.modelData.appIndex, { on: !row.modelData.app.on })
+                onRemoved: Settings.removeMatugenApp(row.modelData.appIndex)
+                onEditRequested: field => {
+                  root.toggleFocus = root.matugenAppFields.indexOf(field)
+                  root.editKey = matugenAppRow.prefix + field
+                }
+                // An empty name is refused: the field stays open to be typed again.
+                onCommitted: (field, text) => {
+                  const fields = {}
+                  fields[field] = text.trim()
+                  if (Settings.setMatugenApp(row.modelData.appIndex, fields)) root.editKey = ""
+                }
+                onCancelled: root.editKey = ""
+                onReleased: root.focusTarget.forceActiveFocus()
+              }
+
               ToggleRow {
                 id: toggleRow
                 controlX: root.controlX
@@ -1375,6 +1573,7 @@ ModalPanel {
                 anchors.topMargin: row.above
                 label: row.modelData.label
                 value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
+                swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
                 editing: root.editKey === row.modelData.key
                 onActivated: root.selected = row.index
@@ -1385,6 +1584,13 @@ ModalPanel {
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
+                onPicked: value => Settings.set(row.modelData.key, value)
+                // Out of the way while a color is picked from the screen.
+                onScreenPickStarted: SettingsPanelState.visible = false
+                onScreenPickFinished: {
+                  SettingsPanelState.resuming = true
+                  SettingsPanelState.visible = true
+                }
               }
 
               DropdownRow {
@@ -1392,16 +1598,20 @@ ModalPanel {
                 controlX: root.controlX
                 visible: row.modelData.kind === "dropdown"
                 anchors.fill: parent
+                anchors.topMargin: row.above
                 label: row.modelData.label
                 options: root.optionsOf(row.modelData)
-                current: row.modelData.kind === "dropdown" ? Settings.get(row.modelData.key) : null
+                current: row.modelData.kind === "dropdown" ? root.currentOf(row.modelData) : null
                 selected: root.selected === row.index
                 headerHeight: 64
                 open: root.openKey === row.modelData.key
                 highlighted: root.highlight
                 previewFonts: row.modelData.key === "fontFamily"
                 positionIcon: row.modelData.positionIcon ?? false
-                overlay: row.modelData.overlay ?? false
+                // Every list floats over the panel, so nothing moves when one opens.
+                overlay: true
+                interactive: root.rowEnabled(row.modelData)
+                disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: root.selected = row.index
                 onToggled: root.toggleDropdown(row.modelData)
                 onHighlightRequested: index => root.highlight = index
@@ -1422,8 +1632,10 @@ ModalPanel {
                 literal: true
                 label: row.modelData.label
                 options: root.optionsOf(row.modelData)
-                current: row.modelData.kind === "buttons" ? Settings.get(row.modelData.key) : null
+                current: row.modelData.kind === "buttons" ? root.currentOf(row.modelData) : null
                 selected: root.selected === row.index
+                interactive: root.rowEnabled(row.modelData)
+                disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: root.selected = row.index
                 onChosen: value => Settings.set(row.modelData.key, value)
               }

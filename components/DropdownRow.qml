@@ -31,6 +31,11 @@ Item {
   property bool positionIcon: false
   // Float the list instead of growing the row to hold it.
   property bool overlay: false
+  // False for a row that can't be adjusted right now (some other setting
+  // makes it have no effect); dims the row and blocks its button, and
+  // `disabledReason`, if set, explains why in a tooltip on hover.
+  property bool interactive: true
+  property string disabledReason: ""
 
   signal chosen(var value)
   signal activated()
@@ -80,6 +85,7 @@ Item {
     anchors.left: parent.left
     anchors.right: parent.right
     height: root.headerHeight
+    opacity: root.interactive ? 1 : 0.45
     radius: Theme.radiusFor(height)
     color: root.selected ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.14) : "transparent"
     border.color: root.selected ? Theme.accentColor : "transparent"
@@ -91,6 +97,7 @@ Item {
     anchors.left: header.left
     anchors.leftMargin: 12
     anchors.verticalCenter: header.verticalCenter
+    opacity: root.interactive ? 1 : 0.45
     text: root.label
   }
 
@@ -102,6 +109,7 @@ Item {
     anchors.verticalCenter: header.verticalCenter
     width: valueRow.implicitWidth + arrow.implicitWidth + 36
     height: root.positionIcon ? 38 : 30
+    opacity: root.interactive ? 1 : 0.45
     radius: Theme.radiusFor(height)
     color: mouse.containsMouse || root.open ? Theme.borderColor : "transparent"
     border.color: root.open ? Theme.accentColor : Theme.outlineColor
@@ -140,6 +148,7 @@ Item {
     MouseArea {
       id: mouse
       anchors.fill: parent
+      enabled: root.interactive
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       onClicked: {
@@ -147,6 +156,18 @@ Item {
         root.toggled()
       }
     }
+  }
+
+  // Hover works even while the row itself is disabled, so the tooltip
+  // explaining why still shows (over the label and button line only).
+  HoverHandler {
+    id: hover
+  }
+
+  DisabledTooltip {
+    anchorItem: header
+    text: root.disabledReason
+    visible: hover.hovered && !root.interactive && root.disabledReason.length > 0
   }
 
   // The options list itself, shared by the inline row and the floating
