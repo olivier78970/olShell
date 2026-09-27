@@ -22,7 +22,7 @@ For the features that use them:
 - `btop` and [`gdu`](https://github.com/dundee/gdu) for the btop and disk usage windows, and a terminal for them and for the terminal applications started from the launcher (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml))
 - `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
 - [`fd`](https://github.com/sharkdp/fd) for the launcher's files, `xdg-utils` (`xdg-open` to open a file or an address, `xdg-settings` to find the default browser's search engine) and `nautilus` (to show a file in its folder)
-- NetworkManager (`nmcli`) and `nm-connection-editor` for the network connection widget, and BlueZ with [blueman](https://github.com/blueman-project/blueman) for the Bluetooth widget's windows
+- NetworkManager (`nmcli`) and `nm-connection-editor` for the network connection widget, and BlueZ with [blueman](https://github.com/blueman-project/blueman) for the Bluetooth widget's windows (blueman's own tray icon, whose applet starts along with those windows, is left out of the tray: `hiddenTrayItems` in [config/Apps.qml](config/Apps.qml))
 - [hyprpicker](https://github.com/hyprwm/hyprpicker) for the color picker's **From the screen** (custom theme)
 - [adw-gtk3](https://github.com/lassekongo83/adw-gtk3) (`adw-gtk-theme`) and `gsettings` (`glib2`) for GTK apps in the shell's colors (see [GTK](#gtk))
 - optionally [qt6ct](https://github.com/trialuser02/qt6ct) and [qt5ct](https://sourceforge.net/projects/qt5ct/) for Qt apps in the shell's colors (see [Qt](#qt))
