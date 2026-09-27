@@ -279,6 +279,7 @@ ModalPanel {
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
+    if (row.key === "clockDate") return root.clockDateOptions
     return []
   }
 
@@ -294,6 +295,11 @@ ModalPanel {
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
     .map(name => ({ value: name, text: I18n.tr("launcher.tab." + name) }))
+
+  // The bar clock's date formats, each shown as today's date written that
+  // way in the current language.
+  readonly property var clockDateOptions: Settings.choices.clockDate
+    .map(name => ({ value: name, text: name === "none" ? I18n.tr("settings.clockDate.none") : new Date().toLocaleDateString(I18n.locale, I18n.value("format.date." + name)) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]

@@ -127,6 +127,10 @@ Singleton {
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
+    { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
+    { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
+      { key: "clockSeconds", text: "" }
+    ] },
     { key: "zoomMax", category: "widgetSettings", kind: "slider", title: I18n.tr("settings.category.zoom"), label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "widgetSettings", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
     { key: "zoomBlocksInputRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [

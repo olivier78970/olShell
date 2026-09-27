@@ -24,7 +24,7 @@ Scope {
     // matugenLightness, zoomMax, zoomStep); out-of-range
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // workspaceCountFromHyprland,
+    // workspaceCountFromHyprland, clockSeconds,
     // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
@@ -138,7 +138,7 @@ Scope {
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
-    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab,
+    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition; a value
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors

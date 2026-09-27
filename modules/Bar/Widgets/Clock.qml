@@ -2,7 +2,9 @@ import QtQuick
 import qs.components
 import qs.config
 
-// Centered date/time display, in the current language. Clicking it opens (or
+// Centered date/time display, in the current language, with the date format
+// and seconds chosen in the settings (Settings.clockDate, clockSeconds).
+// Clicking it opens (or
 // closes) the clock panel (modules/Clock/ClockPanel.qml) with the agenda and
 // the performance figures; a click elsewhere closes it too.
 Item {
@@ -10,6 +12,10 @@ Item {
 
   readonly property var locale: I18n.locale
   property date now: new Date()
+  // What is shown: the date in the chosen format (none for "none"), then the
+  // time, with or without seconds.
+  readonly property string format: (Settings.clockDate === "none" ? "" : I18n.value("format.date." + Settings.clockDate) + " ")
+    + I18n.value(Settings.clockSeconds ? "format.timeSeconds" : "format.time")
   // Whether this instance's clock is the one with the panel open right now
   // (the bar keeps the widget's section open then) - the panel is a single
   // top-level instance shared by every screen's bar, so only the clock that
@@ -32,7 +38,7 @@ Item {
 
     ThemedText {
       anchors.verticalCenter: parent.verticalCenter
-      text: root.now.toLocaleString(root.locale, I18n.value("format.dateTime"))
+      text: root.now.toLocaleString(root.locale, root.format)
     }
   }
 
@@ -42,10 +48,27 @@ Item {
     onClicked: ClockPanelState.toggle(root)
   }
 
+  // Updates the time just after the next second, or the next minute without
+  // seconds, so the bar isn't redrawn more often than the clock changes.
+  function tick() {
+    root.now = new Date()
+    const period = Settings.clockSeconds ? 1000 : 60000
+    ticker.interval = period - (root.now.getTime() % period) + 20
+    ticker.restart()
+  }
+
+  Component.onCompleted: root.tick()
+
+  Connections {
+    target: Settings
+
+    function onClockSecondsChanged() {
+      root.tick()
+    }
+  }
+
   Timer {
-    interval: 1000
-    running: true
-    repeat: true
-    onTriggered: root.now = new Date()
+    id: ticker
+    onTriggered: root.tick()
   }
 }
