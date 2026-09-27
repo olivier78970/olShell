@@ -68,96 +68,97 @@ Singleton {
     return list.concat([value]).slice(-root.historyLength)
   }
 
-  Process {
-    id: cpuProc
-    command: ["cat", "/proc/stat"]
+  // Turns /proc/stat into the CPU usage, overall and per core. Each "cpu*"
+  // line holds cumulative jiffie counters since boot, so usage is derived
+  // from the delta between two readings rather than a single one.
+  function parseCpu(text) {
+    const newTimes = {}
+    const percents = {}
 
-    // Each "cpu*" line holds cumulative jiffie counters since boot, so
-    // usage is derived from the delta between two samples rather than a
-    // single reading.
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const newTimes = {}
-        const percents = {}
+    for (const line of text.split("\n")) {
+      const match = line.match(/^(cpu\d*)\s+(.*)$/)
+      if (!match) continue
 
-        for (const line of text.split("\n")) {
-          const match = line.match(/^(cpu\d*)\s+(.*)$/)
-          if (!match) continue
+      const label = match[1]
+      const fields = match[2].trim().split(/\s+/).map(Number)
+      const idle = fields[3] + (fields[4] ?? 0)
+      const total = fields.reduce((sum, n) => sum + n, 0)
 
-          const label = match[1]
-          const fields = match[2].trim().split(/\s+/).map(Number)
-          const idle = fields[3] + (fields[4] ?? 0)
-          const total = fields.reduce((sum, n) => sum + n, 0)
-
-          const prev = root.prevTimes[label]
-          if (prev) {
-            const totalDelta = total - prev.total
-            const idleDelta = idle - prev.idle
-            percents[label] = totalDelta > 0 ? (1 - idleDelta / totalDelta) * 100 : 0
-          }
-          newTimes[label] = { total, idle }
-        }
-
-        root.prevTimes = newTimes
-        if (percents.cpu !== undefined) {
-          root.cpuPercent = percents.cpu
-          root.cpuHistory = root.pushed(root.cpuHistory, percents.cpu)
-        }
-
-        const cores = []
-        for (let i = 0; percents["cpu" + i] !== undefined; i++)
-          cores.push(percents["cpu" + i])
-        root.corePercents = cores
+      const prev = root.prevTimes[label]
+      if (prev) {
+        const totalDelta = total - prev.total
+        const idleDelta = idle - prev.idle
+        percents[label] = totalDelta > 0 ? (1 - idleDelta / totalDelta) * 100 : 0
       }
+      newTimes[label] = { total, idle }
+    }
+
+    root.prevTimes = newTimes
+    if (percents.cpu !== undefined) {
+      root.cpuPercent = percents.cpu
+      root.cpuHistory = root.pushed(root.cpuHistory, percents.cpu)
+    }
+
+    const cores = []
+    for (let i = 0; percents["cpu" + i] !== undefined; i++)
+      cores.push(percents["cpu" + i])
+    root.corePercents = cores
+  }
+
+  // Turns /proc/cpuinfo into the average frequency of the cores.
+  function parseFrequency(text) {
+    const values = []
+    for (const line of text.split("\n")) {
+      const match = line.match(/^cpu MHz\s*:\s*([\d.]+)/)
+      if (match) values.push(parseFloat(match[1]))
+    }
+    if (values.length > 0) {
+      const avgMhz = values.reduce((sum, v) => sum + v, 0) / values.length
+      root.cpuFrequencyGhz = avgMhz / 1000
     }
   }
 
-  Process {
-    id: freqProc
-    command: ["grep", "cpu MHz", "/proc/cpuinfo"]
-
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const values = []
-        for (const line of text.split("\n")) {
-          const match = line.match(/cpu MHz\s*:\s*([\d.]+)/)
-          if (match) values.push(parseFloat(match[1]))
-        }
-        if (values.length > 0) {
-          const avgMhz = values.reduce((sum, v) => sum + v, 0) / values.length
-          root.cpuFrequencyGhz = avgMhz / 1000
-        }
-      }
+  // Turns /proc/meminfo into the memory used and in total.
+  function parseMemory(text) {
+    const totalMatch = text.match(/MemTotal:\s+(\d+)/)
+    const availMatch = text.match(/MemAvailable:\s+(\d+)/)
+    if (totalMatch && availMatch) {
+      const total = parseInt(totalMatch[1])
+      const avail = parseInt(availMatch[1])
+      root.ramTotalKb = total
+      root.ramUsedKb = total - avail
+      root.ramHistory = root.pushed(root.ramHistory, root.ramPercent)
     }
   }
 
-  Process {
-    id: memProc
-    command: ["cat", "/proc/meminfo"]
+  // The /proc files are read in the shell itself rather than through `cat`
+  // or `grep`, which would start a process every time. Each is read once as
+  // the shell starts, then again by its timer.
+  FileView {
+    id: statFile
+    path: "/proc/stat"
+    onLoaded: root.parseCpu(statFile.text())
+  }
 
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const totalMatch = text.match(/MemTotal:\s+(\d+)/)
-        const availMatch = text.match(/MemAvailable:\s+(\d+)/)
-        if (totalMatch && availMatch) {
-          const total = parseInt(totalMatch[1])
-          const avail = parseInt(availMatch[1])
-          root.ramTotalKb = total
-          root.ramUsedKb = total - avail
-          root.ramHistory = root.pushed(root.ramHistory, root.ramPercent)
-        }
-      }
-    }
+  FileView {
+    id: cpuinfoFile
+    path: "/proc/cpuinfo"
+    onLoaded: root.parseFrequency(cpuinfoFile.text())
+  }
+
+  FileView {
+    id: meminfoFile
+    path: "/proc/meminfo"
+    onLoaded: root.parseMemory(meminfoFile.text())
   }
 
   Timer {
     interval: 2000
     running: true
     repeat: true
-    triggeredOnStart: true
     onTriggered: {
-      cpuProc.running = true
-      freqProc.running = true
+      statFile.reload()
+      cpuinfoFile.reload()
     }
   }
 
@@ -165,8 +166,7 @@ Singleton {
     interval: 3000
     running: true
     repeat: true
-    triggeredOnStart: true
-    onTriggered: memProc.running = true
+    onTriggered: meminfoFile.reload()
   }
 
   // --- Network -------------------------------------------------------
