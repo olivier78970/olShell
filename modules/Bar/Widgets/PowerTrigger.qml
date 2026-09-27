@@ -19,6 +19,6 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    onClicked: PowerPanelState.toggle()
+    onClicked: PowerPanelState.toggle(root)
   }
 }
