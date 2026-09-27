@@ -29,11 +29,12 @@ import qs.config
 // so it never cuts into a surface's own fill, however far
 // Theme.widgetOpacity fades it.
 //
-// While the blur is on, Hyprland's own blur options (decoration.blur: radius,
-// passes, noise, contrast, brightness, vibrancy, x-ray) are also set from
-// the settings, with `hl.config()`. They are global - transparent windows
-// get them too - and replace the Hyprland config's values until it reloads,
-// when they are set again. Turned off, the blur leaves them as they are.
+// Hyprland's own blur (decoration.blur) follows the setting too, with
+// `hl.config()`: turned off, it is disabled for the windows as well; while
+// it's on, it is enabled and its options (radius, passes, noise, contrast,
+// brightness, vibrancy, x-ray) are set from the settings. They are global -
+// transparent windows get them too - and replace the Hyprland config's
+// values until it reloads, when they are set again.
 // X-ray (blurring only the wallpaper behind, not the windows) is also part
 // of the layer rule: Hyprland's global option only reaches floating windows,
 // a layer surface has its own.
@@ -58,12 +59,16 @@ Singleton {
   readonly property bool xray: Settings.blurXray
   onXrayChanged: if (root.settled) root.apply()
 
-  // Hyprland's blur options, as the Lua table hl.config() takes.
-  readonly property string options: `{ decoration = { blur = { size = ${Settings.blurSize}, passes = ${Settings.blurPasses}, noise = ${Settings.blurNoise}, contrast = ${Settings.blurContrast}, brightness = ${Settings.blurBrightness}, vibrancy = ${Settings.blurVibrancy}, xray = ${Settings.blurXray} } } }`
+  // Hyprland's blur options, as the Lua table hl.config() takes: only
+  // disabled while the blur is off.
+  readonly property string options: !root.active ? `{ decoration = { blur = { enabled = false } } }`
+    : `{ decoration = { blur = { enabled = true, size = ${Settings.blurSize}, passes = ${Settings.blurPasses}, noise = ${Settings.blurNoise}, contrast = ${Settings.blurContrast}, brightness = ${Settings.blurBrightness}, vibrancy = ${Settings.blurVibrancy}, xray = ${Settings.blurXray} } } }`
 
   // A slider changes them at every step of a drag: they are set once it
-  // pauses for a moment.
-  onOptionsChanged: if (root.settled && root.active) optionsTimer.restart()
+  // pauses for a moment. Turning the blur on or off changes them too, and
+  // sends them again once they have (onActiveChanged may run first, with
+  // the ones from before).
+  onOptionsChanged: if (root.settled) optionsTimer.restart()
 
   Timer {
     id: optionsTimer
@@ -97,12 +102,11 @@ Singleton {
   function apply() {
     process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "^quickshell$" }, blur = ${root.active}, blur_popups = ${root.active}, ignore_alpha = 0.1, xray = ${root.active && root.xray} })`]
     process.running = true
-    if (root.active) root.applyOptions()
+    root.applyOptions()
   }
 
-  // Sets Hyprland's blur options (only while the blur is on).
+  // Sets Hyprland's blur, on with its options or off.
   function applyOptions() {
-    if (!root.active) return
     optionsProcess.command = ["hyprctl", "eval", `hl.config(${root.options})`]
     optionsProcess.running = true
   }
