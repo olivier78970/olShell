@@ -19,7 +19,7 @@ Item {
   property color color
   property color borderColor
   // How far each fillet reaches along the bar and down the surface's side.
-  property real size: Theme.radiusFor(root.height)
+  property real size: Theme.joinRadiusFor(root.height)
   // Either side can be left out (e.g. one flush with an end of the bar).
   property bool showLeft: true
   property bool showRight: true

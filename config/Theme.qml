@@ -18,6 +18,8 @@ Singleton {
   readonly property int barMarginBottom: Settings.barMarginBottom
   readonly property int panelGap: Settings.panelGap
   readonly property bool curvedJoins: Settings.curvedJoins
+  // The radius of the curved joins: the widgets' radius, or one of its own.
+  readonly property real joinRadius: Settings.curvedJoinsRadiusSame ? radius : Settings.curvedJoinsRadius
   readonly property string barStyle: Settings.barStyle
   readonly property string volumeOsdPosition: Settings.volumeOsdPosition
   readonly property int volumeOsdMargin: Settings.volumeOsdMargin
@@ -110,6 +112,12 @@ Singleton {
 
   function radiusFor(size) {
     return Math.min(radius, size / 2)
+  }
+
+  // The same for the curved joins beside an item `size` pixels tall (or
+  // wide), so a curve never reaches past half of it.
+  function joinRadiusFor(size) {
+    return Math.min(joinRadius, size / 2)
   }
 
   // Height of the pill containers grouping each bar section - always

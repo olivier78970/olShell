@@ -18,6 +18,7 @@ Singleton {
   // a hand-edited file from breaking the layout.
   readonly property var limits: ({
     radius: [0, 30],
+    curvedJoinsRadius: [0, 60],
     opacity: [0, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
@@ -124,6 +125,10 @@ Singleton {
   // widgets' menus and tooltips curve out of it (in the "full" bar style),
   // and submenus into their menu - all only with no gap set.
   readonly property bool curvedJoins: root.valid("curvedJoins", file.adapter.curvedJoins)
+  // The radius of those curves, in pixels, or with curvedJoinsRadiusSame the
+  // widgets' own radius (see Theme.joinRadius).
+  readonly property int curvedJoinsRadius: root.valid("curvedJoinsRadius", file.adapter.curvedJoinsRadius)
+  readonly property bool curvedJoinsRadiusSame: root.valid("curvedJoinsRadiusSame", file.adapter.curvedJoinsRadiusSame)
   // How many workspace indicators the bar's workspaces widget shows (1 to
   // this number).
   readonly property int workspaceCount: root.valid("workspaceCount", file.adapter.workspaceCount)
@@ -681,6 +686,8 @@ Singleton {
       property int barMarginRight: Defaults.values.barMarginRight
       property int panelGap: Defaults.values.panelGap
       property bool curvedJoins: Defaults.values.curvedJoins
+      property int curvedJoinsRadius: Defaults.values.curvedJoinsRadius
+      property bool curvedJoinsRadiusSame: Defaults.values.curvedJoinsRadiusSame
       property int workspaceCount: Defaults.values.workspaceCount
       property bool workspaceCountFromHyprland: Defaults.values.workspaceCountFromHyprland
       property string barStyle: Defaults.values.barStyle

@@ -109,7 +109,7 @@ PanelWindow {
       height: card ? card.height : 0
 
       BarFillets {
-        size: parent.card ? parent.card.radius : 0
+        size: parent.card ? Theme.joinRadiusFor(parent.card.height) : 0
         color: parent.card ? parent.card.color : "transparent"
         borderColor: parent.card ? parent.card.border.color : "transparent"
         showLeft: root.host !== null && stack.x > root.host.barLeft + 0.5
