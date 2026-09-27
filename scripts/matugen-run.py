@@ -4,7 +4,7 @@
   matugen-run.py CONFIG APPS ADDED [matugen options...]
 
 CONFIG is the full matugen config (matugen/quickshell.toml) and APPS the apps
-to theme, separated by commas (any of hyprland, zen, alacritty, gtk,
+to theme, separated by commas (any of hyprland, zen, alacritty, gtk, qt,
 starship; empty for none). ADDED is a JSON list of apps added in the
 settings, each {"name", "template", "output", "hook"}: the template file,
 the file matugen writes from it and a shell command run after ("" for
@@ -24,7 +24,7 @@ import os
 import re
 import sys
 
-APPS = ["hyprland", "zen", "alacritty", "gtk", "starship"]
+APPS = ["hyprland", "zen", "alacritty", "gtk", "qt", "starship"]
 SECTION = re.compile(r"^\s*\[([^\]]+)\]")
 
 

@@ -122,6 +122,7 @@ ModalPanel {
       { key: "matugenZen", text: "Zen" },
       { key: "matugenAlacritty", text: "Alacritty" },
       { key: "matugenGtk", text: "GTK" },
+      { key: "matugenQt", text: "Qt" },
       { key: "matugenStarship", text: "Starship" }
     ] },
     { key: "notificationTimeout", category: "notifications", kind: "slider", label: I18n.tr("settings.notificationTimeout"), step: 1, format: v => v + " s" },
@@ -503,7 +504,7 @@ ModalPanel {
     // workspaceCountFromHyprland,
     // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenStarship, themeExactApps) take 1 or 0.
+    // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

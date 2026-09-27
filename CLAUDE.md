@@ -53,7 +53,7 @@ The per-file tree is in README.md's Structure section.
 - **`services/`** holds singletons wrapping system state and processes (audio, notifications server, lock/PAM, screenshots, matugen, system stats, zoom, blur). Most also expose an `IpcHandler`; so do the panels in `modules/`.
 - **`modules/<Feature>/`** holds one feature each. Full-screen panels extend `components/ModalPanel.qml`, and the wallpaper and theme pickers extend `CarouselPanel.qml`. Bar widgets live in `modules/Bar/Widgets/`, are registered by id in `modules/Bar/BarWidgets.qml`, and are placed from `Settings.layout` through `WidgetZone` / `WidgetSlot`.
 - **`scripts/`** holds Python helpers the QML runs through `Process`: wallpaper apply, screenshots, the lock-key watcher, the Hyprland shortcuts parser and the TUI window launcher. User text goes to scripts as arguments, never spliced into a shell string.
-- **`matugen/`**: `quickshell.toml` is a self-contained matugen config (template paths are relative to the file) run by `services/Matugen.qml`. It themes the shell itself (`config/GeneratedColors.json`) and also Hyprland, Zen, alacritty, GTK and starship. Those outputs land in `~/.config/...` from templates stored here, so edit the template here, not the generated file.
+- **`matugen/`**: `quickshell.toml` is a self-contained matugen config (template paths are relative to the file) run by `services/Matugen.qml`. It themes the shell itself (`config/GeneratedColors.json`) and also Hyprland, Zen, alacritty, GTK, Qt and starship. Those outputs land in `~/.config/...` from templates stored here, so edit the template here, not the generated file.
 
 ## Conventions
 

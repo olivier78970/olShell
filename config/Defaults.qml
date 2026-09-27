@@ -53,6 +53,7 @@ Singleton {
     matugenZen: true,
     matugenAlacritty: true,
     matugenGtk: true,
+    matugenQt: true,
     matugenStarship: true,
     matugenApps: [],
     themeAccent: "default",
