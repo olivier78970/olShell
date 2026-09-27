@@ -20,6 +20,12 @@ Singleton {
     radius: [0, 30],
     curvedJoinsRadius: [0, 60],
     opacity: [0, 1],
+    blurSize: [1, 20],
+    blurPasses: [1, 8],
+    blurNoise: [0, 0.2],
+    blurContrast: [0, 2],
+    blurBrightness: [0, 2],
+    blurVibrancy: [0, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
     barAutoHideDuration: [0, 600],
@@ -149,6 +155,18 @@ Singleton {
   // Whether Hyprland blurs what's behind every surface the widget opacity
   // can fade (the bar, pills, popups, panels, OSDs), see services/Blur.qml.
   readonly property bool blur: root.valid("blur", file.adapter.blur)
+  // Hyprland's blur while it's on (its decoration.blur options, set live by
+  // services/Blur.qml): its radius and number of passes, the noise, contrast,
+  // brightness and vibrancy (color saturation) of what's blurred, and x-ray
+  // (blur only the wallpaper behind, not the windows). They are global, so
+  // they apply to transparent windows too, not just to the shell.
+  readonly property int blurSize: root.valid("blurSize", file.adapter.blurSize)
+  readonly property int blurPasses: root.valid("blurPasses", file.adapter.blurPasses)
+  readonly property real blurNoise: root.valid("blurNoise", file.adapter.blurNoise)
+  readonly property real blurContrast: root.valid("blurContrast", file.adapter.blurContrast)
+  readonly property real blurBrightness: root.valid("blurBrightness", file.adapter.blurBrightness)
+  readonly property real blurVibrancy: root.valid("blurVibrancy", file.adapter.blurVibrancy)
+  readonly property bool blurXray: root.valid("blurXray", file.adapter.blurXray)
   // Whether the screen zoom (services/Zoom.qml) is look-only: while zoomed,
   // the pointer, clicks and the wheel go to the shell instead of the apps
   // (the wheel zooms, a click or Escape zooms back out).
@@ -353,7 +371,8 @@ Singleton {
 
   // `value` for setting `key` kept within its limits (the default if it
   // isn't a number), and rounded to whole numbers except for the opacity
-  // (hundredths), the duration and the letter spacing (tenths) and the weight
+  // (hundredths), the blur's noise, contrast, brightness and vibrancy (ten
+  // thousandths, as precise as Hyprland's own), the duration and the letter spacing (tenths) and the weight
   // (hundreds). For a setting with a fixed list of
   // choices, `value` if it is one of them, else the default. The font family
   // is any non-empty name (whether it is installed isn't checked here), and a
@@ -411,6 +430,7 @@ Singleton {
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
     if (key === "opacity") return Math.round(clamped * 100) / 100
+    if (["blurNoise", "blurContrast", "blurBrightness", "blurVibrancy"].includes(key)) return Math.round(clamped * 10000) / 10000
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" || key === "matugenContrast" || key === "matugenLightness" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
@@ -695,6 +715,13 @@ Singleton {
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
       property bool blur: Defaults.values.blur
+      property int blurSize: Defaults.values.blurSize
+      property int blurPasses: Defaults.values.blurPasses
+      property real blurNoise: Defaults.values.blurNoise
+      property real blurContrast: Defaults.values.blurContrast
+      property real blurBrightness: Defaults.values.blurBrightness
+      property real blurVibrancy: Defaults.values.blurVibrancy
+      property bool blurXray: Defaults.values.blurXray
       property bool zoomBlocksInput: Defaults.values.zoomBlocksInput
       property int zoomMax: Defaults.values.zoomMax
       property real zoomStep: Defaults.values.zoomStep

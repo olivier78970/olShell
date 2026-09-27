@@ -228,6 +228,8 @@ ModalPanel {
     if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
+    // Hyprland's blur options only matter while the blur is on.
+    if (root.blurRows.includes(row.key)) return Settings.blur
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
@@ -253,8 +255,12 @@ ModalPanel {
     return Settings.get(row.key)
   }
 
+  // The rows of Hyprland's blur options (see rowEnabled()).
+  readonly property var blurRows: ["blurSize", "blurPasses", "blurVibrancy", "blurContrast", "blurBrightness", "blurNoise", "blurXrayRow"]
+
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
+    if (root.blurRows.includes(row.key) && !Settings.blur) return I18n.tr("settings.blur.disabledOff")
     if (row.key === "barAutoHideAnimatedRow" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")

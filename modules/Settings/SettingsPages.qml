@@ -71,6 +71,15 @@ Singleton {
     { key: "blurRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blur"), toggles: [
       { key: "blur", text: "" }
     ] },
+    { key: "blurSize", category: "appearance", kind: "slider", label: I18n.tr("settings.blurSize"), step: 1, format: v => v + " px" },
+    { key: "blurPasses", category: "appearance", kind: "slider", label: I18n.tr("settings.blurPasses"), step: 1, format: v => String(v) },
+    { key: "blurVibrancy", category: "appearance", kind: "slider", label: I18n.tr("settings.blurVibrancy"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurContrast", category: "appearance", kind: "slider", label: I18n.tr("settings.blurContrast"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurBrightness", category: "appearance", kind: "slider", label: I18n.tr("settings.blurBrightness"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    { key: "blurNoise", category: "appearance", kind: "slider", label: I18n.tr("settings.blurNoise"), step: 0.005, format: v => (v * 100).toFixed(1) + " %" },
+    { key: "blurXrayRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
+      { key: "blurXray", text: "" }
+    ] },
     { key: "panelGap", category: "appearance", kind: "slider", label: I18n.tr("settings.panelGap"), step: 1, format: v => v + " px" },
     { key: "curvedJoinsRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoins"), toggles: [
       { key: "curvedJoins", text: "" }

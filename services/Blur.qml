@@ -28,6 +28,12 @@ import qs.config
 // corners, which would otherwise show as blurred square corners. Kept low
 // so it never cuts into a surface's own fill, however far
 // Theme.widgetOpacity fades it.
+//
+// While the blur is on, Hyprland's own blur options (decoration.blur: radius,
+// passes, noise, contrast, brightness, vibrancy, x-ray) are also set from
+// the settings, with `hl.config()`. They are global - transparent windows
+// get them too - and replace the Hyprland config's values until it reloads,
+// when they are set again. Turned off, the blur leaves them as they are.
 Singleton {
   id: root
 
@@ -44,6 +50,19 @@ Singleton {
   property bool settled: false
 
   onActiveChanged: if (root.settled) root.apply()
+
+  // Hyprland's blur options, as the Lua table hl.config() takes.
+  readonly property string options: `{ decoration = { blur = { size = ${Settings.blurSize}, passes = ${Settings.blurPasses}, noise = ${Settings.blurNoise}, contrast = ${Settings.blurContrast}, brightness = ${Settings.blurBrightness}, vibrancy = ${Settings.blurVibrancy}, xray = ${Settings.blurXray} } } }`
+
+  // A slider changes them at every step of a drag: they are set once it
+  // pauses for a moment.
+  onOptionsChanged: if (root.settled && root.active) optionsTimer.restart()
+
+  Timer {
+    id: optionsTimer
+    interval: 100
+    onTriggered: root.applyOptions()
+  }
 
   Timer {
     interval: 200
@@ -71,9 +90,21 @@ Singleton {
   function apply() {
     process.command = ["hyprctl", "eval", `hl.layer_rule({ match = { namespace = "^quickshell$" }, blur = ${root.active}, blur_popups = ${root.active}, ignore_alpha = 0.1 })`]
     process.running = true
+    if (root.active) root.applyOptions()
+  }
+
+  // Sets Hyprland's blur options (only while the blur is on).
+  function applyOptions() {
+    if (!root.active) return
+    optionsProcess.command = ["hyprctl", "eval", `hl.config(${root.options})`]
+    optionsProcess.running = true
   }
 
   Process {
     id: process
+  }
+
+  Process {
+    id: optionsProcess
   }
 }
