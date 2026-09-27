@@ -144,7 +144,9 @@ Rectangle {
           onLinkActivated: link => Qt.openUrlExternally(link)
         }
 
-        Flow {
+        // The buttons share the whole width of the card equally.
+        Row {
+          id: buttonRow
           width: parent.width
           spacing: 8
           visible: root.buttons.length > 0
@@ -156,7 +158,7 @@ Rectangle {
               id: button
               required property var modelData
 
-              implicitWidth: label.implicitWidth + 20
+              width: (buttonRow.width - buttonRow.spacing * (root.buttons.length - 1)) / root.buttons.length
               implicitHeight: label.implicitHeight + 8
               radius: Theme.radiusFor(height)
               color: buttonMouse.containsMouse ? Theme.borderColor : "transparent"
@@ -166,6 +168,9 @@ Rectangle {
               ThemedText {
                 id: label
                 anchors.centerIn: parent
+                width: Math.min(implicitWidth, parent.width - 20)
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
                 text: button.modelData.text
                 sizeScale: 0.8
                 color: buttonMouse.containsMouse ? Theme.accentColor : Theme.textColor
