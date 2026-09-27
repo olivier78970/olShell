@@ -10,8 +10,8 @@ import qs.services
 // Launcher, toggled from outside via:
 //   quickshell -p . ipc call launcher toggle
 // or from the bar's launcher icon. Its tabs search what's typed: the
-// installed applications, the games among them (the ones run from inside
-// Settings.launcherGamesDir), the files and folders of the home folder (with
+// installed applications, the games among them (the ones in the Game
+// category), the files and folders of the home folder (with
 // fd), and the web (the default browser's default engine, or an address
 // typed in); the all tab gathers them.
 // Tab / Shift+Tab (with or without Ctrl, or Alt+1..5, or a click) switch
@@ -137,13 +137,11 @@ ModalPanel {
     return 0
   }
 
-  // Whether an application is a game: its desktop entry runs from inside
-  // Settings.launcherGamesDir (its working directory, or a file in its
-  // command, is in that folder).
+  // Whether an application is a game: its desktop entry is in the Game
+  // category (Categories=Game;), as the games' shortcuts made by Faugus,
+  // Heroic or Steam are, and those launchers themselves.
   function isGame(entry) {
-    const dir = Settings.launcherGamesDir
-    const inside = path => typeof path === "string" && (path === dir || path.startsWith(dir + "/"))
-    return inside(entry.workingDirectory) || (entry.command ?? []).some(inside)
+    return (entry.categories ?? []).includes("Game")
   }
 
   // Visible applications matching the query, best first; alphabetical when
@@ -620,8 +618,8 @@ ModalPanel {
       ThemedText {
         visible: list.count === 0
         anchors.centerIn: parent
-        text: root.query.trim() === "" && root.tab === root.gamesTab ? I18n.tr("launcher.gamesHint", Settings.launcherGamesDir)
-          : I18n.tr(root.query.trim() === "" && root.tab === root.filesTab ? "launcher.filesHint"
+        text: I18n.tr(root.query.trim() === "" && root.tab === root.gamesTab ? "launcher.gamesHint"
+          : root.query.trim() === "" && root.tab === root.filesTab ? "launcher.filesHint"
           : root.query.trim() === "" && root.tab === root.webTab ? "launcher.webHint"
           : root.filesPending ? "launcher.searching" : "launcher.noResults")
         opacity: 0.6

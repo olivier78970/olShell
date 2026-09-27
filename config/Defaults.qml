@@ -78,7 +78,6 @@ Singleton {
     lockKeysOsdMargin: 60,
     lockTimeout: 10,
     launcherTab: "all",
-    launcherGamesDir: Quickshell.env("HOME") + "/Games",
     clockDate: "long",
     clockSeconds: true,
     launcherResults: 7,
