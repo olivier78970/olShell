@@ -335,13 +335,18 @@ ModalPanel {
     list.currentIndex = index
   }
 
-  // Opens the selected result: runs the application, opens the file or
-  // folder with its default application, or the page in the browser.
+  // Opens the selected result: runs the application (a terminal one in
+  // Apps.appTerminal, which DesktopEntry.execute() doesn't open), opens the
+  // file or folder with its default application, or the page in the browser.
   function launchCurrent() {
     if (list.currentIndex < 0 || list.currentIndex >= root.results.length) return
     const item = root.results[list.currentIndex]
     if (item.kind === "heading") return
-    if (item.kind === "app") item.entry.execute()
+    if (item.kind === "app" && item.entry.runInTerminal)
+      Quickshell.execDetached(item.entry.workingDirectory
+        ? { command: Apps.appTerminal.concat(item.entry.command), workingDirectory: item.entry.workingDirectory }
+        : Apps.appTerminal.concat(item.entry.command))
+    else if (item.kind === "app") item.entry.execute()
     else Quickshell.execDetached(["xdg-open", item.kind === "file" ? item.path : item.url])
     LauncherState.visible = false
   }

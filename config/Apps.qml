@@ -2,7 +2,8 @@ pragma Singleton
 
 import Quickshell
 
-// The applications the shell opens in a terminal (btop, gdu, nmcli).
+// The applications the shell opens in a terminal (btop, gdu, nmcli, and the
+// launcher's terminal applications).
 // (The volume widget opens pavucontrol, a window of its own.)
 // Edit here to swap the terminal or the window size.
 Singleton {
@@ -32,6 +33,10 @@ Singleton {
   // a hidden network's name (see services/NetworkManager.qml), without the
   // `-e ...` part.
   readonly property var networkTerminal: ["alacritty", "--class", "quickshell-network", "-T", "nmcli"]
+
+  // The terminal the launcher runs a terminal application in (a desktop
+  // entry with Terminal=true, such as yazi or htop), followed by its command.
+  readonly property var appTerminal: ["alacritty", "-e"]
 
   // The options of `awww img` used when a wallpaper is applied (see
   // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image
