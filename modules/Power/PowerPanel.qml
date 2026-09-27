@@ -3,8 +3,9 @@ import qs.components
 import qs.config
 import qs.services
 
-// Screen-centered power panel (no frame: just the buttons, over the dimmed
-// screen) with the power actions (lock, suspend, log out, restart, restart
+// Power panel attached to the bar, under the power button that opened it
+// (centered along the focused screen's bar when opened by IPC), like the
+// theme and wallpaper pickers, with the power actions (lock, suspend, log out, restart, restart
 // into the UEFI setup, shut down), toggled from the bar's power button or
 // from outside via:
 //   quickshell -p . ipc call power toggle
@@ -28,13 +29,11 @@ ModalPanel {
   readonly property int columns: 3
   property int current: 0
 
-  maxPanelWidth: 452
-  maxPanelHeight: 256
-  framed: false
-  // The screen darkens behind it, the only panel that does: shutting down or
-  // logging out is worth that pause.
-  dimmed: true
-  dimOpacity: 0.65
+  // The buttons' grid and a margin around it.
+  maxPanelWidth: 452 + 2 * 24
+  maxPanelHeight: 256 + 2 * 24
+  attached: true
+  anchorItem: PowerPanelState.anchorItem
 
   open: PowerPanelState.visible
   onCloseRequested: PowerPanelState.visible = false

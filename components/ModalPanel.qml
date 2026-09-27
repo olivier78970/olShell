@@ -39,8 +39,9 @@ PanelWindow {
   // Whether the frame is drawn; without it only the children show, over the
   // backdrop.
   property bool framed: true
-  // Whether the rest of the screen is darkened while it's open (only the
-  // power panel's is); the backdrop still catches a click outside either way.
+  // Whether the rest of the screen is darkened while it's open (none of the
+  // shell's panels is now); the backdrop still catches a click outside
+  // either way.
   property bool dimmed: false
   // How dark it gets then (the opacity of the black laid over the screen).
   property real dimOpacity: 0.4
