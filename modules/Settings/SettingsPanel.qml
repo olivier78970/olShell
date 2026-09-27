@@ -230,12 +230,10 @@ ModalPanel {
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
     // Hyprland's blur options only matter while the blur is on.
     if (root.blurRows.includes(row.key)) return Settings.blur
-    // The windows' look is only set while synced with Hyprland, and a value
-    // following the shell's has nothing of its own to set.
-    if (row.key === "windowBorderWidth") return Settings.windowsSync && !Settings.windowBorderSame
-    if (row.key === "windowRounding") return Settings.windowsSync && !Settings.windowRoundingSame
-    if (row.key === "windowGapsIn") return Settings.windowsSync && !Settings.windowGapsInSame
-    if (root.windowRows.includes(row.key)) return Settings.windowsSync
+    // A window value following the shell's has nothing of its own to set.
+    if (row.key === "windowBorderWidth") return !Settings.windowBorderSame
+    if (row.key === "windowRounding") return !Settings.windowRoundingSame
+    if (row.key === "windowGapsIn") return !Settings.windowGapsInSame
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
@@ -266,13 +264,10 @@ ModalPanel {
 
   // The rows of Hyprland's blur options (see rowEnabled()).
   readonly property var blurRows: ["blurSize", "blurPasses", "blurVibrancy", "blurContrast", "blurBrightness", "blurNoise", "blurXrayRow"]
-  // The rows of the windows' look, but the sync itself (see rowEnabled()).
-  readonly property var windowRows: ["windowBorderWidth", "windowBorderSameRow", "windowRounding", "windowRoundingSameRow", "windowGapsIn", "windowGapsInSameRow", "windowGapsOut", "windowActiveOpacity", "windowInactiveOpacity"]
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
     if (root.blurRows.includes(row.key) && !Settings.blur) return I18n.tr("settings.blur.disabledOff")
-    if (root.windowRows.includes(row.key) && !Settings.windowsSync) return I18n.tr("settings.windowsSync.disabledOff")
     if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
     if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
@@ -577,6 +572,11 @@ ModalPanel {
       const last = root.rows[root.selected].toggles.length - 1
       root.toggleFocus = Math.max(0, Math.min(last, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
       event.accepted = true
+    } else if (kind === "slider" && root.rows[root.selected].same && event.key === Qt.Key_Space) {
+      // Space: the slider's SameButton (follow the shell's value, or not).
+      const key = root.rows[root.selected].same
+      Settings.set(key, !Settings.get(key))
+      event.accepted = true
     } else if (kind === "toggles" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
       if (root.rowEnabled(root.rows[root.selected])) {
         const key = root.rows[root.selected].toggles[root.toggleFocus].key
@@ -631,8 +631,8 @@ ModalPanel {
   // The column of controls: past the longest label of these kinds of rows
   // on the current page. Sliders and text fields start in it; check boxes,
   // buttons and lists stay against the right edge, but the page is as wide
-  // as if they started in it too. Not shown: the labels, only to measure
-  // them in the current font and language.
+  // as if they started in it too. Not shown: the labels (with a slider's
+  // SameButton), only to measure them in the current font and language.
   readonly property var alignedKinds: ["slider", "toggles", "path", "dropdown", "buttons", "choice"]
   // The space between the longest label and the column.
   readonly property real labelGap: 32
@@ -645,9 +645,17 @@ ModalPanel {
     Repeater {
       model: root.rows.filter(row => root.alignedKinds.includes(row.kind))
 
-      ThemedText {
+      Row {
         required property var modelData
-        text: modelData.label
+        spacing: 8
+
+        ThemedText {
+          text: modelData.label
+        }
+
+        SameButton {
+          visible: !!modelData.sameText
+        }
       }
     }
   }
@@ -993,6 +1001,9 @@ ModalPanel {
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
+                sameText: row.modelData.sameText ?? ""
+                same: row.modelData.same ? Settings.get(row.modelData.same) : false
+                onSameToggled: Settings.set(row.modelData.same, !Settings.get(row.modelData.same))
                 note: row.modelData.key === "workspaceCount" ? I18n.tr("settings.workspaceCount.note", WorkspaceRules.configured.length) : ""
                 onActivated: root.selected = row.index
                 onMoved: value => Settings.set(row.modelData.key, value)

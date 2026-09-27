@@ -12,6 +12,12 @@ import qs.config
 // `editRequested` and the owner sets `editing` (as it does for Enter on the
 // row); Enter emits `committed` with the number typed, Escape `cancelled`,
 // and the owner then clears `editing`.
+//
+// With `sameText`, a SameButton sits just before the slider (or the
+// stepper), so those of every row line up, for a value that can follow one
+// of the shell's: `same` says whether it does, `sameToggled` fires
+// when the button is pressed, and hovering it shows `sameText`. It stays
+// usable while the row is disabled (which following the shell makes it).
 Item {
   id: root
 
@@ -32,8 +38,13 @@ Item {
   property string tooltip: ""
   // A short, dimmed second line under the label (e.g. a related fact).
   property string note: ""
+  property string sameText: ""
+  property bool same: false
   // What the tooltip says right now, if anything.
-  readonly property string tooltipText: !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
+  readonly property string tooltipText: sameButton.visible && sameButton.hovered ? root.sameText
+    : !root.interactive && root.disabledReason.length > 0 ? root.disabledReason : root.tooltip
+  // The room the SameButton takes before the control, if there is one.
+  readonly property real sameWidth: sameButton.visible ? sameButton.width + 8 : 0
 
   // Where the control starts, from the row's left edge, to line it up with
   // the other rows' (the settings panel gives every row the same one); -1
@@ -55,6 +66,7 @@ Item {
   signal cancelled()
   // The row wants keyboard focus back to the owner (editing ended).
   signal released()
+  signal sameToggled()
 
   onEditingChanged: {
     if (root.editing) {
@@ -72,8 +84,8 @@ Item {
   // The least it needs: the name, a short track and the value (or the
   // stepper's buttons and field).
   implicitWidth: root.stepper
-    ? Math.max(12 + labelText.implicitWidth + 16, root.controlX) + stepperRow.implicitWidth + 12
-    : (root.aligned ? root.controlX : 12 + labelText.implicitWidth + 12) + 100 + 14 + valueLabel.width + 12
+    ? Math.max(12 + labelText.implicitWidth + root.sameWidth + 16, root.controlX) + stepperRow.implicitWidth + 12
+    : (root.aligned ? root.controlX : 12 + labelText.implicitWidth + root.sameWidth + 12) + 100 + 14 + valueLabel.width + 12
   implicitHeight: 54
 
   // `raw` (anywhere between from and to) rounded to the nearest step.
@@ -103,8 +115,9 @@ Item {
       anchors.leftMargin: 12
       // Up to the control: the track, a sibling, or the stepper, which isn't
       // one (it's above the row's MouseArea), so it's reached by a margin.
+      // The SameButton's room is kept before the control.
       anchors.right: root.stepper ? parent.right : track.left
-      anchors.rightMargin: root.stepper ? root.width - stepperRow.x + 12 : 12
+      anchors.rightMargin: (root.stepper ? root.width - stepperRow.x + 12 : 12) + root.sameWidth
       anchors.verticalCenter: parent.verticalCenter
 
       ThemedText {
@@ -146,7 +159,7 @@ Item {
       // Aligned: from `controlX` to the value. Otherwise 35% of the row, but
       // never so much that the label gets cut off, and at least a short slider.
       width: root.aligned ? Math.max(100, root.width - root.controlX - valueLabel.width - 14 - 12)
-        : Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - valueLabel.width - 12 - 12 - 14 - 12))
+        : Math.max(100, Math.min(Math.round(root.width * 0.35), root.width - labelText.implicitWidth - root.sameWidth - valueLabel.width - 12 - 12 - 14 - 12))
       height: 6
       radius: Theme.radiusFor(height)
       color: Theme.borderColor
@@ -195,6 +208,21 @@ Item {
       if (pressed && area.dragging) setFrom(mouse.x)
     }
     onReleased: area.dragging = false
+  }
+
+  // Just before the control, above the row's MouseArea so it gets its
+  // clicks, and outside the dimmed content: following the shell disables the
+  // row, and the button has to stay usable to stop following it.
+  SameButton {
+    id: sameButton
+    visible: root.sameText.length > 0
+    x: (root.stepper ? stepperRow.x : track.x) - 8 - width
+    anchors.verticalCenter: parent.verticalCenter
+    on: root.same
+    onToggled: {
+      root.activated()
+      root.sameToggled()
+    }
   }
 
   // A − / + button of the stepper; held down, it repeats.

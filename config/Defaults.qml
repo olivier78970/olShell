@@ -38,7 +38,6 @@ Singleton {
     blurBrightness: 1,
     blurVibrancy: 0.1696,
     blurXray: false,
-    windowsSync: false,
     windowBorderWidth: 2,
     windowBorderSame: false,
     windowRounding: 10,

@@ -173,13 +173,11 @@ Singleton {
   readonly property real blurBrightness: root.valid("blurBrightness", file.adapter.blurBrightness)
   readonly property real blurVibrancy: root.valid("blurVibrancy", file.adapter.blurVibrancy)
   readonly property bool blurXray: root.valid("blurXray", file.adapter.blurXray)
-  // Whether the shell sets Hyprland's window look (see
-  // services/HyprlandWindows.qml), and to what: the windows' border width and
-  // corner radius (each its own, or with *Same the shell's border width and
-  // widget radius), the gaps between windows (or the shell's panelGap) and
-  // around them, and the
-  // opacity of the focused window and of the others.
-  readonly property bool windowsSync: root.valid("windowsSync", file.adapter.windowsSync)
+  // Hyprland's window look, which the shell always sets (see
+  // services/HyprlandWindows.qml): the windows' border width and corner
+  // radius (each its own, or with *Same the shell's border width and widget
+  // radius), the gaps between windows (or the shell's panelGap) and around
+  // them, and the opacity of the focused window and of the others.
   readonly property int windowBorderWidth: root.valid("windowBorderWidth", file.adapter.windowBorderWidth)
   readonly property bool windowBorderSame: root.valid("windowBorderSame", file.adapter.windowBorderSame)
   readonly property int windowRounding: root.valid("windowRounding", file.adapter.windowRounding)
@@ -744,7 +742,6 @@ Singleton {
       property real blurBrightness: Defaults.values.blurBrightness
       property real blurVibrancy: Defaults.values.blurVibrancy
       property bool blurXray: Defaults.values.blurXray
-      property bool windowsSync: Defaults.values.windowsSync
       property int windowBorderWidth: Defaults.values.windowBorderWidth
       property bool windowBorderSame: Defaults.values.windowBorderSame
       property int windowRounding: Defaults.values.windowRounding

@@ -81,22 +81,10 @@ Singleton {
     { key: "blurContrast", category: "blur", kind: "slider", label: I18n.tr("settings.blurContrast"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "blurBrightness", category: "blur", kind: "slider", label: I18n.tr("settings.blurBrightness"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "blurNoise", category: "blur", kind: "slider", label: I18n.tr("settings.blurNoise"), step: 0.005, format: v => (v * 100).toFixed(1) + " %" },
-    { key: "windowsSyncRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowsSync"), toggles: [
-      { key: "windowsSync", text: "" }
-    ] },
-    { key: "windowBorderWidth", category: "windows", kind: "slider", label: I18n.tr("settings.windowBorderWidth"), step: 1, format: v => v + " px" },
-    { key: "windowBorderSameRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowBorderSame"), toggles: [
-      { key: "windowBorderSame", text: "" }
-    ] },
-    { key: "windowRounding", category: "windows", kind: "slider", label: I18n.tr("settings.windowRounding"), step: 1, format: v => v + " px" },
-    { key: "windowRoundingSameRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowRoundingSame"), toggles: [
-      { key: "windowRoundingSame", text: "" }
-    ] },
-    { key: "windowGapsIn", category: "windows", kind: "slider", label: I18n.tr("settings.windowGapsIn"), step: 1, format: v => v + " px" },
-    { key: "windowGapsInSameRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowGapsInSame"), toggles: [
-      { key: "windowGapsInSame", text: "" }
-    ] },
-    { key: "windowGapsOut", category: "windows", kind: "slider", label: I18n.tr("settings.windowGapsOut"), step: 1, format: v => v + " px" },
+    { key: "windowBorderWidth", category: "windows", kind: "slider", same: "windowBorderSame", sameText: I18n.tr("settings.windowBorderSame"), title: I18n.tr("settings.windows.synced"), label: I18n.tr("settings.windowBorderWidth"), step: 1, format: v => v + " px" },
+    { key: "windowRounding", category: "windows", kind: "slider", same: "windowRoundingSame", sameText: I18n.tr("settings.windowRoundingSame"), label: I18n.tr("settings.windowRounding"), step: 1, format: v => v + " px" },
+    { key: "windowGapsIn", category: "windows", kind: "slider", same: "windowGapsInSame", sameText: I18n.tr("settings.windowGapsInSame"), label: I18n.tr("settings.windowGapsIn"), step: 1, format: v => v + " px" },
+    { key: "windowGapsOut", category: "windows", kind: "slider", title: I18n.tr("settings.windows.hyprlandOnly"), label: I18n.tr("settings.windowGapsOut"), step: 1, format: v => v + " px" },
     { key: "windowActiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowActiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "windowInactiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowInactiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "blurXrayRow", category: "blur", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
@@ -190,6 +178,8 @@ Singleton {
       if (row.category !== categoryId) continue
       if (Settings.defaults[row.key] !== undefined) keys.push(row.key)
       for (const toggle of row.toggles ?? []) keys.push(toggle.key)
+      // A slider's SameButton sets one of its own.
+      if (row.same) keys.push(row.same)
     }
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
