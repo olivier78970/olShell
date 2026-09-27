@@ -28,6 +28,7 @@ ModalPanel {
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
     { id: "barWidgets", icon: "󰀻", label: I18n.tr("settings.category.barWidgets"), tabs: [
       { id: "widgets", label: I18n.tr("settings.tab.widgets") },
+      { id: "layout", label: I18n.tr("settings.tab.layout") },
       { id: "widgetSettings", label: I18n.tr("settings.tab.widgetSettings") }
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
@@ -97,6 +98,7 @@ ModalPanel {
       { key: "fontOutline", text: I18n.tr("settings.fontOutline") }
     ] },
     { key: "fontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.fontFamily") },
+    { key: "barLayout", category: "layout", kind: "layoutEditor", label: "" },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
     { key: "themeMode", category: "theme", kind: "buttons", title: I18n.tr("settings.theme.all"), label: I18n.tr("settings.themeMode") },
@@ -499,7 +501,12 @@ ModalPanel {
   // some languages (French), and so is what they share a row with. Never
   // narrower than the usual size.
   maxPanelWidth: Math.max(920, root.neededWidth)
-  maxPanelHeight: 780
+  // Tall enough for the whole page (its title, tabs and rows, with the
+  // margins around them, and the keys hint under them), never shorter than
+  // the usual size; the screen still caps it (see ModalPanel), the rows
+  // scrolling past that.
+  readonly property real neededHeight: 20 + titleRow.height + 10 + (tabBar.visible ? tabBar.height + 10 : 0) + rowsColumn.height + 10 + hint.height + 20
+  maxPanelHeight: Math.max(780, root.neededHeight)
 
   open: SettingsPanelState.visible
   // Escape closes an open list first, then the panel.
@@ -715,7 +722,7 @@ ModalPanel {
   // widgets category has the bar's layout lists). The language, which the
   // general category also holds, is not a setting: see the functions below.
   function keysOf(categoryId) {
-    if (categoryId === "widgets") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
+    if (categoryId === "widgets" || categoryId === "layout") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
     const keys = []
     for (const row of root.allRows) {
       if (row.category !== categoryId) continue
@@ -1276,11 +1283,11 @@ ModalPanel {
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, matugenAppRow, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, groupRow, widgetRow, engineRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.isWidget ? 38 + row.above : (row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above)))
+              height: row.isWidget ? 38 + row.above : (row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : 64 + row.above)))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1508,6 +1515,16 @@ ModalPanel {
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
+              }
+
+              // The bar layout editor, made only for its own row.
+              Loader {
+                id: layoutLoader
+                visible: row.modelData.kind === "layoutEditor"
+                active: visible
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                sourceComponent: BarLayoutEditor {}
               }
 
               ThemeAppRow {
