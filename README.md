@@ -11,6 +11,7 @@ Needed:
 - [Quickshell](https://quickshell.org), with its Hyprland, Wayland, PipeWire, notifications, PAM, polkit, system tray, Bluetooth and networking modules (all in the standard build)
 - Hyprland with its Lua config: the shell sets things at run time with `hyprctl eval` (zoom, blur, `QS_CONFIG_PATH`), and the shortcuts panel reads the config's `hl.bind(...)` calls
 - Python 3, standard library only, for the helpers in `scripts/`
+- the Adwaita icon theme (`adwaita-icon-theme`), where the shell looks up the apps' icons (an app whose icon isn't found gets a generic glyph in the launcher)
 - a Nerd Font, used for text and icons: "0xProto Nerd Font" by default, changeable in the settings (see [Settings](#settings))
 - PipeWire (volume), PAM (lock screen), systemd (`systemctl` for restart, shut down, suspend and UEFI setup) and the usual command-line tools (`sh`, `find`, `awk`, `xargs`, `stat`, `df`, `grep`)
 

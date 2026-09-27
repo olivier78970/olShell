@@ -1,3 +1,7 @@
+// Apps' icons are looked up in the Adwaita icon theme (and the themes it
+// inherits, AdwaitaLegacy then hicolor): an icon only a theme provides, such
+// as nm-connection-editor's, isn't found in hicolor alone.
+//@ pragma IconTheme Adwaita
 import Quickshell
 import qs.components
 import qs.modules.Bar

@@ -479,8 +479,12 @@ ModalPanel {
         }
 
         readonly property var app: entry.modelData.kind === "app" ? entry.modelData.entry : null
+        // The application's icon file, or "" when the icon theme doesn't
+        // have it (the generic app glyph is shown instead).
+        readonly property string appIcon: entry.app ? Quickshell.iconPath(entry.app.icon, true) : ""
 
-        // An application's icon; a glyph for a file, folder or web result.
+        // An application's icon; a glyph for a file, folder or web result,
+        // and for an application whose icon can't be found.
         Item {
           id: icon
           visible: !entry.heading
@@ -491,16 +495,16 @@ ModalPanel {
           height: 32
 
           IconImage {
-            visible: entry.app !== null
+            visible: entry.appIcon !== ""
             anchors.fill: parent
             asynchronous: true
-            source: entry.app ? Quickshell.iconPath(entry.app.icon, true) : ""
+            source: entry.appIcon
           }
 
           ThemedText {
-            visible: entry.app === null
+            visible: entry.appIcon === ""
             anchors.centerIn: parent
-            text: entry.modelData.kind === "file" ? (entry.modelData.isDir ? "󰉋" : "󰈔") : (entry.modelData.icon ?? "")
+            text: entry.app ? "󰀻" : entry.modelData.kind === "file" ? (entry.modelData.isDir ? "󰉋" : "󰈔") : (entry.modelData.icon ?? "")
             sizeScale: 1.5
             color: entry.current ? Theme.backgroundColor : Theme.accentColor
           }
