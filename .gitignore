@@ -7,3 +7,7 @@ config/Settings.json
 config/UserDefaults.json
 config/NotificationActions.json
 .qmlls.ini
+
+# The copy of matugen/quickshell.toml with only the apps turned on, written
+# by scripts/matugen-run.py before each run.
+matugen/active.toml

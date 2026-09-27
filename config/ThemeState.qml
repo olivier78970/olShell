@@ -4,13 +4,14 @@ import Quickshell
 import Quickshell.Io
 
 // The currently selected theme, remembered across restarts in
-// ThemeState.json. `active` is the matching entry of ThemePresets. The last
+// ThemeState.json. `active` is that theme as it is used right now (see
+// ThemePresets.resolve: its colors follow the theme settings). The last
 // applied wallpaper is kept there too, so "Automatique" can be regenerated
 // from it when it is selected again (see services/Matugen.qml).
 Singleton {
   id: root
 
-  readonly property var active: ThemePresets.byId(file.adapter.selected)
+  readonly property var active: ThemePresets.resolve(file.adapter.selected)
   readonly property string wallpaper: file.adapter.wallpaper
   // What matugen last made the colors from (see services/Matugen.qml's
   // stamps), so a run that would make the same colors can be skipped.

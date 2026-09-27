@@ -13,9 +13,9 @@
  */
 
 /* libadwaita */
-@define-color accent_color {{colors.primary.default.hex}};
-@define-color accent_bg_color {{colors.primary.default.hex}};
-@define-color accent_fg_color {{colors.on_primary.default.hex}};
+@define-color accent_color <* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.default.hex}}<* endif *>;
+@define-color accent_bg_color <* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.default.hex}}<* endif *>;
+@define-color accent_fg_color <* if {{olshell.exact}} *>{{olshell.onAccent}}<* else *>{{colors.on_primary.default.hex}}<* endif *>;
 
 @define-color destructive_color {{colors.error.default.hex}};
 @define-color destructive_bg_color {{colors.error.default.hex}};
@@ -25,47 +25,47 @@
 @define-color error_bg_color {{colors.error.default.hex}};
 @define-color error_fg_color {{colors.on_error.default.hex}};
 
-@define-color window_bg_color {{colors.background.default.hex}};
-@define-color window_fg_color {{colors.on_background.default.hex}};
+@define-color window_bg_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
+@define-color window_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_background.default.hex}}<* endif *>;
 
-@define-color view_bg_color {{colors.surface.default.hex}};
-@define-color view_fg_color {{colors.on_surface.default.hex}};
+@define-color view_bg_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.surface.default.hex}}<* endif *>;
+@define-color view_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
 
-@define-color headerbar_bg_color {{colors.surface_container.default.hex}};
-@define-color headerbar_fg_color {{colors.on_surface.default.hex}};
-@define-color headerbar_border_color {{colors.surface_variant.default.hex}};
-@define-color headerbar_backdrop_color {{colors.background.default.hex}};
+@define-color headerbar_bg_color <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.default.hex}}<* endif *>;
+@define-color headerbar_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
+@define-color headerbar_border_color <* if {{olshell.exact}} *>{{olshell.border}}<* else *>{{colors.surface_variant.default.hex}}<* endif *>;
+@define-color headerbar_backdrop_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
 
-@define-color sidebar_bg_color {{colors.surface_container_low.default.hex}};
-@define-color sidebar_fg_color {{colors.on_surface.default.hex}};
-@define-color sidebar_backdrop_color {{colors.background.default.hex}};
-@define-color secondary_sidebar_bg_color {{colors.surface.default.hex}};
-@define-color secondary_sidebar_fg_color {{colors.on_surface.default.hex}};
-@define-color secondary_sidebar_backdrop_color {{colors.background.default.hex}};
+@define-color sidebar_bg_color <* if {{olshell.exact}} *>{{olshell.pillLow}}<* else *>{{colors.surface_container_low.default.hex}}<* endif *>;
+@define-color sidebar_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
+@define-color sidebar_backdrop_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
+@define-color secondary_sidebar_bg_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.surface.default.hex}}<* endif *>;
+@define-color secondary_sidebar_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
+@define-color secondary_sidebar_backdrop_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
 
-@define-color card_bg_color {{colors.surface_container.default.hex}};
-@define-color card_fg_color {{colors.on_surface.default.hex}};
+@define-color card_bg_color <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.default.hex}}<* endif *>;
+@define-color card_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
 
-@define-color dialog_bg_color {{colors.surface_container_high.default.hex}};
-@define-color dialog_fg_color {{colors.on_surface.default.hex}};
+@define-color dialog_bg_color <* if {{olshell.exact}} *>{{olshell.pillHigh}}<* else *>{{colors.surface_container_high.default.hex}}<* endif *>;
+@define-color dialog_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
 
-@define-color popover_bg_color {{colors.surface_container_high.default.hex}};
-@define-color popover_fg_color {{colors.on_surface.default.hex}};
+@define-color popover_bg_color <* if {{olshell.exact}} *>{{olshell.pillHigh}}<* else *>{{colors.surface_container_high.default.hex}}<* endif *>;
+@define-color popover_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
 
 /* GTK3 */
-@define-color theme_bg_color {{colors.background.default.hex}};
-@define-color theme_fg_color {{colors.on_background.default.hex}};
-@define-color theme_base_color {{colors.surface.default.hex}};
-@define-color theme_text_color {{colors.on_surface.default.hex}};
-@define-color theme_selected_bg_color {{colors.primary.default.hex}};
-@define-color theme_selected_fg_color {{colors.on_primary.default.hex}};
-@define-color theme_unfocused_bg_color {{colors.background.default.hex}};
-@define-color theme_unfocused_fg_color {{colors.on_surface_variant.default.hex}};
-@define-color theme_unfocused_base_color {{colors.surface.default.hex}};
-@define-color theme_unfocused_text_color {{colors.on_surface_variant.default.hex}};
-@define-color theme_unfocused_selected_bg_color {{colors.primary.default.hex}};
-@define-color theme_unfocused_selected_fg_color {{colors.on_primary.default.hex}};
-@define-color insensitive_bg_color {{colors.surface_container.default.hex}};
-@define-color insensitive_fg_color {{colors.on_surface_variant.default.hex}};
-@define-color borders {{colors.surface_variant.default.hex}};
-@define-color unfocused_borders {{colors.surface_variant.default.hex}};
+@define-color theme_bg_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
+@define-color theme_fg_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_background.default.hex}}<* endif *>;
+@define-color theme_base_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.surface.default.hex}}<* endif *>;
+@define-color theme_text_color <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_surface.default.hex}}<* endif *>;
+@define-color theme_selected_bg_color <* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.default.hex}}<* endif *>;
+@define-color theme_selected_fg_color <* if {{olshell.exact}} *>{{olshell.onAccent}}<* else *>{{colors.on_primary.default.hex}}<* endif *>;
+@define-color theme_unfocused_bg_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>;
+@define-color theme_unfocused_fg_color <* if {{olshell.exact}} *>{{olshell.textVariant}}<* else *>{{colors.on_surface_variant.default.hex}}<* endif *>;
+@define-color theme_unfocused_base_color <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.surface.default.hex}}<* endif *>;
+@define-color theme_unfocused_text_color <* if {{olshell.exact}} *>{{olshell.textVariant}}<* else *>{{colors.on_surface_variant.default.hex}}<* endif *>;
+@define-color theme_unfocused_selected_bg_color <* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.default.hex}}<* endif *>;
+@define-color theme_unfocused_selected_fg_color <* if {{olshell.exact}} *>{{olshell.onAccent}}<* else *>{{colors.on_primary.default.hex}}<* endif *>;
+@define-color insensitive_bg_color <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.default.hex}}<* endif *>;
+@define-color insensitive_fg_color <* if {{olshell.exact}} *>{{olshell.textVariant}}<* else *>{{colors.on_surface_variant.default.hex}}<* endif *>;
+@define-color borders <* if {{olshell.exact}} *>{{olshell.border}}<* else *>{{colors.surface_variant.default.hex}}<* endif *>;
+@define-color unfocused_borders <* if {{olshell.exact}} *>{{olshell.border}}<* else *>{{colors.surface_variant.default.hex}}<* endif *>;

@@ -3,5 +3,11 @@
   "borderColor": "{{colors.surface_variant.default.hex}}",
   "textColor": "{{colors.on_background.default.hex}}",
   "accentColor": "{{colors.primary.default.hex}}",
-  "pillColor": "{{colors.surface_container.default.hex}}"
+  "pillColor": "{{colors.surface_container.default.hex}}",
+  "accentSecondary": "{{colors.secondary.default.hex}}",
+  "accentTertiary": "{{colors.tertiary.default.hex}}",
+  "pillLowest": "{{colors.surface_container_lowest.default.hex}}",
+  "pillLow": "{{colors.surface_container_low.default.hex}}",
+  "pillHigh": "{{colors.surface_container_high.default.hex}}",
+  "pillHighest": "{{colors.surface_container_highest.default.hex}}"
 }

@@ -44,4 +44,6 @@ Singleton {
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")
+  // Runs matugen with only the templates of the apps turned on in the settings.
+  readonly property string matugenScript: Quickshell.shellPath("scripts/matugen-run.py")
 }

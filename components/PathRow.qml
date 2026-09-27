@@ -1,8 +1,10 @@
 import QtQuick
 import qs.config
 
-// A label with a text field on the right, for a value typed in (a folder).
-// `value` is the current value, shown while not editing. Clicking the field
+// A label with a text field on the right, for a value typed in (a folder, a
+// color). `value` is the current value, shown while not editing, after a
+// dot of the color `swatch` when it is set (for a color); clicking the dot
+// opens a color picker, which emits `picked` with each color picked. Clicking the field
 // emits `editRequested`, and the owner sets `editing` (as it does for Enter on
 // the row); Enter in the field emits `committed` with the text, Escape emits
 // `cancelled`, and the owner then clears `editing`. Up/Down/Tab are kept from the owner's row
@@ -14,9 +16,14 @@ Item {
   property string value: ""
   property bool selected: false
   property bool editing: false
+  property string swatch: ""
 
   signal committed(string text)
   signal cancelled()
+  signal picked(string value)
+  // Picking a color from the screen started or ended (see ColorPicker).
+  signal screenPickStarted()
+  signal screenPickFinished()
   signal editRequested()
   signal activated()
   // The row wants keyboard focus back to the owner (editing ended).
@@ -69,15 +76,30 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     height: 32
     radius: Theme.radiusFor(height)
-    color: root.editing ? Theme.backgroundColor : "transparent"
+    color: "transparent"
     border.color: root.editing ? Theme.accentColor : Theme.outlineColor
     border.width: 1
+
+    // The color the value is, before it.
+    Rectangle {
+      id: swatchDot
+      visible: root.swatch.length > 0
+      anchors.left: parent.left
+      anchors.leftMargin: 12
+      anchors.verticalCenter: parent.verticalCenter
+      width: 14
+      height: 14
+      radius: 7
+      color: root.swatch.length > 0 ? root.swatch : "transparent"
+      border.color: Theme.textColor
+      border.width: 1
+    }
 
     // Shown when not editing, cut with an ellipsis at the start if too long
     // for the box, since the end of a path is the part that matters.
     ThemedText {
-      anchors.left: parent.left
-      anchors.leftMargin: 12
+      anchors.left: swatchDot.visible ? swatchDot.right : parent.left
+      anchors.leftMargin: swatchDot.visible ? 8 : 12
       anchors.right: parent.right
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
@@ -89,8 +111,8 @@ Item {
 
     TextInput {
       id: field
-      anchors.left: parent.left
-      anchors.leftMargin: 12
+      anchors.left: swatchDot.visible ? swatchDot.right : parent.left
+      anchors.leftMargin: swatchDot.visible ? 8 : 12
       anchors.right: parent.right
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
@@ -124,5 +146,26 @@ Item {
         root.editRequested()
       }
     }
+
+    // The dot opens the color picker instead of the text field.
+    MouseArea {
+      anchors.fill: swatchDot
+      anchors.margins: -4
+      enabled: swatchDot.visible && !root.editing
+      cursorShape: Qt.PointingHandCursor
+      onClicked: {
+        root.activated()
+        picker.show()
+      }
+    }
+  }
+
+  ColorPicker {
+    id: picker
+    anchorItem: swatchDot
+    current: root.swatch.length > 0 ? root.swatch : "#000000"
+    onPicked: value => root.picked(value)
+    onScreenPickStarted: root.screenPickStarted()
+    onScreenPickFinished: root.screenPickFinished()
   }
 }

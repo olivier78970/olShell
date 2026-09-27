@@ -162,9 +162,9 @@ disabled = false
 
 [palettes.myColors]
 red = "{{colors.error.default.hex}}"
-yellow = "{{colors.primary.default.hex}}"
+yellow = "<* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.default.hex}}<* endif *>"
 peach = "{{colors.primary_container.default.hex}}"
 green = "{{colors.secondary.default.hex}}"
-lavender = "{{colors.on_background.default.hex}}"
-crust = "{{colors.background.default.hex}}"
+lavender = "<* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_background.default.hex}}<* endif *>"
+crust = "<* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.default.hex}}<* endif *>"
 sapphire = "{{colors.primary_fixed.default.hex}}"

@@ -1,4 +1,5 @@
-/* The olShell GTK3 theme: adw-gtk3-dark, in the shell's colors.
+/* The olShell GTK3 theme: adw-gtk3-dark (adw-gtk3 while the Automatique
+ * theme is set to light), in the shell's colors.
  *
  * Written by matugen - do not edit: change
  * matugen/gtk3-theme-index.css.template in olShell instead.
@@ -8,5 +9,5 @@
  * theme, imports included, as the theme changes - so switching the theme's
  * name away and back (matugen/quickshell.toml's hook) recolors running apps.
  */
-@import url("file:///usr/share/themes/adw-gtk3-dark/gtk-3.0/gtk.css");
+@import url("file:///usr/share/themes/{{olshell.gtkTheme}}/gtk-3.0/gtk.css");
 @import url("colors.css");

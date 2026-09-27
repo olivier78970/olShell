@@ -19,27 +19,27 @@
 
 :root {
   /* Accent. Every --zen-colors-* value is mixed from this one. */
-  --zen-primary-color: light-dark({{colors.primary.light.hex}}, {{colors.primary.dark.hex}}) !important;
+  --zen-primary-color: light-dark(<* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.accent}}<* else *>{{colors.primary.dark.hex}}<* endif *>) !important;
 
   /* The base those mixes are made against: the shell's background color. */
-  --zen-branding-paper: {{colors.background.light.hex}} !important;
-  --zen-branding-dark: {{colors.background.dark.hex}} !important;
+  --zen-branding-paper: <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.light.hex}}<* endif *> !important;
+  --zen-branding-dark: <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.dark.hex}}<* endif *> !important;
 
   /* Window and toolbar background. */
-  --zen-themed-toolbar-bg-transparent: light-dark({{colors.background.light.hex}}, {{colors.background.dark.hex}}) !important;
+  --zen-themed-toolbar-bg-transparent: light-dark(<* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.dark.hex}}<* endif *>) !important;
 
   /* Text on the toolbar, the sidebar and the workspace bar. */
-  --toolbox-textcolor: light-dark({{colors.on_background.light.hex}}, {{colors.on_background.dark.hex}}) !important;
+  --toolbox-textcolor: light-dark(<* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_background.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.text}}<* else *>{{colors.on_background.dark.hex}}<* endif *>) !important;
 
   /* Raised surfaces: the URL bar, input fields, dialogs and popups
      (the shell's pill color). */
-  --zen-urlbar-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
-  --zen-colors-input-bg: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
-  --zen-dialog-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
-  --arrowpanel-background: light-dark({{colors.surface_container.light.hex}}, {{colors.surface_container.dark.hex}}) !important;
+  --zen-urlbar-background: light-dark(<* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.dark.hex}}<* endif *>) !important;
+  --zen-colors-input-bg: light-dark(<* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.dark.hex}}<* endif *>) !important;
+  --zen-dialog-background: light-dark(<* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.dark.hex}}<* endif *>) !important;
+  --arrowpanel-background: light-dark(<* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.pill}}<* else *>{{colors.surface_container.dark.hex}}<* endif *>) !important;
 
   /* Outlines, as in the shell's border color. */
-  --zen-colors-border: light-dark({{colors.surface_variant.light.hex}}, {{colors.surface_variant.dark.hex}}) !important;
+  --zen-colors-border: light-dark(<* if {{olshell.exact}} *>{{olshell.border}}<* else *>{{colors.surface_variant.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.border}}<* else *>{{colors.surface_variant.dark.hex}}<* endif *>) !important;
 }
 
 /* The window and toolbar background are painted by these two layers, and Zen
@@ -48,7 +48,7 @@
  * would never reach them, so they are set here directly. This replaces the
  * workspace background picked in Zen's settings. */
 .zen-browser-generic-background {
-  --zen-main-browser-background: light-dark({{colors.background.light.hex}}, {{colors.background.dark.hex}}) !important;
+  --zen-main-browser-background: light-dark(<* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.light.hex}}<* endif *>, <* if {{olshell.exact}} *>{{olshell.background}}<* else *>{{colors.background.dark.hex}}<* endif *>) !important;
   --zen-main-browser-background-old: var(--zen-main-browser-background) !important;
   --zen-main-browser-background-toolbar: var(--zen-main-browser-background) !important;
   --zen-main-browser-background-toolbar-old: var(--zen-main-browser-background) !important;

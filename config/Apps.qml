@@ -37,6 +37,12 @@ Singleton {
   // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image
   // fills the screen, and the transition's smoothness. The transition's type
   // and duration are settings (see config/Settings.qml), added after these.
+  // Picks a color from the screen for the settings' color picker (see
+  // components/ColorPicker.qml): it prints the color clicked as "#rrggbb",
+  // and nothing when cancelled with Escape. Not --quiet, which may silence
+  // the color too.
+  readonly property var screenColorPicker: ["hyprpicker", "--format=hex", "--lowercase-hex", "--no-fancy"]
+
   readonly property var wallpaperOptions: ["--resize", "crop", "--transition-step", "63", "--transition-fps", "60"]
 
   // The engine the launcher's web search uses for the default browser's

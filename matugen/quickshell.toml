@@ -5,6 +5,23 @@ set = false
 # generated from the wallpaper for "Automatique", from the theme's accent color
 # for a fixed theme (see services/Matugen.qml). Relative paths are resolved
 # against this file's directory, so the checkout can live anywhere.
+#
+# The shell doesn't run matugen on this file directly but through
+# scripts/matugen-run.py, which leaves out the templates of the apps turned
+# off in the settings (a template is an app's by the start of its name) and
+# runs matugen on the copy it writes, active.toml, next to this file. The
+# shell also passes the templates data of its own under `olshell` (with
+# --import-json-string, see services/Matugen.qml's templateData):
+#   - gtkTheme: the GTK theme the olShell one is built on, adw-gtk3-dark, or
+#     adw-gtk3 for a light theme;
+#   - exact: true when a fixed or custom theme's apps get its exact colors,
+#     given as background, text, textVariant (secondary text), pill, pillLow,
+#     pillHigh (the widget background, a step lower and higher), border,
+#     accent and onAccent (text on the accent), and backgroundStripped and
+#     textStripped (without the #). The apps' templates use them for those
+#     roles through `<* if {{olshell.exact}} *>...<* else *>...<* endif *>`,
+#     and matugen's own colors otherwise. The shell's own palette
+#     (quickshell-theme.json.template) is always matugen's.
 
 # The shell's own palette (Theme reads it for "Automatique").
 [templates.quickshell]
@@ -43,13 +60,14 @@ input_path = "gtk-theme.css.template"
 output_path = "~/.config/gtk-4.0/gtk.css"
 
 # The "olShell" GTK theme (set it as the GTK theme, and don't keep a
-# ~/.config/gtk-3.0/gtk.css): adw-gtk3-dark with these colors, for GTK3 apps
-# and plain GTK4 ones (not libadwaita). As a theme's colors, since running
-# apps never re-read ~/.config/gtk-3.0/gtk.css, but do reload their theme as
-# its name changes: each colors file's hook switches it away and straight
-# back once written, so the last one run (after both are written, whichever
-# matugen writes first) makes running GTK apps pick up the new colors now.
-# The theme's own files never change, so need no hook.
+# ~/.config/gtk-3.0/gtk.css): adw-gtk3-dark (or adw-gtk3) with these colors,
+# for GTK3 apps and plain GTK4 ones (not libadwaita). As a theme's colors,
+# since running apps never re-read ~/.config/gtk-3.0/gtk.css, but do reload
+# their theme as its name changes: each file's hook switches it away and
+# straight back once written, so the last one run (after all are written,
+# whichever matugen writes first) makes running GTK apps pick up the new
+# colors now. The theme's own files only change between dark and light, but a
+# hook there too makes sure the last reload comes after them.
 [templates.gtk3]
 input_path = "gtk-theme.css.template"
 output_path = "~/.local/share/themes/olShell/gtk-3.0/colors.css"
@@ -58,6 +76,7 @@ post_hook = 'theme=$(gsettings get org.gnome.desktop.interface gtk-theme); gsett
 [templates.gtk3theme]
 input_path = "gtk3-theme-index.css.template"
 output_path = "~/.local/share/themes/olShell/gtk-3.0/gtk.css"
+post_hook = 'theme=$(gsettings get org.gnome.desktop.interface gtk-theme); gsettings set org.gnome.desktop.interface gtk-theme ""; sleep 0.2; gsettings set org.gnome.desktop.interface gtk-theme "$theme"'
 
 [templates.gtk4plain]
 input_path = "gtk-theme.css.template"
@@ -67,10 +86,12 @@ post_hook = 'theme=$(gsettings get org.gnome.desktop.interface gtk-theme); gsett
 [templates.gtk4theme]
 input_path = "gtk4-theme-index.css.template"
 output_path = "~/.local/share/themes/olShell/gtk-4.0/gtk.css"
+post_hook = 'theme=$(gsettings get org.gnome.desktop.interface gtk-theme); gsettings set org.gnome.desktop.interface gtk-theme ""; sleep 0.2; gsettings set org.gnome.desktop.interface gtk-theme "$theme"'
 
 [templates.gtk4themedark]
 input_path = "gtk4-theme-index.css.template"
 output_path = "~/.local/share/themes/olShell/gtk-4.0/gtk-dark.css"
+post_hook = 'theme=$(gsettings get org.gnome.desktop.interface gtk-theme); gsettings set org.gnome.desktop.interface gtk-theme ""; sleep 0.2; gsettings set org.gnome.desktop.interface gtk-theme "$theme"'
 
 [templates.starship]
 input_path = "starship-theme.toml.template"

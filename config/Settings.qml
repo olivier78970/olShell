@@ -41,7 +41,11 @@ Singleton {
     volumeOsdMargin: [0, 400],
     lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
-    zoomStep: [0.1, 2]
+    zoomStep: [0.1, 2],
+    // matugen takes -1 to 1, but below 0 it turns the text a dim grey that is
+    // hard to read on the background.
+    matugenContrast: [0, 1],
+    matugenLightness: [-1, 1]
   })
 
   // Where an OSD can be put on the screen: the vertical place, a dash, the
@@ -51,7 +55,12 @@ Singleton {
   // The values a setting can only take one of, in the order the panel lists
   // them. The wallpaper transitions are those of `awww img
   // --transition-type` ("simple" is left out: "fade" is the same, tunable, and
-  // "none" already changes the wallpaper at once).
+  // "none" already changes the wallpaper at once). The matugen schemes are
+  // those of `matugen image --type` (without the "scheme-" prefix), and the
+  // sources are the colors of `--prefer`, plus "dominant" (the image's most
+  // common color, `--source-color-index 0`). The accents and pill levels are
+  // matugen's primary / secondary / tertiary colors and its
+  // surface_container_* ones ("normal" is surface_container).
   readonly property var choices: ({
     barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
@@ -61,8 +70,21 @@ Singleton {
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
     volumeOsdPosition: root.osdPositions,
     lockKeysOsdPosition: root.osdPositions,
-    wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"]
+    wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
+    matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
+    matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
+    themeMode: ["dark", "light"],
+    matugenAccent: ["primary", "secondary", "tertiary"],
+    themePill: ["lowest", "low", "normal", "high", "highest"],
+    themeAccent: ["default"].concat(ThemePresets.accentNames)
   })
+
+  // The custom theme's colors, which only take a "#rrggbb" color.
+  readonly property var colorKeys: ["customBackground", "customPill", "customBorder", "customText", "customAccent"]
+
+  function validColor(value) {
+    return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value.trim())
+  }
 
   // Corner radius of every rounded item, in pixels.
   readonly property int radius: root.valid("radius", file.adapter.radius)
@@ -170,6 +192,55 @@ Singleton {
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
   readonly property real wallpaperDuration: root.valid("wallpaperDuration", file.adapter.wallpaperDuration)
+  // How matugen builds the "Automatique" palette from the wallpaper: the style
+  // of the scheme (one of choices.matugenScheme) and which of the wallpaper's
+  // colors it starts from (one of choices.matugenSource).
+  readonly property string matugenScheme: root.valid("matugenScheme", file.adapter.matugenScheme)
+  readonly property string matugenSource: root.valid("matugenSource", file.adapter.matugenSource)
+  // How far matugen pushes the contrast between the "Automatique" colors, from
+  // 0 (as designed) to 1 (the most).
+  readonly property real matugenContrast: root.valid("matugenContrast", file.adapter.matugenContrast)
+  // Whether the themes are dark or light (one of choices.themeMode): the
+  // "Automatique" palette, and the fixed themes that have a light version.
+  readonly property string themeMode: root.valid("themeMode", file.adapter.themeMode)
+  // How much lighter (up to 1) or darker (down to -1) than designed the
+  // "Automatique" background is (0 as designed; see services/Matugen.qml for
+  // how far that goes in each mode).
+  readonly property real matugenLightness: root.valid("matugenLightness", file.adapter.matugenLightness)
+  // Which of the "Automatique" palette's colors the shell uses as its accent
+  // (one of choices.matugenAccent). Only the shell: the other apps keep their
+  // own use of the palette.
+  readonly property string matugenAccent: root.valid("matugenAccent", file.adapter.matugenAccent)
+  // How much the widgets' background stands out from the background, with
+  // every theme (one of choices.themePill): for "Automatique" one of
+  // matugen's surface colors, for the others their own, moved toward the
+  // background or the text (see ThemePresets.withPillLevel).
+  readonly property string themePill: root.valid("themePill", file.adapter.themePill)
+  // The apps matugen colors along with the shell, with any theme (see
+  // scripts/matugen-run.py). One turned off keeps the colors it last got.
+  readonly property bool matugenHyprland: root.valid("matugenHyprland", file.adapter.matugenHyprland)
+  readonly property bool matugenZen: root.valid("matugenZen", file.adapter.matugenZen)
+  readonly property bool matugenAlacritty: root.valid("matugenAlacritty", file.adapter.matugenAlacritty)
+  readonly property bool matugenGtk: root.valid("matugenGtk", file.adapter.matugenGtk)
+  readonly property bool matugenStarship: root.valid("matugenStarship", file.adapter.matugenStarship)
+  // Apps added to those in the settings, each with a matugen template of its
+  // own: [{ name, template (the template file), output (the file matugen
+  // writes from it), hook (a shell command run after, or ""), on }]. One
+  // without a template or an output is kept but not run.
+  readonly property var matugenApps: root.valid("matugenApps", file.adapter.matugenApps)
+  // The accent of the fixed themes, by the color it is (one of
+  // choices.themeAccent; "default" is each theme's own, and so is a color the
+  // theme doesn't have; see ThemePresets), and whether the other apps get
+  // the exact colors of a fixed or custom theme rather than the palette
+  // matugen builds around its accent.
+  readonly property string themeAccent: root.valid("themeAccent", file.adapter.themeAccent)
+  readonly property bool themeExactApps: root.valid("themeExactApps", file.adapter.themeExactApps)
+  // The custom theme's five colors.
+  readonly property string customBackground: root.valid("customBackground", file.adapter.customBackground)
+  readonly property string customPill: root.valid("customPill", file.adapter.customPill)
+  readonly property string customBorder: root.valid("customBorder", file.adapter.customBorder)
+  readonly property string customText: root.valid("customText", file.adapter.customText)
+  readonly property string customAccent: root.valid("customAccent", file.adapter.customAccent)
   // What the bar's screenshot widget captures: the focused screen, a rectangle or a window,
   // whether the picture is then opened in satty to be annotated, and the folder
   // pictures are saved in (an absolute path; a leading ~ is the home folder).
@@ -230,6 +301,28 @@ Singleton {
     return true
   }
 
+  // Changes `fields` ({ name, template, output, hook, on }, any of them) of
+  // added app `index`. Returns false, changing nothing, when that leaves it
+  // without a name.
+  function setMatugenApp(index, fields) {
+    const list = root.matugenApps.map(app => Object.assign({}, app))
+    if (index < 0 || index >= list.length) return false
+    const app = Object.assign(list[index], fields)
+    if (typeof app.name !== "string" || app.name.trim().length === 0) return false
+    root.set("matugenApps", list)
+    return true
+  }
+
+  // Adds an app named `name`, on, with its files still to be set.
+  function addMatugenApp(name) {
+    root.set("matugenApps", root.matugenApps.concat([{ name: name, template: "", output: "", hook: "", on: true }]))
+  }
+
+  // Takes added app `index` out of the list.
+  function removeMatugenApp(index) {
+    root.set("matugenApps", root.matugenApps.filter((app, other) => other !== index))
+  }
+
   // Takes engine `index` out of the list; the browser's can't be.
   function removeEngine(index) {
     if (root.launcherEngines[index] === undefined || root.launcherEngines[index].browser) return
@@ -270,6 +363,13 @@ Singleton {
       if (!list.some(engine => engine.browser)) list.unshift({ browser: true, on: true })
       return list
     }
+    // The added apps: those with a name, their other fields as text.
+    if (key === "matugenApps") {
+      const text = field => typeof field === "string" ? field.trim() : ""
+      return root.asArray(value)
+        .filter(app => app !== null && typeof app === "object" && text(app.name).length > 0)
+        .map(app => ({ name: text(app.name), template: text(app.template), output: text(app.output), hook: text(app.hook), on: typeof app.on === "boolean" ? app.on : true }))
+    }
     // A list of widgets: only known ones (the layout also drops duplicates).
     if (Array.isArray(root.defaults[key])) {
       const list = root.asArray(value)
@@ -286,6 +386,7 @@ Singleton {
       return path.startsWith("/") ? path : root.defaults[key]
     }
     if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
+    if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
     if (typeof root.defaults[key] === "boolean") {
       if (typeof value === "number" && !isNaN(value)) return value !== 0
@@ -298,7 +399,7 @@ Singleton {
     const clamped = Math.max(min, Math.min(max, value))
     if (key === "opacity") return Math.round(clamped * 100) / 100
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
-    return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
+    return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" || key === "matugenContrast" || key === "matugenLightness" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
   }
 
   // `list` as a real array: a list read from the saved file is an array-like
@@ -456,6 +557,8 @@ Singleton {
   // dragging a slider doesn't write the file for every step).
   function set(key, value) {
     if (root.defaults[key] === undefined) return
+    // A color mistyped in the settings keeps the one there was.
+    if (root.colorKeys.includes(key) && !root.validColor(value)) return
     file.adapter[key] = root.valid(key, value)
     saveTimer.restart()
   }
@@ -549,6 +652,26 @@ Singleton {
       property bool fontOutline: Defaults.values.fontOutline
       property string wallpaperTransition: Defaults.values.wallpaperTransition
       property real wallpaperDuration: Defaults.values.wallpaperDuration
+      property string matugenScheme: Defaults.values.matugenScheme
+      property string matugenSource: Defaults.values.matugenSource
+      property real matugenContrast: Defaults.values.matugenContrast
+      property string themeMode: Defaults.values.themeMode
+      property real matugenLightness: Defaults.values.matugenLightness
+      property string matugenAccent: Defaults.values.matugenAccent
+      property string themePill: Defaults.values.themePill
+      property bool matugenHyprland: Defaults.values.matugenHyprland
+      property bool matugenZen: Defaults.values.matugenZen
+      property bool matugenAlacritty: Defaults.values.matugenAlacritty
+      property bool matugenGtk: Defaults.values.matugenGtk
+      property bool matugenStarship: Defaults.values.matugenStarship
+      property var matugenApps: Defaults.values.matugenApps
+      property string themeAccent: Defaults.values.themeAccent
+      property bool themeExactApps: Defaults.values.themeExactApps
+      property string customBackground: Defaults.values.customBackground
+      property string customPill: Defaults.values.customPill
+      property string customBorder: Defaults.values.customBorder
+      property string customText: Defaults.values.customText
+      property string customAccent: Defaults.values.customAccent
       property string screenshotMode: Defaults.values.screenshotMode
       property bool screenshotEdit: Defaults.values.screenshotEdit
       property string screenshotDir: Defaults.values.screenshotDir

@@ -152,7 +152,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     height: 30
     radius: Theme.radiusFor(height)
-    color: box.editing ? Theme.backgroundColor : "transparent"
+    color: "transparent"
     border.color: box.editing ? Theme.accentColor : (root.selected && root.focusIndex === box.focusIndex ? Theme.textColor : Theme.outlineColor)
     border.width: !box.editing && root.selected && root.focusIndex === box.focusIndex ? 2 : 1
     opacity: root.on || box.editing ? 1 : 0.5

@@ -9,7 +9,9 @@ import qs.services
 // Themes (see ThemePresets) are browsed in a carousel like the wallpaper
 // panel; Enter or a click applies the centered one. The first entry,
 // "Automatique", follows the wallpaper's matugen palette; the corner button
-// jumps to it and applies it.
+// jumps to it and applies it. Each card shows its theme as it would be used
+// (its light version in light mode, the accent picked in the settings...),
+// and the last one is the custom theme, whose colors are set in the settings.
 CarouselPanel {
   id: root
 
@@ -45,8 +47,10 @@ CarouselPanel {
       id: card
 
       readonly property bool applied: card.modelData.id === ThemeState.active.id
+      // The theme as it would be used right now.
+      readonly property var theme: ThemePresets.resolve(card.modelData.id)
       // "auto" has no colors of its own: preview the wallpaper's.
-      readonly property var colors: card.modelData.colors ?? GeneratedColors.matugenColors
+      readonly property var colors: card.theme.colors ?? GeneratedColors.matugenColors
 
       aspectRatio: 0.85
       selectedScale: 1.4
@@ -63,7 +67,7 @@ CarouselPanel {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           elide: Text.ElideRight
-          text: card.modelData.id === "auto" ? I18n.tr("theme.auto") : card.modelData.name
+          text: card.theme.name
           color: card.colors.textColor
           sizeScale: 0.8
         }
@@ -73,7 +77,7 @@ CarouselPanel {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: card.modelData.id === "auto" ? I18n.tr("theme.autoDescription") : ""
+          text: card.modelData.id === "auto" ? I18n.tr("theme.autoDescription") : (card.modelData.id === "custom" ? I18n.tr("theme.customDescription") : "")
           color: card.colors.textColor
           opacity: 0.7
           sizeScale: 0.55
