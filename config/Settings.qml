@@ -65,7 +65,7 @@ Singleton {
   readonly property var choices: ({
     barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
-    launcherTab: ["all", "apps", "files", "web"],
+    launcherTab: ["all", "apps", "games", "files", "web"],
     clockDate: ["long", "short", "numeric", "none"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
@@ -277,6 +277,10 @@ Singleton {
   // many results its list is tall enough to show at once (more scroll).
   readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
   readonly property int launcherResults: root.valid("launcherResults", file.adapter.launcherResults)
+  // The folder the launcher's games tab looks in: it lists the applications
+  // whose desktop entry runs from inside it (its working directory, or a
+  // file in its command).
+  readonly property string launcherGamesDir: root.valid("launcherGamesDir", file.adapter.launcherGamesDir)
   // The bar clock: how it shows the date (one of choices.clockDate: the day
   // and month spelled out, abbreviated, in figures, or no date), and whether
   // the time has seconds (without them the clock only changes once a minute).
@@ -388,7 +392,7 @@ Singleton {
       const list = root.asArray(value)
       return list.length > 0 || (value !== null && typeof value === "object") ? list.filter(id => root.widgetIds.includes(id)) : root.defaults[key]
     }
-    if (key === "screenshotDir") {
+    if (key === "screenshotDir" || key === "launcherGamesDir") {
       // ~ is the home folder, a trailing slash is dropped, and anything that
       // isn't then an absolute path (or is just "/") is the default.
       let path = typeof value === "string" ? value.trim() : ""
@@ -742,6 +746,7 @@ Singleton {
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
       property string launcherTab: Defaults.values.launcherTab
+      property string launcherGamesDir: Defaults.values.launcherGamesDir
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
       property int launcherResults: Defaults.values.launcherResults

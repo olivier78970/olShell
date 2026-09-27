@@ -130,6 +130,7 @@ Singleton {
     { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
+    { key: "launcherGamesDir", category: "launcher", kind: "path", label: I18n.tr("settings.launcherGamesDir") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [

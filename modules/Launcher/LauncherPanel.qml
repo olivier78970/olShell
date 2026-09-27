@@ -9,10 +9,12 @@ import qs.services
 
 // Launcher, toggled from outside via:
 //   quickshell -p . ipc call launcher toggle
-// or from the bar's launcher icon. Three tabs search what's typed: the
-// installed applications, the files and folders of the home folder (with fd),
-// and the web (the default browser's default engine, or an address typed in).
-// Tab / Shift+Tab (with or without Ctrl, or Alt+1..4, or a click) switch
+// or from the bar's launcher icon. Its tabs search what's typed: the
+// installed applications, the games among them (the ones run from inside
+// Settings.launcherGamesDir), the files and folders of the home folder (with
+// fd), and the web (the default browser's default engine, or an address
+// typed in); the all tab gathers them.
+// Tab / Shift+Tab (with or without Ctrl, or Alt+1..5, or a click) switch
 // tabs, keeping the text; Up/Down (or Ctrl+N/P) move, Enter opens, Escape
 // closes.
 ModalPanel {
@@ -22,15 +24,18 @@ ModalPanel {
   // The focused monitor, kept as a property so Hyprland's monitor data is
   // loaded by the time a terminal application's window is sized from it.
   readonly property var monitor: Hyprland.focusedMonitor
-  // The tab shown: 0 all, 1 applications, 2 files, 3 web.
+  // The tab shown: 0 all, 1 applications, 2 games, 3 files, 4 web (the
+  // order of Settings.choices.launcherTab).
   property int tab: 0
   readonly property int allTab: 0
   readonly property int appsTab: 1
-  readonly property int filesTab: 2
-  readonly property int webTab: 3
+  readonly property int gamesTab: 2
+  readonly property int filesTab: 3
+  readonly property int webTab: 4
   readonly property var tabs: [
     { label: I18n.tr("launcher.tab.all"), icon: "󰍉" },
     { label: I18n.tr("launcher.tab.apps"), icon: "󰀻" },
+    { label: I18n.tr("launcher.tab.games"), icon: "󰊴" },
     { label: I18n.tr("launcher.tab.files"), icon: "󰉋" },
     { label: I18n.tr("launcher.tab.web"), icon: "󰖟" }
   ]
@@ -38,6 +43,7 @@ ModalPanel {
   // dir, isDir }, { kind: "web", url, title, subtitle } - and, in the all
   // tab, { kind: "heading", title } over each section (never selected).
   readonly property var results: root.tab === root.appsTab ? root.appResults(root.query)
+    : root.tab === root.gamesTab ? root.gameResults(root.query)
     : root.tab === root.filesTab ? root.fileResults
     : root.tab === root.webTab ? root.webResults(root.query)
     : root.allResults(root.query)
@@ -131,11 +137,20 @@ ModalPanel {
     return 0
   }
 
+  // Whether an application is a game: its desktop entry runs from inside
+  // Settings.launcherGamesDir (its working directory, or a file in its
+  // command, is in that folder).
+  function isGame(entry) {
+    const dir = Settings.launcherGamesDir
+    const inside = path => typeof path === "string" && (path === dir || path.startsWith(dir + "/"))
+    return inside(entry.workingDirectory) || (entry.command ?? []).some(inside)
+  }
+
   // Visible applications matching the query, best first; alphabetical when
-  // the query is empty.
-  function search(query) {
+  // the query is empty. With `gamesOnly`, only the games (see isGame()).
+  function search(query, gamesOnly) {
     const entries = DesktopEntries.applications.values
-      .filter(entry => !entry.noDisplay)
+      .filter(entry => !entry.noDisplay && (!gamesOnly || root.isGame(entry)))
       .map(entry => ({ entry: entry, text: root.describe(entry) }))
     const q = query.trim().toLowerCase()
     if (q.length === 0) {
@@ -292,6 +307,11 @@ ModalPanel {
     return root.search(query).map(entry => ({ kind: "app", entry: entry }))
   }
 
+  // The games tab's results.
+  function gameResults(query) {
+    return root.search(query, true).map(entry => ({ kind: "app", entry: entry }))
+  }
+
   // The all tab: with a query, the best applications, then files, then the
   // web (everything the web tab offers), each under its heading; without one,
   // just the applications (there's nothing to look for in files or on the
@@ -446,7 +466,7 @@ ModalPanel {
         ThemedText {
           visible: input.text.length === 0
           anchors.verticalCenter: parent.verticalCenter
-          text: I18n.tr(["launcher.searchAll", "launcher.search", "launcher.searchFiles", "launcher.searchWeb"][root.tab])
+          text: I18n.tr(["launcher.searchAll", "launcher.search", "launcher.searchGames", "launcher.searchFiles", "launcher.searchWeb"][root.tab])
           opacity: 0.5
         }
       }
@@ -600,7 +620,8 @@ ModalPanel {
       ThemedText {
         visible: list.count === 0
         anchors.centerIn: parent
-        text: I18n.tr(root.query.trim() === "" && root.tab === root.filesTab ? "launcher.filesHint"
+        text: root.query.trim() === "" && root.tab === root.gamesTab ? I18n.tr("launcher.gamesHint", Settings.launcherGamesDir)
+          : I18n.tr(root.query.trim() === "" && root.tab === root.filesTab ? "launcher.filesHint"
           : root.query.trim() === "" && root.tab === root.webTab ? "launcher.webHint"
           : root.filesPending ? "launcher.searching" : "launcher.noResults")
         opacity: 0.6
