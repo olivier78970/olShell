@@ -49,6 +49,7 @@ ModalPanel {
     : root.allResults(root.query)
   // How many of each the all tab shows.
   readonly property int allAppCount: 5
+  readonly property int allGameCount: 5
   readonly property int allFileCount: 5
   // The files tab's results, for `fileResultsQuery` (fd runs in the
   // background, see searchFiles()).
@@ -145,10 +146,10 @@ ModalPanel {
   }
 
   // Visible applications matching the query, best first; alphabetical when
-  // the query is empty. With `gamesOnly`, only the games (see isGame()).
-  function search(query, gamesOnly) {
+  // the query is empty. With `keep`, only the ones it returns true for.
+  function search(query, keep) {
     const entries = DesktopEntries.applications.values
-      .filter(entry => !entry.noDisplay && (!gamesOnly || root.isGame(entry)))
+      .filter(entry => !entry.noDisplay && (!keep || keep(entry)))
       .map(entry => ({ entry: entry, text: root.describe(entry) }))
     const q = query.trim().toLowerCase()
     if (q.length === 0) {
@@ -305,26 +306,33 @@ ModalPanel {
     return root.search(query).map(entry => ({ kind: "app", entry: entry }))
   }
 
-  // The games tab's results.
-  function gameResults(query) {
-    return root.search(query, true).map(entry => ({ kind: "app", entry: entry }))
+  // The games tab's results, and with `nonGames` the other applications
+  // instead (the all tab puts the games in a section of their own).
+  function gameResults(query, nonGames) {
+    return root.search(query, entry => root.isGame(entry) !== (nonGames === true)).map(entry => ({ kind: "app", entry: entry }))
   }
 
-  // The all tab: with a query, the best applications, then files, then the
-  // web (everything the web tab offers), each under its heading; without one,
-  // just the applications (there's nothing to look for in files or on the
-  // web).
+  // The all tab: with a query, the best applications, then games, files and
+  // the web (everything the web tab offers), each under its heading; without
+  // one, all the applications, then all the games (there's nothing to look
+  // for in files or on the web).
   function allResults(query) {
     const q = query.trim()
-    const apps = root.appResults(query)
-    if (q === "") return apps
+    const apps = root.gameResults(query, true)
+    const games = root.gameResults(query)
     const items = []
     const section = (title, list) => {
       if (list.length === 0) return
       items.push({ kind: "heading", title: title })
       for (const item of list) items.push(item)
     }
+    if (q === "") {
+      section(I18n.tr("launcher.tab.apps"), apps)
+      section(I18n.tr("launcher.tab.games"), games)
+      return items
+    }
     section(I18n.tr("launcher.tab.apps"), apps.slice(0, root.allAppCount))
+    section(I18n.tr("launcher.tab.games"), games.slice(0, root.allGameCount))
     section(I18n.tr("launcher.tab.files"), root.fileResultsQuery === q ? root.fileResults.slice(0, root.allFileCount) : [])
     section(I18n.tr("launcher.tab.web"), root.webResults(query))
     return items
