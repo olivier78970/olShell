@@ -65,7 +65,7 @@ Singleton {
   readonly property var choices: ({
     barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
-    launcherTab: ["all", "apps", "files", "web"],
+    launcherTab: ["all", "apps", "games", "files", "web"],
     clockDate: ["long", "short", "numeric", "none"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
