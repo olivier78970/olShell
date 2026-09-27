@@ -34,6 +34,11 @@ Singleton {
   // `-e ...` part.
   readonly property var networkTerminal: ["alacritty", "--class", "quickshell-network", "-T", "nmcli"]
 
+  // Tray items the bar's tray leaves out, by their id: blueman's applet,
+  // which the Bluetooth widget stands in for (it starts whenever a blueman
+  // window opens).
+  readonly property var hiddenTrayItems: ["blueman"]
+
   // The terminal the launcher runs a terminal application in (a desktop
   // entry with Terminal=true, such as yazi or htop), followed by its command,
   // and the size of its floating, centered window, as fractions of the
