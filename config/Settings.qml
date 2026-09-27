@@ -65,6 +65,7 @@ Singleton {
     barPosition: ["top", "bottom"],
     barStyle: ["widgets", "full"],
     launcherTab: ["all", "apps", "files", "web"],
+    clockDate: ["long", "short", "numeric", "none"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
@@ -270,6 +271,11 @@ Singleton {
   // many results its list is tall enough to show at once (more scroll).
   readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
   readonly property int launcherResults: root.valid("launcherResults", file.adapter.launcherResults)
+  // The bar clock: how it shows the date (one of choices.clockDate: the day
+  // and month spelled out, abbreviated, in figures, or no date), and whether
+  // the time has seconds (without them the clock only changes once a minute).
+  readonly property string clockDate: root.valid("clockDate", file.adapter.clockDate)
+  readonly property bool clockSeconds: root.valid("clockSeconds", file.adapter.clockSeconds)
   // The engines the launcher's web search offers, in order: each
   // { name, url, on } (%s in `url` is where the search goes), or
   // { browser: true, on } for the default browser's own default engine (see
@@ -728,6 +734,8 @@ Singleton {
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
       property string launcherTab: Defaults.values.launcherTab
+      property string clockDate: Defaults.values.clockDate
+      property bool clockSeconds: Defaults.values.clockSeconds
       property int launcherResults: Defaults.values.launcherResults
       property var launcherEngines: Defaults.values.launcherEngines
       property var barCollapsed: Defaults.values.barCollapsed

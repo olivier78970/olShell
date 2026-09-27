@@ -76,6 +76,8 @@ Singleton {
     lockKeysOsdMargin: 60,
     lockTimeout: 10,
     launcherTab: "all",
+    clockDate: "long",
+    clockSeconds: true,
     launcherResults: 7,
     launcherEngines: [
       { browser: true, on: true },

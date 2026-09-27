@@ -139,6 +139,10 @@ ModalPanel {
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
+    { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
+    { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
+      { key: "clockSeconds", text: "" }
+    ] },
     { key: "zoomMax", category: "widgetSettings", kind: "slider", title: I18n.tr("settings.category.zoom"), label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "widgetSettings", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
     { key: "zoomBlocksInputRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
@@ -392,6 +396,7 @@ ModalPanel {
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
+    if (row.key === "clockDate") return root.clockDateOptions
     return []
   }
 
@@ -407,6 +412,11 @@ ModalPanel {
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
     .map(name => ({ value: name, text: I18n.tr("launcher.tab." + name) }))
+
+  // The bar clock's date formats, each shown as today's date written that
+  // way in the current language.
+  readonly property var clockDateOptions: Settings.choices.clockDate
+    .map(name => ({ value: name, text: name === "none" ? I18n.tr("settings.clockDate.none") : new Date().toLocaleDateString(I18n.locale, I18n.value("format.date." + name)) }))
 
   // Language choices: follow the system, or one of the supported languages.
   readonly property var languageOptions: [{ value: "auto", text: I18n.tr("settings.language.auto") }]
@@ -502,7 +512,7 @@ ModalPanel {
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
     // workspaceCountFromHyprland,
-    // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
+    // blur, curvedJoins, zoomBlocksInput, clockSeconds, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
     function set(key: string, value: real): void {
@@ -615,7 +625,7 @@ ModalPanel {
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
-    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab,
+    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition; a value
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
