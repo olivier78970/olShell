@@ -21,13 +21,13 @@ Scope {
     // workspaceCount, launcherResults,
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,
-    // matugenLightness, zoomMax, zoomStep); out-of-range
+    // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius); out-of-range
     // values are clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
     // workspaceCountFromHyprland, clockSeconds,
-    // blur, curvedJoins, zoomBlocksInput, fontItalic, fontUnderline,
-    // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
+    // blur, curvedJoins, curvedJoinsRadiusSame, zoomBlocksInput, fontItalic,
+    // fontUnderline, fontOutline, matugenHyprland, matugenZen, matugenAlacritty,
+    // matugenGtk, matugenQt, matugenStarship, themeExactApps) take 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

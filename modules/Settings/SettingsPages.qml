@@ -75,6 +75,10 @@ Singleton {
     { key: "curvedJoinsRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoins"), toggles: [
       { key: "curvedJoins", text: "" }
     ] },
+    { key: "curvedJoinsRadius", category: "appearance", kind: "slider", label: I18n.tr("settings.curvedJoinsRadius"), step: 1, format: v => v + " px" },
+    { key: "curvedJoinsRadiusSameRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoinsRadiusSame"), toggles: [
+      { key: "curvedJoinsRadiusSame", text: "" }
+    ] },
     { key: "fontSize", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },

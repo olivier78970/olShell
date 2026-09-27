@@ -197,7 +197,7 @@ Item {
   // where the submenu is. Each kept small enough to stay off the rounded
   // corner of the side it curves from.
   readonly property bool curvesActive: root.parentMenu !== null && (root.flushLeft || root.flushRight) && Theme.curvedJoins
-  readonly property real curveSize: Theme.radius
+  readonly property real curveSize: Theme.joinRadius
   // On which side of its menu it is, and the shared edge, in its own
   // coordinates; and where its menu starts and ends, in the same ones.
   readonly property bool onMenuLeft: root.flushRight

@@ -227,7 +227,9 @@ ModalPanel {
     if (row.key === "barAutoHideAnimatedRow") return Theme.barAutoHide
     if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
-    if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0
+    if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
+    if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
+    if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
     // An OSD in the center of the screen touches no edge.
     if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
@@ -243,9 +245,11 @@ ModalPanel {
   }
 
   // What slider `row` shows: its setting's value, or for the workspace
-  // count while it follows the Hyprland config, the count the bar shows.
+  // count while it follows the Hyprland config, the count the bar shows, and
+  // for the curves' radius while it follows the widgets', theirs.
   function sliderValueOf(row) {
     if (row.key === "workspaceCount") return WorkspaceRules.shownCount
+    if (row.key === "curvedJoinsRadius") return Theme.joinRadius
     return Settings.get(row.key)
   }
 
@@ -257,6 +261,10 @@ ModalPanel {
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
     if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
+    if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
+    if ((row.key === "curvedJoinsRow" || row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && Theme.borderWidth > 0) return I18n.tr("settings.curvedJoins.disabledBorder")
+    if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && !Theme.curvedJoins) return I18n.tr("settings.curvedJoinsRadius.disabledOff")
+    if (row.key === "curvedJoinsRadius" && Settings.curvedJoinsRadiusSame) return I18n.tr("settings.curvedJoinsRadius.disabledSame")
     if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")

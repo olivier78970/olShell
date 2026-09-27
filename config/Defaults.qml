@@ -23,6 +23,8 @@ Singleton {
     barMarginRight: 5,
     panelGap: 0,
     curvedJoins: true,
+    curvedJoinsRadius: 5,
+    curvedJoinsRadiusSame: true,
     workspaceCount: 5,
     workspaceCountFromHyprland: false,
     barStyle: "widgets",
