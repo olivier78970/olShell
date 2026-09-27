@@ -810,6 +810,8 @@ ModalPanel {
       visible: root.tabs.length > 0
       width: parent.width
       model: root.tabs
+      // The panel is built anew each time it opens, on the tab last shown.
+      currentIndex: root.tab
       onCurrentIndexChanged: if (currentIndex !== root.tab) root.selectTab(currentIndex)
     }
 
