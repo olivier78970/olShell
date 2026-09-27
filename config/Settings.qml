@@ -539,6 +539,47 @@ Singleton {
     root.set("barDividers", root.dividers.filter(id => !ids.includes(id)).concat(groups.slice(1).map(group => group[0])))
   }
 
+  // The groups of every zone with their modes, for the layout editor:
+  // { left: [{ ids, mode }], center: [...], right: [...] }.
+  function arrangement() {
+    const zones = {}
+    for (const zone of root.zones)
+      zones[zone] = root.groupsOf(zone).map(ids => ({ ids: ids, mode: root.groupMode(ids[0]) }))
+    return zones
+  }
+
+  // Makes the bar `zones` (as arrangement() gives them): the widgets of each
+  // zone in the order of its groups, a divider before each group but the
+  // first, and each group's mode under its first widget. A widget in none of
+  // them is turned off (where it was is remembered, as with place()). Empty
+  // groups are left out; an arrangement without the settings button is
+  // refused (false), so the panel stays reachable by clicking.
+  function arrange(zones) {
+    const lists = {}
+    for (const zone of root.zones)
+      lists[zone] = root.asArray(zones[zone]).filter(group => root.asArray(group.ids).length > 0)
+    const placed = root.zones.reduce((all, zone) => all.concat(lists[zone].reduce((ids, group) => ids.concat(root.asArray(group.ids)), [])), [])
+    if (!placed.includes("settings")) return false
+    for (const id of root.widgetIds) {
+      const from = root.zoneOf(id)
+      if (!placed.includes(id) && from !== "off") root.rememberPlace(id, from, root.layout[from].indexOf(id))
+    }
+    const leaders = [], hover = [], off = []
+    for (const zone of root.zones) {
+      lists[zone].forEach((group, index) => {
+        const leader = group.ids[0]
+        if (index > 0) leaders.push(leader)
+        if (group.mode === "hover") hover.push(leader)
+        if (group.mode === "off") off.push(leader)
+      })
+      root.set("bar" + zone.charAt(0).toUpperCase() + zone.slice(1), lists[zone].reduce((ids, group) => ids.concat(root.asArray(group.ids)), []))
+    }
+    root.set("barDividers", leaders)
+    root.set("barCollapsed", hover)
+    root.set("barGroupsOff", off)
+    return true
+  }
+
   // Moves widget `id` `steps` places later (negative: earlier) within its zone.
   function move(id, steps) {
     const zone = root.zoneOf(id)
