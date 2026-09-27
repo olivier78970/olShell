@@ -44,6 +44,7 @@ Singleton {
     windowRounding: 10,
     windowRoundingSame: false,
     windowGapsIn: 3,
+    windowGapsInSame: false,
     windowGapsOut: 5,
     windowActiveOpacity: 1,
     windowInactiveOpacity: 1,

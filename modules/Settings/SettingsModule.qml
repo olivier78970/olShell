@@ -28,7 +28,7 @@ Scope {
     // clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
     // workspaceCountFromHyprland, clockSeconds, blur, blurXray, windowsSync,
-    // windowBorderSame, windowRoundingSame, curvedJoins,
+    // windowBorderSame, windowRoundingSame, windowGapsInSame, curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, themeExactApps) take 1 or 0.

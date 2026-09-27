@@ -9,8 +9,9 @@ import qs.config
 // Syncs Hyprland's window look with the shell's settings while
 // Settings.windowsSync is on: the windows' border width and corner radius
 // (their own, or the shell's border width and widget radius), the gaps
-// between windows and around them, and the opacity of the focused window and
-// of the others. They are set live with `hl.config()`, replacing the
+// between windows (their own, or the shell's gap between elements) and
+// around them, and the opacity of the focused window and of the others.
+// They are set live with `hl.config()`, replacing the
 // Hyprland config's values while the sync is on, and set again after every
 // config reload (which puts the config's back). Turning the sync off reloads
 // the Hyprland config, so its own values come back at once; the services
@@ -28,12 +29,13 @@ Singleton {
   // The values sent to Hyprland.
   readonly property int borderSize: Settings.windowBorderSame ? Settings.borderWidth : Settings.windowBorderWidth
   readonly property int rounding: Settings.windowRoundingSame ? Settings.radius : Settings.windowRounding
+  readonly property int gapsIn: Settings.windowGapsInSame ? Settings.panelGap : Settings.windowGapsIn
 
   // Hyprland's gaps_out as top, right, bottom, left.
   property var gapsOut: [0, 0, 0, 0]
 
   // As the Lua table hl.config() takes.
-  readonly property string options: `{ general = { border_size = ${root.borderSize}, gaps_in = ${Settings.windowGapsIn}, gaps_out = ${Settings.windowGapsOut} }, decoration = { rounding = ${root.rounding}, active_opacity = ${Settings.windowActiveOpacity}, inactive_opacity = ${Settings.windowInactiveOpacity} } }`
+  readonly property string options: `{ general = { border_size = ${root.borderSize}, gaps_in = ${root.gapsIn}, gaps_out = ${Settings.windowGapsOut} }, decoration = { rounding = ${root.rounding}, active_opacity = ${Settings.windowActiveOpacity}, inactive_opacity = ${Settings.windowInactiveOpacity} } }`
 
   // Settings load a moment after this singleton starts (see services/Blur.qml
   // for the same wait): nothing is sent before they have settled.

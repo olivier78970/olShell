@@ -176,7 +176,8 @@ Singleton {
   // Whether the shell sets Hyprland's window look (see
   // services/HyprlandWindows.qml), and to what: the windows' border width and
   // corner radius (each its own, or with *Same the shell's border width and
-  // widget radius), the gaps between windows and around them, and the
+  // widget radius), the gaps between windows (or the shell's panelGap) and
+  // around them, and the
   // opacity of the focused window and of the others.
   readonly property bool windowsSync: root.valid("windowsSync", file.adapter.windowsSync)
   readonly property int windowBorderWidth: root.valid("windowBorderWidth", file.adapter.windowBorderWidth)
@@ -184,6 +185,7 @@ Singleton {
   readonly property int windowRounding: root.valid("windowRounding", file.adapter.windowRounding)
   readonly property bool windowRoundingSame: root.valid("windowRoundingSame", file.adapter.windowRoundingSame)
   readonly property int windowGapsIn: root.valid("windowGapsIn", file.adapter.windowGapsIn)
+  readonly property bool windowGapsInSame: root.valid("windowGapsInSame", file.adapter.windowGapsInSame)
   readonly property int windowGapsOut: root.valid("windowGapsOut", file.adapter.windowGapsOut)
   readonly property real windowActiveOpacity: root.valid("windowActiveOpacity", file.adapter.windowActiveOpacity)
   readonly property real windowInactiveOpacity: root.valid("windowInactiveOpacity", file.adapter.windowInactiveOpacity)
@@ -748,6 +750,7 @@ Singleton {
       property int windowRounding: Defaults.values.windowRounding
       property bool windowRoundingSame: Defaults.values.windowRoundingSame
       property int windowGapsIn: Defaults.values.windowGapsIn
+      property bool windowGapsInSame: Defaults.values.windowGapsInSame
       property int windowGapsOut: Defaults.values.windowGapsOut
       property real windowActiveOpacity: Defaults.values.windowActiveOpacity
       property real windowInactiveOpacity: Defaults.values.windowInactiveOpacity

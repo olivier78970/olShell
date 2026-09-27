@@ -93,6 +93,9 @@ Singleton {
       { key: "windowRoundingSame", text: "" }
     ] },
     { key: "windowGapsIn", category: "windows", kind: "slider", label: I18n.tr("settings.windowGapsIn"), step: 1, format: v => v + " px" },
+    { key: "windowGapsInSameRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowGapsInSame"), toggles: [
+      { key: "windowGapsInSame", text: "" }
+    ] },
     { key: "windowGapsOut", category: "windows", kind: "slider", label: I18n.tr("settings.windowGapsOut"), step: 1, format: v => v + " px" },
     { key: "windowActiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowActiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "windowInactiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowInactiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
