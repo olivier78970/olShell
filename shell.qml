@@ -38,6 +38,9 @@ ShellRoot {
   readonly property var polkitRegistered: Polkit.registered
   // And the service pointing Hyprland's QS_CONFIG_PATH at this shell.
   readonly property var configPath: ConfigPath.path
+  // And the one syncing Hyprland's window look, which has to apply the
+  // saved settings from the start.
+  readonly property var hyprlandWindows: HyprlandWindows.active
 
   Bar {}
   ClockPanel {}

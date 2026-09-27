@@ -230,6 +230,11 @@ ModalPanel {
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
     // Hyprland's blur options only matter while the blur is on.
     if (root.blurRows.includes(row.key)) return Settings.blur
+    // The windows' look is only set while synced with Hyprland, and a value
+    // following the shell's has nothing of its own to set.
+    if (row.key === "windowBorderWidth") return Settings.windowsSync && !Settings.windowBorderSame
+    if (row.key === "windowRounding") return Settings.windowsSync && !Settings.windowRoundingSame
+    if (root.windowRows.includes(row.key)) return Settings.windowsSync
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
@@ -252,15 +257,22 @@ ModalPanel {
   function sliderValueOf(row) {
     if (row.key === "workspaceCount") return WorkspaceRules.shownCount
     if (row.key === "curvedJoinsRadius") return Theme.joinRadius
+    if (row.key === "windowBorderWidth") return HyprlandWindows.borderSize
+    if (row.key === "windowRounding") return HyprlandWindows.rounding
     return Settings.get(row.key)
   }
 
   // The rows of Hyprland's blur options (see rowEnabled()).
   readonly property var blurRows: ["blurSize", "blurPasses", "blurVibrancy", "blurContrast", "blurBrightness", "blurNoise", "blurXrayRow"]
+  // The rows of the windows' look, but the sync itself (see rowEnabled()).
+  readonly property var windowRows: ["windowBorderWidth", "windowBorderSameRow", "windowRounding", "windowRoundingSameRow", "windowGapsIn", "windowGapsOut", "windowActiveOpacity", "windowInactiveOpacity"]
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
     if (root.blurRows.includes(row.key) && !Settings.blur) return I18n.tr("settings.blur.disabledOff")
+    if (root.windowRows.includes(row.key) && !Settings.windowsSync) return I18n.tr("settings.windowsSync.disabledOff")
+    if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
+    if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
     if (row.key === "barAutoHideAnimatedRow" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")

@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import qs.config
+import qs.services
 
 // Top bar, replicated across every connected screen.
 Scope {
@@ -78,23 +79,9 @@ Scope {
       // tucked away, the full amount the instant it's revealed) - added
       // into the room reserved below ourselves for that case (see
       // exclusiveZone), so windows end up exactly as far from the bar
-      // either way. Queried once at startup; a `gaps_out` changed by
-      // reloading the Hyprland config needs the shell restarted too.
-      property real hyprGapsOut: 0
-
-      Process {
-        command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
-        running: true
-        stdout: StdioCollector {
-          onStreamFinished: {
-            try {
-              const values = JSON.parse(text).css.trim().split(/\s+/).map(Number)
-              const value = values[atTop ? Math.min(2, values.length - 1) : 0]
-              if (!isNaN(value)) root.hyprGapsOut = value
-            } catch (e) {}
-          }
-        }
-      }
+      // either way. Kept by services/HyprlandWindows.qml: read from Hyprland,
+      // or the shell's own while it syncs the windows' look.
+      readonly property real hyprGapsOut: HyprlandWindows.gapsOut[atTop ? 2 : 0]
 
       onAutoHideChanged: {
         root.revealed = !root.autoHide || stayOpenHover.hovered

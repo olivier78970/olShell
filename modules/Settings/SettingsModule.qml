@@ -22,10 +22,13 @@ Scope {
     // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,
     // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius, blurSize,
-    // blurPasses, blurVibrancy, blurContrast, blurBrightness, blurNoise);
-    // out-of-range values are clamped.
+    // blurPasses, blurVibrancy, blurContrast, blurBrightness, blurNoise,
+    // windowBorderWidth, windowRounding, windowGapsIn, windowGapsOut,
+    // windowActiveOpacity, windowInactiveOpacity); out-of-range values are
+    // clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // workspaceCountFromHyprland, clockSeconds, blur, blurXray, curvedJoins,
+    // workspaceCountFromHyprland, clockSeconds, blur, blurXray, windowsSync,
+    // windowBorderSame, windowRoundingSame, curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
@@ -167,7 +170,8 @@ Scope {
       SettingsPages.resetAll()
     }
 
-    // Saves the current values of a page (appearance, blur, text, bar, layout,
+    // Saves the current values of a page (appearance, blur, windows, text, bar,
+    // layout,
     // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher or
     // general) as your own defaults.
     function saveDefaults(category: string): void {

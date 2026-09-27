@@ -26,6 +26,12 @@ Singleton {
     blurContrast: [0, 2],
     blurBrightness: [0, 2],
     blurVibrancy: [0, 1],
+    windowBorderWidth: [0, 10],
+    windowRounding: [0, 30],
+    windowGapsIn: [0, 40],
+    windowGapsOut: [0, 80],
+    windowActiveOpacity: [0.1, 1],
+    windowInactiveOpacity: [0.1, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
     barAutoHideDuration: [0, 600],
@@ -167,6 +173,20 @@ Singleton {
   readonly property real blurBrightness: root.valid("blurBrightness", file.adapter.blurBrightness)
   readonly property real blurVibrancy: root.valid("blurVibrancy", file.adapter.blurVibrancy)
   readonly property bool blurXray: root.valid("blurXray", file.adapter.blurXray)
+  // Whether the shell sets Hyprland's window look (see
+  // services/HyprlandWindows.qml), and to what: the windows' border width and
+  // corner radius (each its own, or with *Same the shell's border width and
+  // widget radius), the gaps between windows and around them, and the
+  // opacity of the focused window and of the others.
+  readonly property bool windowsSync: root.valid("windowsSync", file.adapter.windowsSync)
+  readonly property int windowBorderWidth: root.valid("windowBorderWidth", file.adapter.windowBorderWidth)
+  readonly property bool windowBorderSame: root.valid("windowBorderSame", file.adapter.windowBorderSame)
+  readonly property int windowRounding: root.valid("windowRounding", file.adapter.windowRounding)
+  readonly property bool windowRoundingSame: root.valid("windowRoundingSame", file.adapter.windowRoundingSame)
+  readonly property int windowGapsIn: root.valid("windowGapsIn", file.adapter.windowGapsIn)
+  readonly property int windowGapsOut: root.valid("windowGapsOut", file.adapter.windowGapsOut)
+  readonly property real windowActiveOpacity: root.valid("windowActiveOpacity", file.adapter.windowActiveOpacity)
+  readonly property real windowInactiveOpacity: root.valid("windowInactiveOpacity", file.adapter.windowInactiveOpacity)
   // Whether the screen zoom (services/Zoom.qml) is look-only: while zoomed,
   // the pointer, clicks and the wheel go to the shell instead of the apps
   // (the wheel zooms, a click or Escape zooms back out).
@@ -370,7 +390,7 @@ Singleton {
   }
 
   // `value` for setting `key` kept within its limits (the default if it
-  // isn't a number), and rounded to whole numbers except for the opacity
+  // isn't a number), and rounded to whole numbers except for the opacities
   // (hundredths), the blur's noise, contrast, brightness and vibrancy (ten
   // thousandths, as precise as Hyprland's own), the duration and the letter spacing (tenths) and the weight
   // (hundreds). For a setting with a fixed list of
@@ -429,7 +449,7 @@ Singleton {
     const [min, max] = root.limits[key]
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
-    if (key === "opacity") return Math.round(clamped * 100) / 100
+    if (["opacity", "windowActiveOpacity", "windowInactiveOpacity"].includes(key)) return Math.round(clamped * 100) / 100
     if (["blurNoise", "blurContrast", "blurBrightness", "blurVibrancy"].includes(key)) return Math.round(clamped * 10000) / 10000
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" || key === "matugenContrast" || key === "matugenLightness" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
@@ -722,6 +742,15 @@ Singleton {
       property real blurBrightness: Defaults.values.blurBrightness
       property real blurVibrancy: Defaults.values.blurVibrancy
       property bool blurXray: Defaults.values.blurXray
+      property bool windowsSync: Defaults.values.windowsSync
+      property int windowBorderWidth: Defaults.values.windowBorderWidth
+      property bool windowBorderSame: Defaults.values.windowBorderSame
+      property int windowRounding: Defaults.values.windowRounding
+      property bool windowRoundingSame: Defaults.values.windowRoundingSame
+      property int windowGapsIn: Defaults.values.windowGapsIn
+      property int windowGapsOut: Defaults.values.windowGapsOut
+      property real windowActiveOpacity: Defaults.values.windowActiveOpacity
+      property real windowInactiveOpacity: Defaults.values.windowInactiveOpacity
       property bool zoomBlocksInput: Defaults.values.zoomBlocksInput
       property int zoomMax: Defaults.values.zoomMax
       property real zoomStep: Defaults.values.zoomStep
