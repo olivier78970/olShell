@@ -1,18 +1,30 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), pavucontrol for the audio mixer (click the volume widget), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, or one of 10 fixed themes), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), pavucontrol for the audio mixer (click the volume widget), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, one of 10 fixed themes with their light versions, or your own colors), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
 
 ## Requirements
 
-- [Quickshell](https://quickshell.org) and Hyprland (workspaces and logout use the Hyprland integration)
-- [matugen](https://github.com/InioX/matugen) and [awww](https://codeberg.org/LGFae/awww) for the wallpaper picker (awww is the wallpaper daemon; the shell starts it when it isn't running)
-- [`pavucontrol`](https://freedesktop.org/software/pulseaudio/pavucontrol/) for the audio mixer (volume click)
-- [`gdu`](https://github.com/dundee/gdu) for the disk usage window (click on the disk widget)
-- PipeWire (volume)
-- `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
-- `btop` for the btop window, and a terminal (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml)) for these windows
+The versions it runs on are Quickshell 0.3, Hyprland 0.56 and matugen 4.2; older ones may lack what it uses (noted below). Package names are Arch's where they differ.
+
+Needed:
+
+- [Quickshell](https://quickshell.org), with its Hyprland, Wayland, PipeWire, notifications, PAM, polkit, system tray, Bluetooth and networking modules (all in the standard build)
+- Hyprland with its Lua config: the shell sets things at run time with `hyprctl eval` (zoom, blur, `QS_CONFIG_PATH`), and the shortcuts panel reads the config's `hl.bind(...)` calls
+- Python 3, standard library only, for the helpers in `scripts/`
 - a Nerd Font, used for text and icons: "0xProto Nerd Font" by default, changeable in the settings (see [Settings](#settings))
-- optionally [Zen browser](https://zen-browser.app), whose interface matugen can color with the shell's palette (see [Zen browser](#zen-browser))
+- PipeWire (volume), PAM (lock screen), systemd (`systemctl` for restart, shut down, suspend and UEFI setup) and the usual command-line tools (`sh`, `find`, `awk`, `xargs`, `stat`, `df`, `grep`)
+
+For the features that use them:
+
+- [matugen](https://github.com/InioX/matugen) 4 or later (its templates use `<* if *>` conditions and data passed with `--import-json-string`) and [awww](https://codeberg.org/LGFae/awww) for the wallpaper picker and the themes (awww is the wallpaper daemon; the shell starts it when it isn't running)
+- [`pavucontrol`](https://freedesktop.org/software/pulseaudio/pavucontrol/) for the audio mixer (volume click)
+- `btop` and [`gdu`](https://github.com/dundee/gdu) for the btop and disk usage windows, and a terminal for them (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml))
+- `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
+- [`fd`](https://github.com/sharkdp/fd) for the launcher's files, `xdg-utils` (`xdg-open` to open a file or an address, `xdg-settings` to find the default browser's search engine) and `nautilus` (to show a file in its folder)
+- NetworkManager (`nmcli`) and `nm-connection-editor` for the network connection widget, and BlueZ with [blueman](https://github.com/blueman-project/blueman) for the Bluetooth widget's windows
+- [hyprpicker](https://github.com/hyprwm/hyprpicker) for the color picker's **From the screen** (custom theme)
+- [adw-gtk3](https://github.com/lassekongo83/adw-gtk3) (`adw-gtk-theme`) and `gsettings` (`glib2`) for GTK apps in the shell's colors (see [GTK](#gtk))
+- optionally [Zen browser](https://zen-browser.app) and [starship](https://starship.rs), which matugen can color with the shell's palette (see [Zen browser](#zen-browser))
 
 ## Structure
 
@@ -34,9 +46,13 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── NotificationCenterState.qml   # Shared visibility of the notification center
 │   ├── Paths.qml             # Wallpaper, matugen and palette locations
 │   ├── Apps.qml              # Commands launched by clicking widgets
+│   ├── BarSlots.qml          # Each screen's bar slot that an attached panel moves its frame into
+│   ├── ClockPanelState.qml   # Shared visibility of the clock panel
+│   ├── NotificationActions.qml, NotificationActionsState.qml   # Commands run when a notification arrives (saved in NotificationActions.json), and their panel's state
 │   ├── PowerMenuState.qml    # Pending power action + the commands that run it
 │   ├── PowerPanelState.qml   # Shared visibility of the power panel
-│   └── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
+│   ├── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
+│   └── *.json                # Runtime state, git-ignored: Settings, UserDefaults, ThemeState, LocaleState, GeneratedColors, NotificationActions
 ├── services/
 │   ├── Audio.qml             # Default output volume/mute + `volume` IPC target
 │   ├── Screenshot.qml        # Takes screenshots (mode remembered) + `screenshot` IPC target
@@ -52,6 +68,9 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── ConfigPath.qml        # Points Hyprland's QS_CONFIG_PATH at the folder the running shell comes from
 │   ├── Polkit.qml            # The polkit authentication agent (the requests PolkitDialog answers)
 │   ├── NetworkManager.qml    # What the connection widget reads and does through nmcli (networking on/off, VPNs, connection details)
+│   ├── Zoom.qml              # Screen zoom through Hyprland's cursor:zoom_factor + `zoom` IPC target
+│   ├── Blur.qml              # Keeps Hyprland's blur of the shell's surfaces in sync with the setting
+│   ├── WorkspaceRules.qml    # The workspaces the Hyprland config has a rule for
 │   └── SystemStats.qml       # CPU, RAM, network speed and disks, with short histories (polled once, not per monitor)
 ├── components/               # Generic building blocks shared by the widgets (import qs.components)
 │   ├── ThemedText.qml        # Text in the shell's font and color
@@ -61,6 +80,8 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes)
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
 │   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
+│   ├── Fillet.qml, BarFillets.qml   # Concave corners where a surface meets the bar
+│   ├── CheckBox.qml          # A check box (drawing only)
 │   └── SettingSlider.qml, ChoiceRow.qml, DropdownRow.qml, ToggleRow.qml, PathRow.qml, SearchEngineRow.qml, DefaultsRow.qml, PositionIcon.qml, DisabledTooltip.qml, ColorPicker.qml, ThemeAppRow.qml   # Rows of the settings panel
 ├── modules/                  # One directory per feature (import qs.modules.<Name>)
 │   ├── Bar/                  # The top bar
@@ -68,20 +89,23 @@ olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar 
 │   │   ├── WidgetZone.qml, WidgetSlot.qml   # A pill filled from Settings.layout, and one widget in it with its divider
 │   │   ├── BarWidgets.qml    # The widgets by id (a singleton)
 │   │   └── Widgets/          # What sits in the bar (import qs.modules.Bar.Widgets)
-│   │       ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger
+│   │       ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger, ShortcutsTrigger
+│   │       ├── ScreenshotButton, ZoomButton
 │   │       ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
-│   │       ├── Tray, TrayItem, TrayMenuItem
+│   │       ├── Tray, TrayItem, TrayMenuItem, TraySubmenu
 │   │       ├── CpuUsage, RamUsage, DiskUsage, NetworkSpeed, ConnectionButton, BluetoothButton, Volume, NotificationBell, LockButton
 │   │       └── PowerTrigger
 │   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
 │   ├── Shortcuts/ShortcutsPanel.qml   # The Hyprland config's shortcuts, grouped and searchable
-│   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard
+│   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard, NotificationActionsPanel (commands run on a notification)
 │   ├── Lock/LockScreen.qml   # The lock screen (session lock) + the idle timer
 │   ├── Polkit/PolkitDialog.qml    # The password dialog of the polkit agent (ModalPanel)
 │   ├── Power/PowerPanel.qml  # The power panel: log out, restart, shut down (ModalPanel)
 │   ├── Osd/                  # Popups shown for a moment, each where its position setting puts it
-│   │   ├── VolumeOsd.qml     # Volume
-│   │   └── LockKeysOsd.qml   # Caps Lock / Num Lock
+│   │   ├── VolumeOsd.qml, VolumePill.qml   # Volume (the pill is also on the lock screen)
+│   │   ├── LockKeysOsd.qml   # Caps Lock / Num Lock
+│   │   ├── ZoomOsd.qml       # Zoom factor
+│   │   └── ZoomShield.qml    # Takes the input while zoomed with the look-only zoom setting
 │   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider, ChoiceRow, DropdownRow, ToggleRow and the other rows)
 │   ├── Settings/BarLayoutEditor.qml   # The bar widgets' Layout tab: the bar's zones, groups and widgets, arranged by dragging
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
