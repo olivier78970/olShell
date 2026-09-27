@@ -35,8 +35,12 @@ Singleton {
   readonly property var networkTerminal: ["alacritty", "--class", "quickshell-network", "-T", "nmcli"]
 
   // The terminal the launcher runs a terminal application in (a desktop
-  // entry with Terminal=true, such as yazi or htop), followed by its command.
+  // entry with Terminal=true, such as yazi or htop), followed by its command,
+  // and the size of its floating, centered window, as fractions of the
+  // focused monitor.
   readonly property var appTerminal: ["alacritty", "-e"]
+  readonly property real appTerminalWidth: 0.6
+  readonly property real appTerminalHeight: 0.7
 
   // The options of `awww img` used when a wallpaper is applied (see
   // scripts/apply-wallpaper.py; `awww img --help` lists them): how the image
