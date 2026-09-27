@@ -123,7 +123,8 @@ Singleton {
   // Whether surfaces flush against each other join with concave corners
   // (see components/Fillet.qml): the panels attached to the bar and the
   // widgets' menus and tooltips curve out of it (in the "full" bar style),
-  // and submenus into their menu - all only with no gap set.
+  // and submenus into their menu - all only with no gap set and no border
+  // (borderWidth 0; see Theme.curvedJoins).
   readonly property bool curvedJoins: root.valid("curvedJoins", file.adapter.curvedJoins)
   // The radius of those curves, in pixels, or with curvedJoinsRadiusSame the
   // widgets' own radius (see Theme.joinRadius).

@@ -163,7 +163,7 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Appearance | Widget opacity | 0 – 100 % (fades pill backgrounds only, not their text/icons; the bar's pills only in the Individual widgets style) | 90 % |
 | Appearance | Widget spacing | 0 – 40 px | 15 |
 | Appearance | Border width | 0 – 6 px | 2 |
-| Appearance | Curve radius (of the curved joins between the bar and what's attached to it, and between a submenu and its menu; only with curved joins on and no gap) | 0 – 60 px | 5 |
+| Appearance | Curve radius (of the curved joins between the bar and what's attached to it, and between a submenu and its menu; only with curved joins on, no gap and no border) | 0 – 60 px | 5 |
 | Appearance | Same as the widget radius (the curves follow the widget radius above, instead of their own) | check box | on |
 | Text | Font size | 10 – 32 px | 18 |
 | Text | Font weight | Thin / Extra light / Light / Normal / Medium / Semi bold / Bold / Extra bold / Black (100 – 900) | Normal |

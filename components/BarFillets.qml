@@ -4,7 +4,8 @@ import qs.config
 // Concave corners (fillets) on either side of a surface flush against the bar
 // - an attached panel, a widget's menu or tooltip - curving from the bar's
 // edge into the surface's side, so it seems to grow out of the bar rather
-// than hang from it. Only when turned on (Settings.curvedJoins), with no gap
+// than hang from it. Only when turned on (Theme.curvedJoins, which needs
+// no border), with no gap
 // between them (they don't touch otherwise) and in the "full" bar style (the
 // "widgets" one has no continuous bar edge above them to curve from).
 //
