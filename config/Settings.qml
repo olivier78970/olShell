@@ -222,6 +222,7 @@ Singleton {
   readonly property bool matugenZen: root.valid("matugenZen", file.adapter.matugenZen)
   readonly property bool matugenAlacritty: root.valid("matugenAlacritty", file.adapter.matugenAlacritty)
   readonly property bool matugenGtk: root.valid("matugenGtk", file.adapter.matugenGtk)
+  readonly property bool matugenQt: root.valid("matugenQt", file.adapter.matugenQt)
   readonly property bool matugenStarship: root.valid("matugenStarship", file.adapter.matugenStarship)
   // Apps added to those in the settings, each with a matugen template of its
   // own: [{ name, template (the template file), output (the file matugen
@@ -704,6 +705,7 @@ Singleton {
       property bool matugenZen: Defaults.values.matugenZen
       property bool matugenAlacritty: Defaults.values.matugenAlacritty
       property bool matugenGtk: Defaults.values.matugenGtk
+      property bool matugenQt: Defaults.values.matugenQt
       property bool matugenStarship: Defaults.values.matugenStarship
       property var matugenApps: Defaults.values.matugenApps
       property string themeAccent: Defaults.values.themeAccent

@@ -69,6 +69,7 @@ Singleton {
     Settings.matugenZen ? "zen" : "",
     Settings.matugenAlacritty ? "alacritty" : "",
     Settings.matugenGtk ? "gtk" : "",
+    Settings.matugenQt ? "qt" : "",
     Settings.matugenStarship ? "starship" : ""
   ].filter(app => app !== "")
 
@@ -132,6 +133,10 @@ Singleton {
 
     function onMatugenGtkChanged() {
       if (Settings.matugenGtk) appsSettled.restart()
+    }
+
+    function onMatugenQtChanged() {
+      if (Settings.matugenQt) appsSettled.restart()
     }
 
     function onMatugenStarshipChanged() {
