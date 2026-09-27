@@ -47,14 +47,14 @@ ShellRoot {
   ZoomShield {}
   LockKeysOsd {}
   WallpaperPanel {}
-  ThemePanel {}
-  LauncherPanel {}
-  SettingsPanel {}
-  ShortcutsPanel {}
+  ThemeModule {}
+  LauncherModule {}
+  SettingsModule {}
+  ShortcutsModule {}
   NotificationPopups {}
   NotificationCenter {}
-  NotificationActionsPanel {}
-  PowerPanel {}
+  NotificationActionsModule {}
+  PowerModule {}
   PolkitDialog {}
   LockScreen {}
 }

@@ -97,19 +97,25 @@ For the features that use them:
 │   │       ├── Tray, TrayItem, TrayMenuItem, TraySubmenu
 │   │       ├── CpuUsage, RamUsage, DiskUsage, NetworkSpeed, ConnectionButton, BluetoothButton, Volume, NotificationBell, LockButton
 │   │       └── PowerTrigger
+│   ├── Launcher/LauncherModule.qml    # Builds the launcher only while it is open, and holds its IPC target
 │   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
+│   ├── Shortcuts/ShortcutsModule.qml  # Builds the shortcuts panel only while it is open, and holds its IPC target
 │   ├── Shortcuts/ShortcutsPanel.qml   # The Hyprland config's shortcuts, grouped and searchable
-│   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard, NotificationActionsPanel (commands run on a notification)
+│   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard, NotificationActionsPanel (commands run on a notification), NotificationActionsModule (builds it only while it is open, and holds its IPC target)
 │   ├── Lock/LockScreen.qml   # The lock screen (session lock) + the idle timer
 │   ├── Polkit/PolkitDialog.qml    # The password dialog of the polkit agent (ModalPanel)
+│   ├── Power/PowerModule.qml # Builds the power panel only while it is open, and holds its IPC target
 │   ├── Power/PowerPanel.qml  # The power panel: log out, restart, shut down (ModalPanel)
 │   ├── Osd/                  # Popups shown for a moment, each where its position setting puts it
 │   │   ├── VolumeOsd.qml, VolumePill.qml   # Volume (the pill is also on the lock screen)
 │   │   ├── LockKeysOsd.qml   # Caps Lock / Num Lock
 │   │   ├── ZoomOsd.qml       # Zoom factor
 │   │   └── ZoomShield.qml    # Takes the input while zoomed with the look-only zoom setting
+│   ├── Settings/SettingsModule.qml    # Builds the settings panel only while it is open (or picking a color), and holds the `settings` IPC target
+│   ├── Settings/SettingsPages.qml     # The settings' categories, rows and defaults functions, used by the panel and the IPC calls
 │   ├── Settings/SettingsPanel.qml     # Settings panel (built from SettingSlider, ChoiceRow, DropdownRow, ToggleRow and the other rows)
 │   ├── Settings/BarLayoutEditor.qml   # The bar widgets' Layout tab: the bar's zones, groups and widgets, arranged by dragging
+│   ├── Theme/ThemeModule.qml          # Builds the theme picker only while it is open, and holds its IPC target
 │   ├── Theme/ThemePanel.qml           # Theme picker (CarouselPanel + ThemeState)
 │   └── Wallpapers/WallpaperPanel.qml  # Wallpaper picker (CarouselPanel + awww/matugen)
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)

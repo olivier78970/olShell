@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Io
 import qs.components
 import qs.config
 
@@ -42,14 +41,6 @@ ModalPanel {
       root.editing = false
       root.panel.forceActiveFocus()
       event.accepted = true
-    }
-  }
-
-  IpcHandler {
-    target: "notificationActions"
-
-    function toggle(): void {
-      NotificationActionsState.toggle()
     }
   }
 
