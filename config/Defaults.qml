@@ -116,6 +116,8 @@ Singleton {
     clockShowPerformance: true,
     clockShowMedia: true,
     clockShowWeather: true,
+    clockShowWorld: true,
+    worldClocks: [],
     weatherUnit: "celsius",
     weatherLocation: "",
     clockDate: "long",

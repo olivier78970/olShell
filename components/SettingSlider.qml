@@ -71,8 +71,14 @@ Item {
   onEditingChanged: {
     if (root.editing) {
       field.text = String(root.value)
-      field.forceActiveFocus()
-      field.selectAll()
+      // A tick later: the field only shows once `editing` has reached its own
+      // binding, and a hidden field can't take the keyboard (the first click
+      // then only showed it, and it took a second one to type).
+      Qt.callLater(() => {
+        if (!root?.editing) return
+        field.forceActiveFocus()
+        field.selectAll()
+      })
     } else {
       field.focus = false
       root.released()

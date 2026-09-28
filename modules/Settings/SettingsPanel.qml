@@ -31,7 +31,29 @@ ModalPanel {
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the theme's added apps
   // and each page's defaults row.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.matugenAppRows).concat(root.defaultRows)
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.defaultRows)
+
+  // The Clock tab's places for the clocks tab, a row each with a button
+  // taking it out, then a row typing in a place to add (Enter searches for
+  // it and adds it), which says how a search went while there's news.
+  readonly property var worldClockRows: Settings.worldClocks.map((clock, index) => ({
+    key: "worldClock:" + index,
+    category: "clockPanel",
+    kind: "action",
+    clockIndex: index,
+    label: clock.name + "  (" + clock.zone + ")",
+    title: index === 0 ? I18n.tr("settings.worldClocks") : ""
+  })).concat([{
+    key: "worldClockAdd",
+    category: "clockPanel",
+    kind: "path",
+    label: I18n.tr("settings.worldClocks.add"),
+    title: Settings.worldClocks.length === 0 ? I18n.tr("settings.worldClocks") : "",
+    placeholder: WorldClock.status === "searching" ? I18n.tr("settings.worldClocks.searching", WorldClock.searched)
+      : WorldClock.status === "notFound" ? I18n.tr("settings.worldClocks.notFound", WorldClock.searched)
+      : WorldClock.status === "network" ? I18n.tr("settings.worldClocks.network")
+      : I18n.tr("settings.worldClocks.hint")
+  }])
 
   // The last row of every page: its defaults (see DefaultsRow).
   readonly property var defaultRows: root.pages.map(page => ({
@@ -201,6 +223,7 @@ ModalPanel {
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "customCopy") return I18n.tr("settings.custom.copyButton")
     if (row.key === "addMatugenApp") return I18n.tr("settings.launcherEngines.addButton")
+    if (row.key.startsWith("worldClock:")) return I18n.tr("settings.worldClocks.remove")
     return ""
   }
 
@@ -209,6 +232,7 @@ ModalPanel {
     if (row.key === "addEngine") root.addEngine()
     if (row.key === "customCopy") root.copyToCustom()
     if (row.key === "addMatugenApp") root.addMatugenApp()
+    if (row.key.startsWith("worldClock:")) Settings.removeWorldClock(row.clockIndex)
   }
 
   // Makes the custom theme's colors those of the theme in use (without its
@@ -1017,7 +1041,9 @@ ModalPanel {
                 disabledReason: root.disabledReasonOf(row.modelData)
                 tooltip: row.modelData.tooltip ?? ""
                 stepper: row.modelData.stepper ?? false
-                editing: root.editKey === row.modelData.key
+                // Only a slider row's: every row holds every kind of control, hidden
+                // but for its own, and another kind's hidden field took the keyboard.
+                editing: row.modelData.kind === "slider" && root.editKey === row.modelData.key
                 onEditRequested: root.editKey = row.modelData.key
                 onCommitted: value => {
                   root.editKey = ""
@@ -1141,16 +1167,18 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 label: row.modelData.label
-                value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
+                // The row adding a place holds no setting: always empty.
+                value: row.modelData.kind === "path" && row.modelData.key !== "worldClockAdd" ? String(Settings.get(row.modelData.key)) : ""
                 placeholder: row.modelData.placeholder ?? ""
                 swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
-                editing: root.editKey === row.modelData.key
+                editing: row.modelData.kind === "path" && root.editKey === row.modelData.key
                 onActivated: root.selected = row.index
                 onEditRequested: root.editKey = row.modelData.key
                 onCommitted: text => {
                   root.editKey = ""
-                  Settings.set(row.modelData.key, text)
+                  if (row.modelData.key === "worldClockAdd") WorldClock.add(text)
+                  else Settings.set(row.modelData.key, text)
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()

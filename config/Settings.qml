@@ -368,6 +368,10 @@ Singleton {
   readonly property bool clockShowPerformance: root.valid("clockShowPerformance", file.adapter.clockShowPerformance)
   readonly property bool clockShowMedia: root.valid("clockShowMedia", file.adapter.clockShowMedia)
   readonly property bool clockShowWeather: root.valid("clockShowWeather", file.adapter.clockShowWeather)
+  readonly property bool clockShowWorld: root.valid("clockShowWorld", file.adapter.clockShowWorld)
+  // The places the clock panel's clocks tab shows the time of, in order:
+  // [{ name, zone }], a name to show and an IANA time zone ("Asia/Tokyo").
+  readonly property var worldClocks: root.valid("worldClocks", file.adapter.worldClocks)
   // The weather tab: its temperatures in Celsius or Fahrenheit (one of
   // choices.weatherUnit; the wind in km/h or mph with them), and the place
   // it's for, a name searched for (a town, "Lyon, France"...), or "" to find
@@ -450,6 +454,25 @@ Singleton {
   }
 
   // Takes engine `index` out of the list; the browser's can't be.
+  // Adds a place to the clocks tab (not twice the same).
+  function addWorldClock(name, zone) {
+    if (root.worldClocks.some(clock => clock.name === name && clock.zone === zone)) return
+    root.set("worldClocks", root.worldClocks.concat([{ name: name, zone: zone }]))
+  }
+
+  function removeWorldClock(index) {
+    root.set("worldClocks", root.worldClocks.filter((clock, other) => other !== index))
+  }
+
+  // Moves place `index` `steps` places later (negative: earlier).
+  function moveWorldClock(index, steps) {
+    const list = root.worldClocks.slice()
+    const target = Math.max(0, Math.min(list.length - 1, index + steps))
+    if (index < 0 || index >= list.length || target === index) return
+    list.splice(target, 0, list.splice(index, 1)[0])
+    root.set("worldClocks", list)
+  }
+
   function removeEngine(index) {
     if (root.launcherEngines[index] === undefined || root.launcherEngines[index].browser) return
     root.set("launcherEngines", root.launcherEngines.filter((engine, other) => other !== index))
@@ -475,6 +498,13 @@ Singleton {
   function valid(key, value) {
     // The search engines: the valid ones, with the browser's once (put first
     // if it went missing).
+    // The clocks tab's places: those with a name and a time zone's name.
+    if (key === "worldClocks") {
+      return root.asArray(value).filter(clock => clock !== null && typeof clock === "object"
+          && typeof clock.name === "string" && clock.name.trim().length > 0
+          && typeof clock.zone === "string" && /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/.test(clock.zone))
+        .map(clock => ({ name: clock.name.trim(), zone: clock.zone }))
+    }
     if (key === "launcherEngines") {
       if (value === null || typeof value !== "object") return root.defaults[key]
       const list = []
@@ -901,6 +931,8 @@ Singleton {
       property bool clockShowPerformance: Defaults.values.clockShowPerformance
       property bool clockShowMedia: Defaults.values.clockShowMedia
       property bool clockShowWeather: Defaults.values.clockShowWeather
+      property bool clockShowWorld: Defaults.values.clockShowWorld
+      property var worldClocks: Defaults.values.worldClocks
       property string weatherUnit: Defaults.values.weatherUnit
       property string weatherLocation: Defaults.values.weatherLocation
       property string launcherTab: Defaults.values.launcherTab

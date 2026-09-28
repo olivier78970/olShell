@@ -37,6 +37,8 @@ Singleton {
 
   // Lists the Hyprland config's shortcuts, for the shortcuts panel.
   readonly property string listShortcutsScript: Quickshell.shellPath("scripts/list-shortcuts.py")
+  // Gives time zones' UTC offsets now, for the clock panel's clocks tab.
+  readonly property string timezonesScript: Quickshell.shellPath("scripts/timezones.py")
 
   // Reads the default browser's default search engine, for the launcher.
   readonly property string defaultSearchEngineScript: Quickshell.shellPath("scripts/default-search-engine.py")
