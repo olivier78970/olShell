@@ -59,10 +59,6 @@ Singleton {
     { key: "barAutoHideRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHide"), toggles: [
       { key: "barAutoHide", text: "" }
     ] },
-    { key: "barAutoHideAnimatedRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHideAnimated"), toggles: [
-      { key: "barAutoHideAnimated", text: "" }
-    ] },
-    { key: "barAutoHideDuration", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDuration"), step: 10, format: v => v + " ms" },
     { key: "barAutoHideDelay", category: "bar", kind: "slider", label: I18n.tr("settings.barAutoHideDelay"), step: 50, format: v => v + " ms" },
     { key: "barPosition", category: "bar", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.barPosition") },
     { key: "barHeight", category: "bar", kind: "slider", label: I18n.tr("settings.barHeight"), step: 1, format: v => v + " px" },
@@ -105,6 +101,10 @@ Singleton {
     { key: "curvedJoinsRadiusSameRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoinsRadiusSame"), toggles: [
       { key: "curvedJoinsRadiusSame", text: "" }
     ] },
+    { key: "animationsRow", category: "appearance", kind: "toggles", checkBoxes: true, title: I18n.tr("settings.animations.title"), label: I18n.tr("settings.animations"), toggles: [
+      { key: "animations", text: "" }
+    ] },
+    { key: "animationDuration", category: "appearance", kind: "slider", label: I18n.tr("settings.animationDuration"), step: 10, format: v => v + " ms" },
     { key: "fontSize", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },

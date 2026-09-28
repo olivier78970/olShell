@@ -88,8 +88,8 @@ Item {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: {
-      if (!menu.visible) NetworkManager.refresh()
-      menu.visible = !menu.visible
+      if (!menu.open) NetworkManager.refresh()
+      menu.open = !menu.open
     }
     onEntered: {
       NetworkManager.refresh()
@@ -102,21 +102,21 @@ Item {
   Binding {
     target: root.wifiDevice
     property: "scannerEnabled"
-    value: menu.visible
+    value: menu.open
     when: root.wifiDevice !== null
   }
 
   // Connects to a Wi-Fi network: straight away when it's open or known,
   // otherwise asking for its password first (in a terminal).
   function connectWifi(network) {
-    menu.visible = false
+    menu.open = false
     if (network.known || network.security === WifiSecurityType.Open) network.connect()
     else NetworkManager.connectWithPassword(network.name)
   }
 
   // Runs a menu entry's action and closes the menu.
   function pick(action) {
-    menu.visible = false
+    menu.open = false
     action()
   }
 
@@ -177,7 +177,7 @@ Item {
           icon: "󰈀"
           label: root.connectionName(wired.modelData) + (wired.network?.stateChanging ? "  …" : "")
           onClicked: {
-            menu.visible = false
+            menu.open = false
             if (!wired.network.connected) wired.network.connect()
           }
         }
@@ -212,7 +212,7 @@ Item {
         icon: root.signalIcon(modelData.signalStrength)
         label: modelData.name + (modelData.security !== WifiSecurityType.Open ? "  󰌾" : "") + (modelData.stateChanging ? "  …" : "")
         onClicked: {
-          if (modelData.connected) menu.visible = false
+          if (modelData.connected) menu.open = false
           else root.connectWifi(modelData)
         }
       }
@@ -290,8 +290,8 @@ Item {
       enabled: NetworkManager.details.length > 0
       label: I18n.tr("network.info")
       onClicked: {
-        menu.visible = false
-        info.visible = true
+        menu.open = false
+        info.open = true
       }
     }
 
@@ -366,7 +366,7 @@ Item {
     id: tooltip
     anchorItem: root
     alignCenter: true
-    showWhen: !menu.visible && !info.visible
+    showWhen: !menu.open && !info.open
 
     PopupTitle {
       text: I18n.tr("settings.widget.connection")

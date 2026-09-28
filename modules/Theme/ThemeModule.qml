@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // The theme panel (ThemePanel.qml), built only while it is open and freed once
@@ -14,8 +15,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: ThemePanelState.visible
+  }
+
   LazyLoader {
-    active: ThemePanelState.visible
+    active: linger.active
 
     ThemePanel {}
   }

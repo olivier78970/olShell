@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // The app switcher (AppSwitcherPanel.qml), built only while it is open and
@@ -39,8 +40,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: AppSwitcherState.visible
+  }
+
   LazyLoader {
-    active: AppSwitcherState.visible
+    active: linger.active
 
     AppSwitcherPanel {}
   }

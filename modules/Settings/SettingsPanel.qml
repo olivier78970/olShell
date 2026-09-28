@@ -248,9 +248,9 @@ ModalPanel {
 
   // Whether row `row` can be adjusted right now.
   function rowEnabled(row) {
-    if (row.key === "barAutoHideAnimatedRow") return Theme.barAutoHide
-    if (row.key === "barAutoHideDuration") return Theme.barAutoHide && Theme.barAutoHideAnimated
+    if (row.key === "barAutoHideDelay") return Theme.barAutoHide
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
+    if (row.key === "animationDuration") return Settings.animations
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
     // Hyprland's blur options only matter while the blur is on.
     if (root.blurRows.includes(row.key)) return Settings.blur
@@ -297,9 +297,8 @@ ModalPanel {
     if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
     if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
-    if (row.key === "barAutoHideAnimatedRow" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
-    if (row.key === "barAutoHideDuration" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
-    if (row.key === "barAutoHideDuration" && !Theme.barAutoHideAnimated) return I18n.tr("settings.barAutoHideDuration.disabled")
+    if (row.key === "barAutoHideDelay" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
+    if (row.key === "animationDuration" && !Settings.animations) return I18n.tr("settings.animationDuration.disabled")
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
     if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")

@@ -17,7 +17,7 @@ PopupMenu {
   parentMenu: root.entry.menu
   // Its top-level menu already closes on a click outside, taking it along.
   grabFocus: false
-  visible: root.parentMenu.visible && root.parentMenu.activeEntry === root.entry
+  open: root.parentMenu.open && root.parentMenu.activeEntry === root.entry
 
   QsMenuOpener {
     id: opener
@@ -30,7 +30,7 @@ PopupMenu {
     TrayMenuItem {
       menu: root
       rootMenu: root.rootMenu
-      onActivated: root.rootMenu.visible = false
+      onActivated: root.rootMenu.open = false
     }
   }
 }

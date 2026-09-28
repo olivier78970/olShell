@@ -36,7 +36,7 @@ Item {
       } else if (mouse.button === Qt.MiddleButton) {
         root.trayItem.secondaryActivate()
       } else if (root.trayItem.hasMenu) {
-        contextMenu.visible = !contextMenu.visible
+        contextMenu.open = !contextMenu.open
       }
     }
 
@@ -60,7 +60,7 @@ Item {
       TrayMenuItem {
         menu: contextMenu
         rootMenu: contextMenu
-        onActivated: contextMenu.visible = false
+        onActivated: contextMenu.open = false
       }
     }
   }
@@ -69,7 +69,7 @@ Item {
     id: tooltip
     anchorItem: root
     marginRight: -Theme.pillPadding
-    showWhen: !contextMenu.visible
+    showWhen: !contextMenu.open
 
     ThemedText {
       text: root.trayItem.tooltipTitle || root.trayItem.title || root.trayItem.id

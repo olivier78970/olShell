@@ -17,7 +17,7 @@ PopupMenu {
   property bool keepOpen: false
 
   grabFocus: false
-  visible: root.hovering && root.showWhen
+  open: root.hovering && root.showWhen
 
   onContainsMouseChanged: {
     if (!root.keepOpen) return

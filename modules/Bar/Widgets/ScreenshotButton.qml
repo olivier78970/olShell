@@ -10,7 +10,7 @@ import qs.services
 Item {
   id: root
 
-  readonly property bool menuOpen: menu.visible
+  readonly property bool menuOpen: menu.open
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
@@ -30,9 +30,9 @@ Item {
     cursorShape: Qt.PointingHandCursor
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton) {
-        menu.visible = !menu.visible
+        menu.open = !menu.open
       } else {
-        menu.visible = false
+        menu.open = false
         Screenshot.take("")
       }
     }
@@ -67,7 +67,7 @@ Item {
         active: Screenshot.mode === modelData
         onClicked: {
           Screenshot.setMode(modelData)
-          menu.visible = false
+          menu.open = false
           captureTimer.restart()
         }
       }
@@ -81,7 +81,7 @@ Item {
       active: Screenshot.edit
       onClicked: {
         Screenshot.setEdit(!Screenshot.edit)
-        menu.visible = false
+        menu.open = false
       }
     }
   }

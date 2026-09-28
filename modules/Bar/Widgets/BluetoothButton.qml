@@ -40,7 +40,7 @@ Item {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: mouse => {
-      if (mouse.button === Qt.RightButton) menu.visible = !menu.visible
+      if (mouse.button === Qt.RightButton) menu.open = !menu.open
       else Quickshell.execDetached(["blueman-manager"])
     }
     onEntered: tooltip.hoverEntered()
@@ -50,7 +50,7 @@ Item {
   // Starts one of blueman's windows, or runs a menu entry's action, and
   // closes the menu.
   function run(command) {
-    menu.visible = false
+    menu.open = false
     Quickshell.execDetached(command)
   }
 
@@ -93,7 +93,7 @@ Item {
       icon: root.on ? "󰂲" : "󰂯"
       label: I18n.tr(root.on ? "bluetooth.turnOff" : "bluetooth.turnOn")
       onClicked: {
-        menu.visible = false
+        menu.open = false
         root.adapter.enabled = !root.adapter.enabled
       }
     }
@@ -102,7 +102,7 @@ Item {
       enabled: root.on
       label: I18n.tr(root.adapter?.discoverable ? "bluetooth.hide" : "bluetooth.discoverable")
       onClicked: {
-        menu.visible = false
+        menu.open = false
         root.adapter.discoverable = !root.adapter.discoverable
       }
     }
@@ -118,7 +118,7 @@ Item {
         required property var modelData
         label: I18n.tr("bluetooth.disconnect", modelData.name)
         onClicked: {
-          menu.visible = false
+          menu.open = false
           modelData.disconnect()
         }
       }
@@ -152,7 +152,7 @@ Item {
         enabled: root.on
         label: modelData.name
         onClicked: {
-          menu.visible = false
+          menu.open = false
           modelData.connect()
         }
       }
@@ -187,7 +187,7 @@ Item {
     id: tooltip
     anchorItem: root
     alignCenter: true
-    showWhen: !menu.visible
+    showWhen: !menu.open
 
     PopupTitle {
       text: I18n.tr("settings.widget.bluetooth")

@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // The shortcuts panel (ShortcutsPanel.qml), built only while it is open and
@@ -15,8 +16,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: ShortcutsPanelState.visible
+  }
+
   LazyLoader {
-    active: ShortcutsPanelState.visible
+    active: linger.active
 
     ShortcutsPanel {}
   }

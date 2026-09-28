@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // The power panel (PowerPanel.qml), built only while it is open and freed
@@ -41,8 +42,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: PowerPanelState.visible
+  }
+
   LazyLoader {
-    active: PowerPanelState.visible
+    active: linger.active
 
     PowerPanel {}
   }
