@@ -25,9 +25,67 @@ Item {
 
   implicitHeight: root.player ? column.implicitHeight : empty.implicitHeight
 
-  // Whether the app gives the track's length (a browser often doesn't): the
-  // progress bar only moves, and seeks, with it.
-  readonly property bool hasLength: (root.player?.lengthSupported ?? false) && root.player.length > 0
+  // Whether the app gives the track's length right now (a browser often
+  // doesn't, or only for a moment: Firefox and Zen give it at the start of
+  // some YouTube videos, then drop it).
+  readonly property bool reportsLength: (root.player?.lengthSupported ?? false) && root.player.length > 0
+  // The track, told apart from the next by its app, address and title.
+  readonly property string trackKey: root.player
+    ? root.player.dbusName + "|" + (root.player.metadata["xesam:url"] ?? "") + "|" + root.player.trackTitle : ""
+  // The last length and position the app gave for the track, and when: the
+  // bar carries on from them, counting the time itself while the track plays,
+  // when the app stops giving them part way through.
+  property string knownKey: ""
+  property real knownLength: 0
+  property real knownPosition: 0
+  property real knownTime: 0
+  // The time now, in milliseconds, moved on every second the bar moves.
+  property real now: Date.now()
+
+  // Whether there's a length to show (given, or remembered for this track),
+  // and the length and position shown.
+  readonly property bool hasLength: root.reportsLength || (root.knownKey === root.trackKey && root.knownLength > 0)
+  readonly property real length: root.reportsLength ? root.player.length : root.knownLength
+  readonly property real position: root.reportsLength ? root.player.position
+    : Math.min(root.knownLength, root.knownPosition + (root.player?.isPlaying ? (root.now - root.knownTime) / 1000 : 0))
+
+  // Keeps what the app gives, while it gives it.
+  function remember() {
+    if (!root.reportsLength) return
+    root.knownKey = root.trackKey
+    root.knownLength = root.player.length
+    root.knownPosition = root.player.position
+    root.knownTime = Date.now()
+  }
+
+  // Also while the page is hidden (the popup keeps it), so the length given
+  // at the start of a track is kept for when it's shown. While counting the
+  // time itself, pausing stops the count where it is, and playing again
+  // starts it from there.
+  Connections {
+    target: root.player
+
+    function onLengthChanged() {
+      root.remember()
+    }
+
+    function onPositionChanged() {
+      root.remember()
+    }
+
+    function onIsPlayingChanged() {
+      if (root.reportsLength) {
+        root.remember()
+      } else if (root.knownKey === root.trackKey) {
+        const time = Date.now()
+        if (!root.player.isPlaying) root.knownPosition = Math.min(root.knownLength, root.knownPosition + (time - root.knownTime) / 1000)
+        root.knownTime = time
+        root.now = time
+      }
+    }
+  }
+
+  onVisibleChanged: root.now = Date.now()
 
   // "m:ss" (or "h:mm:ss") for a time in seconds.
   function formatTime(seconds) {
@@ -43,8 +101,11 @@ Item {
   Timer {
     interval: 1000
     repeat: true
-    running: root.visible && root.player !== null && root.player.isPlaying && root.player.positionSupported && root.hasLength
-    onTriggered: root.player.positionChanged()
+    running: root.visible && root.player !== null && root.player.isPlaying && root.hasLength
+    onTriggered: {
+      if (root.reportsLength && root.player.positionSupported) root.player.positionChanged()
+      root.now = Date.now()
+    }
   }
 
   // A bar filled up to `value` (0-1) that can be clicked or dragged when
@@ -286,7 +347,7 @@ Item {
       ThemedText {
         id: elapsed
         anchors.verticalCenter: parent.verticalCenter
-        text: !root.hasLength ? "–:––" : root.formatTime(progress.dragging ? progress.dragValue * root.player.length : root.player.position)
+        text: !root.hasLength ? "–:––" : root.formatTime(progress.dragging ? progress.dragValue * root.length : root.position)
         sizeScale: 0.7
         opacity: 0.7
       }
@@ -295,15 +356,16 @@ Item {
         id: progress
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width - elapsed.width - total.width - parent.spacing * 2
-        value: root.hasLength ? root.player.position / root.player.length : 0
-        interactive: root.hasLength && (root.player?.canSeek ?? false) && (root.player?.positionSupported ?? false)
+        value: root.hasLength ? root.position / root.length : 0
+        // Seeking needs the app's own length: not while counting the time.
+        interactive: root.reportsLength && (root.player?.canSeek ?? false) && (root.player?.positionSupported ?? false)
         onMoved: value => root.player.position = value * root.player.length
       }
 
       ThemedText {
         id: total
         anchors.verticalCenter: parent.verticalCenter
-        text: root.hasLength ? root.formatTime(root.player.length) : "–:––"
+        text: root.hasLength ? root.formatTime(root.length) : "–:––"
         sizeScale: 0.7
         opacity: 0.7
       }
