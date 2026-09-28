@@ -5,7 +5,7 @@ import qs.components
 import qs.config
 
 // The clock's popup: a tab bar over the page of the current tab (agenda,
-// performance), toggled from the clock widget on whichever screen it's
+// performance, media), toggled from the clock widget on whichever screen it's
 // clicked from (ClockPanelState.anchorItem) - a single panel shared by every
 // screen's bar, rather than one popup per bar. While open, its frame is
 // drawn inside that screen's bar (see config/BarSlots.qml), which also
@@ -16,10 +16,22 @@ import qs.config
 Item {
   id: root
 
+  // Every tab, in the order of the pages below, with the setting showing it.
   readonly property var tabs: [
-    { label: I18n.tr("clock.tab.agenda"), icon: "󰃭" },
-    { label: I18n.tr("clock.tab.performance"), icon: "󰓅" }
+    { label: I18n.tr("clock.tab.agenda"), icon: "󰃭", shown: Settings.clockShowAgenda },
+    { label: I18n.tr("clock.tab.performance"), icon: "󰓅", shown: Settings.clockShowPerformance },
+    { label: I18n.tr("clock.tab.media"), icon: "󰝚", shown: Settings.clockShowMedia }
   ]
+  // The tabs shown (the settings' Panels > Clock tab); the agenda with none,
+  // so the clock always opens something.
+  readonly property var shownTabs: {
+    const shown = root.tabs.filter(tab => tab.shown)
+    return shown.length > 0 ? shown : [root.tabs[0]]
+  }
+  // Back to the first tab when the one picked was turned off.
+  onShownTabsChanged: if (tabBar.currentIndex >= root.shownTabs.length) tabBar.currentIndex = 0
+  // The page of the tab picked, among all of them.
+  readonly property int page: root.tabs.indexOf(root.shownTabs[Math.min(tabBar.currentIndex, root.shownTabs.length - 1)])
 
   // The screen to show on: wherever the open clock widget lives. A Wayland
   // client can't ask an arbitrary screen "where is this Item", only the
@@ -61,7 +73,7 @@ Item {
     // Whole pixels, so its sides sit on pixel edges, as the curved joins
     // beside them do (see the bar's panelSlot).
     width: Math.ceil(Math.max(frame.minWidth, tabBar.implicitWidth) + frame.inset * 2)
-    height: Math.ceil(tabBar.implicitHeight + 12 + pages.height + frame.inset * 2)
+    height: Math.ceil((tabBar.visible ? tabBar.implicitHeight + 12 : 0) + pages.height + frame.inset * 2)
     radius: Theme.radiusFor(height)
     topLeftRadius: Theme.attachedCorner(radius, true)
     topRightRadius: Theme.attachedCorner(radius, true)
@@ -77,24 +89,26 @@ Item {
       borderColor: frame.border.color
     }
 
+    // Only with more than one tab to choose from.
     TabBar {
       id: tabBar
+      visible: root.shownTabs.length > 1
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.margins: frame.inset
-      model: root.tabs
+      model: root.shownTabs
     }
 
     StackLayout {
       id: pages
       anchors.left: parent.left
       anchors.right: parent.right
-      anchors.top: tabBar.bottom
+      anchors.top: tabBar.visible ? tabBar.bottom : parent.top
       anchors.leftMargin: frame.inset
       anchors.rightMargin: frame.inset
-      anchors.topMargin: 12
-      currentIndex: tabBar.currentIndex
+      anchors.topMargin: tabBar.visible ? 12 : frame.inset
+      currentIndex: root.page
       // As tall as the page being shown, not as the tallest one, so the
       // popup adapts to the tab's content.
       height: children[currentIndex] ? children[currentIndex].implicitHeight : 0
@@ -102,6 +116,8 @@ Item {
       AgendaTab {}
 
       PerformanceTab {}
+
+      MediaTab {}
     }
   }
 }

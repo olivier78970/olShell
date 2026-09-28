@@ -24,6 +24,10 @@ Singleton {
 
     "clock.tab.agenda": "Agenda",
     "clock.tab.performance": "Performance",
+    "clock.tab.media": "Media",
+    "settings.clockTabs": "Tabs shown",
+    "media.none": "Nothing is playing",
+    "media.unknownTitle": "Unknown title",
     "agenda.today": "Today",
     "agenda.week": "W",
 
@@ -546,6 +550,10 @@ Singleton {
 
     "clock.tab.agenda": "Agenda",
     "clock.tab.performance": "Performances",
+    "clock.tab.media": "Médias",
+    "settings.clockTabs": "Onglets affichés",
+    "media.none": "Aucune lecture en cours",
+    "media.unknownTitle": "Titre inconnu",
     "agenda.today": "Aujourd'hui",
     "agenda.week": "S",
 
@@ -1068,6 +1076,10 @@ Singleton {
 
     "clock.tab.agenda": "Agenda",
     "clock.tab.performance": "Rendimiento",
+    "clock.tab.media": "Multimedia",
+    "settings.clockTabs": "Pestañas mostradas",
+    "media.none": "No se está reproduciendo nada",
+    "media.unknownTitle": "Título desconocido",
     "agenda.today": "Hoy",
     "agenda.week": "S",
 

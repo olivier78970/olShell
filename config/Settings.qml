@@ -362,6 +362,10 @@ Singleton {
   // Whether the horizontal cards show a live picture of each window instead
   // of its icon.
   readonly property bool switcherPreviews: root.valid("switcherPreviews", file.adapter.switcherPreviews)
+  // Which tabs the clock panel shows (with none, its agenda still does).
+  readonly property bool clockShowAgenda: root.valid("clockShowAgenda", file.adapter.clockShowAgenda)
+  readonly property bool clockShowPerformance: root.valid("clockShowPerformance", file.adapter.clockShowPerformance)
+  readonly property bool clockShowMedia: root.valid("clockShowMedia", file.adapter.clockShowMedia)
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
@@ -883,6 +887,9 @@ Singleton {
       property int switcherMaxShown: Defaults.values.switcherMaxShown
       property bool switcherReleaseSwitch: Defaults.values.switcherReleaseSwitch
       property bool switcherPreviews: Defaults.values.switcherPreviews
+      property bool clockShowAgenda: Defaults.values.clockShowAgenda
+      property bool clockShowPerformance: Defaults.values.clockShowPerformance
+      property bool clockShowMedia: Defaults.values.clockShowMedia
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
