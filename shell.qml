@@ -42,6 +42,7 @@ ShellRoot {
   // And the one syncing Hyprland's window look, which has to apply the
   // saved settings from the start.
   readonly property var hyprlandWindows: HyprlandWindows.active
+  readonly property var hyprlandAnimations: HyprlandAnimations.active
 
   Bar {}
   ClockPanel {}

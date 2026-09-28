@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.components
 import qs.config
 import qs.services
@@ -31,7 +32,7 @@ ModalPanel {
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the theme's added apps
   // and each page's defaults row.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.defaultRows)
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
 
   // The Clock tab's places for the clocks tab, a row each with a button
   // taking it out, then a row typing in a place to add (Enter searches for
@@ -76,6 +77,98 @@ ModalPanel {
     canMoveBack: index > 0,
     canMoveForward: index < Settings.launcherEngines.length - 1
   })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
+
+  // The App opacity tab's apps with an opacity of their own: the row adding
+  // one, picked among the apps with a window open, then a row for each (see
+  // AppOpacityRow), by name, so one is easy to find. `appIndex` is the app's
+  // place in Settings.appOpacities.
+  readonly property var appOpacityRows: [{ key: "appOpacityAdd", category: "appOpacity", kind: "dropdown", label: I18n.tr("settings.appOpacity.add") }]
+    .concat(Settings.appOpacities
+      .map((app, index) => ({ key: "appOpacity:" + app.class, category: "appOpacity", kind: "appOpacity", app: app, appIndex: index, label: DesktopEntries.byId(app.class)?.name || app.class }))
+      .sort((a, b) => a.label.localeCompare(b.label)))
+
+  // An app's icon, from its desktop entry or else its class, "" for none.
+  function appIcon(appClass) {
+    const icon = DesktopEntries.byId(appClass)?.icon ?? ""
+    if (icon.startsWith("/")) return "file://" + icon
+    return Quickshell.iconPath(icon !== "" ? icon : appClass, true)
+  }
+
+  // Moves the opacity the keys are on, in an opacity row (see
+  // AppOpacityRow's focusIndex: 0 and 2 are the sliders), `direction` steps
+  // of 5 % (`steps` times); not one following another.
+  function stepAppOpacity(row, direction, steps) {
+    if (root.toggleFocus !== 0 && root.toggleFocus !== 2) return
+    const field = root.toggleFocus === 2 ? "inactive" : "active"
+    if (root.sameOf(row, field)) return
+    const [low, high] = Settings.limits.appOpacity
+    const value = Math.round(Math.max(low, Math.min(high, root.opacityOf(row, field) + direction * 0.05 * steps)) * 100) / 100
+    root.setOpacity(row, field, value)
+  }
+
+  // An opacity row's value, "active" or "inactive", as it applies: the
+  // windows' general one (the Hyprland tab's row: its own, or the shell's
+  // opacity it follows), or an app's (its own, or the general one it
+  // follows).
+  function opacityOf(row, field) {
+    const general = field === "active" ? HyprlandWindows.activeOpacity : HyprlandWindows.inactiveOpacity
+    if (row.general) return general
+    return root.sameOf(row, field) ? general : (row.app?.[field] ?? 1)
+  }
+
+  // Whether that value follows another (see opacityOf).
+  function sameOf(row, field) {
+    if (row.general) return Settings[field === "active" ? "windowActiveOpacitySame" : "windowInactiveOpacitySame"]
+    return row.app?.[field + "Same"] ?? false
+  }
+
+  function toggleSame(row, field) {
+    if (row.general) Settings.set(field === "active" ? "windowActiveOpacitySame" : "windowInactiveOpacitySame", !root.sameOf(row, field))
+    else Settings.setAppOpacity(row.appIndex, { [field + "Same"]: !root.sameOf(row, field) })
+  }
+
+  function setOpacity(row, field, value) {
+    if (root.sameOf(row, field)) return
+    if (row.general) Settings.set(field === "active" ? "windowActiveOpacity" : "windowInactiveOpacity", value)
+    else Settings.setAppOpacity(row.appIndex, { [field]: value })
+  }
+
+  // An app's name, from its desktop entry, with its class after it when that
+  // says something else; the class alone without an entry.
+  function appName(appClass) {
+    const entry = DesktopEntries.byId(appClass)
+    if (!entry || !entry.name) return appClass
+    return entry.name.toLowerCase() === appClass.toLowerCase() ? entry.name : entry.name + " (" + appClass + ")"
+  }
+
+  // The classes of the apps with a window open, as Hyprland gives them, for
+  // the row adding an app opacity: looked up each time the App opacity tab
+  // shows.
+  property var openClasses: []
+
+  onPageChanged: if (root.page === "appOpacity") clientsProcess.running = true
+  Component.onCompleted: if (root.page === "appOpacity") clientsProcess.running = true
+
+  Process {
+    id: clientsProcess
+    command: ["hyprctl", "clients", "-j"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        try {
+          root.openClasses = Array.from(new Set(JSON.parse(text).map(client => client.class).filter(appClass => appClass)))
+        } catch (error) {
+          root.openClasses = []
+        }
+      }
+    }
+  }
+
+  // The apps that can be added: those open without an opacity of their own
+  // yet, by name, after a first entry saying to pick one.
+  readonly property var appOpacityOptions: [{ value: "", text: I18n.tr("settings.appOpacity.pick") }].concat(root.openClasses
+    .filter(appClass => !Settings.appOpacities.some(app => app.class === appClass))
+    .map(appClass => ({ value: appClass, text: root.appName(appClass) }))
+    .sort((a, b) => a.text.localeCompare(b.text)))
 
   // The theme category's added apps (after the other apps' row), a row each,
   // and the row adding one. `appIndex` is its app's place in
@@ -181,6 +274,8 @@ ModalPanel {
   // The value a buttons or dropdown row shows as current.
   function currentOf(row) {
     if (row.key === "themeAccent") return root.themeAccentCurrent
+    // Adding an app holds no value of its own.
+    if (row.key === "appOpacityAdd") return ""
     return Settings.get(row.key)
   }
 
@@ -251,6 +346,8 @@ ModalPanel {
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "animationDuration") return Settings.animations
+    if (row.key === "hyprlandAnimationDuration") return Settings.hyprlandAnimations && !Settings.hyprlandAnimationSame
+    if (["hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key)) return Settings.hyprlandAnimations
     if (row.key === "curvedJoinsRow") return Theme.panelGap <= 0 && Theme.borderWidth === 0
     // Hyprland's blur options only matter while the blur is on.
     if (root.blurRows.includes(row.key)) return Settings.blur
@@ -299,6 +396,8 @@ ModalPanel {
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
     if (row.key === "barAutoHideDelay" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "animationDuration" && !Settings.animations) return I18n.tr("settings.animationDuration.disabled")
+    if (["hyprlandAnimationDuration", "hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key) && !Settings.hyprlandAnimations) return I18n.tr("settings.hyprlandAnimations.disabled")
+    if (row.key === "hyprlandAnimationDuration" && Settings.hyprlandAnimationSame) return I18n.tr("settings.hyprlandAnimationSame.disabled", Settings.animationDuration)
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
     if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
@@ -320,6 +419,9 @@ ModalPanel {
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
+    if (row.key === "appOpacityAdd") return root.appOpacityOptions
+    if (row.key === "hyprlandWindowStyle" || row.key === "hyprlandWorkspaceStyle") return Settings.choices[row.key]
+      .map(name => ({ value: name, text: I18n.tr("settings.hyprlandStyle." + name) }))
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
     if (root.matugenOptions[row.key] !== undefined) return root.matugenOptions[row.key]
@@ -531,7 +633,8 @@ ModalPanel {
     if (!root.rowEnabled(row)) return
     if (row.kind === "slider") {
       Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
-    } else if (row.kind === "dropdown" || row.kind === "buttons") {
+    } else if ((row.kind === "dropdown" && row.key !== "appOpacityAdd") || row.kind === "buttons") {
+      // (Stepping through the apps to add would add each of them.)
       const values = root.optionsOf(row).map(option => option.value)
       const next = ((values.indexOf(root.currentOf(row)) + direction * steps) % values.length + values.length) % values.length
       Settings.set(row.key, values[next])
@@ -609,6 +712,29 @@ ModalPanel {
       event.accepted = true
     } else if (kind === "engine" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
       root.pressEngine(root.rows[root.selected], root.toggleFocus)
+      event.accepted = true
+    } else if (kind === "appOpacity" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: on a slider, its opacity a step down / up (with Shift,
+      // five); on a button, the thing before / after it in the row.
+      const row = root.rows[root.selected]
+      const direction = event.key === Qt.Key_Left ? -1 : 1
+      const at = root.toggleFocus >= 0 && root.toggleFocus <= 4 ? root.toggleFocus : 0
+      if (at === 0 || at === 2) root.stepAppOpacity(row, direction, big ? 5 : 1)
+      else root.toggleFocus = Math.max(0, Math.min(row.general ? 3 : 4, at + direction))
+      event.accepted = true
+    } else if (kind === "appOpacity" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      // On a slider, goes on to its link button (Tab is kept for the tabs);
+      // on a link button, switches it; on the remove button, takes the app
+      // out.
+      const row = root.rows[root.selected]
+      const at = root.toggleFocus >= 0 && root.toggleFocus <= 4 ? root.toggleFocus : 0
+      if (at === 0 || at === 2) root.toggleFocus = at + 1
+      else if (at === 1 || at === 3) root.toggleSame(row, at === 1 ? "active" : "inactive")
+      else if (!row.general) Settings.removeAppOpacity(row.appIndex)
+      event.accepted = true
+    } else if (kind === "appOpacity" && event.key === Qt.Key_Delete && !root.rows[root.selected].general) {
+      // Delete: takes the app out, whatever the keys are on.
+      Settings.removeAppOpacity(root.rows[root.selected].appIndex)
       event.accepted = true
     } else if (kind === "factoryAll" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Move between Confirm and Cancel, while asking.
@@ -936,11 +1062,11 @@ ModalPanel {
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, engineRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1110,6 +1236,30 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 sourceComponent: BarLayoutEditor {}
+              }
+
+              AppOpacityRow {
+                id: appOpacityRow
+                visible: row.modelData.kind === "appOpacity"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                name: row.modelData.label ?? ""
+                icon: row.modelData.kind === "appOpacity" && !row.modelData.general ? root.appIcon(row.modelData.app.class) : ""
+                glyph: row.modelData.general ? "" : "󰀻"
+                removable: !row.modelData.general
+                sameText: I18n.tr(row.modelData.general ? "settings.windowOpacitySame" : "settings.appOpacity.same")
+                activeSame: row.modelData.kind === "appOpacity" && root.sameOf(row.modelData, "active")
+                inactiveSame: row.modelData.kind === "appOpacity" && root.sameOf(row.modelData, "inactive")
+                onSameToggled: field => root.toggleSame(row.modelData, field)
+                active: row.modelData.kind === "appOpacity" ? root.opacityOf(row.modelData, "active") : 1
+                inactive: row.modelData.kind === "appOpacity" ? root.opacityOf(row.modelData, "inactive") : 1
+                from: Settings.limits.appOpacity[0]
+                to: Settings.limits.appOpacity[1]
+                selected: root.selected === row.index
+                focusIndex: root.toggleFocus
+                onActivated: root.selected = row.index
+                onMoved: (field, value) => root.setOpacity(row.modelData, field, value)
+                onRemoved: Settings.removeAppOpacity(row.modelData.appIndex)
               }
 
               ThemeAppRow {

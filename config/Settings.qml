@@ -32,9 +32,12 @@ Singleton {
     windowGapsOut: [0, 80],
     windowActiveOpacity: [0.1, 1],
     windowInactiveOpacity: [0.1, 1],
+    // Each app's own opacities in appOpacities (not a setting of its own).
+    appOpacity: [0.1, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
     animationDuration: [50, 600],
+    hyprlandAnimationDuration: [0.25, 4],
     barAutoHideDelay: [0, 3000],
     barMarginTop: [0, 100],
     barMarginBottom: [0, 100],
@@ -85,6 +88,8 @@ Singleton {
   readonly property var choices: ({
     barPosition: ["top", "bottom", "left", "right"],
     barStyle: ["widgets", "full"],
+    hyprlandWindowStyle: ["config", "popin", "slide", "gnomed"],
+    hyprlandWorkspaceStyle: ["config", "slide", "slidevert", "fade", "slidefade", "slidefadevert"],
     launcherTab: ["all", "apps", "games", "files", "web"],
     clockDate: ["long", "short", "numeric", "none"],
     fontCaps: ["none", "upper", "lower", "small"],
@@ -136,6 +141,19 @@ Singleton {
   // animation takes, in ms.
   readonly property bool animations: root.valid("animations", file.adapter.animations)
   readonly property int animationDuration: root.valid("animationDuration", file.adapter.animationDuration)
+  // Hyprland's animations, on top of its config's (see
+  // services/HyprlandAnimations.qml): whether they run, how many times as
+  // long as the config's they last (2: twice as long, 0.5: half), and the
+  // style of the
+  // windows' and the workspaces' (one of choices; "config" keeps the
+  // config's).
+  readonly property bool hyprlandAnimations: root.valid("hyprlandAnimations", file.adapter.hyprlandAnimations)
+  readonly property real hyprlandAnimationDuration: root.valid("hyprlandAnimationDuration", file.adapter.hyprlandAnimationDuration)
+  // Whether every Hyprland animation takes the shell's animation duration
+  // instead (the multiplier above then has no effect).
+  readonly property bool hyprlandAnimationSame: root.valid("hyprlandAnimationSame", file.adapter.hyprlandAnimationSame)
+  readonly property string hyprlandWindowStyle: root.valid("hyprlandWindowStyle", file.adapter.hyprlandWindowStyle)
+  readonly property string hyprlandWorkspaceStyle: root.valid("hyprlandWorkspaceStyle", file.adapter.hyprlandWorkspaceStyle)
   // How long, in milliseconds, the pointer has to be away from the bar (and
   // its margins) before it's tucked away again.
   readonly property int barAutoHideDelay: root.valid("barAutoHideDelay", file.adapter.barAutoHideDelay)
@@ -210,6 +228,14 @@ Singleton {
   readonly property int windowGapsOut: root.valid("windowGapsOut", file.adapter.windowGapsOut)
   readonly property real windowActiveOpacity: root.valid("windowActiveOpacity", file.adapter.windowActiveOpacity)
   readonly property real windowInactiveOpacity: root.valid("windowInactiveOpacity", file.adapter.windowInactiveOpacity)
+  // Whether each follows the shell's opacity (`opacity`) instead.
+  readonly property bool windowActiveOpacitySame: root.valid("windowActiveOpacitySame", file.adapter.windowActiveOpacitySame)
+  readonly property bool windowInactiveOpacitySame: root.valid("windowInactiveOpacitySame", file.adapter.windowInactiveOpacitySame)
+  // Apps with an opacity of their own, replacing the two above for their
+  // windows: { class, active, inactive, activeSame, inactiveSame } each (the
+  // class as Hyprland gives it, the opacities from 0.1 to 1, and whether each
+  // follows the windows' general one instead).
+  readonly property var appOpacities: root.valid("appOpacities", file.adapter.appOpacities)
   // Whether the screen zoom (services/Zoom.qml) is look-only: while zoomed,
   // the pointer, clicks and the wheel go to the shell instead of the apps
   // (the wheel zooms, a click or Escape zooms back out).
@@ -468,6 +494,28 @@ Singleton {
     root.set("matugenApps", root.matugenApps.filter((app, other) => other !== index))
   }
 
+  // Changes `fields` ({ active, inactive, activeSame, inactiveSame }, any of
+  // them) of app opacity `index`.
+  function setAppOpacity(index, fields) {
+    const list = root.appOpacities.map(app => Object.assign({}, app))
+    if (index < 0 || index >= list.length) return
+    Object.assign(list[index], fields)
+    root.set("appOpacities", list)
+  }
+
+  // Gives the app of class `appClass` an opacity of its own, starting from the
+  // windows' general ones (not twice the same app).
+  function addAppOpacity(appClass) {
+    if (typeof appClass !== "string" || appClass.length === 0 || root.appOpacities.some(app => app.class === appClass)) return
+    root.set("appOpacities", root.appOpacities.concat([{ class: appClass, active: root.windowActiveOpacity, inactive: root.windowInactiveOpacity, activeSame: false, inactiveSame: false }]))
+  }
+
+  // Takes app opacity `index` out of the list: its windows go back to the
+  // general opacities.
+  function removeAppOpacity(index) {
+    root.set("appOpacities", root.appOpacities.filter((app, other) => other !== index))
+  }
+
   // Takes engine `index` out of the list; the browser's can't be.
   // Adds a place to the clocks tab (not twice the same).
   function addWorldClock(name, zone) {
@@ -536,6 +584,16 @@ Singleton {
       return list
     }
     // The added apps: those with a name, their other fields as text.
+    // The app opacities: those with a class (once each), their opacities
+    // within limits.appOpacity, on hundredths.
+    if (key === "appOpacities") {
+      const [low, high] = root.limits.appOpacity
+      const opacity = value => typeof value === "number" && !isNaN(value) ? Math.round(Math.max(low, Math.min(high, value)) * 100) / 100 : 1
+      const seen = new Set()
+      return root.asArray(value)
+        .filter(app => app !== null && typeof app === "object" && typeof app.class === "string" && app.class.length > 0 && !seen.has(app.class) && seen.add(app.class))
+        .map(app => ({ class: app.class, active: opacity(app.active), inactive: opacity(app.inactive), activeSame: app.activeSame === true, inactiveSame: app.inactiveSame === true }))
+    }
     if (key === "matugenApps") {
       const text = field => typeof field === "string" ? field.trim() : ""
       return root.asArray(value)
@@ -571,7 +629,7 @@ Singleton {
     const [min, max] = root.limits[key]
     if (typeof value !== "number" || isNaN(value)) return root.defaults[key]
     const clamped = Math.max(min, Math.min(max, value))
-    if (["opacity", "windowActiveOpacity", "windowInactiveOpacity"].includes(key)) return Math.round(clamped * 100) / 100
+    if (["opacity", "windowActiveOpacity", "windowInactiveOpacity", "hyprlandAnimationDuration"].includes(key)) return Math.round(clamped * 100) / 100
     if (["blurNoise", "blurContrast", "blurBrightness", "blurVibrancy"].includes(key)) return Math.round(clamped * 10000) / 10000
     if (key === "fontWeight") return Math.round(clamped / 100) * 100
     return key === "wallpaperDuration" || key === "fontLetterSpacing" || key === "zoomStep" || key === "matugenContrast" || key === "matugenLightness" ? Math.round(clamped * 10) / 10 : Math.round(clamped)
@@ -777,6 +835,12 @@ Singleton {
       if (root.panelPlacements.includes(value)) root.placementKeys.forEach(placementKey => root.set(placementKey, value))
       return
     }
+    // An app to give an opacity of its own, by its class (the settings
+    // panel's row adding one).
+    if (key === "appOpacityAdd") {
+      root.addAppOpacity(value)
+      return
+    }
     if (root.defaults[key] === undefined) return
     // A color mistyped in the settings keeps the one there was.
     if (root.colorKeys.includes(key) && !root.validColor(value)) return
@@ -845,6 +909,11 @@ Singleton {
       property bool barAutoHide: Defaults.values.barAutoHide
       property bool animations: Defaults.values.animations
       property int animationDuration: Defaults.values.animationDuration
+      property bool hyprlandAnimations: Defaults.values.hyprlandAnimations
+      property real hyprlandAnimationDuration: Defaults.values.hyprlandAnimationDuration
+      property bool hyprlandAnimationSame: Defaults.values.hyprlandAnimationSame
+      property string hyprlandWindowStyle: Defaults.values.hyprlandWindowStyle
+      property string hyprlandWorkspaceStyle: Defaults.values.hyprlandWorkspaceStyle
       property int barAutoHideDelay: Defaults.values.barAutoHideDelay
       property string barPosition: Defaults.values.barPosition
       property int barHeight: Defaults.values.barHeight
@@ -873,11 +942,14 @@ Singleton {
       property bool windowBorderSame: Defaults.values.windowBorderSame
       property int windowRounding: Defaults.values.windowRounding
       property bool windowRoundingSame: Defaults.values.windowRoundingSame
+      property bool windowActiveOpacitySame: Defaults.values.windowActiveOpacitySame
+      property bool windowInactiveOpacitySame: Defaults.values.windowInactiveOpacitySame
       property int windowGapsIn: Defaults.values.windowGapsIn
       property bool windowGapsInSame: Defaults.values.windowGapsInSame
       property int windowGapsOut: Defaults.values.windowGapsOut
       property real windowActiveOpacity: Defaults.values.windowActiveOpacity
       property real windowInactiveOpacity: Defaults.values.windowInactiveOpacity
+      property var appOpacities: Defaults.values.appOpacities
       property bool zoomBlocksInput: Defaults.values.zoomBlocksInput
       property int zoomMax: Defaults.values.zoomMax
       property real zoomStep: Defaults.values.zoomStep
