@@ -143,10 +143,11 @@ Scope {
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
+    // switcherOrientation, switcherScope,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
-    // panels' panelPlacement ("each" too), launcherPlacement, settingsPlacement, shortcutsPlacement,
-    // wallpaperPlacement, themePlacement, powerPlacement and
-    // notificationActionsPlacement; a value
+    // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
+    // wallpaperPlacement, themePlacement, powerPlacement,
+    // notificationActionsPlacement and switcherPlacement; a value
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
     // (customBackground, customPill, customBorder, customText, customAccent:
@@ -176,7 +177,7 @@ Scope {
     // Saves the current values of a page (appearance, blur, windows, text, bar,
     // layout,
     // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher,
-    // panels or general) as your own defaults.
+    // panels, switcher or general) as your own defaults.
     function saveDefaults(category: string): void {
       if (SettingsPages.pages.includes(category)) SettingsPages.saveDefaults(category)
     }

@@ -51,6 +51,8 @@ Singleton {
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
     launcherResults: [3, 20],
+    switcherIconSize: [24, 96],
+    switcherMaxShown: [3, 20],
     volumeOsdMargin: [0, 400],
     lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
@@ -98,6 +100,9 @@ Singleton {
     themePlacement: root.panelPlacements,
     powerPlacement: root.panelPlacements,
     notificationActionsPlacement: root.panelPlacements,
+    switcherPlacement: root.panelPlacements,
+    switcherOrientation: ["vertical", "horizontal"],
+    switcherScope: ["all", "workspace", "monitor"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -323,12 +328,8 @@ Singleton {
   readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
   readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
   readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
-  // Where every full-screen panel opens, overriding their own placements
-  // below (one of panelPlacements), or "each" for each its own.
-  readonly property string panelPlacement: root.valid("panelPlacement", file.adapter.panelPlacement)
   // Where each full-screen panel opens (one of panelPlacements each, see
-  // components/ModalPanel.qml's `placement`), unless panelPlacement puts
-  // them all in one place: see placementOf().
+  // components/ModalPanel.qml's `placement`).
   readonly property string launcherPlacement: root.valid("launcherPlacement", file.adapter.launcherPlacement)
   readonly property string settingsPlacement: root.valid("settingsPlacement", file.adapter.settingsPlacement)
   readonly property string shortcutsPlacement: root.valid("shortcutsPlacement", file.adapter.shortcutsPlacement)
@@ -336,11 +337,40 @@ Singleton {
   readonly property string themePlacement: root.valid("themePlacement", file.adapter.themePlacement)
   readonly property string powerPlacement: root.valid("powerPlacement", file.adapter.powerPlacement)
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
+  readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
+  // Whether the app switcher lists the windows in a column ("vertical") or
+  // side by side ("horizontal", one of choices.switcherOrientation).
+  readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
+  // Which windows it lists (one of choices.switcherScope): all of them, those
+  // of the focused workspace, or those of the focused monitor.
+  readonly property string switcherScope: root.valid("switcherScope", file.adapter.switcherScope)
+  // Whether it lists each app once (its windows gathered, the most recently
+  // focused first) rather than each window.
+  readonly property bool switcherGroupApps: root.valid("switcherGroupApps", file.adapter.switcherGroupApps)
+  // What it shows with each window's icon (under it on a card, beside it in
+  // a row): its title, and under it, a line each, its app and its workspace.
+  readonly property bool switcherShowTitle: root.valid("switcherShowTitle", file.adapter.switcherShowTitle)
+  readonly property bool switcherShowApp: root.valid("switcherShowApp", file.adapter.switcherShowApp)
+  readonly property bool switcherShowWorkspace: root.valid("switcherShowWorkspace", file.adapter.switcherShowWorkspace)
+  // The size of its icons, in pixels, and how many windows it shows at once
+  // before scrolling.
+  readonly property int switcherIconSize: root.valid("switcherIconSize", file.adapter.switcherIconSize)
+  readonly property int switcherMaxShown: root.valid("switcherMaxShown", file.adapter.switcherMaxShown)
+  // Whether releasing its shortcut's modifier switches to the selected
+  // window; without it, Enter or a click does.
+  readonly property bool switcherReleaseSwitch: root.valid("switcherReleaseSwitch", file.adapter.switcherReleaseSwitch)
+  // Whether the horizontal cards show a live picture of each window instead
+  // of its icon.
+  readonly property bool switcherPreviews: root.valid("switcherPreviews", file.adapter.switcherPreviews)
 
-  // Where a panel whose own placement is `own` opens: there, or where
-  // panelPlacement puts them all.
-  function placementOf(own) {
-    return root.panelPlacement === "each" ? own : root.panelPlacement
+  // The panels' placement settings, which panelPlacement sets all at once.
+  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
+  // Where every panel opens, when they all open in the same place, or
+  // "each" when they don't. Not saved: setting it sets each of them (see
+  // set()).
+  readonly property string panelPlacement: {
+    const placements = root.placementKeys.map(key => root[key])
+    return placements.every(placement => placement === placements[0]) ? placements[0] : "each"
   }
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
@@ -683,6 +713,11 @@ Singleton {
   // Changes a setting and saves it (shortly after the last change, so
   // dragging a slider doesn't write the file for every step).
   function set(key, value) {
+    // Every panel's placement at once ("each" leaves them as they are).
+    if (key === "panelPlacement") {
+      if (root.panelPlacements.includes(value)) root.placementKeys.forEach(placementKey => root.set(placementKey, value))
+      return
+    }
     if (root.defaults[key] === undefined) return
     // A color mistyped in the settings keeps the one there was.
     if (root.colorKeys.includes(key) && !root.validColor(value)) return
@@ -830,7 +865,6 @@ Singleton {
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
-      property string panelPlacement: Defaults.values.panelPlacement
       property string launcherPlacement: Defaults.values.launcherPlacement
       property string settingsPlacement: Defaults.values.settingsPlacement
       property string shortcutsPlacement: Defaults.values.shortcutsPlacement
@@ -838,6 +872,17 @@ Singleton {
       property string themePlacement: Defaults.values.themePlacement
       property string powerPlacement: Defaults.values.powerPlacement
       property string notificationActionsPlacement: Defaults.values.notificationActionsPlacement
+      property string switcherPlacement: Defaults.values.switcherPlacement
+      property string switcherOrientation: Defaults.values.switcherOrientation
+      property string switcherScope: Defaults.values.switcherScope
+      property bool switcherGroupApps: Defaults.values.switcherGroupApps
+      property bool switcherShowTitle: Defaults.values.switcherShowTitle
+      property bool switcherShowApp: Defaults.values.switcherShowApp
+      property bool switcherShowWorkspace: Defaults.values.switcherShowWorkspace
+      property int switcherIconSize: Defaults.values.switcherIconSize
+      property int switcherMaxShown: Defaults.values.switcherMaxShown
+      property bool switcherReleaseSwitch: Defaults.values.switcherReleaseSwitch
+      property bool switcherPreviews: Defaults.values.switcherPreviews
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds

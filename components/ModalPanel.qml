@@ -140,9 +140,10 @@ PanelWindow {
   readonly property real areaHeight: root.attached && root.targetScreen ? root.targetScreen.height : root.height
 
   // Takes the keyboard once in the bar (its window gets it from the bar's
-  // focus grab), a tick later so the frame has actually moved there.
+  // focus grab), a tick later so the frame has actually moved there; by
+  // then a panel closed at once may already be gone.
   onHostSlotChanged: {
-    if (root.hostSlot) Qt.callLater(() => root.focusTarget.forceActiveFocus())
+    if (root.hostSlot) Qt.callLater(() => root?.focusTarget?.forceActiveFocus())
   }
 
   Connections {

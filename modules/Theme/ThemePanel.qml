@@ -23,7 +23,7 @@ CarouselPanel {
   maxPanelHeight: 520
 
   open: ThemePanelState.visible
-  placement: Settings.placementOf(Settings.themePlacement)
+  placement: Settings.themePlacement
   anchorItem: ThemePanelState.anchorItem
   onCloseRequested: ThemePanelState.visible = false
   // Open on the theme currently in use.

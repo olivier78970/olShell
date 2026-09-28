@@ -25,6 +25,7 @@ Singleton {
     PowerPanelState.visible = false
     ClockPanelState.visible = false
     ShortcutsPanelState.visible = false
+    AppSwitcherState.visible = false
   }
 
   // Opens the panel on the list of rules.

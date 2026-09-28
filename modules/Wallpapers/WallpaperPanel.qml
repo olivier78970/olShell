@@ -28,7 +28,7 @@ CarouselPanel {
   maxPanelHeight: 650
 
   open: WallpaperPanelState.visible
-  placement: Settings.placementOf(Settings.wallpaperPlacement)
+  placement: Settings.wallpaperPlacement
   anchorItem: WallpaperPanelState.anchorItem
   onCloseRequested: WallpaperPanelState.visible = false
   onOpened: listProcess.running = true

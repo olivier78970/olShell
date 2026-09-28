@@ -4,6 +4,7 @@
 //@ pragma IconTheme Adwaita
 import Quickshell
 import qs.components
+import qs.modules.AppSwitcher
 import qs.modules.Bar
 import qs.modules.Clock
 import qs.modules.Launcher
@@ -54,6 +55,7 @@ ShellRoot {
   LauncherModule {}
   SettingsModule {}
   ShortcutsModule {}
+  AppSwitcherModule {}
   NotificationPopups {}
   NotificationCenter {}
   NotificationActionsModule {}

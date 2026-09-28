@@ -33,7 +33,12 @@ Singleton {
     { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
-    { id: "panels", icon: "󰖲", label: I18n.tr("settings.category.panels") },
+    // Panels: where each opens, then a tab for each panel with settings of
+    // its own, named after it.
+    { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
+      { id: "panels", label: I18n.tr("settings.tab.placement") },
+      { id: "switcher", label: I18n.tr("settings.placement.switcher") }
+    ] },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -159,6 +164,25 @@ Singleton {
     { key: "themePlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.theme") },
     { key: "powerPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.power") },
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
+    { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
+    { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
+    { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
+    { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
+      { key: "switcherGroupApps", text: "" }
+    ] },
+    { key: "switcherTextRow", category: "switcher", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
+      { key: "switcherShowTitle", text: I18n.tr("settings.switcherText.title") },
+      { key: "switcherShowApp", text: I18n.tr("settings.switcherText.app") },
+      { key: "switcherShowWorkspace", text: I18n.tr("settings.switcherText.workspace") }
+    ] },
+    { key: "switcherIconSize", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
+    { key: "switcherMaxShown", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
+    { key: "switcherReleaseSwitchRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
+      { key: "switcherReleaseSwitch", text: "" }
+    ] },
+    { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
+      { key: "switcherPreviews", text: "" }
+    ] },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }
