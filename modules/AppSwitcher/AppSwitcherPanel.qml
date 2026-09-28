@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.components
 import qs.config
@@ -14,48 +15,71 @@ import qs.config
 // bound to a shortcut in the Hyprland config (such as Super+Tab), which it
 // then follows (AppSwitcherState.shortcut): it opens on the previously
 // focused window, the shortcut pressed again moves on (with Shift, back),
-// and releasing its modifier switches to the selected window. `switcher
-// next` / `switcher prev` step the same way. Up/Down, Tab / Shift+Tab (or
-// Left/Right) move too, Enter or a click switches to the window (so does
-// `switcher confirm`), Escape closes.
+// and releasing its modifier switches to the selected window
+// (Settings.switcherReleaseSwitch). `switcher next` / `switcher prev` step
+// the same way. Up/Down, Tab / Shift+Tab (or Left/Right) move too, Enter or
+// a click switches to the window (so does `switcher confirm`), Escape
+// closes. It lists every window, or those of the focused workspace or
+// monitor (Settings.switcherScope), each on its own or gathered by app
+// (Settings.switcherGroupApps), the key above Tab then going through the
+// selected app's windows.
 ModalPanel {
   id: root
 
   // Hyprland's windows, as `hyprctl clients -j` gives them, the most
-  // recently focused first.
+  // recently focused first, those Settings.switcherScope leaves out left out.
   property var windows: []
   property bool loading: false
 
-  // The selected window's index in `windows` (AppSwitcherState.current
-  // taken modulo their number), or -1 with none.
-  readonly property int selected: root.windows.length > 0
-    ? ((AppSwitcherState.current % root.windows.length) + root.windows.length) % root.windows.length
+  // What the list shows: one entry per window, or with switcherGroupApps
+  // one per app, each { class, windows } (its windows the most recently
+  // focused first; the entries in the order of their first window).
+  readonly property var entries: {
+    if (!Settings.switcherGroupApps) return root.windows.map(window => ({ class: window.class, windows: [window] }))
+    const entries = []
+    for (const window of root.windows) {
+      const entry = entries.find(other => other.class === window.class)
+      if (entry) entry.windows.push(window)
+      else entries.push({ class: window.class, windows: [window] })
+    }
+    return entries
+  }
+
+  // The selected entry's index (AppSwitcherState.current taken modulo their
+  // number), or -1 with none.
+  readonly property int selected: root.entries.length > 0
+    ? ((AppSwitcherState.current % root.entries.length) + root.entries.length) % root.entries.length
     : -1
+  // Which of the selected app's windows is picked (any number, taken modulo
+  // theirs): the most recently focused, until the key above Tab moves on.
+  property int inner: 0
+  onSelectedChanged: root.inner = 0
 
   // Whether the windows are side by side, as cards, rather than in a column
-  // of rows.
+  // of rows, and whether those cards show a picture of their window.
   readonly property bool horizontal: Settings.switcherOrientation === "horizontal"
-  // The windows shown at most before the list scrolls: rows in a column,
-  // cards side by side.
-  readonly property int maxRows: 8
-  readonly property int maxCards: 6
-  readonly property int rowHeight: 56
-  // A card: its width, and its height (its icon, and a line of each text
-  // size under it, measured by the probes below).
-  readonly property int cardWidth: 168
-  readonly property int cardIcon: 48
-  readonly property real cardHeight: 14 + root.cardIcon + 10 + titleProbe.implicitHeight + detailsProbe.implicitHeight + 14
-  // How many windows there is room for (at least one, for the messages).
-  readonly property int shown: Math.max(root.windows.length, 1)
+  readonly property bool previews: root.horizontal && Settings.switcherPreviews
+  // The entries shown at most before the list scrolls, and how many there
+  // is room for (at least one, for the messages).
+  readonly property int maxShown: Settings.switcherMaxShown
+  readonly property int shown: Math.max(root.entries.length, 1)
+  readonly property int iconSize: Settings.switcherIconSize
+  readonly property real rowHeight: root.iconSize + 24
+  // A card's picture (its window's, or its icon) and the card itself: the
+  // picture, then a line of each text size, measured by the probes below.
+  readonly property real mediaWidth: root.previews ? 240 : root.iconSize
+  readonly property real mediaHeight: root.previews ? 150 : root.iconSize
+  readonly property real cardWidth: Math.max(140, root.mediaWidth + 20, root.iconSize + 100)
+  readonly property real cardHeight: 14 + root.mediaHeight + 10 + titleProbe.implicitHeight + detailsProbe.implicitHeight + 14
 
-  // As wide as its cards side by side (up to maxCards; no narrower than
+  // As wide as its cards side by side (up to maxShown; no narrower than
   // the title needs), or a fixed width for rows; as tall as its rows (up to
-  // maxRows) or its cards.
+  // maxShown) or its cards.
   maxPanelWidth: root.horizontal
-    ? Math.max(16 * 2 + Math.min(root.shown, root.maxCards) * (root.cardWidth + list.spacing) - list.spacing, title.implicitWidth + 16 * 2)
+    ? Math.max(16 * 2 + Math.min(root.shown, root.maxShown) * (root.cardWidth + list.spacing) - list.spacing, title.implicitWidth + 16 * 2)
     : 640
   maxPanelHeight: 16 * 2 + title.implicitHeight + 12
-    + (root.horizontal ? root.cardHeight : Math.min(root.shown, root.maxRows) * (root.rowHeight + list.spacing))
+    + (root.horizontal ? root.cardHeight : Math.min(root.shown, root.maxShown) * (root.rowHeight + list.spacing))
   placement: Settings.switcherPlacement
   focusTarget: keys
 
@@ -66,9 +90,18 @@ ModalPanel {
     reader.running = true
   }
 
-  // Switches to window `index` and closes.
+  // The window entry `index` switches to: the picked one of the selected
+  // entry, the most recently focused of another.
+  function windowOf(index) {
+    const entry = root.entries[index]
+    if (!entry) return null
+    const count = entry.windows.length
+    return index === root.selected ? entry.windows[((root.inner % count) + count) % count] : entry.windows[0]
+  }
+
+  // Switches to entry `index`'s window and closes.
   function activate(index) {
-    const window = root.windows[index]
+    const window = root.windowOf(index)
     AppSwitcherState.visible = false
     if (window) Hyprland.dispatch("hl.dsp.focus({ window = " + JSON.stringify("address:" + window.address) + " })")
   }
@@ -82,6 +115,23 @@ ModalPanel {
     if (icon.startsWith("/")) return "file://" + icon
     if (icon !== "") return Quickshell.iconPath(icon, true)
     return Quickshell.iconPath(window.class, true) || Quickshell.iconPath(window.class.toLowerCase(), true)
+  }
+
+  // A window's Wayland toplevel, to capture its picture (Hyprland gives
+  // addresses with or without the "0x").
+  function toplevelOf(window) {
+    const address = window.address.replace(/^0x/, "")
+    const toplevel = Hyprland.toplevels.values.find(other => other.address.replace(/^0x/, "") === address)
+    return toplevel?.wayland ?? null
+  }
+
+  // What's said under a window's title: its app, then its workspace and, for
+  // an app's entry, how many windows it has.
+  function detailsOf(entry, window) {
+    const parts = [entry.class]
+    if (Settings.switcherShowWorkspace && window.workspace?.name) parts.push(I18n.tr("switcher.workspace", window.workspace.name))
+    if (entry.windows.length > 1) parts.push(I18n.tr("switcher.windows", entry.windows.length))
+    return parts.join("  ·  ")
   }
 
   Connections {
@@ -99,9 +149,14 @@ ModalPanel {
 
     stdout: StdioCollector {
       onStreamFinished: {
+        const workspace = Hyprland.focusedWorkspace?.id
+        const monitor = Hyprland.focusedMonitor?.id
         try {
           root.windows = JSON.parse(this.text)
             .filter(window => window.mapped && !window.hidden)
+            .filter(window => Settings.switcherScope === "workspace" ? window.workspace?.id === workspace
+              : Settings.switcherScope === "monitor" ? window.monitor === monitor
+              : true)
             .sort((a, b) => a.focusHistoryID - b.focusHistoryID)
         } catch (e) {
           root.windows = []
@@ -132,12 +187,19 @@ ModalPanel {
   // modifiers, or while it isn't known, Super, Alt and Ctrl.
   readonly property var releaseKeys: (AppSwitcherState.modifiers.length > 0 ? AppSwitcherState.modifiers : ["Super", "Alt", "Ctrl"])
     .reduce((keys, name) => keys.concat(root.qtKeys(name)), [])
+  // The key above Tab (` on a US layout, ² on a French one), by its place
+  // on the keyboard rather than its character: its evdev code, 41, plus 8.
+  readonly property int keyAboveTab: 49
 
   onKeyPressed: event => {
     // The shortcut's key reaching the panel (Hyprland takes the shortcut
     // itself, but not with Shift added): back with Shift, on otherwise.
     if (AppSwitcherState.key !== "" && root.qtKeys(AppSwitcherState.key).includes(event.key)) {
       AppSwitcherState.current += (event.modifiers & Qt.ShiftModifier) ? -1 : 1
+      event.accepted = true
+    } else if (event.nativeScanCode === root.keyAboveTab) {
+      // Through the selected app's windows (with Shift, back).
+      root.inner += (event.modifiers & Qt.ShiftModifier) ? -1 : 1
       event.accepted = true
     } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
       AppSwitcherState.current += 1
@@ -153,13 +215,13 @@ ModalPanel {
 
   // Holds the keyboard: the keys pressed go on to the frame (and
   // onKeyPressed above), and the release of the shortcut's modifier while
-  // cycling switches to the selected window.
+  // cycling switches to the selected window (when that's on).
   Item {
     id: keys
     focus: true
 
     Keys.onReleased: event => {
-      if (AppSwitcherState.cycling && root.releaseKeys.includes(event.key) && !event.isAutoRepeat) {
+      if (Settings.switcherReleaseSwitch && AppSwitcherState.cycling && root.releaseKeys.includes(event.key) && !event.isAutoRepeat) {
         root.activate(root.selected)
         event.accepted = true
       }
@@ -204,11 +266,11 @@ ModalPanel {
       currentIndex: root.selected
       highlightFollowsCurrentItem: false
 
-      // Keeps the selected window in view.
+      // Keeps the selected entry in view.
       onCurrentIndexChanged: if (list.currentIndex >= 0) list.positionViewAtIndex(list.currentIndex, ListView.Contain)
 
       model: ScriptModel {
-        values: root.windows
+        values: root.entries
       }
 
       delegate: Rectangle {
@@ -217,7 +279,10 @@ ModalPanel {
         required property var modelData
         required property int index
         readonly property bool current: entry.index === root.selected
-        readonly property string iconSource: root.iconOf(entry.modelData)
+        // The window it stands for right now (see windowOf()).
+        readonly property var window: root.windowOf(entry.index)
+        readonly property string iconSource: entry.window ? root.iconOf(entry.window) : ""
+        readonly property color textColor: entry.current ? Theme.backgroundColor : Theme.textColor
 
         width: root.horizontal ? root.cardWidth : list.width
         height: root.horizontal ? list.height : root.rowHeight
@@ -233,30 +298,54 @@ ModalPanel {
           onTapped: root.activate(entry.index)
         }
 
-        // Before the texts in a row, above them on a card.
-        IconImage {
-          id: icon
-          visible: entry.iconSource !== "" && icon.status !== Image.Error
+        // Before the texts in a row, above them on a card: the window's
+        // picture, or its icon.
+        Item {
+          id: media
           x: root.horizontal ? (parent.width - width) / 2 : 12
           y: root.horizontal ? 14 : (parent.height - height) / 2
-          width: root.horizontal ? root.cardIcon : 32
-          height: width
-          source: entry.iconSource
-        }
+          width: root.previews ? root.mediaWidth : root.iconSize
+          height: root.previews ? root.mediaHeight : root.iconSize
 
-        // The generic glyph, where there's no icon to show (as in the bar's
-        // window title and the launcher).
-        ThemedText {
-          visible: !icon.visible
-          anchors.centerIn: icon
-          text: "󰀻"
-          sizeScale: root.horizontal ? 2.2 : 1.4
-          color: entry.current ? Theme.backgroundColor : Theme.textColor
+          // Its window, live, as large as fits with its own proportions.
+          ScreencopyView {
+            id: preview
+            visible: root.previews && preview.hasContent
+            anchors.centerIn: parent
+            readonly property real scale: preview.sourceSize.width > 0
+              ? Math.min(parent.width / preview.sourceSize.width, parent.height / preview.sourceSize.height) : 1
+            width: preview.sourceSize.width * preview.scale
+            height: preview.sourceSize.height * preview.scale
+            captureSource: root.previews && entry.window ? root.toplevelOf(entry.window) : null
+            live: true
+          }
+
+          // Its icon: alone, or small in a corner of the picture.
+          IconImage {
+            id: icon
+            visible: entry.iconSource !== "" && icon.status !== Image.Error
+            readonly property bool corner: preview.visible
+            x: icon.corner ? parent.width - width - 4 : (parent.width - width) / 2
+            y: icon.corner ? parent.height - height - 4 : (parent.height - height) / 2
+            width: icon.corner ? 28 : root.iconSize
+            height: width
+            source: entry.iconSource
+          }
+
+          // The generic glyph, where there's no icon to show (as in the
+          // bar's window title and the launcher).
+          ThemedText {
+            visible: !icon.visible && !preview.visible
+            anchors.centerIn: parent
+            text: "󰀻"
+            font.pixelSize: root.iconSize * 0.8
+            color: entry.textColor
+          }
         }
 
         Column {
-          x: root.horizontal ? 10 : icon.x + icon.width + 12
-          y: root.horizontal ? icon.y + icon.height + 10 : (parent.height - height) / 2
+          x: root.horizontal ? 10 : media.x + media.width + 12
+          y: root.horizontal ? media.y + media.height + 10 : (parent.height - height) / 2
           width: root.horizontal ? parent.width - 20 : parent.width - x - 12
           spacing: root.horizontal ? 0 : 1
 
@@ -264,17 +353,17 @@ ModalPanel {
             width: parent.width
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
-            text: entry.modelData.title || entry.modelData.class
-            color: entry.current ? Theme.backgroundColor : Theme.textColor
+            text: entry.window ? (entry.window.title || entry.window.class) : ""
+            color: entry.textColor
           }
 
-          // Its app and workspace.
+          // Its app, workspace and windows.
           ThemedText {
             width: parent.width
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
-            text: I18n.tr("switcher.details", entry.modelData.class, entry.modelData.workspace?.name ?? "")
-            color: entry.current ? Theme.backgroundColor : Theme.textColor
+            text: entry.window ? root.detailsOf(entry.modelData, entry.window) : ""
+            color: entry.textColor
             sizeScale: 0.75
             opacity: 0.7
           }

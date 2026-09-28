@@ -51,6 +51,8 @@ Singleton {
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
     launcherResults: [3, 20],
+    switcherIconSize: [24, 96],
+    switcherMaxShown: [3, 20],
     volumeOsdMargin: [0, 400],
     lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
@@ -100,6 +102,7 @@ Singleton {
     notificationActionsPlacement: root.panelPlacements,
     switcherPlacement: root.panelPlacements,
     switcherOrientation: ["vertical", "horizontal"],
+    switcherScope: ["all", "workspace", "monitor"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -338,6 +341,24 @@ Singleton {
   // Whether the app switcher lists the windows in a column ("vertical") or
   // side by side ("horizontal", one of choices.switcherOrientation).
   readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
+  // Which windows it lists (one of choices.switcherScope): all of them, those
+  // of the focused workspace, or those of the focused monitor.
+  readonly property string switcherScope: root.valid("switcherScope", file.adapter.switcherScope)
+  // Whether it lists each app once (its windows gathered, the most recently
+  // focused first) rather than each window.
+  readonly property bool switcherGroupApps: root.valid("switcherGroupApps", file.adapter.switcherGroupApps)
+  // Whether a window's workspace is shown after its app.
+  readonly property bool switcherShowWorkspace: root.valid("switcherShowWorkspace", file.adapter.switcherShowWorkspace)
+  // The size of its icons, in pixels, and how many windows it shows at once
+  // before scrolling.
+  readonly property int switcherIconSize: root.valid("switcherIconSize", file.adapter.switcherIconSize)
+  readonly property int switcherMaxShown: root.valid("switcherMaxShown", file.adapter.switcherMaxShown)
+  // Whether releasing its shortcut's modifier switches to the selected
+  // window; without it, Enter or a click does.
+  readonly property bool switcherReleaseSwitch: root.valid("switcherReleaseSwitch", file.adapter.switcherReleaseSwitch)
+  // Whether the horizontal cards show a live picture of each window instead
+  // of its icon.
+  readonly property bool switcherPreviews: root.valid("switcherPreviews", file.adapter.switcherPreviews)
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
@@ -850,6 +871,13 @@ Singleton {
       property string notificationActionsPlacement: Defaults.values.notificationActionsPlacement
       property string switcherPlacement: Defaults.values.switcherPlacement
       property string switcherOrientation: Defaults.values.switcherOrientation
+      property string switcherScope: Defaults.values.switcherScope
+      property bool switcherGroupApps: Defaults.values.switcherGroupApps
+      property bool switcherShowWorkspace: Defaults.values.switcherShowWorkspace
+      property int switcherIconSize: Defaults.values.switcherIconSize
+      property int switcherMaxShown: Defaults.values.switcherMaxShown
+      property bool switcherReleaseSwitch: Defaults.values.switcherReleaseSwitch
+      property bool switcherPreviews: Defaults.values.switcherPreviews
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds

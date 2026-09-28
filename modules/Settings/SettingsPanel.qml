@@ -237,6 +237,8 @@ ModalPanel {
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
+    // Only the app switcher's cards have room for a window's picture.
+    if (row.key === "switcherPreviewsRow") return Settings.switcherOrientation === "horizontal"
     // An OSD in the center of the screen touches no edge.
     if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
     if (row.key === "lockKeysOsdMargin") return Settings.lockKeysOsdPosition !== "center-center"
@@ -281,6 +283,7 @@ ModalPanel {
     if ((row.key === "curvedJoinsRow" || row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && Theme.borderWidth > 0) return I18n.tr("settings.curvedJoins.disabledBorder")
     if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && !Theme.curvedJoins) return I18n.tr("settings.curvedJoinsRadius.disabledOff")
     if (row.key === "curvedJoinsRadius" && Settings.curvedJoinsRadiusSame) return I18n.tr("settings.curvedJoinsRadius.disabledSame")
+    if (row.key === "switcherPreviewsRow" && Settings.switcherOrientation !== "horizontal") return I18n.tr("settings.switcherPreviews.disabled")
     if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")
@@ -305,6 +308,7 @@ ModalPanel {
     if (row.key === "launcherTab") return root.launcherTabOptions
     if (row.key === "clockDate") return root.clockDateOptions
     if (row.key === "switcherOrientation") return root.switcherOrientationOptions
+    if (row.key === "switcherScope") return root.switcherScopeOptions
     if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
@@ -330,6 +334,10 @@ ModalPanel {
   // The app switcher's directions, named in the current language.
   readonly property var switcherOrientationOptions: Settings.choices.switcherOrientation
     .map(name => ({ value: name, text: I18n.tr("settings.switcherOrientation." + name) }))
+
+  // Which windows the app switcher lists, named in the current language.
+  readonly property var switcherScopeOptions: Settings.choices.switcherScope
+    .map(name => ({ value: name, text: I18n.tr("settings.switcherScope." + name) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab

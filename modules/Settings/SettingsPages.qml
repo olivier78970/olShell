@@ -164,6 +164,21 @@ Singleton {
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
     { key: "switcherOrientation", category: "panelSettings", kind: "buttons", title: I18n.tr("settings.placement.switcher"), label: I18n.tr("settings.switcherOrientation") },
+    { key: "switcherScope", category: "panelSettings", kind: "buttons", label: I18n.tr("settings.switcherScope") },
+    { key: "switcherGroupAppsRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
+      { key: "switcherGroupApps", text: "" }
+    ] },
+    { key: "switcherShowWorkspaceRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherShowWorkspace"), toggles: [
+      { key: "switcherShowWorkspace", text: "" }
+    ] },
+    { key: "switcherIconSize", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
+    { key: "switcherMaxShown", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
+    { key: "switcherReleaseSwitchRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
+      { key: "switcherReleaseSwitch", text: "" }
+    ] },
+    { key: "switcherPreviewsRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
+      { key: "switcherPreviews", text: "" }
+    ] },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }

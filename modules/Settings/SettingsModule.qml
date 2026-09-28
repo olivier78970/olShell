@@ -143,7 +143,7 @@ Scope {
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
-    // switcherOrientation,
+    // switcherOrientation, switcherScope,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
