@@ -64,7 +64,8 @@ ModalPanel {
   readonly property int maxShown: Settings.switcherMaxShown
   readonly property int shown: Math.max(root.entries.length, 1)
   readonly property int iconSize: Settings.switcherIconSize
-  readonly property real rowHeight: root.iconSize + 24
+  // A row: as tall as its icon or its texts, whichever is taller.
+  readonly property real rowHeight: Math.max(root.iconSize, root.textHeight) + 24
   // A card's picture (its window's, or its icon) and the card itself: the
   // picture, then its texts, each on up to cardLines lines (measured by the
   // probes below).
@@ -73,11 +74,14 @@ ModalPanel {
   readonly property real cardWidth: Math.max(190, root.mediaWidth + 20, root.iconSize + 120)
   readonly property int cardLines: 2
   readonly property real cardHeight: 14 + root.mediaHeight
-    + (root.showDetails || Settings.switcherShowTitle ? 10 : 0)
-    + (Settings.switcherShowTitle ? titleProbe.implicitHeight : 0)
-    + (root.showDetails ? detailsProbe.implicitHeight : 0) + 14
-  // Whether anything goes on the line under the title (see detailsOf()).
-  readonly property bool showDetails: Settings.switcherShowApp || Settings.switcherShowWorkspace || Settings.switcherShowCount
+    + (root.textHeight > 0 ? 10 : 0) + root.textHeight + 14
+  // How many lines of details go under the title (see detailsOf()): one for
+  // each shown, the window count only when windows are gathered by app.
+  readonly property int detailLines: (Settings.switcherShowApp ? 1 : 0) + (Settings.switcherShowWorkspace ? 1 : 0)
+    + (Settings.switcherShowCount && Settings.switcherGroupApps ? 1 : 0)
+  // The height of the texts: the title (on cardLines lines on a card) and
+  // a line per detail.
+  readonly property real textHeight: (Settings.switcherShowTitle ? titleProbe.implicitHeight : 0) + root.detailLines * detailsProbe.implicitHeight
 
   // As wide as its cards side by side (up to maxShown; no narrower than
   // the title needs), or a fixed width for rows; as tall as its rows (up to
@@ -132,14 +136,14 @@ ModalPanel {
     return toplevel?.wayland ?? null
   }
 
-  // What's said under a window's title, each part as the settings ask: its
-  // app, its workspace and, for an app's entry, how many windows it has.
+  // The lines under a window's title, each as the settings ask: its app,
+  // its workspace and, for an app's entry, how many windows it has.
   function detailsOf(entry, window) {
-    const parts = []
-    if (Settings.switcherShowApp) parts.push(entry.class)
-    if (Settings.switcherShowWorkspace && window.workspace?.name) parts.push(I18n.tr("switcher.workspace", window.workspace.name))
-    if (Settings.switcherShowCount && entry.windows.length > 1) parts.push(I18n.tr("switcher.windows", entry.windows.length))
-    return parts.join("  ·  ")
+    const lines = []
+    if (Settings.switcherShowApp) lines.push(entry.class)
+    if (Settings.switcherShowWorkspace && window.workspace?.name) lines.push(I18n.tr("switcher.workspace", window.workspace.name))
+    if (Settings.switcherShowCount && entry.windows.length > 1) lines.push(I18n.tr("switcher.windows", entry.windows.length))
+    return lines
   }
 
   Connections {
@@ -249,8 +253,8 @@ ModalPanel {
       font.bold: true
     }
 
-    // cardLines lines of each text size of a card (or one, in a row),
-    // measured for its height; never shown.
+    // cardLines lines of a card's title (or one, in a row), and a line of its
+    // details, measured for its height; never shown.
     ThemedText {
       id: titleProbe
       visible: false
@@ -260,7 +264,7 @@ ModalPanel {
     ThemedText {
       id: detailsProbe
       visible: false
-      text: Array(root.horizontal ? root.cardLines : 1).fill("Ag").join("\n")
+      text: "Ag"
       sizeScale: 0.75
     }
 
@@ -356,7 +360,7 @@ ModalPanel {
           x: root.horizontal ? 10 : media.x + media.width + 12
           y: root.horizontal ? media.y + media.height + 10 : (parent.height - height) / 2
           width: root.horizontal ? parent.width - 20 : parent.width - x - 12
-          spacing: root.horizontal ? 0 : 1
+          spacing: 0
 
           ThemedText {
             visible: Settings.switcherShowTitle
@@ -372,18 +376,21 @@ ModalPanel {
             color: entry.textColor
           }
 
-          // Its app, workspace and windows.
-          ThemedText {
-            visible: text.length > 0
-            width: parent.width
-            horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
-            wrapMode: root.horizontal ? Text.Wrap : Text.NoWrap
-            maximumLineCount: root.horizontal ? root.cardLines : 1
-            elide: Text.ElideRight
-            text: entry.window ? root.detailsOf(entry.modelData, entry.window) : ""
-            color: entry.textColor
-            sizeScale: 0.75
-            opacity: 0.7
+          // Its app, workspace and windows, a line each.
+          Repeater {
+            model: entry.window ? root.detailsOf(entry.modelData, entry.window) : []
+
+            ThemedText {
+              required property string modelData
+
+              width: parent.width
+              horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
+              elide: Text.ElideRight
+              text: modelData
+              color: entry.textColor
+              sizeScale: 0.75
+              opacity: 0.7
+            }
           }
         }
       }
