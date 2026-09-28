@@ -56,6 +56,14 @@ Item {
   readonly property real listHeight: Math.min(root.options.length, root.visibleEntries) * root.entryHeight + 8
   // Wide enough for a long name at the current font size, within the row.
   readonly property real listWidth: Math.min(Math.max(button.width, Theme.fontSize() * 24), header.width - 24)
+  // The widest option's text, which the current value is given, so the
+  // button keeps one width whatever is picked and rows with the same options
+  // line up (not for a list of fonts, each drawn in its own).
+  readonly property real widestText: {
+    let widest = 0
+    for (let i = 0; i < optionWidths.count; i++) widest = Math.max(widest, optionWidths.itemAt(i)?.implicitWidth ?? 0)
+    return widest
+  }
   // Whichever of the two lists below is the one actually in use.
   readonly property Item activeList: root.overlay ? overlayLoader.item : inlineLoader.item
 
@@ -132,8 +140,20 @@ Item {
 
       ThemedText {
         anchors.verticalCenter: parent.verticalCenter
+        width: Math.max(implicitWidth, root.widestText)
         text: root.currentIndex >= 0 ? root.options[root.currentIndex].text : ""
         color: Theme.accentColor
+      }
+    }
+
+    // Measures every option's text, for widestText; never shown.
+    Repeater {
+      id: optionWidths
+      model: root.previewFonts ? [] : root.options
+
+      ThemedText {
+        visible: false
+        text: modelData.text
       }
     }
 
