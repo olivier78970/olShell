@@ -1041,7 +1041,9 @@ ModalPanel {
                 disabledReason: root.disabledReasonOf(row.modelData)
                 tooltip: row.modelData.tooltip ?? ""
                 stepper: row.modelData.stepper ?? false
-                editing: root.editKey === row.modelData.key
+                // Only a slider row's: every row holds every kind of control, hidden
+                // but for its own, and another kind's hidden field took the keyboard.
+                editing: row.modelData.kind === "slider" && root.editKey === row.modelData.key
                 onEditRequested: root.editKey = row.modelData.key
                 onCommitted: value => {
                   root.editKey = ""
@@ -1170,7 +1172,7 @@ ModalPanel {
                 placeholder: row.modelData.placeholder ?? ""
                 swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
-                editing: root.editKey === row.modelData.key
+                editing: row.modelData.kind === "path" && root.editKey === row.modelData.key
                 onActivated: root.selected = row.index
                 onEditRequested: root.editKey = row.modelData.key
                 onCommitted: text => {
