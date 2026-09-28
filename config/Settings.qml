@@ -65,10 +65,11 @@ Singleton {
   // horizontal one.
   readonly property var osdPositions: ["bottom-center", "bottom-left", "bottom-right", "center-center", "center-left", "center-right", "top-center", "top-left", "top-right"]
 
-  // Where a full-screen panel opens: centered on the screen, attached to the
-  // bar at its left end, in its middle or at its right end, or the same
-  // against the screen's opposite edge.
-  readonly property var panelPlacements: ["center", "bar-left", "bar-center", "bar-right", "opposite-left", "opposite-center", "opposite-right"]
+  // Where a full-screen panel opens: centered on the screen, or only
+  // vertically against its left or right edge, attached to the bar at its
+  // left end, in its middle or at its right end, or the same against the
+  // screen's opposite edge.
+  readonly property var panelPlacements: ["center", "center-left", "center-right", "bar-left", "bar-center", "bar-right", "opposite-left", "opposite-center", "opposite-right"]
 
   // The values a setting can only take one of, in the order the panel lists
   // them. The wallpaper transitions are those of `awww img

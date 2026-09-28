@@ -51,7 +51,9 @@ PanelWindow {
   // Whether the panel is open; the owner binds it (not `visible`, which an
   // attached panel keeps false).
   property bool open: false
-  // Where the panel opens: "center" (of the screen), against the bar at its
+  // Where the panel opens: "center" (of the screen), against its left or
+  // right edge halfway down ("center-left", "center-right", as far from that
+  // edge as the bar is from it), against the bar at its
   // left end, in its middle or at its right end ("bar-left", "bar-center",
   // "bar-right"), or the same against the screen's edge opposite the bar
   // ("opposite-left", "opposite-center", "opposite-right"), as far from it
@@ -201,7 +203,10 @@ PanelWindow {
       left: true
     }
     margins.left: {
-      const align = root.opposite ? root.placement.slice(9) : "center"
+      const align = root.opposite ? root.placement.slice(9)
+        : root.placement === "center-left" ? "left"
+        : root.placement === "center-right" ? "right"
+        : "center"
       if (align === "left") return Theme.barMarginLeft
       if (align === "right") return root.width - frame.width - Theme.barMarginRight
       return (root.width - frame.width) / 2

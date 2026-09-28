@@ -6,7 +6,7 @@ import qs.config
 // a dash, the horizontal one). A position with no dash (just "top" or
 // "bottom") is an edge to hug in full, drawn as a bar spanning that edge. A
 // panel's placement (Settings.panelPlacements) is drawn the same way: "center"
-// in the middle of the screen, "bar-left", "bar-center" or "bar-right" on the
+// in the middle of the screen, "center-left" and "center-right" as they read, "bar-left", "bar-center" or "bar-right" on the
 // bar's edge (Theme.barPosition), and "opposite-..." on the other one;
 // "each" (each panel its own place) is the screen with no block.
 Rectangle {
