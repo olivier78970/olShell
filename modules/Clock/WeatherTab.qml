@@ -17,6 +17,30 @@ Item {
   readonly property real weekMin: Math.min(...Weather.days.map(day => day.min))
   readonly property real weekMax: Math.max(...Weather.days.map(day => day.max))
 
+  // The colors temperatures go through, cold to hot (in °C): blue, cyan,
+  // green, yellow, orange, red.
+  readonly property var heatStops: [
+    { at: -5, color: "#4a7fe0" },
+    { at: 5, color: "#4fc3f7" },
+    { at: 12, color: "#66bb6a" },
+    { at: 18, color: "#fdd835" },
+    { at: 24, color: "#fb8c00" },
+    { at: 32, color: "#e53935" }
+  ]
+
+  // The color of a temperature (in the unit shown), between the stops.
+  function heatColor(value) {
+    const celsius = Weather.fahrenheit ? (value - 32) * 5 / 9 : value
+    const stops = root.heatStops
+    if (celsius <= stops[0].at) return stops[0].color
+    for (let i = 1; i < stops.length; i++) {
+      if (celsius > stops[i].at) continue
+      const t = (celsius - stops[i - 1].at) / (stops[i].at - stops[i - 1].at)
+      return Qt.tint(stops[i - 1].color, Qt.alpha(stops[i].color, t))
+    }
+    return stops[stops.length - 1].color
+  }
+
   // A temperature, rounded, with its degree sign.
   function degrees(value) {
     return Math.round(value) + "°"
@@ -306,7 +330,8 @@ Item {
             opacity: 0.6
           }
 
-          // The day's low to high, on the week's range.
+          // The day's low to high, on the week's range, colored from the
+          // low's temperature to the high's.
           Rectangle {
             id: range
             anchors.left: low.right
@@ -324,7 +349,13 @@ Item {
               width: Math.max(height, range.width * (day.modelData.max - day.modelData.min) / span)
               height: parent.height
               radius: parent.radius
-              color: Theme.accentColor
+
+              gradient: Gradient {
+                orientation: Gradient.Horizontal
+
+                GradientStop { position: 0; color: root.heatColor(day.modelData.min) }
+                GradientStop { position: 1; color: root.heatColor(day.modelData.max) }
+              }
             }
           }
 
