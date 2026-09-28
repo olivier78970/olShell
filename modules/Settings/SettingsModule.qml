@@ -144,7 +144,7 @@ Scope {
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
-    // panels' panelPlacement ("each" too), launcherPlacement, settingsPlacement, shortcutsPlacement,
+    // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
     // notificationActionsPlacement and switcherPlacement; a value
     // not in the list is ignored), for the font family (any installed family,

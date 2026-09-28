@@ -45,7 +45,7 @@ ModalPanel {
   readonly property var categories: ["apps", "shell", "windows", "workspaces", "other"]
 
   maxPanelWidth: 820
-  placement: Settings.placementOf(Settings.shortcutsPlacement)
+  placement: Settings.shortcutsPlacement
   maxPanelHeight: 680
   focusTarget: input
 

@@ -78,7 +78,7 @@ ModalPanel {
   readonly property real chromeHeight: 32 + tabBar.height + searchBox.height + 24
 
   maxPanelWidth: 640
-  placement: Settings.placementOf(Settings.launcherPlacement)
+  placement: Settings.launcherPlacement
   maxPanelHeight: root.chromeHeight + root.listHeight
   // The search box stays put while the list grows and shrinks.
   placementHeight: root.chromeHeight + root.maxListHeight

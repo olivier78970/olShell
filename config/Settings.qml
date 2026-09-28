@@ -324,12 +324,8 @@ Singleton {
   readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
   readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
   readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
-  // Where every full-screen panel opens, overriding their own placements
-  // below (one of panelPlacements), or "each" for each its own.
-  readonly property string panelPlacement: root.valid("panelPlacement", file.adapter.panelPlacement)
   // Where each full-screen panel opens (one of panelPlacements each, see
-  // components/ModalPanel.qml's `placement`), unless panelPlacement puts
-  // them all in one place: see placementOf().
+  // components/ModalPanel.qml's `placement`).
   readonly property string launcherPlacement: root.valid("launcherPlacement", file.adapter.launcherPlacement)
   readonly property string settingsPlacement: root.valid("settingsPlacement", file.adapter.settingsPlacement)
   readonly property string shortcutsPlacement: root.valid("shortcutsPlacement", file.adapter.shortcutsPlacement)
@@ -339,10 +335,14 @@ Singleton {
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
   readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
 
-  // Where a panel whose own placement is `own` opens: there, or where
-  // panelPlacement puts them all.
-  function placementOf(own) {
-    return root.panelPlacement === "each" ? own : root.panelPlacement
+  // The panels' placement settings, which panelPlacement sets all at once.
+  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
+  // Where every panel opens, when they all open in the same place, or
+  // "each" when they don't. Not saved: setting it sets each of them (see
+  // set()).
+  readonly property string panelPlacement: {
+    const placements = root.placementKeys.map(key => root[key])
+    return placements.every(placement => placement === placements[0]) ? placements[0] : "each"
   }
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
@@ -685,6 +685,11 @@ Singleton {
   // Changes a setting and saves it (shortly after the last change, so
   // dragging a slider doesn't write the file for every step).
   function set(key, value) {
+    // Every panel's placement at once ("each" leaves them as they are).
+    if (key === "panelPlacement") {
+      if (root.panelPlacements.includes(value)) root.placementKeys.forEach(placementKey => root.set(placementKey, value))
+      return
+    }
     if (root.defaults[key] === undefined) return
     // A color mistyped in the settings keeps the one there was.
     if (root.colorKeys.includes(key) && !root.validColor(value)) return
@@ -832,7 +837,6 @@ Singleton {
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
-      property string panelPlacement: Defaults.values.panelPlacement
       property string launcherPlacement: Defaults.values.launcherPlacement
       property string settingsPlacement: Defaults.values.settingsPlacement
       property string shortcutsPlacement: Defaults.values.shortcutsPlacement

@@ -32,7 +32,7 @@ ModalPanel {
   // The buttons' grid and a margin around it.
   maxPanelWidth: 452 + 2 * 24
   maxPanelHeight: 256 + 2 * 24
-  placement: Settings.placementOf(Settings.powerPlacement)
+  placement: Settings.powerPlacement
   anchorItem: PowerPanelState.anchorItem
 
   open: PowerPanelState.visible

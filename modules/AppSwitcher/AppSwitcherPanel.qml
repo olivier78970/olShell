@@ -38,7 +38,7 @@ ModalPanel {
   maxPanelWidth: 640
   // As tall as its rows, up to maxRows.
   maxPanelHeight: 16 * 2 + title.implicitHeight + 12 + Math.min(Math.max(root.windows.length, 1), root.maxRows) * (root.rowHeight + list.spacing)
-  placement: Settings.placementOf(Settings.switcherPlacement)
+  placement: Settings.switcherPlacement
   focusTarget: keys
 
   open: AppSwitcherState.visible
