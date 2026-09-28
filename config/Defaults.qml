@@ -108,7 +108,6 @@ Singleton {
     switcherShowTitle: true,
     switcherShowApp: true,
     switcherShowWorkspace: true,
-    switcherShowCount: true,
     switcherIconSize: 40,
     switcherMaxShown: 8,
     switcherReleaseSwitch: true,

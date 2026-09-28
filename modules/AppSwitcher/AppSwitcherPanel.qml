@@ -76,9 +76,8 @@ ModalPanel {
   readonly property real cardHeight: 14 + root.mediaHeight
     + (root.textHeight > 0 ? 10 : 0) + root.textHeight + 14
   // How many lines of details go under the title (see detailsOf()): one for
-  // each shown, the window count only when windows are gathered by app.
+  // each shown.
   readonly property int detailLines: (Settings.switcherShowApp ? 1 : 0) + (Settings.switcherShowWorkspace ? 1 : 0)
-    + (Settings.switcherShowCount && Settings.switcherGroupApps ? 1 : 0)
   // The height of the texts: the title (on cardLines lines on a card) and
   // a line per detail.
   readonly property real textHeight: (Settings.switcherShowTitle ? titleProbe.implicitHeight : 0) + root.detailLines * detailsProbe.implicitHeight
@@ -136,13 +135,12 @@ ModalPanel {
     return toplevel?.wayland ?? null
   }
 
-  // The lines under a window's title, each as the settings ask: its app,
-  // its workspace and, for an app's entry, how many windows it has.
+  // The lines under a window's title, each as the settings ask: its app and
+  // its workspace (an app's window count is on its badge).
   function detailsOf(entry, window) {
     const lines = []
     if (Settings.switcherShowApp) lines.push(entry.class)
     if (Settings.switcherShowWorkspace && window.workspace?.name) lines.push(I18n.tr("switcher.workspace", window.workspace.name))
-    if (Settings.switcherShowCount && entry.windows.length > 1) lines.push(I18n.tr("switcher.windows", entry.windows.length))
     return lines
   }
 
@@ -399,7 +397,7 @@ ModalPanel {
             color: entry.textColor
           }
 
-          // Its app, workspace and windows, a line each.
+          // Its app and workspace, a line each.
           Repeater {
             model: entry.window ? root.detailsOf(entry.modelData, entry.window) : []
 

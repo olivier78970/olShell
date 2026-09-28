@@ -171,8 +171,7 @@ Singleton {
     { key: "switcherTextRow", category: "panelSettings", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
       { key: "switcherShowTitle", text: I18n.tr("settings.switcherText.title") },
       { key: "switcherShowApp", text: I18n.tr("settings.switcherText.app") },
-      { key: "switcherShowWorkspace", text: I18n.tr("settings.switcherText.workspace") },
-      { key: "switcherShowCount", text: I18n.tr("settings.switcherText.count") }
+      { key: "switcherShowWorkspace", text: I18n.tr("settings.switcherText.workspace") }
     ] },
     { key: "switcherIconSize", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
     { key: "switcherMaxShown", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
