@@ -347,8 +347,13 @@ Singleton {
   // Whether it lists each app once (its windows gathered, the most recently
   // focused first) rather than each window.
   readonly property bool switcherGroupApps: root.valid("switcherGroupApps", file.adapter.switcherGroupApps)
-  // Whether a window's workspace is shown after its app.
+  // What it shows with each window's icon (under it on a card, beside it in
+  // a row): its title, and on a line under it, its app, its workspace, and
+  // for an app's entry, how many windows it has.
+  readonly property bool switcherShowTitle: root.valid("switcherShowTitle", file.adapter.switcherShowTitle)
+  readonly property bool switcherShowApp: root.valid("switcherShowApp", file.adapter.switcherShowApp)
   readonly property bool switcherShowWorkspace: root.valid("switcherShowWorkspace", file.adapter.switcherShowWorkspace)
+  readonly property bool switcherShowCount: root.valid("switcherShowCount", file.adapter.switcherShowCount)
   // The size of its icons, in pixels, and how many windows it shows at once
   // before scrolling.
   readonly property int switcherIconSize: root.valid("switcherIconSize", file.adapter.switcherIconSize)
@@ -873,7 +878,10 @@ Singleton {
       property string switcherOrientation: Defaults.values.switcherOrientation
       property string switcherScope: Defaults.values.switcherScope
       property bool switcherGroupApps: Defaults.values.switcherGroupApps
+      property bool switcherShowTitle: Defaults.values.switcherShowTitle
+      property bool switcherShowApp: Defaults.values.switcherShowApp
       property bool switcherShowWorkspace: Defaults.values.switcherShowWorkspace
+      property bool switcherShowCount: Defaults.values.switcherShowCount
       property int switcherIconSize: Defaults.values.switcherIconSize
       property int switcherMaxShown: Defaults.values.switcherMaxShown
       property bool switcherReleaseSwitch: Defaults.values.switcherReleaseSwitch

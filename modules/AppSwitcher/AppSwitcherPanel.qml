@@ -70,7 +70,12 @@ ModalPanel {
   readonly property real mediaWidth: root.previews ? 240 : root.iconSize
   readonly property real mediaHeight: root.previews ? 150 : root.iconSize
   readonly property real cardWidth: Math.max(140, root.mediaWidth + 20, root.iconSize + 100)
-  readonly property real cardHeight: 14 + root.mediaHeight + 10 + titleProbe.implicitHeight + detailsProbe.implicitHeight + 14
+  readonly property real cardHeight: 14 + root.mediaHeight
+    + (root.showDetails || Settings.switcherShowTitle ? 10 : 0)
+    + (Settings.switcherShowTitle ? titleProbe.implicitHeight : 0)
+    + (root.showDetails ? detailsProbe.implicitHeight : 0) + 14
+  // Whether anything goes on the line under the title (see detailsOf()).
+  readonly property bool showDetails: Settings.switcherShowApp || Settings.switcherShowWorkspace || Settings.switcherShowCount
 
   // As wide as its cards side by side (up to maxShown; no narrower than
   // the title needs), or a fixed width for rows; as tall as its rows (up to
@@ -125,12 +130,13 @@ ModalPanel {
     return toplevel?.wayland ?? null
   }
 
-  // What's said under a window's title: its app, then its workspace and, for
-  // an app's entry, how many windows it has.
+  // What's said under a window's title, each part as the settings ask: its
+  // app, its workspace and, for an app's entry, how many windows it has.
   function detailsOf(entry, window) {
-    const parts = [entry.class]
+    const parts = []
+    if (Settings.switcherShowApp) parts.push(entry.class)
     if (Settings.switcherShowWorkspace && window.workspace?.name) parts.push(I18n.tr("switcher.workspace", window.workspace.name))
-    if (entry.windows.length > 1) parts.push(I18n.tr("switcher.windows", entry.windows.length))
+    if (Settings.switcherShowCount && entry.windows.length > 1) parts.push(I18n.tr("switcher.windows", entry.windows.length))
     return parts.join("  ·  ")
   }
 
@@ -350,6 +356,7 @@ ModalPanel {
           spacing: root.horizontal ? 0 : 1
 
           ThemedText {
+            visible: Settings.switcherShowTitle
             width: parent.width
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
@@ -359,6 +366,7 @@ ModalPanel {
 
           // Its app, workspace and windows.
           ThemedText {
+            visible: text.length > 0
             width: parent.width
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
