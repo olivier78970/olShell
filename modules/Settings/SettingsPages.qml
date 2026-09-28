@@ -151,6 +151,7 @@ Singleton {
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
+    { key: "panelPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.all") },
     { key: "launcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.launcher") },
     { key: "settingsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.settings") },
     { key: "shortcutsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.shortcuts") },

@@ -94,6 +94,7 @@ Singleton {
     lockKeysOsdMargin: 60,
     lockTimeout: 10,
     launcherTab: "all",
+    panelPlacement: "each",
     launcherPlacement: "center",
     settingsPlacement: "center",
     shortcutsPlacement: "center",

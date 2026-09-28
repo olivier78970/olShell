@@ -89,6 +89,7 @@ Singleton {
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
     volumeOsdPosition: root.osdPositions,
     lockKeysOsdPosition: root.osdPositions,
+    panelPlacement: ["each"].concat(root.panelPlacements),
     launcherPlacement: root.panelPlacements,
     settingsPlacement: root.panelPlacements,
     shortcutsPlacement: root.panelPlacements,
@@ -321,8 +322,12 @@ Singleton {
   readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
   readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
   readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
+  // Where every full-screen panel opens, overriding their own placements
+  // below (one of panelPlacements), or "each" for each its own.
+  readonly property string panelPlacement: root.valid("panelPlacement", file.adapter.panelPlacement)
   // Where each full-screen panel opens (one of panelPlacements each, see
-  // components/ModalPanel.qml's `placement`).
+  // components/ModalPanel.qml's `placement`), unless panelPlacement puts
+  // them all in one place: see placementOf().
   readonly property string launcherPlacement: root.valid("launcherPlacement", file.adapter.launcherPlacement)
   readonly property string settingsPlacement: root.valid("settingsPlacement", file.adapter.settingsPlacement)
   readonly property string shortcutsPlacement: root.valid("shortcutsPlacement", file.adapter.shortcutsPlacement)
@@ -330,6 +335,12 @@ Singleton {
   readonly property string themePlacement: root.valid("themePlacement", file.adapter.themePlacement)
   readonly property string powerPlacement: root.valid("powerPlacement", file.adapter.powerPlacement)
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
+
+  // Where a panel whose own placement is `own` opens: there, or where
+  // panelPlacement puts them all.
+  function placementOf(own) {
+    return root.panelPlacement === "each" ? own : root.panelPlacement
+  }
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
   // The launcher: the tab it opens on (one of choices.launcherTab), and how
@@ -818,6 +829,7 @@ Singleton {
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
+      property string panelPlacement: Defaults.values.panelPlacement
       property string launcherPlacement: Defaults.values.launcherPlacement
       property string settingsPlacement: Defaults.values.settingsPlacement
       property string shortcutsPlacement: Defaults.values.shortcutsPlacement

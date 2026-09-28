@@ -7,7 +7,8 @@ import qs.config
 // "bottom") is an edge to hug in full, drawn as a bar spanning that edge. A
 // panel's placement (Settings.panelPlacements) is drawn the same way: "center"
 // in the middle of the screen, "bar-left", "bar-center" or "bar-right" on the
-// bar's edge (Theme.barPosition), and "opposite-..." on the other one.
+// bar's edge (Theme.barPosition), and "opposite-..." on the other one;
+// "each" (each panel its own place) is the screen with no block.
 Rectangle {
   id: root
 
@@ -33,6 +34,7 @@ Rectangle {
   opacity: 0.9
 
   Rectangle {
+    visible: root.position !== "each"
     width: root.edgeOnly ? root.width - root.margin * 2 - 4 : root.width * 0.36
     height: root.height * 0.29
     radius: Theme.radiusFor(3)
