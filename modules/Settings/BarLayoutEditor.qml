@@ -183,7 +183,8 @@ Item {
         required property string modelData
 
         zone: modelData
-        title: I18n.tr("settings.zone." + modelData)
+        // The left and right zones are the top and bottom ones of a side bar.
+        title: I18n.tr("settings.zone." + modelData + (Theme.barVertical && modelData !== "center" ? ".side" : ""))
 
         // The group cells of the lane, in order.
         function cells() {

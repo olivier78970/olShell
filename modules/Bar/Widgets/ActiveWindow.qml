@@ -7,9 +7,15 @@ import qs.config
 
 // Icon and title of the currently focused window (any compositor
 // supporting wlr-foreign-toplevel-management, not just Hyprland). A window
-// whose icon can't be found gets a generic application glyph instead.
+// whose icon can't be found gets a generic application glyph instead. On a
+// side bar (or with Settings.activeWindowIconOnly) only the icon shows, and
+// hovering it shows the title.
 Row {
   id: root
+
+  // Whether only the icon shows (the title on hover): always on a side bar,
+  // and on a top or bottom bar too with its setting.
+  readonly property bool iconOnly: Theme.barVertical || Settings.activeWindowIconOnly
 
   readonly property var toplevel: ToplevelManager.activeToplevel
   readonly property var desktopEntry: root.toplevel ? DesktopEntries.byId(root.toplevel.appId) : null
@@ -31,27 +37,44 @@ Row {
   readonly property bool present: root.toplevel !== null
   visible: root.present
 
-  IconImage {
-    id: icon
-    visible: root.iconSource !== "" && icon.status !== Image.Error
+  Item {
     anchors.verticalCenter: parent.verticalCenter
     width: Theme.trayIconSize()
-    height: Theme.trayIconSize()
-    source: root.iconSource
+    height: Math.max(icon.height, glyph.height)
+
+    IconImage {
+      id: icon
+      visible: root.iconSource !== "" && icon.status !== Image.Error
+      anchors.centerIn: parent
+      width: Theme.trayIconSize()
+      height: Theme.trayIconSize()
+      source: root.iconSource
+    }
+
+    // The generic glyph, where there's no icon to show (the launcher uses the
+    // same for an application without one).
+    BarText {
+      id: glyph
+      visible: !icon.visible
+      anchors.centerIn: parent
+      width: Theme.trayIconSize()
+      horizontalAlignment: Text.AlignHCenter
+      text: "󰀻"
+    }
+
+    // On a side bar, where the title doesn't show, hovering the icon shows it.
+    MouseArea {
+      anchors.fill: parent
+      enabled: root.iconOnly
+      hoverEnabled: true
+      onEntered: tooltip.hoverEntered()
+      onExited: tooltip.hoverExited()
+    }
   }
 
-  // The generic glyph, where there's no icon to show (the launcher uses the
-  // same for an application without one).
-  ThemedText {
-    visible: !icon.visible
-    anchors.verticalCenter: parent.verticalCenter
-    width: Theme.trayIconSize()
-    horizontalAlignment: Text.AlignHCenter
-    text: "󰀻"
-  }
-
-  ThemedText {
+  BarText {
     id: titleText
+    visible: !root.iconOnly
     anchors.verticalCenter: parent.verticalCenter
     width: Math.min(implicitWidth, root.maxTitleWidth)
     text: root.toplevel ? root.toplevel.title : ""
@@ -71,8 +94,12 @@ Row {
     anchorItem: root
     alignLeft: true
     marginLeft: -Theme.pillPadding
-    // Only worth showing when the title is actually cut off.
-    showWhen: titleText.truncated
+    // Only worth showing when the title is actually cut off, or not shown.
+    showWhen: titleText.truncated || root.iconOnly
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.activeWindow")
+    }
 
     ThemedText {
       text: titleText.text

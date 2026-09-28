@@ -6,8 +6,9 @@ import qs.config
 // goes before it when `divider` is set (WidgetZone works that out). The slot
 // is hidden, divider included, while the widget has nothing to show, and
 // slides shut (and fades) while `collapsed`, when its group is hidden until
-// its pill is hovered.
-Row {
+// its pill is hovered. Its divider and widget sit side by side, or stacked on
+// a side bar.
+BarStack {
   id: root
 
   // The widget's id (a key of BarWidgets.components).
@@ -25,13 +26,14 @@ Row {
   // Whether the widget has a popup menu open (the clock says so).
   readonly property bool open: root.item?.menuOpen ?? false
 
-  // The pill's row centers its widgets vertically by their own anchors.
-  anchors.verticalCenter: parent.verticalCenter
   visible: root.shown && root.reveal > 0
   clip: root.reveal < 1
   opacity: root.reveal
-  width: Math.round(implicitWidth * root.reveal)
-  spacing: Theme.widgetSpacing
+  // Slides shut along the bar.
+  width: Theme.barVertical ? implicitWidth : Math.round(implicitWidth * root.reveal)
+  height: Theme.barVertical ? Math.round(implicitHeight * root.reveal) : implicitHeight
+  gap: Theme.widgetSpacing
+  stackGap: Theme.widgetSpacing
 
   Behavior on reveal {
     NumberAnimation {
@@ -46,7 +48,6 @@ Row {
 
   Loader {
     id: loader
-    anchors.verticalCenter: parent.verticalCenter
     sourceComponent: BarWidgets.components[root.widget]
   }
 }

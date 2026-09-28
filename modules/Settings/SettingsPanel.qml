@@ -350,11 +350,19 @@ ModalPanel {
 
   // Where a panel can open, named in the current language.
   readonly property var placementOptions: Settings.panelPlacements
-    .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
+    .map(name => ({ value: name, text: root.placementText(name) }))
 
   // The same for every panel at once, and "each" for when they differ.
   readonly property var allPlacementOptions: Settings.choices.panelPlacement
-    .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
+    .map(name => ({ value: name, text: root.placementText(name) }))
+
+  // A placement's name in the current language: against a side bar, the
+  // bar's (and the opposite edge's) "left" and "right" ends are its top and
+  // bottom ones.
+  function placementText(name) {
+    const along = Theme.barVertical && /^(bar|opposite)-(left|right)$/.test(name)
+    return I18n.tr("settings.placement." + name + (along ? ".side" : ""))
+  }
 
   // The app switcher's directions, named in the current language.
   readonly property var switcherOrientationOptions: Settings.choices.switcherOrientation

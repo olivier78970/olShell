@@ -5,7 +5,7 @@ import qs.services
 
 // Magnifier icon for the screen zoom (services/Zoom.qml): the wheel over it
 // zooms in and out, and a click zooms back out, as its tooltip says.
-// While zoomed, the factor shows next to the icon.
+// While zoomed, the factor shows next to the icon (under it on a side bar).
 Item {
   id: root
 
@@ -18,20 +18,19 @@ Item {
   implicitWidth: row.implicitWidth
   implicitHeight: row.implicitHeight
 
-  Row {
+  BarStack {
     id: row
     anchors.centerIn: parent
-    spacing: 6
+    gap: 6
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: "󱡴"
     }
 
-    ThemedText {
+    BarText {
       visible: Zoom.zoomed
-      anchors.verticalCenter: parent.verticalCenter
       text: "×" + Zoom.factor.toFixed(1)
+      sizeScale: Theme.barFigureScale
     }
   }
 
@@ -61,6 +60,10 @@ Item {
     id: hint
     anchorItem: root
     alignCenter: true
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.zoom")
+    }
 
     ThemedText {
       text: I18n.tr("zoom.hint")

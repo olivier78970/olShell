@@ -167,7 +167,7 @@ Singleton {
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
     { key: "clockPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.clock") },
-    { key: "notificationCenterPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.notifications") },
+    { key: "notificationCenterPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationCenter") },
     { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
     { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
     { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
@@ -194,6 +194,14 @@ Singleton {
     { key: "weatherLocation", category: "clockPanel", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
+    ] },
+    { key: "sideLookRow", category: "widgetSettings", kind: "toggles", title: I18n.tr("settings.sideLook"), label: I18n.tr("settings.sideLook.label"), toggles: [
+      { key: "cpuRing", text: I18n.tr("settings.widget.cpu") },
+      { key: "ramRing", text: I18n.tr("settings.widget.ram") },
+      { key: "diskRing", text: I18n.tr("settings.widget.disk") },
+      { key: "volumeRing", text: I18n.tr("settings.widget.volume") },
+      { key: "networkRing", text: I18n.tr("settings.widget.network") },
+      { key: "activeWindowIconOnly", text: I18n.tr("settings.widget.activeWindow") }
     ] },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [

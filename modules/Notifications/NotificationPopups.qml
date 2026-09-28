@@ -22,7 +22,7 @@ PanelWindow {
 
   readonly property bool showing: Notifications.popups.length > 0 && !NotificationCenterState.visible
   // The bar's popup layer they're drawn in, if they're against the bar.
-  readonly property Item host: Notifications.atTop && Theme.barPosition !== "bottom" && !Theme.barAutoHide
+  readonly property Item host: Notifications.atTop && Theme.barPosition === "top" && !Theme.barAutoHide
     ? BarSlots.popupLayerFor(Notifications.screen) : null
 
   screen: Notifications.screen
@@ -35,11 +35,12 @@ PanelWindow {
   }
   // From the bar (measured from the room it reserves), the same gap as the
   // panels attached to it (Theme.panelOffset: the gap setting, or with none,
-  // flush, overlapping its border); from the bare screen edge, a fixed margin.
-  margins.top: Theme.barPosition !== "bottom" ? Theme.panelOffset() : 10
-  margins.bottom: Theme.barPosition === "bottom" ? Theme.panelOffset() : 10
-  margins.left: Theme.barMarginLeft
-  margins.right: Theme.barMarginRight
+  // flush, overlapping its border); from the bare screen edge across the bar,
+  // a fixed margin; and lined up with the bar's ends along it.
+  margins.top: Theme.barPosition === "top" ? Theme.panelOffset() : Theme.barVertical ? Theme.barMarginTop : 10
+  margins.bottom: Theme.barPosition === "bottom" ? Theme.panelOffset() : Theme.barVertical ? Theme.barMarginBottom : 10
+  margins.left: Theme.barPosition === "left" ? Theme.panelOffset() : Theme.barVertical ? 10 : Theme.barMarginLeft
+  margins.right: Theme.barPosition === "right" ? Theme.panelOffset() : Theme.barVertical ? 10 : Theme.barMarginRight
 
   implicitWidth: stack.width
   implicitHeight: Math.max(1, column.implicitHeight)
@@ -66,9 +67,9 @@ PanelWindow {
     height: column.implicitHeight
     x: {
       if (!root.host) return 0
-      if (Notifications.atLeft) return root.host.barLeft
-      if (Notifications.atRight) return root.host.barRight - stack.width
-      return Math.round((root.host.barLeft + root.host.barRight - stack.width) / 2)
+      if (Notifications.atLeft) return root.host.barStart
+      if (Notifications.atRight) return root.host.barEnd - stack.width
+      return Math.round((root.host.barStart + root.host.barEnd - stack.width) / 2)
     }
     y: root.host ? Theme.panelOffset() : 0
 
@@ -112,8 +113,8 @@ PanelWindow {
         size: parent.card ? Theme.joinRadiusFor(parent.card.height) : 0
         color: parent.card ? parent.card.color : "transparent"
         borderColor: parent.card ? parent.card.border.color : "transparent"
-        showLeft: root.host !== null && stack.x > root.host.barLeft + 0.5
-        showRight: root.host !== null && stack.x + stack.width < root.host.barRight - 0.5
+        showStart: root.host !== null && stack.x > root.host.barStart + 0.5
+        showEnd: root.host !== null && stack.x + stack.width < root.host.barEnd - 0.5
       }
     }
   }

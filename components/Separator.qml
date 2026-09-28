@@ -1,10 +1,10 @@
 import QtQuick
 import qs.config
 
-// Thin vertical divider between widgets sharing a pill.
+// Thin divider between widgets sharing a pill: upright, or lying across a
+// side bar.
 Rectangle {
-  anchors.verticalCenter: parent.verticalCenter
-  implicitWidth: 1
-  implicitHeight: Math.round(Theme.barHeight * 0.5)
+  implicitWidth: Theme.barVertical ? Math.round(Theme.barHeight * 0.5) : 1
+  implicitHeight: Theme.barVertical ? 1 : Math.round(Theme.barHeight * 0.5)
   color: Theme.separatorColor
 }

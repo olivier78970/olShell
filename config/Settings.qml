@@ -83,7 +83,7 @@ Singleton {
   // matugen's primary / secondary / tertiary colors and its
   // surface_container_* ones ("normal" is surface_container).
   readonly property var choices: ({
-    barPosition: ["top", "bottom"],
+    barPosition: ["top", "bottom", "left", "right"],
     barStyle: ["widgets", "full"],
     launcherTab: ["all", "apps", "games", "files", "web"],
     clockDate: ["long", "short", "numeric", "none"],
@@ -403,6 +403,16 @@ Singleton {
   // the time has seconds (without them the clock only changes once a minute).
   readonly property string clockDate: root.valid("clockDate", file.adapter.clockDate)
   readonly property bool clockSeconds: root.valid("clockSeconds", file.adapter.clockSeconds)
+  // Whether a widget keeps its side-bar look on a top or bottom bar too: the
+  // CPU, RAM, disk, volume and network speed as a ring around their icon
+  // (their figures in their popup), the window title as its icon only (the
+  // title on hover).
+  readonly property bool cpuRing: root.valid("cpuRing", file.adapter.cpuRing)
+  readonly property bool ramRing: root.valid("ramRing", file.adapter.ramRing)
+  readonly property bool diskRing: root.valid("diskRing", file.adapter.diskRing)
+  readonly property bool volumeRing: root.valid("volumeRing", file.adapter.volumeRing)
+  readonly property bool networkRing: root.valid("networkRing", file.adapter.networkRing)
+  readonly property bool activeWindowIconOnly: root.valid("activeWindowIconOnly", file.adapter.activeWindowIconOnly)
   // The engines the launcher's web search offers, in order: each
   // { name, url, on } (%s in `url` is where the search goes), or
   // { browser: true, on } for the default browser's own default engine (see
@@ -944,6 +954,12 @@ Singleton {
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
+      property bool cpuRing: Defaults.values.cpuRing
+      property bool ramRing: Defaults.values.ramRing
+      property bool diskRing: Defaults.values.diskRing
+      property bool volumeRing: Defaults.values.volumeRing
+      property bool networkRing: Defaults.values.networkRing
+      property bool activeWindowIconOnly: Defaults.values.activeWindowIconOnly
       property int launcherResults: Defaults.values.launcherResults
       property var launcherEngines: Defaults.values.launcherEngines
       property var barCollapsed: Defaults.values.barCollapsed

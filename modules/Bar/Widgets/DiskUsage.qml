@@ -3,34 +3,49 @@ import qs.components
 import qs.config
 import qs.services
 
-// How full the main disk (the one mounted on "/") is, in percent, in the
-// warning color above 90%; hover to see used/total in a popup, click to open
+// How full the main disk (the one mounted on "/") is, in percent (on a side
+// bar, a ring filled to it around the icon), in the warning color above 90%;
+// hover to see used/total in a popup, click to open
 // or close gdu on it.
 Item {
   id: root
 
+  // Whether it shows as a ring around its icon (its figures in the popup):
+  // always on a side bar, and on a top or bottom bar too with its setting.
+  readonly property bool ring: Theme.barVertical || Settings.diskRing
+
   readonly property bool nearlyFull: SystemStats.rootDiskPercent > 90
 
   anchors.verticalCenter: parent.verticalCenter
-  implicitWidth: content.implicitWidth
-  implicitHeight: content.implicitHeight
+  implicitWidth: root.ring ? ring.implicitWidth : content.implicitWidth
+  implicitHeight: root.ring ? ring.implicitHeight : content.implicitHeight
 
-  Row {
+  BarStack {
     id: content
+    visible: !root.ring
     anchors.centerIn: parent
-    spacing: 4
+    gap: 4
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: "󰋊"
       color: root.nearlyFull ? Theme.warningColor : Theme.textColor
     }
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: Math.round(SystemStats.rootDiskPercent) + "%"
       color: root.nearlyFull ? Theme.warningColor : Theme.textColor
     }
+  }
+
+  // On a side bar: a ring filled to how full it is, in the warning color too.
+  BarGauge {
+    id: ring
+    visible: root.ring
+    anchors.centerIn: parent
+    value: SystemStats.rootDiskPercent / 100
+    icon: "󰋊"
+    color: root.nearlyFull ? Theme.warningColor : Theme.accentColor
+    iconColor: root.nearlyFull ? Theme.warningColor : Theme.textColor
   }
 
   MouseArea {
@@ -46,6 +61,16 @@ Item {
     id: popup
     anchorItem: root
     marginRight: -Theme.pillPadding
+
+    PopupTitle {
+      text: I18n.tr("perf.storage")
+    }
+
+    // What the bar shows, when it's a ring.
+    ThemedText {
+      visible: root.ring
+      text: I18n.tr("stats.percentUsed", Math.round(SystemStats.rootDiskPercent))
+    }
 
     ThemedText {
       text: SystemStats.rootDisk

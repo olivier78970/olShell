@@ -28,7 +28,8 @@ Scope {
     // windowActiveOpacity, windowInactiveOpacity); out-of-range values are
     // clamped.
     // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
-    // workspaceCountFromHyprland, clockSeconds, blur, blurXray,
+    // workspaceCountFromHyprland, clockSeconds, cpuRing, ramRing, diskRing,
+    // volumeRing, networkRing, activeWindowIconOnly, blur, blurXray,
     // windowBorderSame, windowRoundingSame, windowGapsInSame, curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,

@@ -11,6 +11,16 @@ Singleton {
   readonly property int barAutoHideDuration: Settings.barAutoHideDuration
   readonly property int barAutoHideDelay: Settings.barAutoHideDelay
   readonly property string barPosition: Settings.barPosition
+  // Whether the bar stands against the left or right edge of the screen, its
+  // widgets stacked in a column, instead of the top or bottom one.
+  readonly property bool barVertical: barPosition === "left" || barPosition === "right"
+  // The side of the bar facing the middle of the screen, where its popups and
+  // attached panels open.
+  readonly property string barInward: ({ top: "bottom", bottom: "top", left: "right", right: "left" })[barPosition]
+  // Text size of the figures a bar widget shows (a percentage, a count),
+  // relative to the font size: smaller on a side bar, stacked under the
+  // widget's icon, to fit its width.
+  readonly property real barFigureScale: barVertical ? 0.75 : 1
   readonly property int barHeight: Settings.barHeight
   readonly property int barMarginLeft: Settings.barMarginLeft
   readonly property int barMarginRight: Settings.barMarginRight
@@ -94,11 +104,34 @@ Singleton {
     return panelGap > 0 ? panelGap : -borderWidth
   }
 
-  // Radius for an attached panel's corner on its top (`top`) or bottom
-  // side: squared off on the side against the bar when there's no gap
-  // between them, so the panel flows out of the bar, `radius` otherwise.
-  function attachedCorner(radius, top) {
-    return panelGap <= 0 && top === (barPosition !== "bottom") ? 0 : radius
+  // Whether `corner` ("topLeft", "topRight", "bottomLeft" or "bottomRight")
+  // lies on `side` ("top", "bottom", "left" or "right") of its rectangle.
+  function cornerOn(corner, side) {
+    const vertical = corner.startsWith("top") ? "top" : "bottom"
+    const horizontal = corner.endsWith("Left") ? "left" : "right"
+    return side === vertical || side === horizontal
+  }
+
+  // Radius for an attached panel's (or popup's) `corner`: squared off on the
+  // side against the bar when there's no gap between them, so the panel
+  // flows out of the bar, `radius` otherwise.
+  function attachedCorner(radius, corner) {
+    return panelGap <= 0 && cornerOn(corner, barPosition) ? 0 : radius
+  }
+
+  // Whether the bar's (or a pill's) `corner` is squared off for a popup flush
+  // with one of the bar's ends: the corner on the bar's inward side, at its
+  // start (left, or top for a side bar) when `atStart`, at its end when `atEnd`.
+  function flatBarCorner(corner, atStart, atEnd) {
+    if (!cornerOn(corner, barInward)) return false
+    const startSide = barVertical ? corner.startsWith("top") : corner.endsWith("Left")
+    return startSide ? atStart : atEnd
+  }
+
+  // What the bar takes up across its edge of the screen, margins included:
+  // its thickness and the margins on either side of it.
+  function barZone() {
+    return barVertical ? barMarginLeft + barHeight + barMarginRight : barMarginTop + barHeight + barMarginBottom
   }
 
   // Where an OSD `size` pixels wide (or tall) goes along an axis of an area
