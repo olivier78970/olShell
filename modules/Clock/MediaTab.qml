@@ -428,12 +428,34 @@ Item {
               width: parent.width
               spacing: 10
 
+              // Mutes the app, or gives it back the volume it had (MPRIS has
+              // no mute of its own: its volume goes to 0).
               ThemedText {
                 id: volumeIcon
                 anchors.verticalCenter: parent.verticalCenter
                 readonly property real volume: card.player?.volume ?? 0
+                // The volume before muting, given back on unmuting.
+                property real unmuted: 1
                 text: volume <= 0 ? "󰝟" : volume < 0.5 ? "󰖀" : "󰕾"
-                opacity: 0.7
+                color: volumeMouse.containsMouse ? Theme.accentColor : Theme.textColor
+                opacity: volumeMouse.containsMouse ? 1 : 0.7
+
+                MouseArea {
+                  id: volumeMouse
+                  anchors.fill: parent
+                  anchors.margins: -4
+                  enabled: card.player?.canControl ?? false
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: {
+                    if (volumeIcon.volume > 0) {
+                      volumeIcon.unmuted = volumeIcon.volume
+                      card.player.volume = 0
+                    } else {
+                      card.player.volume = volumeIcon.unmuted > 0 ? volumeIcon.unmuted : 1
+                    }
+                  }
+                }
               }
 
               ValueBar {
