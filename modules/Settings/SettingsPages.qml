@@ -19,7 +19,13 @@ Singleton {
     { id: "appearanceCategory", icon: "󰏘", label: I18n.tr("settings.category.appearance"), tabs: [
       { id: "appearance", label: I18n.tr("settings.tab.appearance") },
       { id: "blur", label: I18n.tr("settings.tab.blur") },
-      { id: "windows", label: I18n.tr("settings.tab.windows") }
+      { id: "windows", label: I18n.tr("settings.tab.windows") },
+      { id: "appOpacity", label: I18n.tr("settings.tab.applications") }
+    ] },
+    // Animations: the shell's own, and Hyprland's.
+    { id: "animationsCategory", icon: "󰗘", label: I18n.tr("settings.category.animations"), tabs: [
+      { id: "animations", label: I18n.tr("settings.tab.appearance") },
+      { id: "hyprlandAnimations", label: I18n.tr("settings.tab.windows") }
     ] },
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
@@ -88,8 +94,10 @@ Singleton {
     { key: "windowRounding", category: "windows", kind: "slider", same: "windowRoundingSame", sameText: I18n.tr("settings.windowRoundingSame"), label: I18n.tr("settings.windowRounding"), step: 1, format: v => v + " px" },
     { key: "windowGapsIn", category: "windows", kind: "slider", same: "windowGapsInSame", sameText: I18n.tr("settings.windowGapsInSame"), label: I18n.tr("settings.windowGapsIn"), step: 1, format: v => v + " px" },
     { key: "windowGapsOut", category: "windows", kind: "slider", title: I18n.tr("settings.windows.hyprlandOnly"), label: I18n.tr("settings.windowGapsOut"), step: 1, format: v => v + " px" },
-    { key: "windowActiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowActiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
-    { key: "windowInactiveOpacity", category: "windows", kind: "slider", label: I18n.tr("settings.windowInactiveOpacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
+    // The windows' opacity when focused and when not, on one line like an
+    // app's own (see SettingsPanel's app opacity rows); `settings` are those
+    // it holds.
+    { key: "windowOpacity", category: "windows", kind: "appOpacity", general: true, settings: ["windowActiveOpacity", "windowInactiveOpacity", "windowActiveOpacitySame", "windowInactiveOpacitySame"], label: I18n.tr("settings.windowOpacity") },
     { key: "blurXrayRow", category: "blur", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
       { key: "blurXray", text: "" }
     ] },
@@ -101,10 +109,16 @@ Singleton {
     { key: "curvedJoinsRadiusSameRow", category: "appearance", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.curvedJoinsRadiusSame"), toggles: [
       { key: "curvedJoinsRadiusSame", text: "" }
     ] },
-    { key: "animationsRow", category: "appearance", kind: "toggles", checkBoxes: true, title: I18n.tr("settings.animations.title"), label: I18n.tr("settings.animations"), toggles: [
+    { key: "animationsRow", category: "animations", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.animations"), toggles: [
       { key: "animations", text: "" }
     ] },
-    { key: "animationDuration", category: "appearance", kind: "slider", label: I18n.tr("settings.animationDuration"), step: 10, format: v => v + " ms" },
+    { key: "animationDuration", category: "animations", kind: "slider", label: I18n.tr("settings.animationDuration"), step: 10, format: v => v + " ms" },
+    { key: "hyprlandAnimationsRow", category: "hyprlandAnimations", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.hyprlandAnimations"), toggles: [
+      { key: "hyprlandAnimations", text: "" }
+    ] },
+    { key: "hyprlandAnimationDuration", category: "hyprlandAnimations", kind: "slider", same: "hyprlandAnimationSame", sameText: I18n.tr("settings.hyprlandAnimationSame"), label: I18n.tr("settings.hyprlandAnimationDuration"), step: 0.25, format: v => "×" + v.toFixed(2) },
+    { key: "hyprlandWindowStyle", category: "hyprlandAnimations", kind: "dropdown", label: I18n.tr("settings.hyprlandWindowStyle") },
+    { key: "hyprlandWorkspaceStyle", category: "hyprlandAnimations", kind: "dropdown", label: I18n.tr("settings.hyprlandWorkspaceStyle") },
     { key: "fontSize", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontSize"), step: 1, format: v => v + " px" },
     { key: "fontWeight", category: "text", kind: "slider", label: I18n.tr("settings.fontWeight"), step: 100, format: v => I18n.tr("settings.weight." + v) },
     { key: "fontLetterSpacing", category: "text", kind: "slider", stepper: true, label: I18n.tr("settings.fontLetterSpacing"), step: 0.5, format: v => v.toFixed(1) + " px" },
@@ -231,6 +245,7 @@ Singleton {
       if (row.category !== categoryId) continue
       if (Settings.defaults[row.key] !== undefined) keys.push(row.key)
       for (const toggle of row.toggles ?? []) keys.push(toggle.key)
+      for (const key of row.settings ?? []) keys.push(key)
       // A slider's SameButton sets one of its own.
       if (row.same) keys.push(row.same)
     }
@@ -240,6 +255,8 @@ Singleton {
     if (categoryId === "clockPanel") keys.push("worldClocks")
     // Nor do the theme's added apps.
     if (categoryId === "theme") keys.push("matugenApps")
+    // Nor do the App opacity tab's app opacities.
+    if (categoryId === "appOpacity") keys.push("appOpacities")
     return keys
   }
 

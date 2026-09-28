@@ -21,7 +21,7 @@ Scope {
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
     // workspaceCount, launcherResults,
-    // barAutoHideDelay, animationDuration, borderWidth,
+    // barAutoHideDelay, animationDuration, hyprlandAnimationDuration, borderWidth,
     // fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,
     // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius, blurSize,
@@ -29,11 +29,14 @@ Scope {
     // windowBorderWidth, windowRounding, windowGapsIn, windowGapsOut,
     // windowActiveOpacity, windowInactiveOpacity); out-of-range values are
     // clamped.
-    // The yes/no settings (barAutoHide, animations,
+    // The yes/no settings (barAutoHide, animations, hyprlandAnimations,
+    // hyprlandAnimationSame,
     // borderOpaque,
     // workspaceCountFromHyprland, clockSeconds, cpuRing, ramRing, diskRing,
     // volumeRing, networkRing, activeWindowIconOnly, blur, blurXray,
-    // windowBorderSame, windowRoundingSame, windowGapsInSame, curvedJoins,
+    // windowBorderSame, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
+    // windowInactiveOpacitySame,
+    // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
@@ -140,6 +143,33 @@ Scope {
       Settings.setEngine(index, { on: on !== 0 })
     }
 
+    // The apps with an opacity of their own as JSON: [{ "class", "active",
+    // "inactive" }] (Hyprland's window class, the opacities from 0.1 to 1).
+    function appOpacities(): string {
+      return JSON.stringify(Settings.appOpacities)
+    }
+
+    // Gives the app of window class `appClass` its own opacities, focused and
+    // not (added if it has none yet).
+    function setAppOpacity(appClass: string, active: real, inactive: real): void {
+      Settings.addAppOpacity(appClass)
+      const index = Settings.appOpacities.findIndex(app => app.class === appClass)
+      if (index >= 0) Settings.setAppOpacity(index, { active: active, inactive: inactive })
+    }
+
+    // Has the app of window class `appClass` follow the windows' general
+    // opacity (1) or keep its own (0), when focused and when not.
+    function linkAppOpacity(appClass: string, active: int, inactive: int): void {
+      const index = Settings.appOpacities.findIndex(app => app.class === appClass)
+      if (index >= 0) Settings.setAppOpacity(index, { activeSame: active !== 0, inactiveSame: inactive !== 0 })
+    }
+
+    // Puts the app of window class `appClass` back on the general opacities.
+    function removeAppOpacity(appClass: string): void {
+      const index = Settings.appOpacities.findIndex(app => app.class === appClass)
+      if (index >= 0) Settings.removeAppOpacity(index)
+    }
+
     // The apps added to the themed apps as JSON, in order: [{ "name",
     // "template", "output", "hook", "on" }]. The calls below take an app's
     // place in that list, from 0.
@@ -167,7 +197,8 @@ Scope {
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
-    // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
+    // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
+    // hyprlandWorkspaceStyle, launcherTab, clockDate,
     // switcherOrientation, switcherScope, weatherUnit,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
