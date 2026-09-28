@@ -9,12 +9,13 @@ import qs.services
 // (Settings.worldClocks, see services/WorldClock.qml), one to a row: an
 // analog clock, the place, its time, and as pills the day it is there next
 // to today's and how far ahead or behind it is. A place's card is tinted
-// warm by day and deep blue by night. With no place yet, a button opens the
-// settings where they're added.
+// warm by day and deep blue by night. With no place yet, the local time
+// shows alone, with a button opening the settings where they're added.
 Item {
   id: root
 
-  implicitHeight: Settings.worldClocks.length > 0 ? column.implicitHeight : empty.implicitHeight
+  // The local time, then the places, or with none a word on adding some.
+  implicitHeight: column.implicitHeight + (empty.visible ? empty.implicitHeight : 0)
 
   // The time now, moved on every second while the page shows.
   property date now: new Date()
@@ -186,21 +187,15 @@ Item {
     }
   }
 
-  // No place yet.
+  // No place yet: under the local time, a word on adding some.
   Column {
     id: empty
     visible: Settings.worldClocks.length === 0
+    y: column.implicitHeight
     width: parent.width
-    topPadding: 30
-    bottomPadding: 30
+    topPadding: 14
+    bottomPadding: 6
     spacing: 10
-
-    ThemedText {
-      anchors.horizontalCenter: parent.horizontalCenter
-      text: "󰥔"
-      sizeScale: 2.4
-      opacity: 0.5
-    }
 
     ThemedText {
       anchors.horizontalCenter: parent.horizontalCenter
@@ -245,7 +240,6 @@ Item {
 
   Column {
     id: column
-    visible: Settings.worldClocks.length > 0
     width: parent.width
     spacing: 10
 
@@ -292,6 +286,7 @@ Item {
     // The places, one to a row.
     Grid {
       id: grid
+      visible: Settings.worldClocks.length > 0
       width: parent.width
       columns: 1
       spacing: 8
