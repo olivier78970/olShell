@@ -3,34 +3,45 @@ import qs.components
 import qs.config
 import qs.services
 
-// Global CPU usage percentage; hover to see per-core usage in a popup, click
-// to open or close btop with only its CPU box.
+// Global CPU usage percentage and frequency (on a side bar, a ring filled to
+// the usage around the icon, the figures moving to the popup); hover to see
+// per-core usage in a popup, click to open or close btop with only its CPU box.
 Item {
   id: root
 
+  // Whether it shows as a ring around its icon (its figures in the popup):
+  // always on a side bar, and on a top or bottom bar too with its setting.
+  readonly property bool ring: Theme.barVertical || Settings.cpuRing
+
   anchors.verticalCenter: parent.verticalCenter
-  implicitWidth: content.implicitWidth
-  implicitHeight: content.implicitHeight
+  implicitWidth: root.ring ? ring.implicitWidth : content.implicitWidth
+  implicitHeight: root.ring ? ring.implicitHeight : content.implicitHeight
 
-  Row {
+  BarStack {
     id: content
+    visible: !root.ring
     anchors.centerIn: parent
-    spacing: 10
+    gap: 10
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: "󰻠"
     }
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: Math.round(SystemStats.cpuPercent) + "%"
     }
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: SystemStats.cpuFrequencyGhz.toFixed(1) + "GHz"
     }
+  }
+
+  BarGauge {
+    id: ring
+    visible: root.ring
+    anchors.centerIn: parent
+    value: SystemStats.cpuPercent / 100
+    icon: "󰻠"
   }
 
   MouseArea {
@@ -46,6 +57,16 @@ Item {
     id: popup
     anchorItem: root
     marginRight: -Theme.pillPadding
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.cpu")
+    }
+
+    // What the bar shows, when it's a ring.
+    ThemedText {
+      visible: root.ring
+      text: I18n.tr("cpu.summary", Math.round(SystemStats.cpuPercent), SystemStats.cpuFrequencyGhz.toFixed(1))
+    }
 
     Repeater {
       model: SystemStats.corePercents.length

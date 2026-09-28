@@ -6,7 +6,9 @@ import QtQuick
 import qs.config
 import qs.services
 
-// Top bar, replicated across every connected screen.
+// The bar, replicated across every connected screen: along the top or bottom
+// edge, or standing against the left or right one (Theme.barPosition), its
+// widgets then stacked in a column.
 Scope {
   Variants {
     model: Quickshell.screens
@@ -17,6 +19,9 @@ Scope {
       screen: modelData
 
       readonly property bool atTop: Theme.barPosition === "top"
+      // Whether it stands against a side of the screen, and which.
+      readonly property bool vertical: Theme.barVertical
+      readonly property bool atLeft: Theme.barPosition === "left"
       readonly property bool autoHide: Theme.barAutoHide
       // Whether the bar is actually drawn right now: always, unless
       // auto-hide is on and the pointer has been away from it for a bit
@@ -27,12 +32,14 @@ Scope {
       // Whether a panel attached to the bar is open on this screen, drawn
       // in panelSlot below.
       readonly property bool hosting: panelSlot.frame !== null
-      // The bar's own strip: its height, plus the near margin while
-      // auto-hiding (see margins below).
+      // The bar's own strip: its height (its width, on a side bar), plus the
+      // near margin while auto-hiding (see margins below).
       readonly property real barBlock: Theme.barHeight + (root.autoHide ? root.nearMargin : 0)
       // The margin on the near side (between the true screen edge and the
       // bar itself): the one a hovering pointer has to cross to reach it.
-      readonly property int nearMargin: atTop ? Theme.barMarginTop : Theme.barMarginBottom
+      readonly property int nearMargin: ({ top: Theme.barMarginTop, bottom: Theme.barMarginBottom, left: Theme.barMarginLeft, right: Theme.barMarginRight })[Theme.barPosition]
+      // The margin on the far side, between the bar and the windows.
+      readonly property int farMargin: ({ top: Theme.barMarginBottom, bottom: Theme.barMarginTop, left: Theme.barMarginRight, right: Theme.barMarginLeft })[Theme.barPosition]
       // How long showing/tucking the bar away takes, in ms; 0 (snaps
       // instead) when animating it is turned off.
       readonly property int revealDuration: Theme.barAutoHideAnimated ? Theme.barAutoHideDuration : 0
@@ -81,7 +88,7 @@ Scope {
       // exclusiveZone), so windows end up exactly as far from the bar
       // either way. Kept by services/HyprlandWindows.qml: read from Hyprland,
       // or the shell's own while it syncs the windows' look.
-      readonly property real hyprGapsOut: HyprlandWindows.gapsOut[atTop ? 2 : 0]
+      readonly property real hyprGapsOut: HyprlandWindows.gapsOut[({ top: 2, bottom: 0, left: 1, right: 3 })[Theme.barPosition]]
 
       onAutoHideChanged: {
         root.revealed = !root.autoHide || stayOpenHover.hovered
@@ -119,10 +126,10 @@ Scope {
       }
 
       anchors {
-        top: atTop
+        top: atTop || vertical
         bottom: !atTop
-        left: true
-        right: true
+        left: atLeft || !vertical
+        right: !atLeft
       }
 
       // While auto-hiding, the window itself spans edge to edge instead of
@@ -130,13 +137,15 @@ Scope {
       // be that gap still counts as reaching for the bar (and the edge the
       // pointer flicks to is actually inside the window, not short of it).
       // The margins become padding on barArea instead, below. Otherwise the
-      // window carries them itself, same as always.
-      margins.top: root.autoHide ? 0 : (atTop ? Theme.barMarginTop : 0)
-      margins.bottom: root.autoHide ? 0 : (atTop ? 0 : Theme.barMarginBottom)
-      margins.left: root.autoHide ? 0 : Theme.barMarginLeft
-      margins.right: root.autoHide ? 0 : Theme.barMarginRight
+      // window carries them itself, same as always: all but the far one,
+      // between the bar and the windows (see exclusiveZone).
+      margins.top: root.autoHide || Theme.barPosition === "bottom" ? 0 : Theme.barMarginTop
+      margins.bottom: root.autoHide || atTop ? 0 : Theme.barMarginBottom
+      margins.left: root.autoHide || Theme.barPosition === "right" ? 0 : Theme.barMarginLeft
+      margins.right: root.autoHide || atLeft ? 0 : Theme.barMarginRight
 
-      // Grows (away from the edge) to also hold an open attached panel or
+      // Grows (away from the edge: down or up, or sideways for a side bar)
+      // to also hold an open attached panel or
       // popup; the room reserved for the bar (exclusiveZone below) stays the
       // same. It never shrinks back, though, only grows to the most it has
       // needed so far (grownBy): Hyprland shows a layer surface's shrink a
@@ -144,11 +153,22 @@ Scope {
       // closed. What's left past the bar is transparent and masked out from
       // input, so it only costs Hyprland blurring behind it when what's
       // under it changes.
-      implicitHeight: root.barBlock + Math.max(root.grownBy, root.neededPast)
+      implicitHeight: vertical ? 0 : root.barBlock + Math.max(root.grownBy, root.neededPast)
+      implicitWidth: vertical ? root.barBlock + Math.max(root.grownBy, root.neededPast) : 0
       // How far past the bar the open panel and popups reach right now.
-      readonly property real neededPast: Math.max(root.hosting ? panelSlot.height + Theme.panelOffset() : 0, popupLayer.extent)
+      readonly property real neededPast: Math.max(root.hosting ? (vertical ? panelSlot.width : panelSlot.height) + Theme.panelOffset() : 0, popupLayer.extent)
       property real grownBy: 0
       onNeededPastChanged: root.grownBy = Math.max(root.grownBy, root.neededPast)
+
+      // Moved to another edge, what it grew by for the old one (heights, for
+      // a side bar's width, say) no longer means anything.
+      Connections {
+        target: Theme
+
+        function onBarPositionChanged() {
+          root.grownBy = root.neededPast
+        }
+      }
       // The room the bar keeps free for itself: its height plus the margin
       // on the far side from the edge it's anchored to, so windows start
       // that much further away. Reserved the instant the bar is revealed,
@@ -162,7 +182,7 @@ Scope {
       exclusiveZone: {
         if (!root.settled) return 0
         if (root.autoHide && !root.spaceReserved) return 0
-        const zone = Theme.barHeight + (atTop ? Theme.barMarginBottom : Theme.barMarginTop)
+        const zone = Theme.barHeight + root.farMargin
         return root.autoHide ? zone + root.hyprGapsOut : zone
       }
       color: "transparent"
@@ -182,7 +202,7 @@ Scope {
         }
 
         Region {
-          x: popupLayer.bounds.x
+          x: popupLayer.x + popupLayer.bounds.x
           y: popupLayer.y + popupLayer.bounds.y
           width: popupLayer.bounds.width
           height: popupLayer.bounds.height
@@ -210,9 +230,12 @@ Scope {
 
         // The bar window's own on-screen origin (see its anchors and
         // margins above), to place the panel and popups' holes.
-        readonly property real originX: root.autoHide ? 0 : Theme.barMarginLeft
-        readonly property real originY: atTop ? (root.autoHide ? 0 : Theme.barMarginTop)
-          : root.screen.height - (root.autoHide ? 0 : Theme.barMarginBottom) - root.height
+        readonly property real originX: Theme.barPosition === "right"
+          ? root.screen.width - (root.autoHide ? 0 : Theme.barMarginRight) - root.width
+          : (root.autoHide ? 0 : Theme.barMarginLeft)
+        readonly property real originY: Theme.barPosition === "bottom"
+          ? root.screen.height - (root.autoHide ? 0 : Theme.barMarginBottom) - root.height
+          : (root.autoHide ? 0 : Theme.barMarginTop)
 
         visible: root.anyOpen
         screen: root.screen
@@ -243,7 +266,7 @@ Scope {
 
           Region {
             intersection: Intersection.Subtract
-            x: clickCatcher.originX + popupLayer.bounds.x
+            x: clickCatcher.originX + popupLayer.x + popupLayer.bounds.x
             y: clickCatcher.originY + popupLayer.y + popupLayer.bounds.y
             width: popupLayer.bounds.width
             height: popupLayer.bounds.height
@@ -262,11 +285,11 @@ Scope {
       // and as a natural resting place once revealed by hovering it slowly.
       Item {
         id: hoverStrip
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: atTop ? parent.top : undefined
-        anchors.bottom: atTop ? undefined : parent.bottom
-        height: 10
+        readonly property real depth: 10
+        x: vertical && !atLeft ? parent.width - width : 0
+        y: !vertical && !atTop ? parent.height - height : 0
+        width: vertical ? depth : parent.width
+        height: vertical ? parent.height : depth
       }
 
       // Reveals the bar once the pointer reaches the true screen edge.
@@ -292,8 +315,15 @@ Scope {
             if (parts.length !== 2 || parts.some(isNaN)) return
             const [cx, cy] = parts
             const withinX = cx >= root.screen.x && cx < root.screen.x + root.screen.width
-            const nearEdge = atTop ? cy <= root.screen.y + hoverStrip.height : cy >= root.screen.y + root.screen.height - hoverStrip.height
-            if (withinX && nearEdge) {
+            const withinY = cy >= root.screen.y && cy < root.screen.y + root.screen.height
+            const depth = hoverStrip.depth
+            const nearEdge = ({
+              top: withinX && cy <= root.screen.y + depth,
+              bottom: withinX && cy >= root.screen.y + root.screen.height - depth,
+              left: withinY && cx <= root.screen.x + depth,
+              right: withinY && cx >= root.screen.x + root.screen.width - depth
+            })[Theme.barPosition]
+            if (nearEdge) {
               hideTimer.stop()
               root.revealed = true
             }
@@ -309,11 +339,12 @@ Scope {
 
       Item {
         id: fullArea
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: atTop ? parent.top : undefined
-        anchors.bottom: atTop ? undefined : parent.bottom
-        height: root.barBlock
+        // Placed by hand rather than anchored: switching anchors along with
+        // the size, as the bar moves between edges, left the old size in place.
+        x: vertical && !atLeft ? parent.width - width : 0
+        y: !vertical && !atTop ? parent.height - height : 0
+        width: vertical ? root.barBlock : parent.width
+        height: vertical ? parent.height : root.barBlock
 
         // Once revealed, the pointer being anywhere in the bar or its
         // margins (not just the edge strip above) keeps it open.
@@ -330,15 +361,16 @@ Scope {
         // auto-hiding (always at rest, no offset, otherwise).
         Item {
           id: barArea
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.leftMargin: root.autoHide ? Theme.barMarginLeft : 0
-          anchors.rightMargin: root.autoHide ? Theme.barMarginRight : 0
-          anchors.top: atTop ? parent.top : undefined
-          anchors.bottom: atTop ? undefined : parent.bottom
-          anchors.topMargin: root.autoHide && atTop ? root.nearMargin : 0
-          anchors.bottomMargin: root.autoHide && !atTop ? root.nearMargin : 0
-          height: Theme.barHeight
+          // The margins it's inset by, on each side (see above), placed by
+          // hand like fullArea.
+          readonly property real insetLeft: root.autoHide && Theme.barPosition !== "right" ? Theme.barMarginLeft : 0
+          readonly property real insetRight: root.autoHide && !atLeft ? Theme.barMarginRight : 0
+          readonly property real insetTop: root.autoHide && Theme.barPosition !== "bottom" ? Theme.barMarginTop : 0
+          readonly property real insetBottom: root.autoHide && !atTop ? Theme.barMarginBottom : 0
+          x: vertical && !atLeft ? parent.width - width - insetRight : insetLeft
+          y: !vertical && !atTop ? parent.height - height - insetBottom : insetTop
+          width: vertical ? Theme.barHeight : parent.width - insetLeft - insetRight
+          height: vertical ? parent.height - insetTop - insetBottom : Theme.barHeight
           opacity: root.revealed ? 1 : 0
 
           Behavior on opacity {
@@ -346,7 +378,12 @@ Scope {
           }
 
           transform: Translate {
-            y: root.revealed ? 0 : (atTop ? -barArea.height : barArea.height)
+            x: root.revealed || !vertical ? 0 : (atLeft ? -barArea.width : barArea.width)
+            y: root.revealed || vertical ? 0 : (atTop ? -barArea.height : barArea.height)
+
+            Behavior on x {
+              NumberAnimation { duration: root.revealDuration; easing.type: Easing.OutCubic }
+            }
 
             Behavior on y {
               NumberAnimation { duration: root.revealDuration; easing.type: Easing.OutCubic }
@@ -361,24 +398,27 @@ Scope {
           Rectangle {
             anchors.fill: parent
             visible: Theme.barStyle === "full"
-            radius: Theme.radiusFor(height)
+            radius: Theme.radiusFor(Math.min(width, height))
             // Squared off where a popup flush with an end of the bar joins it.
-            topLeftRadius: !atTop && popupLayer.atLeftEnd ? 0 : radius
-            topRightRadius: !atTop && popupLayer.atRightEnd ? 0 : radius
-            bottomLeftRadius: atTop && popupLayer.atLeftEnd ? 0 : radius
-            bottomRightRadius: atTop && popupLayer.atRightEnd ? 0 : radius
+            topLeftRadius: Theme.flatBarCorner("topLeft", popupLayer.atStartEnd, popupLayer.atEndEnd) ? 0 : radius
+            topRightRadius: Theme.flatBarCorner("topRight", popupLayer.atStartEnd, popupLayer.atEndEnd) ? 0 : radius
+            bottomLeftRadius: Theme.flatBarCorner("bottomLeft", popupLayer.atStartEnd, popupLayer.atEndEnd) ? 0 : radius
+            bottomRightRadius: Theme.flatBarCorner("bottomRight", popupLayer.atStartEnd, popupLayer.atEndEnd) ? 0 : radius
             color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
             border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
             border.width: Theme.borderWidth
           }
 
-          // Left widgets
+          // Left widgets (at the top, on a side bar). Placed by hand rather
+          // than anchored: switching anchors as the bar moves between edges
+          // briefly anchored both its top and its middle, which fixed its
+          // height for good.
           WidgetZone {
             id: leftZone
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
+            x: vertical ? (parent.width - width) / 2 : 0
+            y: vertical ? 0 : (parent.height - height) / 2
             widgets: Settings.layout.left
-            flattenLeftPopupCorner: popupLayer.atLeftEnd
+            flattenStartPopupCorner: popupLayer.atStartEnd
           }
 
           // Middle widgets
@@ -388,22 +428,22 @@ Scope {
             widgets: Settings.layout.center
           }
 
-          // Right widgets
+          // Right widgets (at the bottom, on a side bar), placed the same way.
           WidgetZone {
             id: rightZone
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
+            x: vertical ? (parent.width - width) / 2 : parent.width - width
+            y: vertical ? parent.height - height : (parent.height - height) / 2
             widgets: Settings.layout.right
-            flattenRightPopupCorner: popupLayer.atRightEnd
+            flattenEndPopupCorner: popupLayer.atEndEnd
           }
         }
       }
 
       // Where an attached panel's frame is drawn while it's open on this
-      // screen (see config/BarSlots.qml): sized to the frame, horizontally
-      // centered on the screen or flush with an end of the bar (following the
-      // frame's barAlign, see components/ModalPanel.qml), Theme.panelOffset()
-      // away from the bar.
+      // screen (see config/BarSlots.qml): sized to the frame, centered on the
+      // screen along the bar or flush with an end of it (following the
+      // frame's barAlign, see components/ModalPanel.qml; "left" is the top
+      // end of a side bar), Theme.panelOffset() away from the bar.
       Item {
         id: panelSlot
 
@@ -411,6 +451,12 @@ Scope {
         readonly property Item frame: panelSlot.children.length > 0 ? panelSlot.children[0] : null
         // Where along the bar the frame goes: "left", "center" or "right".
         readonly property string align: panelSlot.frame?.barAlign ?? "center"
+        // The frame's length along the bar, and where it starts along it.
+        readonly property real length: vertical ? panelSlot.height : panelSlot.width
+        readonly property real along: Math.round(panelSlot.align === "left" ? popupLayer.barStart
+          : panelSlot.align === "right" ? popupLayer.barEnd - panelSlot.length
+          : vertical ? root.screen.height / 2 - (root.autoHide ? 0 : Theme.barMarginTop) - panelSlot.length / 2
+          : root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.length / 2)
 
         // A click outside the bar and panel: the panel should close.
         signal dismissed()
@@ -418,10 +464,10 @@ Scope {
         // On whole pixels: at a fraction the frame's sides and the curved
         // joins beside them (components/BarFillets.qml) are both drawn half
         // transparent along their seam, which then shows as a thin line.
-        x: Math.round(panelSlot.align === "left" ? barArea.x
-          : panelSlot.align === "right" ? barArea.x + barArea.width - panelSlot.width
-          : root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2)
-        y: atTop ? root.barBlock + Theme.panelOffset() : 0
+        x: !vertical ? panelSlot.along
+          : atLeft ? root.barBlock + Theme.panelOffset() : root.width - root.barBlock - Theme.panelOffset() - panelSlot.width
+        y: vertical ? panelSlot.along
+          : atTop ? root.barBlock + Theme.panelOffset() : 0
         width: panelSlot.frame ? panelSlot.frame.width : 0
         height: panelSlot.frame ? panelSlot.frame.height : 0
 
@@ -432,7 +478,9 @@ Scope {
       // Where the widgets' popups and menus are drawn while shown (see
       // components/PopupMenu.qml), each placing itself off its widget. Its
       // origin is on the bar's edge toward the middle of the screen, so the
-      // popups' positions don't depend on how far the window grows for them.
+      // popups' positions don't depend on how far the window grows for them:
+      // they go at positive coordinates across the bar from a top or left
+      // bar, at negative ones from a bottom or right one.
       Item {
         id: popupLayer
 
@@ -441,12 +489,27 @@ Scope {
         readonly property var shown: {
           const items = []
           for (const child of popupLayer.children) {
-            if (child.visible) items.push(child)
+            if (child?.visible) items.push(child)
           }
           return items
         }
         // How far past the bar they reach, for the window to grow by.
-        readonly property real extent: popupLayer.shown.reduce((most, item) => Math.max(most, atTop ? item.y + item.height : -item.y), 0)
+        readonly property real extent: popupLayer.shown.reduce((most, item) => Math.max(most, popupLayer.reach(item)), 0)
+
+        // How far past the bar `item` reaches.
+        function reach(item) {
+          if (vertical) return atLeft ? item.x + item.width : -item.x
+          return atTop ? item.y + item.height : -item.y
+        }
+
+        // Where `item` starts and ends along the bar.
+        function startOf(item) {
+          return vertical ? item.y : item.x
+        }
+
+        function endOf(item) {
+          return vertical ? item.y + item.height : item.x + item.width
+        }
         // The rectangle they span (in this layer), for the input mask.
         readonly property rect bounds: {
           if (popupLayer.shown.length === 0) return Qt.rect(0, 0, 0, 0)
@@ -457,22 +520,25 @@ Scope {
           return Qt.rect(left, top, right - left, bottom - top)
         }
         // Whether one of them, flush with the bar (no gap set), reaches its
-        // left or right end: that corner of the bar (or of its end pill) is
-        // squared off so the two join up, as they do along the bar's edge.
-        // An attached panel flush with an end of the bar counts too.
-        readonly property bool atLeftEnd: Theme.panelGap <= 0
-          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= popupLayer.barLeft + 0.5)
+        // start (left, or top on a side bar) or its end: that corner of the
+        // bar (or of its end pill) is squared off so the two join up, as they
+        // do along the bar's edge. An attached panel flush with an end of the
+        // bar counts too.
+        readonly property bool atStartEnd: Theme.panelGap <= 0
+          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && popupLayer.startOf(item) <= popupLayer.barStart + 0.5)
             || (root.hosting && panelSlot.align === "left"))
-        readonly property bool atRightEnd: Theme.panelGap <= 0
-          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= popupLayer.barRight - 0.5)
+        readonly property bool atEndEnd: Theme.panelGap <= 0
+          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && popupLayer.endOf(item) >= popupLayer.barEnd - 0.5)
             || (root.hosting && panelSlot.align === "right"))
 
-        // Where the bar itself starts and ends in the layer (narrower than the
-        // window while auto-hiding, see barArea), which popups stay within.
-        readonly property real barLeft: barArea.x
-        readonly property real barRight: barArea.x + barArea.width
+        // Where the bar itself starts and ends along its length, in the layer
+        // (shorter than the window while auto-hiding, see barArea), which
+        // popups stay within.
+        readonly property real barStart: vertical ? barArea.y : barArea.x
+        readonly property real barEnd: vertical ? barArea.y + barArea.height : barArea.x + barArea.width
 
         function touchesBar(item) {
+          if (vertical) return atLeft ? item.x <= 0 : item.x + item.width >= 0
           return atTop ? item.y <= 0 : item.y + item.height >= 0
         }
 
@@ -482,9 +548,10 @@ Scope {
         // A click outside the bar and its popups: menus should close.
         signal dismissed()
 
-        width: parent.width
-        height: 0
-        y: atTop ? root.barBlock : root.height - root.barBlock
+        width: vertical ? 0 : parent.width
+        height: vertical ? parent.height : 0
+        x: !vertical ? 0 : atLeft ? root.barBlock : root.width - root.barBlock
+        y: vertical ? 0 : atTop ? root.barBlock : root.height - root.barBlock
 
         Component.onCompleted: BarSlots.registerPopupLayer(popupLayer)
         Component.onDestruction: BarSlots.unregisterPopupLayer(popupLayer)

@@ -6,7 +6,7 @@ import qs.services
 // Bell that opens the notification center. A left click toggles the center, a
 // right click do-not-disturb. The bell is crossed out while do-not-disturb is
 // on. The number of notifications in the center is written to its right (it
-// goes down when one is dismissed).
+// goes down when one is dismissed), or under it on a side bar.
 Item {
   id: root
 
@@ -19,22 +19,21 @@ Item {
   implicitWidth: content.implicitWidth
   implicitHeight: content.implicitHeight
 
-  Row {
+  BarStack {
     id: content
     anchors.centerIn: parent
-    spacing: 6
+    gap: 6
 
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       text: Notifications.dnd ? "󰂛" : "󰂚"
       color: root.tint
     }
 
     // The number of notifications in the center; nothing when there are none.
-    ThemedText {
-      anchors.verticalCenter: parent.verticalCenter
+    BarText {
       visible: Notifications.count > 0
       text: Notifications.count
+      sizeScale: Theme.barFigureScale
       color: root.tint
     }
   }

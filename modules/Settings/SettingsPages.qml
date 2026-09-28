@@ -195,6 +195,14 @@ Singleton {
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
+    { key: "sideLookRow", category: "widgetSettings", kind: "toggles", title: I18n.tr("settings.sideLook"), label: I18n.tr("settings.sideLook.label"), toggles: [
+      { key: "cpuRing", text: I18n.tr("settings.widget.cpu") },
+      { key: "ramRing", text: I18n.tr("settings.widget.ram") },
+      { key: "diskRing", text: I18n.tr("settings.widget.disk") },
+      { key: "volumeRing", text: I18n.tr("settings.widget.volume") },
+      { key: "networkRing", text: I18n.tr("settings.widget.network") },
+      { key: "activeWindowIconOnly", text: I18n.tr("settings.widget.activeWindow") }
+    ] },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }

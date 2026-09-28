@@ -24,9 +24,9 @@ Item {
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
-  implicitHeight: icon.implicitHeight
+  implicitHeight: icon.height
 
-  ThemedText {
+  BarText {
     id: icon
     anchors.centerIn: parent
     text: !root.on ? "󰂲" : (root.connectedDevices.length > 0 ? "󰂱" : "󰂯")
@@ -82,6 +82,11 @@ Item {
     id: menu
     anchorItem: root
     alignCenter: true
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.bluetooth")
+      inMenu: true
+    }
 
     PowerMenuOption {
       enabled: root.adapter !== null
@@ -183,6 +188,10 @@ Item {
     anchorItem: root
     alignCenter: true
     showWhen: !menu.visible
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.bluetooth")
+    }
 
     ThemedText {
       text: root.adapter === null ? I18n.tr("bluetooth.none") : I18n.tr(root.on ? "bluetooth.on" : "bluetooth.off")

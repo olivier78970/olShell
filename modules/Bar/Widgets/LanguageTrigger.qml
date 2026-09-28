@@ -9,9 +9,9 @@ Item {
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: label.implicitWidth
-  implicitHeight: label.implicitHeight
+  implicitHeight: label.height
 
-  ThemedText {
+  BarText {
     id: label
     anchors.centerIn: parent
     text: I18n.language.toUpperCase()

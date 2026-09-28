@@ -42,7 +42,7 @@ Item {
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
-  implicitHeight: icon.implicitHeight
+  implicitHeight: icon.height
 
   // The Wi-Fi signal glyph for a strength from 0 to 1.
   function signalIcon(strength) {
@@ -60,7 +60,7 @@ Item {
     return Math.round(network.signalStrength * 100)
   }
 
-  ThemedText {
+  BarText {
     id: icon
     anchors.centerIn: parent
     text: !NetworkManager.networkingEnabled ? "󰲛"
@@ -148,6 +148,11 @@ Item {
     id: menu
     anchorItem: root
     alignCenter: true
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.connection")
+      inMenu: true
+    }
 
     // Each wired device: its connection (a click connects it) and, while
     // connected, Disconnect.
@@ -303,6 +308,11 @@ Item {
     anchorItem: root
     alignCenter: true
 
+    PopupTitle {
+      text: I18n.tr("settings.widget.connection")
+      inMenu: true
+    }
+
     Repeater {
       model: NetworkManager.details
 
@@ -357,6 +367,10 @@ Item {
     anchorItem: root
     alignCenter: true
     showWhen: !menu.visible && !info.visible
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.connection")
+    }
 
     ThemedText {
       text: !NetworkManager.networkingEnabled ? I18n.tr("network.networkingOff")

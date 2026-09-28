@@ -9,9 +9,9 @@ Item {
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
-  implicitHeight: icon.implicitHeight
+  implicitHeight: icon.height
 
-  ThemedText {
+  BarText {
     id: icon
     anchors.centerIn: parent
     text: "󰌾"

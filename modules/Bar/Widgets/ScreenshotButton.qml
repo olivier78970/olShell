@@ -14,9 +14,9 @@ Item {
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
-  implicitHeight: icon.implicitHeight
+  implicitHeight: icon.height
 
-  ThemedText {
+  BarText {
     id: icon
     anchors.centerIn: parent
     text: "󰄀"
@@ -51,6 +51,11 @@ Item {
 
     anchorItem: root
     alignCenter: true
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.screenshot")
+      inMenu: true
+    }
 
     Repeater {
       model: ["screen", "region", "window"]

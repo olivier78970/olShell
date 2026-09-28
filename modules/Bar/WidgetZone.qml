@@ -110,11 +110,10 @@ Pill {
     return false
   }
 
-  // What is left of a pill whose groups are all hidden.
-  ThemedText {
+  // What is left of a pill whose groups are all hidden: dots along the bar.
+  BarText {
     visible: root.allHidden
-    anchors.verticalCenter: parent.verticalCenter
-    text: "󰇘"
+    text: Theme.barVertical ? "󰇙" : "󰇘"
   }
 
   Repeater {

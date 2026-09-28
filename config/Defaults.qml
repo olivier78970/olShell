@@ -124,6 +124,12 @@ Singleton {
     weatherLocation: "",
     clockDate: "long",
     clockSeconds: true,
+    cpuRing: false,
+    ramRing: false,
+    diskRing: false,
+    volumeRing: false,
+    networkRing: false,
+    activeWindowIconOnly: false,
     launcherResults: 7,
     launcherEngines: [
       { browser: true, on: true },

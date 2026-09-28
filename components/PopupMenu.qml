@@ -2,8 +2,9 @@ import QtQuick
 import Quickshell
 import qs.config
 
-// Rounded popup panel anchored below a widget, styled to match the bar's
-// pills. Put PowerMenuOption (or similar) rows inside it.
+// Rounded popup panel anchored below a widget (above it on a bottom bar, and
+// beside it, level with it, on a side bar), styled to match the bar's pills.
+// Put PowerMenuOption (or similar) rows inside it.
 //
 // Not a popup surface of its own: while shown, it's drawn inside its bar's
 // own surface instead (see Bar.qml's popupLayer and config/BarSlots.qml), so
@@ -16,7 +17,8 @@ Item {
   default property alias content: column.data
   property Item anchorItem
   // Right-align below the widget by default (for widgets in the bar's
-  // right area); set true for widgets in the left area to left-align.
+  // right area); set true for widgets in the left area to left-align. (On a
+  // side bar, a popup is always centered on its widget's height instead.)
   property bool alignLeft: false
   // Center below the widget instead (overrides alignLeft).
   property bool alignCenter: false
@@ -39,6 +41,9 @@ Item {
   readonly property bool containsMouse: hover.hovered
 
   readonly property bool barAtTop: Theme.barPosition !== "bottom"
+  // Whether the bar stands against the left edge, where popups open to its
+  // right (to its left, against the right edge).
+  readonly property bool barAtLeft: Theme.barPosition === "left"
   // The bar's popup layer this is drawn in, shown or not (so `visible`,
   // which moving it changes, never decides where it lives).
   readonly property Item host: {
@@ -78,7 +83,7 @@ Item {
   // tall as the bar) by the same gap as the panels attached to the bar
   // (Theme.panelOffset: the gap setting, or with none, flush, its border
   // overlapping the bar's instead of doubling up with it), and kept within
-  // the bar horizontally. Taken from the bar's
+  // the bar along its length. Taken from the bar's
   // edge rather than worked out from the widget's own height, which is often
   // fractional: the popup then landed part of a pixel into the bar, and that
   // row, drawn twice over, showed as a thin dark line. Looked up again as it
@@ -90,29 +95,34 @@ Item {
     root.visible
     if (!root.host || !root.anchorItem) return 0
     if (root.parentMenu) {
+      const menu = root.parentMenu
+      // On a side bar: beside its menu, further from the bar.
+      if (Theme.barVertical) return Math.round(root.barAtLeft ? menu.x + menu.width + root.submenuGap : menu.x - root.width - root.submenuGap)
       // A submenu: beside its menu, on the left (tray menus open from the
       // bar's right end), or on the right when there's no room there.
-      const menu = root.parentMenu
       const left = menu.x - root.width - root.submenuGap
       return Math.round(left >= 0 ? left : menu.x + menu.width + root.submenuGap)
     }
+    // Off a side bar's edge, like below a top bar's.
+    if (Theme.barVertical) return root.barAtLeft ? Theme.panelOffset() : -Theme.panelOffset() - root.width
     const p = root.anchorItem.mapToItem(root.host, 0, 0)
     let x
     if (root.alignCenter) x = p.x + (root.anchorItem.width - root.width) / 2
     else if (root.alignLeft) x = p.x + root.marginLeft
     else x = p.x + root.anchorItem.width - root.marginRight - root.width
-    // Kept within the bar; and snapped to either end of it from a couple of
-    // pixels off, which Qt rounding the widget's centered position in its pill
-    // can leave it short by, so it's seen as reaching that end (see Bar.qml's
-    // popupLayer.atLeftEnd).
-    const left = root.host.barLeft
-    const right = root.host.barRight - root.width
-    x = Math.max(left, Math.min(right, x))
-    if (x - left < 2) x = left
-    if (right - x < 2) x = right
-    return Math.round(x)
+    return root.withinBar(x, root.width)
   }
   y: {
+    if (Theme.barVertical) {
+      root.visible
+      if (!root.host || !root.anchorItem) return 0
+      // A submenu: level with the entry it opens from, moved back up only as
+      // far as it needs to end with the bar.
+      if (root.parentMenu) return Math.round(Math.max(root.host.barStart, Math.min(root.entryEdge, root.host.barEnd - root.height)))
+      // Centered on its widget, within the bar.
+      const p = root.anchorItem.mapToItem(root.host, 0, 0)
+      return root.withinBar(p.y + (root.anchorItem.height - root.height) / 2, root.height)
+    }
     if (!root.parentMenu) return root.barAtTop ? Theme.panelOffset() : -Theme.panelOffset() - root.height
     // A submenu: from the entry it opens from (see entryEdge), moved back
     // from the far edge of the screen only when there isn't even
@@ -120,9 +130,25 @@ Item {
     return Math.round(root.barAtTop ? Math.min(root.entryEdge, root.room - root.height)
       : Math.max(root.entryEdge - root.height, -root.room))
   }
+  // Where a popup `size` long, starting at `start` along the bar, goes to stay
+  // within the bar; snapped to either end of it from a couple of pixels off,
+  // which Qt rounding the widget's centered position in its pill can leave it
+  // short by, so it's seen as reaching that end (see Bar.qml's
+  // popupLayer.atStartEnd).
+  function withinBar(start, size) {
+    const first = root.host.barStart
+    const last = root.host.barEnd - size
+    let place = Math.max(first, Math.min(last, start))
+    if (place - first < 2) place = first
+    if (last - place < 2) place = last
+    return Math.round(place)
+  }
+
   // How tall it can get: the room between the bar and the far edge of the
-  // screen, less a margin. Longer entry lists scroll.
+  // screen, less a margin (on a side bar, the bar's own length). Longer
+  // entry lists scroll.
   readonly property real room: {
+    if (Theme.barVertical) return root.host ? root.host.barEnd - root.host.barStart : 10000
     const screen = root.host?.screen
     if (!screen) return 10000
     const margin = root.barAtTop ? Theme.barMarginTop : Theme.barMarginBottom
@@ -147,7 +173,8 @@ Item {
   readonly property real minSubmenuHeight: 200
   readonly property real maxHeight: {
     if (!root.parentMenu) return root.room
-    const left = root.barAtTop ? root.room - root.entryEdge : root.room + root.entryEdge
+    const left = Theme.barVertical ? (root.host ? root.host.barEnd - root.entryEdge : root.room)
+      : root.barAtTop ? root.room - root.entryEdge : root.room + root.entryEdge
     return Math.min(root.room, Math.max(left, root.minSubmenuHeight))
   }
   // How far its entries are scrolled, for a submenu to follow its entry.
@@ -186,8 +213,8 @@ Item {
     visible: !root.parentMenu && root.host !== null
     color: background.color
     borderColor: background.border.color
-    showLeft: root.host !== null && root.x > root.host.barLeft + 0.5
-    showRight: root.host !== null && root.x + root.width < root.host.barRight - 0.5
+    showStart: root.host !== null && (Theme.barVertical ? root.y : root.x) > root.host.barStart + 0.5
+    showEnd: root.host !== null && (Theme.barVertical ? root.y + root.height : root.x + root.width) < root.host.barEnd - 0.5
   }
 
   // For a submenu flush against its menu (no gap set): concave corners
@@ -277,10 +304,10 @@ Item {
       // attached panels. A submenu squares off, the same way, those on the
       // side against its menu that actually touch it instead, and so does
       // the menu, those on the side against its submenu that touch it.
-      topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (root.submenuOnLeft && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
-      topRightRadius: (root.flushRight && root.topTouchesMenu) || (root.submenuOnRight && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, true) === 0) ? 0 : radius
-      bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (root.submenuOnLeft && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
-      bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (root.submenuOnRight && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, false) === 0) ? 0 : radius
+      topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (root.submenuOnLeft && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topLeft") === 0) ? 0 : radius
+      topRightRadius: (root.flushRight && root.topTouchesMenu) || (root.submenuOnRight && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topRight") === 0) ? 0 : radius
+      bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (root.submenuOnLeft && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomLeft") === 0) ? 0 : radius
+      bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (root.submenuOnRight && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomRight") === 0) ? 0 : radius
       color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
       border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
       border.width: Theme.borderWidth
