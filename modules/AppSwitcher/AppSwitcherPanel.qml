@@ -472,7 +472,7 @@ ModalPanel {
           width: moreText.implicitWidth + 16
           height: moreText.implicitHeight + 8
           radius: height / 2
-          color: Theme.backgroundColor
+          color: "transparent"
           border.color: Theme.outlineColor
           border.width: 1
 
