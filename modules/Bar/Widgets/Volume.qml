@@ -5,7 +5,7 @@ import qs.config
 import qs.services
 
 // Output volume percentage; scroll over it to adjust, click to open or close
-// pavucontrol.
+// pavucontrol, middle-click to mute or unmute.
 Item {
   id: root
 
@@ -39,8 +39,13 @@ Item {
   MouseArea {
     anchors.fill: parent
     cursorShape: Qt.PointingHandCursor
-    // Closes pavucontrol if it's running, opens it otherwise.
-    onClicked: Quickshell.execDetached(["sh", "-c", "pkill -x pavucontrol || exec pavucontrol"])
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    // Left: closes pavucontrol if it's running, opens it otherwise. Middle:
+    // mutes or unmutes (the OSD shows it, as for the other ways).
+    onClicked: mouse => {
+      if (mouse.button === Qt.MiddleButton) Audio.toggleMute()
+      else Quickshell.execDetached(["sh", "-c", "pkill -x pavucontrol || exec pavucontrol"])
+    }
     onWheel: wheel => Audio.adjust((wheel.angleDelta.y / 120) * root.step)
   }
 }
