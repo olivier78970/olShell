@@ -6,8 +6,8 @@ import qs.config
 // a dash, the horizontal one). A position with no dash (just "top" or
 // "bottom") is an edge to hug in full, drawn as a bar spanning that edge. A
 // panel's placement (Settings.panelPlacements) is drawn the same way: "center"
-// in the middle of the screen, and "bar-left", "bar-center" or "bar-right" on
-// the bar's edge (Theme.barPosition).
+// in the middle of the screen, "bar-left", "bar-center" or "bar-right" on the
+// bar's edge (Theme.barPosition), and "opposite-..." on the other one.
 Rectangle {
   id: root
 
@@ -16,6 +16,7 @@ Rectangle {
   // The position as a place on the screen, a panel's placement included.
   readonly property string place: root.position === "center" ? "center-center"
     : root.position.startsWith("bar-") ? (Theme.barPosition === "bottom" ? "bottom" : "top") + root.position.slice(3)
+    : root.position.startsWith("opposite-") ? (Theme.barPosition === "bottom" ? "top" : "bottom") + root.position.slice(8)
     : root.position
   readonly property var parts: root.place.split("-")
   readonly property bool edgeOnly: root.parts.length === 1

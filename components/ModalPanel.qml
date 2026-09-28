@@ -51,15 +51,20 @@ PanelWindow {
   // Whether the panel is open; the owner binds it (not `visible`, which an
   // attached panel keeps false).
   property bool open: false
-  // Where the panel opens: "center" (of the screen), or against the bar at
-  // its left end, in its middle or at its right end ("bar-left",
-  // "bar-center", "bar-right"; one of Settings.panelPlacements).
+  // Where the panel opens: "center" (of the screen), against the bar at its
+  // left end, in its middle or at its right end ("bar-left", "bar-center",
+  // "bar-right"), or the same against the screen's edge opposite the bar
+  // ("opposite-left", "opposite-center", "opposite-right"), as far from it
+  // and from the sides as the bar is from its own; one of
+  // Settings.panelPlacements.
   property string placement: "center"
   // Whether it opens against the bar rather than centered on the screen
   // (see above).
   readonly property bool attached: root.placement.startsWith("bar-")
   // Where along the bar an attached panel goes: "left", "center" or "right".
   readonly property string barAlign: root.attached ? root.placement.slice(4) : "center"
+  // Whether it opens against the edge opposite the bar.
+  readonly property bool opposite: root.placement.startsWith("opposite-")
   // The bar widget an attached panel opens from, if any.
   property Item anchorItem: null
 
@@ -195,8 +200,16 @@ PanelWindow {
       top: true
       left: true
     }
-    margins.left: (root.width - frame.width) / 2
-    margins.top: (root.height - Math.max(frame.height, Math.min(root.placementHeight, root.areaHeight * 0.9))) / 2
+    margins.left: {
+      const align = root.opposite ? root.placement.slice(9) : "center"
+      if (align === "left") return Theme.barMarginLeft
+      if (align === "right") return root.width - frame.width - Theme.barMarginRight
+      return (root.width - frame.width) / 2
+    }
+    margins.top: {
+      if (!root.opposite) return (root.height - Math.max(frame.height, Math.min(root.placementHeight, root.areaHeight * 0.9))) / 2
+      return Theme.barPosition === "bottom" ? Theme.barMarginBottom : root.height - frame.height - Theme.barMarginTop
+    }
     implicitWidth: frame.width
     implicitHeight: frame.height
 
