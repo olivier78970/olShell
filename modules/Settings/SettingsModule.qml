@@ -177,7 +177,7 @@ Scope {
     // Saves the current values of a page (appearance, blur, windows, text, bar,
     // layout,
     // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher,
-    // panels, switcher or general) as your own defaults.
+    // panels, switcher, clockPanel or general) as your own defaults.
     function saveDefaults(category: string): void {
       if (SettingsPages.pages.includes(category)) SettingsPages.saveDefaults(category)
     }

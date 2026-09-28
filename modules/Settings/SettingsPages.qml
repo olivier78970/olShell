@@ -37,7 +37,8 @@ Singleton {
     // its own, named after it.
     { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
       { id: "panels", label: I18n.tr("settings.tab.placement") },
-      { id: "switcher", label: I18n.tr("settings.placement.switcher") }
+      { id: "switcher", label: I18n.tr("settings.placement.switcher") },
+      { id: "clockPanel", label: I18n.tr("settings.category.clock") }
     ] },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
@@ -179,6 +180,11 @@ Singleton {
     { key: "switcherMaxShown", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
     { key: "switcherReleaseSwitchRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
       { key: "switcherReleaseSwitch", text: "" }
+    ] },
+    { key: "clockTabsRow", category: "clockPanel", kind: "toggles", label: I18n.tr("settings.clockTabs"), toggles: [
+      { key: "clockShowAgenda", text: I18n.tr("clock.tab.agenda") },
+      { key: "clockShowPerformance", text: I18n.tr("clock.tab.performance") },
+      { key: "clockShowMedia", text: I18n.tr("clock.tab.media") }
     ] },
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
