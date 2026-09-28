@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import qs.config
+import qs.services
 
 // The settings panel (SettingsPanel.qml), built only while it is open and
 // freed once it closes, so it takes no memory while it isn't showing. It
@@ -92,6 +93,26 @@ Scope {
     // own. The calls below take an engine's place in that list, from 0.
     function engines(): string {
       return JSON.stringify(Settings.launcherEngines)
+    }
+
+    // The clock panel's clocks tab's places, as JSON: [{ name, zone }].
+    function worldClocks(): string {
+      return JSON.stringify(Settings.worldClocks)
+    }
+
+    // Looks a place up by name and adds it, with its time zone.
+    function addWorldClock(name: string): void {
+      WorldClock.add(name)
+    }
+
+    // Takes place `index` (from 0) out of the list, or moves it `steps`
+    // places later (negative: earlier).
+    function removeWorldClock(index: int): void {
+      Settings.removeWorldClock(index)
+    }
+
+    function moveWorldClock(index: int, steps: int): void {
+      Settings.moveWorldClock(index, steps)
     }
 
     // Adds an engine at the end (the address with %s where the search goes);

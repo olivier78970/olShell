@@ -185,7 +185,8 @@ Singleton {
       { key: "clockShowAgenda", text: I18n.tr("clock.tab.agenda") },
       { key: "clockShowPerformance", text: I18n.tr("clock.tab.performance") },
       { key: "clockShowMedia", text: I18n.tr("clock.tab.media") },
-      { key: "clockShowWeather", text: I18n.tr("clock.tab.weather") }
+      { key: "clockShowWeather", text: I18n.tr("clock.tab.weather") },
+      { key: "clockShowWorld", text: I18n.tr("clock.tab.world") }
     ] },
     { key: "weatherUnit", category: "clockPanel", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
     { key: "weatherLocation", category: "clockPanel", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
@@ -225,6 +226,8 @@ Singleton {
     }
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
+    // Nor do the clocks tab's places.
+    if (categoryId === "clockPanel") keys.push("worldClocks")
     // Nor do the theme's added apps.
     if (categoryId === "theme") keys.push("matugenApps")
     return keys
