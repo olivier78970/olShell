@@ -160,8 +160,14 @@ Item {
     onEditingChanged: {
       if (box.editing) {
         input.text = box.value
-        input.forceActiveFocus()
-        input.cursorPosition = input.text.length
+        // A tick later: the field only shows once `editing` has reached its own
+        // binding, and a hidden field can't take the keyboard (the first click
+        // then only showed it, and it took a second one to type).
+        Qt.callLater(() => {
+          if (!box?.editing) return
+          input.forceActiveFocus()
+          input.cursorPosition = input.text.length
+        })
       } else if (input.activeFocus) {
         input.focus = false
         root.released()
