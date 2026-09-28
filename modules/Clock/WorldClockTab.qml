@@ -6,7 +6,7 @@ import qs.services
 
 // The clocks page of the clock popup: the time here, large, by an analog
 // clock and today's date, then a card for each place set in the settings
-// (Settings.worldClocks, see services/WorldClock.qml), two to a row: an
+// (Settings.worldClocks, see services/WorldClock.qml), one to a row: an
 // analog clock, the place, its time, and as pills the day it is there next
 // to today's and how far ahead or behind it is. A place's card is tinted
 // warm by day and deep blue by night. With no place yet, a button opens the
@@ -289,11 +289,11 @@ Item {
       }
     }
 
-    // The places, two to a row (or one, alone).
+    // The places, one to a row.
     Grid {
       id: grid
       width: parent.width
-      columns: Settings.worldClocks.length > 1 ? 2 : 1
+      columns: 1
       spacing: 8
 
       Repeater {
@@ -336,7 +336,7 @@ Item {
             ThemedText {
               width: parent.width
               elide: Text.ElideRight
-              text: card.modelData.name.split(",")[0]
+              text: card.modelData.name
               font.bold: true
               sizeScale: 0.85
             }
