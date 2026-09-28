@@ -5,7 +5,7 @@ import qs.components
 import qs.config
 
 // The clock's popup: a tab bar over the page of the current tab (agenda,
-// performance), toggled from the clock widget on whichever screen it's
+// performance, media), toggled from the clock widget on whichever screen it's
 // clicked from (ClockPanelState.anchorItem) - a single panel shared by every
 // screen's bar, rather than one popup per bar. While open, its frame is
 // drawn inside that screen's bar (see config/BarSlots.qml), which also
@@ -18,7 +18,8 @@ Item {
 
   readonly property var tabs: [
     { label: I18n.tr("clock.tab.agenda"), icon: "󰃭" },
-    { label: I18n.tr("clock.tab.performance"), icon: "󰓅" }
+    { label: I18n.tr("clock.tab.performance"), icon: "󰓅" },
+    { label: I18n.tr("clock.tab.media"), icon: "󰝚" }
   ]
 
   // The screen to show on: wherever the open clock widget lives. A Wayland
@@ -102,6 +103,8 @@ Item {
       AgendaTab {}
 
       PerformanceTab {}
+
+      MediaTab {}
     }
   }
 }

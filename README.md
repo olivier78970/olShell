@@ -95,10 +95,10 @@ For the features that use them:
 │   │   └── Widgets/          # What sits in the bar (import qs.modules.Bar.Widgets)
 │   │       ├── Workspaces, ActiveWindow, Clock, WallpaperTrigger, ThemeTrigger, LauncherTrigger, LanguageTrigger, SettingsTrigger, ShortcutsTrigger
 │   │       ├── ScreenshotButton, ZoomButton
-│   │       ├── ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml   # Clock popup: tab bar + pages
 │   │       ├── Tray, TrayItem, TrayMenuItem, TraySubmenu
 │   │       ├── CpuUsage, RamUsage, DiskUsage, NetworkSpeed, ConnectionButton, BluetoothButton, Volume, NotificationBell, LockButton
 │   │       └── PowerTrigger
+│   ├── Clock/ClockPanel.qml, AgendaTab.qml, PerformanceTab.qml, MediaTab.qml   # Clock popup: tab bar + pages (agenda, performance, media player)
 │   ├── Launcher/LauncherModule.qml    # Builds the launcher only while it is open, and holds its IPC target
 │   ├── Launcher/LauncherPanel.qml     # Application launcher (ModalPanel + desktop entries)
 │   ├── AppSwitcher/AppSwitcherModule.qml   # Builds the app switcher only while it is open, and holds its `switcher` IPC target
@@ -376,7 +376,7 @@ To set it up:
 
 ## Clock popup
 
-Clicking the clock opens a popup (a click on the clock again, or anywhere outside the popup, closes it) with a tab bar: **Agenda** (the default tab: a month calendar, weeks starting on Monday with ISO week numbers; the arrows browse months, "Aujourd'hui" jumps back, today is highlighted; no events yet) and **Performances** (see the next section). The popup is as wide as its tab bar needs (520 px at least) and as tall as the tab being shown. To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [ClockPanel.qml](modules/Bar/Widgets/ClockPanel.qml).
+Clicking the clock opens a popup (a click on the clock again, or anywhere outside the popup, closes it) with a tab bar: **Agenda** (the default tab: a month calendar, weeks starting on Monday with ISO week numbers; the arrows browse months, "Aujourd'hui" jumps back, today is highlighted; no events yet) **Performances** (see the next section) and **Media**: a player for every app that speaks MPRIS (music and video players, browsers...), with the track's cover, title, artist and album, its progress with the elapsed and total times (click or drag the bar to seek, when the app allows it), shuffle, previous, play/pause, next and repeat (off, the playlist, the track; shuffle and repeat only when the app supports them), the app's own volume (when it has one), and a button bringing the app to the front; with several apps, a chip per app (with its playing or paused state) picks the one shown, by default the one playing. playerctld, which only stands in for the others, is left out. The popup is as wide as its tab bar needs (520 px at least) and as tall as the tab being shown. To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [ClockPanel.qml](modules/Clock/ClockPanel.qml).
 
 ## Performances
 
