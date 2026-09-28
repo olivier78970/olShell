@@ -416,6 +416,45 @@ ModalPanel {
         }
       }
 
+      // How many entries are scrolled out of view before and after the
+      // ones showing (the list shows maxShown at once, and scrolls by whole
+      // entries as the selection moves).
+      readonly property real step: (root.horizontal ? root.cardWidth : root.rowHeight) + list.spacing
+      readonly property int hiddenBefore: Math.max(0, Math.round((root.horizontal ? list.contentX - list.originX : list.contentY - list.originY) / list.step))
+      readonly property int hiddenAfter: Math.max(0, list.count - list.hiddenBefore - root.maxShown)
+
+      // Where more windows are out of view: an arrow toward them and how
+      // many, on that edge of the list.
+      Repeater {
+        model: [{ before: true, count: list.hiddenBefore }, { before: false, count: list.hiddenAfter }]
+
+        Rectangle {
+          id: more
+
+          required property var modelData
+
+          visible: more.modelData.count > 0
+          x: root.horizontal ? (more.modelData.before ? 4 : list.width - width - 4) : (list.width - width) / 2
+          y: root.horizontal ? (list.height - height) / 2 : (more.modelData.before ? 4 : list.height - height - 4)
+          z: 1
+          width: moreText.implicitWidth + 16
+          height: moreText.implicitHeight + 8
+          radius: height / 2
+          color: Theme.backgroundColor
+          border.color: Theme.outlineColor
+          border.width: 1
+
+          ThemedText {
+            id: moreText
+            anchors.centerIn: parent
+            readonly property string arrow: root.horizontal ? (more.modelData.before ? "‹" : "›") : (more.modelData.before ? "▴" : "▾")
+            text: more.modelData.before ? moreText.arrow + " " + more.modelData.count : more.modelData.count + " " + moreText.arrow
+            sizeScale: 0.8
+            font.bold: true
+          }
+        }
+      }
+
       // Nothing to show.
       ThemedText {
         visible: list.count === 0

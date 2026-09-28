@@ -224,7 +224,7 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Panels (Settings tab) | App switcher: one entry per app (its windows gathered, with how many there are as a badge on the icon's corner when more than one; the key above Tab, ² on a French keyboard, goes through the selected app's windows, Shift going back) | check box | off |
 | Panels (Settings tab) | App switcher: shown with each window (under its icon on a card, beside it in a row): its title, and under it, a line each, its app and its workspace; each on or off, the card or row shrinking to what's left | Title / App / Workspace | all on |
 | Panels (Settings tab) | App switcher: icon size | 24 – 96 px | 40 px |
-| Panels (Settings tab) | App switcher: windows shown at once (rows or cards; more scroll) | 3 – 20 | 8 |
+| Panels (Settings tab) | App switcher: windows shown at once (rows or cards; more scroll, with an arrow and how many are out of view on each edge that has some) | 3 – 20 | 8 |
 | Panels (Settings tab) | App switcher: switch when the shortcut is released (off: the switcher stays open, and Enter or a click switches) | check box | on |
 | Panels (Settings tab) | App switcher: window pictures instead of icons (a live picture of each window on its card, its icon in a corner; only in the horizontal direction) | check box | off |
 | General | Language | Automatic / English / Français / Español | Automatic |
