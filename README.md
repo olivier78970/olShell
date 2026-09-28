@@ -273,7 +273,7 @@ It is a real terminal window, so btop works completely (mouse, copy/paste, resiz
 
 ## Audio mixer
 
-Clicking the volume widget opens [pavucontrol](https://freedesktop.org/software/pulseaudio/pavucontrol/), and clicking again closes it (whichever way it was opened). It's an ordinary window of its own, in the shell's colors through the olShell GTK theme (see [GTK](#gtk)). Scrolling over the volume widget adjusts the volume.
+Clicking the volume widget opens [pavucontrol](https://freedesktop.org/software/pulseaudio/pavucontrol/), and clicking again closes it (whichever way it was opened); a middle click mutes or unmutes the output (the OSD shows it). It's an ordinary window of its own, in the shell's colors through the olShell GTK theme (see [GTK](#gtk)). Scrolling over the volume widget adjusts the volume.
 
 The btop window is as translucent as the widgets (the **Widget opacity** setting, read each time a window opens), so Hyprland blurs what's behind them if its blur is enabled. To make that possible the applications don't paint a background of their own (btop's `theme_background` is turned off in the copy of its config) and the terminal window's opacity is set to the widget opacity, overriding your terminal's own setting (only alacritty is handled, as for the colors).
 
