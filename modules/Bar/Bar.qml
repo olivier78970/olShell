@@ -415,9 +415,12 @@ Scope {
         // A click outside the bar and panel: the panel should close.
         signal dismissed()
 
-        x: panelSlot.align === "left" ? barArea.x
+        // On whole pixels: at a fraction the frame's sides and the curved
+        // joins beside them (components/BarFillets.qml) are both drawn half
+        // transparent along their seam, which then shows as a thin line.
+        x: Math.round(panelSlot.align === "left" ? barArea.x
           : panelSlot.align === "right" ? barArea.x + barArea.width - panelSlot.width
-          : root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2
+          : root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2)
         y: atTop ? root.barBlock + Theme.panelOffset() : 0
         width: panelSlot.frame ? panelSlot.frame.width : 0
         height: panelSlot.frame ? panelSlot.frame.height : 0

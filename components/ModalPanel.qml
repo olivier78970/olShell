@@ -234,9 +234,10 @@ PanelWindow {
       // Read by the bar's slot to place it along the bar.
       readonly property string barAlign: root.barAlign
       // An attached frame stays within the bar's span, and leaves room for
-      // the bar itself.
-      width: Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9)
-      height: Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9)
+      // the bar itself. Whole pixels, so its sides sit on pixel edges, as the
+      // curved joins beside them do (see the bar's panelSlot).
+      width: Math.floor(Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9))
+      height: Math.floor(Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9))
       radius: Theme.radiusFor(height)
       topLeftRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
       topRightRadius: root.attached ? Theme.attachedCorner(radius, true) : radius

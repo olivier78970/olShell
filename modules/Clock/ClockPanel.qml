@@ -58,8 +58,10 @@ Item {
     // instead of cutting them off.
     readonly property real minWidth: 520
 
-    width: Math.max(frame.minWidth, tabBar.implicitWidth) + frame.inset * 2
-    height: tabBar.implicitHeight + 12 + pages.height + frame.inset * 2
+    // Whole pixels, so its sides sit on pixel edges, as the curved joins
+    // beside them do (see the bar's panelSlot).
+    width: Math.ceil(Math.max(frame.minWidth, tabBar.implicitWidth) + frame.inset * 2)
+    height: Math.ceil(tabBar.implicitHeight + 12 + pages.height + frame.inset * 2)
     radius: Theme.radiusFor(height)
     topLeftRadius: Theme.attachedCorner(radius, true)
     topRightRadius: Theme.attachedCorner(radius, true)
