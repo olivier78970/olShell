@@ -86,10 +86,16 @@ ModalPanel {
   // the title needs), or a fixed width for rows; as tall as its rows (up to
   // maxShown) or its cards.
   maxPanelWidth: root.horizontal
-    ? Math.max(16 * 2 + Math.min(root.shown, root.maxShown) * (root.cardWidth + list.spacing) - list.spacing, title.implicitWidth + 16 * 2)
+    ? Math.max(16 * 2 + 2 * root.gutter + Math.min(root.shown, root.maxShown) * (root.cardWidth + list.spacing) - list.spacing, title.implicitWidth + 16 * 2)
     : 640
   maxPanelHeight: 16 * 2 + title.implicitHeight + 12
-    + (root.horizontal ? root.cardHeight : Math.min(root.shown, root.maxShown) * (root.rowHeight + list.spacing))
+    + (root.horizontal ? root.cardHeight : 2 * root.gutter + Math.min(root.shown, root.maxShown) * (root.rowHeight + list.spacing))
+  // Whether some windows are out of view, and then the room kept on each
+  // end of the list (its sides for cards, its top and bottom for rows) for
+  // how many there are that way, so the counts don't cover a window.
+  readonly property bool overflowing: root.entries.length > root.maxShown
+  readonly property real gutter: !root.overflowing ? 0
+    : root.horizontal ? moreProbe.implicitWidth + 16 + 6 : moreProbe.implicitHeight + 8 + 6
   placement: Settings.switcherPlacement
   focusTarget: keys
 
@@ -259,6 +265,15 @@ ModalPanel {
       text: Array(root.horizontal ? root.cardLines : 1).fill("Ag").join("\n")
     }
 
+    // The widest count of windows out of view, for the room kept for it.
+    ThemedText {
+      id: moreProbe
+      visible: false
+      text: "‹ 99"
+      sizeScale: 0.8
+      font.bold: true
+    }
+
     ThemedText {
       id: detailsProbe
       visible: false
@@ -266,165 +281,183 @@ ModalPanel {
       sizeScale: 0.75
     }
 
-    ListView {
-      id: list
+    // The list, with room on each end for how many windows are out of view
+    // when there are any (see gutter).
+    Item {
+      id: listArea
       width: parent.width
       height: parent.height - title.height - parent.spacing
-      orientation: root.horizontal ? ListView.Horizontal : ListView.Vertical
-      clip: true
-      spacing: 2
-      boundsBehavior: Flickable.StopAtBounds
-      currentIndex: root.selected
-      highlightFollowsCurrentItem: false
 
-      // Keeps the selected entry in view.
-      onCurrentIndexChanged: if (list.currentIndex >= 0) list.positionViewAtIndex(list.currentIndex, ListView.Contain)
+      ListView {
+        id: list
+        x: root.horizontal ? root.gutter : 0
+        y: root.horizontal ? 0 : root.gutter
+        width: parent.width - (root.horizontal ? 2 * root.gutter : 0)
+        height: parent.height - (root.horizontal ? 0 : 2 * root.gutter)
+        orientation: root.horizontal ? ListView.Horizontal : ListView.Vertical
+        clip: true
+        spacing: 2
+        boundsBehavior: Flickable.StopAtBounds
+        currentIndex: root.selected
+        highlightFollowsCurrentItem: false
 
-      model: ScriptModel {
-        values: root.entries
-      }
+        // Keeps the selected entry in view.
+        onCurrentIndexChanged: if (list.currentIndex >= 0) list.positionViewAtIndex(list.currentIndex, ListView.Contain)
 
-      delegate: Rectangle {
-        id: entry
-
-        required property var modelData
-        required property int index
-        readonly property bool current: entry.index === root.selected
-        // The window it stands for right now (see windowOf()).
-        readonly property var window: root.windowOf(entry.index)
-        readonly property string iconSource: entry.window ? root.iconOf(entry.window) : ""
-        readonly property color textColor: entry.current ? Theme.backgroundColor : Theme.textColor
-
-        width: root.horizontal ? root.cardWidth : list.width
-        height: root.horizontal ? list.height : root.rowHeight
-        radius: Theme.radiusFor(root.horizontal ? root.rowHeight : height)
-        color: entry.current ? Theme.accentColor
-          : hover.hovered ? Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.06) : "transparent"
-
-        HoverHandler {
-          id: hover
+        model: ScriptModel {
+          values: root.entries
         }
 
-        TapHandler {
-          onTapped: root.activate(entry.index)
-        }
+        delegate: Rectangle {
+          id: entry
 
-        // Before the texts in a row, above them on a card: the window's
-        // picture, or its icon.
-        Item {
-          id: media
-          x: root.horizontal ? (parent.width - width) / 2 : 12
-          y: root.horizontal ? 14 : (parent.height - height) / 2
-          width: root.previews ? root.mediaWidth : root.iconSize
-          height: root.previews ? root.mediaHeight : root.iconSize
+          required property var modelData
+          required property int index
+          readonly property bool current: entry.index === root.selected
+          // The window it stands for right now (see windowOf()).
+          readonly property var window: root.windowOf(entry.index)
+          readonly property string iconSource: entry.window ? root.iconOf(entry.window) : ""
+          readonly property color textColor: entry.current ? Theme.backgroundColor : Theme.textColor
 
-          // Its window, live, as large as fits with its own proportions.
-          ScreencopyView {
-            id: preview
-            visible: root.previews && preview.hasContent
-            anchors.centerIn: parent
-            readonly property real scale: preview.sourceSize.width > 0
-              ? Math.min(parent.width / preview.sourceSize.width, parent.height / preview.sourceSize.height) : 1
-            width: preview.sourceSize.width * preview.scale
-            height: preview.sourceSize.height * preview.scale
-            captureSource: root.previews && entry.window ? root.toplevelOf(entry.window) : null
-            live: true
+          width: root.horizontal ? root.cardWidth : list.width
+          height: root.horizontal ? list.height : root.rowHeight
+          radius: Theme.radiusFor(root.horizontal ? root.rowHeight : height)
+          color: entry.current ? Theme.accentColor
+            : hover.hovered ? Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.06) : "transparent"
+
+          HoverHandler {
+            id: hover
           }
 
-          // Its icon: alone, or small in a corner of the picture.
-          IconImage {
-            id: icon
-            visible: entry.iconSource !== "" && icon.status !== Image.Error
-            readonly property bool corner: preview.visible
-            x: icon.corner ? parent.width - width - 4 : (parent.width - width) / 2
-            y: icon.corner ? parent.height - height - 4 : (parent.height - height) / 2
-            width: icon.corner ? 28 : root.iconSize
-            height: width
-            source: entry.iconSource
+          TapHandler {
+            onTapped: root.activate(entry.index)
           }
 
-          // The generic glyph, where there's no icon to show (as in the
-          // bar's window title and the launcher).
-          ThemedText {
-            visible: !icon.visible && !preview.visible
-            anchors.centerIn: parent
-            text: "󰀻"
-            font.pixelSize: root.iconSize * 0.8
-            color: entry.textColor
-          }
+          // Before the texts in a row, above them on a card: the window's
+          // picture, or its icon.
+          Item {
+            id: media
+            x: root.horizontal ? (parent.width - width) / 2 : 12
+            y: root.horizontal ? 14 : (parent.height - height) / 2
+            width: root.previews ? root.mediaWidth : root.iconSize
+            height: root.previews ? root.mediaHeight : root.iconSize
 
-          // How many windows an app's entry gathers, on the icon's (or the
-          // picture's) top right corner, when there's more than one.
-          Rectangle {
-            id: badge
-            visible: entry.modelData.windows.length > 1
-            readonly property real size: Math.max(18, Math.round(root.iconSize * 0.42))
-            x: parent.width - width + (preview.visible ? -4 : width * 0.3)
-            y: preview.visible ? 4 : -height * 0.3
-            width: Math.max(badge.size, count.implicitWidth + 8)
-            height: badge.size
-            radius: height / 2
-            color: entry.current ? Theme.backgroundColor : Theme.accentColor
-
-            ThemedText {
-              id: count
+            // Its window, live, as large as fits with its own proportions.
+            ScreencopyView {
+              id: preview
+              visible: root.previews && preview.hasContent
               anchors.centerIn: parent
-              text: entry.modelData.windows.length
-              font.pixelSize: badge.size * 0.62
-              font.bold: true
-              color: entry.current ? Theme.accentColor : Theme.backgroundColor
+              readonly property real scale: preview.sourceSize.width > 0
+                ? Math.min(parent.width / preview.sourceSize.width, parent.height / preview.sourceSize.height) : 1
+              width: preview.sourceSize.width * preview.scale
+              height: preview.sourceSize.height * preview.scale
+              captureSource: root.previews && entry.window ? root.toplevelOf(entry.window) : null
+              live: true
+            }
+
+            // Its icon: alone, or small in a corner of the picture.
+            IconImage {
+              id: icon
+              visible: entry.iconSource !== "" && icon.status !== Image.Error
+              readonly property bool corner: preview.visible
+              x: icon.corner ? parent.width - width - 4 : (parent.width - width) / 2
+              y: icon.corner ? parent.height - height - 4 : (parent.height - height) / 2
+              width: icon.corner ? 28 : root.iconSize
+              height: width
+              source: entry.iconSource
+            }
+
+            // The generic glyph, where there's no icon to show (as in the
+            // bar's window title and the launcher).
+            ThemedText {
+              visible: !icon.visible && !preview.visible
+              anchors.centerIn: parent
+              text: "󰀻"
+              font.pixelSize: root.iconSize * 0.8
+              color: entry.textColor
+            }
+
+            // How many windows an app's entry gathers, on the icon's (or the
+            // picture's) top right corner, when there's more than one.
+            Rectangle {
+              id: badge
+              visible: entry.modelData.windows.length > 1
+              readonly property real size: Math.max(18, Math.round(root.iconSize * 0.42))
+              x: parent.width - width + (preview.visible ? -4 : width * 0.3)
+              y: preview.visible ? 4 : -height * 0.3
+              width: Math.max(badge.size, count.implicitWidth + 8)
+              height: badge.size
+              radius: height / 2
+              color: entry.current ? Theme.backgroundColor : Theme.accentColor
+
+              ThemedText {
+                id: count
+                anchors.centerIn: parent
+                text: entry.modelData.windows.length
+                font.pixelSize: badge.size * 0.62
+                font.bold: true
+                color: entry.current ? Theme.accentColor : Theme.backgroundColor
+              }
             }
           }
-        }
 
-        Column {
-          x: root.horizontal ? 10 : media.x + media.width + 12
-          y: root.horizontal ? media.y + media.height + 10 : (parent.height - height) / 2
-          width: root.horizontal ? parent.width - 20 : parent.width - x - 12
-          spacing: 0
-
-          ThemedText {
-            visible: Settings.switcherShowTitle
-            width: parent.width
-            // On a card it wraps, on up to cardLines lines, before being cut.
-            height: root.horizontal ? titleProbe.implicitHeight : implicitHeight
-            horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
-            verticalAlignment: Text.AlignTop
-            wrapMode: root.horizontal ? Text.Wrap : Text.NoWrap
-            maximumLineCount: root.horizontal ? root.cardLines : 1
-            elide: Text.ElideRight
-            text: entry.window ? (entry.window.title || entry.window.class) : ""
-            color: entry.textColor
-          }
-
-          // Its app and workspace, a line each.
-          Repeater {
-            model: entry.window ? root.detailsOf(entry.modelData, entry.window) : []
+          Column {
+            x: root.horizontal ? 10 : media.x + media.width + 12
+            y: root.horizontal ? media.y + media.height + 10 : (parent.height - height) / 2
+            width: root.horizontal ? parent.width - 20 : parent.width - x - 12
+            spacing: 0
 
             ThemedText {
-              required property string modelData
-
+              visible: Settings.switcherShowTitle
               width: parent.width
+              // On a card it wraps, on up to cardLines lines, before being cut.
+              height: root.horizontal ? titleProbe.implicitHeight : implicitHeight
               horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
+              verticalAlignment: Text.AlignTop
+              wrapMode: root.horizontal ? Text.Wrap : Text.NoWrap
+              maximumLineCount: root.horizontal ? root.cardLines : 1
               elide: Text.ElideRight
-              text: modelData
+              text: entry.window ? (entry.window.title || entry.window.class) : ""
               color: entry.textColor
-              sizeScale: 0.75
-              opacity: 0.7
+            }
+
+            // Its app and workspace, a line each.
+            Repeater {
+              model: entry.window ? root.detailsOf(entry.modelData, entry.window) : []
+
+              ThemedText {
+                required property string modelData
+
+                width: parent.width
+                horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
+                elide: Text.ElideRight
+                text: modelData
+                color: entry.textColor
+                sizeScale: 0.75
+                opacity: 0.7
+              }
             }
           }
         }
-      }
 
-      // How many entries are scrolled out of view before and after the
-      // ones showing (the list shows maxShown at once, and scrolls by whole
-      // entries as the selection moves).
-      readonly property real step: (root.horizontal ? root.cardWidth : root.rowHeight) + list.spacing
-      readonly property int hiddenBefore: Math.max(0, Math.round((root.horizontal ? list.contentX - list.originX : list.contentY - list.originY) / list.step))
-      readonly property int hiddenAfter: Math.max(0, list.count - list.hiddenBefore - root.maxShown)
+        // How many entries are scrolled out of view before and after the
+        // ones showing (the list shows maxShown at once, and scrolls by whole
+        // entries as the selection moves).
+        readonly property real step: (root.horizontal ? root.cardWidth : root.rowHeight) + list.spacing
+        readonly property int hiddenBefore: Math.max(0, Math.round((root.horizontal ? list.contentX - list.originX : list.contentY - list.originY) / list.step))
+        readonly property int hiddenAfter: Math.max(0, list.count - list.hiddenBefore - root.maxShown)
+
+        // Nothing to show.
+        ThemedText {
+          visible: list.count === 0
+          anchors.centerIn: parent
+          text: I18n.tr(root.loading ? "switcher.loading" : "switcher.empty")
+          opacity: 0.6
+        }
+      }
 
       // Where more windows are out of view: an arrow toward them and how
-      // many, on that edge of the list.
+      // many, in the room left on that end of the list.
       Repeater {
         model: [{ before: true, count: list.hiddenBefore }, { before: false, count: list.hiddenAfter }]
 
@@ -434,9 +467,8 @@ ModalPanel {
           required property var modelData
 
           visible: more.modelData.count > 0
-          x: root.horizontal ? (more.modelData.before ? 4 : list.width - width - 4) : (list.width - width) / 2
-          y: root.horizontal ? (list.height - height) / 2 : (more.modelData.before ? 4 : list.height - height - 4)
-          z: 1
+          x: root.horizontal ? (more.modelData.before ? 0 : listArea.width - width) : (listArea.width - width) / 2
+          y: root.horizontal ? (listArea.height - height) / 2 : (more.modelData.before ? 0 : listArea.height - height)
           width: moreText.implicitWidth + 16
           height: moreText.implicitHeight + 8
           radius: height / 2
@@ -453,14 +485,6 @@ ModalPanel {
             font.bold: true
           }
         }
-      }
-
-      // Nothing to show.
-      ThemedText {
-        visible: list.count === 0
-        anchors.centerIn: parent
-        text: I18n.tr(root.loading ? "switcher.loading" : "switcher.empty")
-        opacity: 0.6
       }
     }
   }
