@@ -143,7 +143,7 @@ Scope {
     // The same for a setting with a fixed list of choices (wallpaperTransition,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, launcherTab, clockDate,
-    // switcherOrientation, switcherScope,
+    // switcherOrientation, switcherScope, weatherUnit,
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
@@ -151,9 +151,12 @@ Scope {
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
     // (customBackground, customPill, customBorder, customText, customAccent:
-    // a "#rrggbb" color).
+    // a "#rrggbb" color), and for the weather's place (weatherLocation: a
+    // place's name, or "" to find it from the internet address).
     function choose(key: string, value: string): void {
-      const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value) : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
+      const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value)
+        : key === "weatherLocation" ? true
+        : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
     }
 

@@ -184,8 +184,11 @@ Singleton {
     { key: "clockTabsRow", category: "clockPanel", kind: "toggles", label: I18n.tr("settings.clockTabs"), toggles: [
       { key: "clockShowAgenda", text: I18n.tr("clock.tab.agenda") },
       { key: "clockShowPerformance", text: I18n.tr("clock.tab.performance") },
-      { key: "clockShowMedia", text: I18n.tr("clock.tab.media") }
+      { key: "clockShowMedia", text: I18n.tr("clock.tab.media") },
+      { key: "clockShowWeather", text: I18n.tr("clock.tab.weather") }
     ] },
+    { key: "weatherUnit", category: "clockPanel", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
+    { key: "weatherLocation", category: "clockPanel", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
