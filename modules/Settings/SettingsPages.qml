@@ -33,9 +33,11 @@ Singleton {
     { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
+    // Panels: where each opens, then a tab for each panel with settings of
+    // its own, named after it.
     { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
       { id: "panels", label: I18n.tr("settings.tab.placement") },
-      { id: "panelSettings", label: I18n.tr("settings.tab.panelSettings") }
+      { id: "switcher", label: I18n.tr("settings.placement.switcher") }
     ] },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
@@ -163,22 +165,22 @@ Singleton {
     { key: "powerPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.power") },
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
-    { key: "switcherOrientation", category: "panelSettings", kind: "buttons", title: I18n.tr("settings.placement.switcher"), label: I18n.tr("settings.switcherOrientation") },
-    { key: "switcherScope", category: "panelSettings", kind: "buttons", label: I18n.tr("settings.switcherScope") },
-    { key: "switcherGroupAppsRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
+    { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
+    { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
+    { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
       { key: "switcherGroupApps", text: "" }
     ] },
-    { key: "switcherTextRow", category: "panelSettings", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
+    { key: "switcherTextRow", category: "switcher", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
       { key: "switcherShowTitle", text: I18n.tr("settings.switcherText.title") },
       { key: "switcherShowApp", text: I18n.tr("settings.switcherText.app") },
       { key: "switcherShowWorkspace", text: I18n.tr("settings.switcherText.workspace") }
     ] },
-    { key: "switcherIconSize", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
-    { key: "switcherMaxShown", category: "panelSettings", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
-    { key: "switcherReleaseSwitchRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
+    { key: "switcherIconSize", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
+    { key: "switcherMaxShown", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
+    { key: "switcherReleaseSwitchRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
       { key: "switcherReleaseSwitch", text: "" }
     ] },
-    { key: "switcherPreviewsRow", category: "panelSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
+    { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
