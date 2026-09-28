@@ -17,8 +17,9 @@ import qs.config
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame.
 //
-// With `attached`, the panel opens against the bar instead, like the clock
-// panel: on `anchorItem`'s screen - or, without an anchorItem (when opened
+// With a `placement` on the bar ("bar-left", "bar-center" or "bar-right";
+// `attached` is then true), the panel opens against the bar instead, like
+// the clock panel, at that end or in the middle of it: on `anchorItem`'s screen - or, without an anchorItem (when opened
 // by IPC), the focused one - with nothing dimmed. Neither of these windows
 // shows then: the frame is drawn inside that screen's bar (see
 // config/BarSlots.qml), which also takes care of the click outside.
@@ -50,8 +51,15 @@ PanelWindow {
   // Whether the panel is open; the owner binds it (not `visible`, which an
   // attached panel keeps false).
   property bool open: false
-  // Opens against the bar rather than centered on the screen (see above).
-  property bool attached: false
+  // Where the panel opens: "center" (of the screen), or against the bar at
+  // its left end, in its middle or at its right end ("bar-left",
+  // "bar-center", "bar-right"; one of Settings.panelPlacements).
+  property string placement: "center"
+  // Whether it opens against the bar rather than centered on the screen
+  // (see above).
+  readonly property bool attached: root.placement.startsWith("bar-")
+  // Where along the bar an attached panel goes: "left", "center" or "right".
+  readonly property string barAlign: root.attached ? root.placement.slice(4) : "center"
   // The bar widget an attached panel opens from, if any.
   property Item anchorItem: null
 
@@ -210,6 +218,8 @@ PanelWindow {
       // In the bar's slot while an attached panel is open, in frameWindow
       // otherwise.
       parent: root.hostSlot ?? frameWindow.contentItem
+      // Read by the bar's slot to place it along the bar.
+      readonly property string barAlign: root.barAlign
       // An attached frame stays within the bar's span, and leaves room for
       // the bar itself.
       width: Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9)
@@ -229,8 +239,12 @@ PanelWindow {
       focus: true
 
       // Curves it out of the bar when attached flush against it.
+      // None on the side flush with an end of the bar, where there is no bar
+      // edge to curve from.
       BarFillets {
         visible: root.attached && root.framed
+        showLeft: root.barAlign !== "left"
+        showRight: root.barAlign !== "right"
         color: frame.color
         borderColor: frame.border.color
       }

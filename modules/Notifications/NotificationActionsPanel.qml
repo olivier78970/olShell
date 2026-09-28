@@ -25,6 +25,7 @@ ModalPanel {
   })
 
   maxPanelWidth: 760
+  placement: Settings.notificationActionsPlacement
   maxPanelHeight: 640
   focusTarget: root.editing ? appField.input : root.panel
 

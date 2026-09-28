@@ -4,13 +4,20 @@ import qs.config
 // A small screen with a block where something is placed on it, for a position
 // such as "top-right", "center-left" or "bottom-center" (the vertical place,
 // a dash, the horizontal one). A position with no dash (just "top" or
-// "bottom") is an edge to hug in full, drawn as a bar spanning that edge.
+// "bottom") is an edge to hug in full, drawn as a bar spanning that edge. A
+// panel's placement (Settings.panelPlacements) is drawn the same way: "center"
+// in the middle of the screen, and "bar-left", "bar-center" or "bar-right" on
+// the bar's edge (Theme.barPosition).
 Rectangle {
   id: root
 
   property string position: "top-right"
 
-  readonly property var parts: root.position.split("-")
+  // The position as a place on the screen, a panel's placement included.
+  readonly property string place: root.position === "center" ? "center-center"
+    : root.position.startsWith("bar-") ? (Theme.barPosition === "bottom" ? "bottom" : "top") + root.position.slice(3)
+    : root.position
+  readonly property var parts: root.place.split("-")
   readonly property bool edgeOnly: root.parts.length === 1
   readonly property string vertical: root.parts[0] ?? "top"
   readonly property string horizontal: root.parts[1] ?? "right"

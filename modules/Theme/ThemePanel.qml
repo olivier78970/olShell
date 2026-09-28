@@ -3,7 +3,8 @@ import qs.components
 import qs.config
 import qs.services
 
-// Theme picker, attached to the bar (see ModalPanel's `attached`), toggled from outside via:
+// Theme picker, attached to the bar or centered on the screen (see
+// ModalPanel's `placement`, set by Settings.themePlacement), toggled from outside via:
 //   quickshell -p . ipc call themes themesToggle
 // Themes (see ThemePresets) are browsed in a carousel like the wallpaper
 // panel; Enter or a click applies the centered one. The first entry,
@@ -22,7 +23,7 @@ CarouselPanel {
   maxPanelHeight: 520
 
   open: ThemePanelState.visible
-  attached: true
+  placement: Settings.themePlacement
   anchorItem: ThemePanelState.anchorItem
   onCloseRequested: ThemePanelState.visible = false
   // Open on the theme currently in use.

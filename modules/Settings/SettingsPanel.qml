@@ -304,6 +304,7 @@ ModalPanel {
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
     if (row.key === "clockDate") return root.clockDateOptions
+    if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     return []
   }
 
@@ -315,6 +316,10 @@ ModalPanel {
   // Which edge of the screen the bar is on, named in the current language.
   readonly property var barPositionOptions: Settings.choices.barPosition
     .map(name => ({ value: name, text: I18n.tr("settings.barPosition." + name) }))
+
+  // Where a panel can open, named in the current language.
+  readonly property var placementOptions: Settings.panelPlacements
+    .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
@@ -368,6 +373,7 @@ ModalPanel {
   // some languages (French), and so is what they share a row with. Never
   // narrower than the usual size.
   maxPanelWidth: Math.max(920, root.neededWidth)
+  placement: Settings.settingsPlacement
   // Tall enough for the whole page (its title, tabs and rows, with the
   // margins around them, and the keys hint under them), never shorter than
   // the usual size; the screen still caps it (see ModalPanel), the rows
