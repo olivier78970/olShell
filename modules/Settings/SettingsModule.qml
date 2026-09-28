@@ -168,7 +168,8 @@ Scope {
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
-    // notificationActionsPlacement and switcherPlacement; a value
+    // notificationActionsPlacement, switcherPlacement, clockPlacement and
+    // notificationCenterPlacement; a value
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
     // (customBackground, customPill, customBorder, customText, customAccent:
