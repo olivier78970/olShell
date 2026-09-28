@@ -354,6 +354,29 @@ ModalPanel {
             font.pixelSize: root.iconSize * 0.8
             color: entry.textColor
           }
+
+          // How many windows an app's entry gathers, on the icon's (or the
+          // picture's) top right corner, when there's more than one.
+          Rectangle {
+            id: badge
+            visible: entry.modelData.windows.length > 1
+            readonly property real size: Math.max(18, Math.round(root.iconSize * 0.42))
+            x: parent.width - width + (preview.visible ? -4 : width * 0.3)
+            y: preview.visible ? 4 : -height * 0.3
+            width: Math.max(badge.size, count.implicitWidth + 8)
+            height: badge.size
+            radius: height / 2
+            color: entry.current ? Theme.backgroundColor : Theme.accentColor
+
+            ThemedText {
+              id: count
+              anchors.centerIn: parent
+              text: entry.modelData.windows.length
+              font.pixelSize: badge.size * 0.62
+              font.bold: true
+              color: entry.current ? Theme.accentColor : Theme.backgroundColor
+            }
+          }
         }
 
         Column {
