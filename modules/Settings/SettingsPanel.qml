@@ -309,6 +309,7 @@ ModalPanel {
     if (row.key === "clockDate") return root.clockDateOptions
     if (row.key === "switcherOrientation") return root.switcherOrientationOptions
     if (row.key === "switcherScope") return root.switcherScopeOptions
+    if (row.key === "weatherUnit") return root.weatherUnitOptions
     if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
@@ -338,6 +339,10 @@ ModalPanel {
   // Which windows the app switcher lists, named in the current language.
   readonly property var switcherScopeOptions: Settings.choices.switcherScope
     .map(name => ({ value: name, text: I18n.tr("settings.switcherScope." + name) }))
+
+  // The weather's temperature units, named in the current language.
+  readonly property var weatherUnitOptions: Settings.choices.weatherUnit
+    .map(name => ({ value: name, text: I18n.tr("settings.weatherUnit." + name) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
@@ -1137,6 +1142,7 @@ ModalPanel {
                 anchors.topMargin: row.above
                 label: row.modelData.label
                 value: row.modelData.kind === "path" ? String(Settings.get(row.modelData.key)) : ""
+                placeholder: row.modelData.placeholder ?? ""
                 swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
                 editing: root.editKey === row.modelData.key

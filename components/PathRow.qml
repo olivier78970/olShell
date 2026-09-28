@@ -17,6 +17,8 @@ Item {
   property bool selected: false
   property bool editing: false
   property string swatch: ""
+  // Shown, dimmed, in place of an empty value (what empty stands for).
+  property string placeholder: ""
 
   signal committed(string text)
   signal cancelled()
@@ -104,8 +106,9 @@ Item {
       anchors.rightMargin: 12
       anchors.verticalCenter: parent.verticalCenter
       visible: !root.editing
-      text: root.value
+      text: root.value || root.placeholder
       color: Theme.accentColor
+      opacity: root.value ? 1 : 0.55
       elide: Text.ElideLeft
     }
 

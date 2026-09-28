@@ -103,6 +103,7 @@ Singleton {
     switcherPlacement: root.panelPlacements,
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
+    weatherUnit: ["celsius", "fahrenheit"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -366,6 +367,13 @@ Singleton {
   readonly property bool clockShowAgenda: root.valid("clockShowAgenda", file.adapter.clockShowAgenda)
   readonly property bool clockShowPerformance: root.valid("clockShowPerformance", file.adapter.clockShowPerformance)
   readonly property bool clockShowMedia: root.valid("clockShowMedia", file.adapter.clockShowMedia)
+  readonly property bool clockShowWeather: root.valid("clockShowWeather", file.adapter.clockShowWeather)
+  // The weather tab: its temperatures in Celsius or Fahrenheit (one of
+  // choices.weatherUnit; the wind in km/h or mph with them), and the place
+  // it's for, a name searched for (a town, "Lyon, France"...), or "" to find
+  // it from the internet address.
+  readonly property string weatherUnit: root.valid("weatherUnit", file.adapter.weatherUnit)
+  readonly property string weatherLocation: root.valid("weatherLocation", file.adapter.weatherLocation)
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
@@ -505,6 +513,8 @@ Singleton {
       return path.startsWith("/") ? path : root.defaults[key]
     }
     if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
+    // A place's name, or "" for none.
+    if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
     if (typeof root.defaults[key] === "boolean") {
@@ -890,6 +900,9 @@ Singleton {
       property bool clockShowAgenda: Defaults.values.clockShowAgenda
       property bool clockShowPerformance: Defaults.values.clockShowPerformance
       property bool clockShowMedia: Defaults.values.clockShowMedia
+      property bool clockShowWeather: Defaults.values.clockShowWeather
+      property string weatherUnit: Defaults.values.weatherUnit
+      property string weatherLocation: Defaults.values.weatherLocation
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
