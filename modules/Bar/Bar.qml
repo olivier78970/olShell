@@ -401,17 +401,26 @@ Scope {
 
       // Where an attached panel's frame is drawn while it's open on this
       // screen (see config/BarSlots.qml): sized to the frame, horizontally
-      // centered on the screen, Theme.panelOffset() away from the bar.
+      // centered on the screen or flush with an end of the bar (following the
+      // frame's barAlign, see components/ModalPanel.qml), Theme.panelOffset()
+      // away from the bar.
       Item {
         id: panelSlot
 
         readonly property var screen: root.screen
         readonly property Item frame: panelSlot.children.length > 0 ? panelSlot.children[0] : null
+        // Where along the bar the frame goes: "left", "center" or "right".
+        readonly property string align: panelSlot.frame?.barAlign ?? "center"
 
         // A click outside the bar and panel: the panel should close.
         signal dismissed()
 
-        x: root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2
+        // On whole pixels: at a fraction the frame's sides and the curved
+        // joins beside them (components/BarFillets.qml) are both drawn half
+        // transparent along their seam, which then shows as a thin line.
+        x: Math.round(panelSlot.align === "left" ? barArea.x
+          : panelSlot.align === "right" ? barArea.x + barArea.width - panelSlot.width
+          : root.screen.width / 2 - (root.autoHide ? 0 : Theme.barMarginLeft) - panelSlot.width / 2)
         y: atTop ? root.barBlock + Theme.panelOffset() : 0
         width: panelSlot.frame ? panelSlot.frame.width : 0
         height: panelSlot.frame ? panelSlot.frame.height : 0
@@ -450,10 +459,13 @@ Scope {
         // Whether one of them, flush with the bar (no gap set), reaches its
         // left or right end: that corner of the bar (or of its end pill) is
         // squared off so the two join up, as they do along the bar's edge.
+        // An attached panel flush with an end of the bar counts too.
         readonly property bool atLeftEnd: Theme.panelGap <= 0
-          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= popupLayer.barLeft + 0.5)
+          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x <= popupLayer.barLeft + 0.5)
+            || (root.hosting && panelSlot.align === "left"))
         readonly property bool atRightEnd: Theme.panelGap <= 0
-          && popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= popupLayer.barRight - 0.5)
+          && (popupLayer.shown.some(item => popupLayer.touchesBar(item) && item.x + item.width >= popupLayer.barRight - 0.5)
+            || (root.hosting && panelSlot.align === "right"))
 
         // Where the bar itself starts and ends in the layer (narrower than the
         // window while auto-hiding, see barArea), which popups stay within.

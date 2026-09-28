@@ -150,8 +150,10 @@ PanelWindow {
 
       // In the bar's slot while attached and open, in frameWindow otherwise.
       parent: root.hostSlot ?? frameWindow.contentItem
-      width: Math.min(440, root.areaWidth * 0.9)
-      height: Math.min(root.areaHeight - frameWindow.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height))
+      // Whole pixels, so its sides sit on pixel edges, as the curved joins
+      // beside them do (see the bar's panelSlot).
+      width: Math.floor(Math.min(440, root.areaWidth * 0.9))
+      height: Math.ceil(Math.min(root.areaHeight - frameWindow.barZone - 20, frame.inset * 2 + header.height + 12 + Math.max(list.contentHeight, empty.height)))
       radius: Theme.radiusFor(height)
       topLeftRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
       topRightRadius: root.attached ? Theme.attachedCorner(radius, true) : radius

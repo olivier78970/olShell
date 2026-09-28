@@ -5,7 +5,8 @@ import qs.components
 import qs.config
 
 // The shortcuts of the Hyprland config that use the Super key (keyboard and
-// mouse), centered on the screen like the launcher, toggled from outside via:
+// mouse), centered on the screen or against the bar (Settings.shortcutsPlacement),
+// toggled from outside via:
 //   quickshell -p . ipc call shortcuts toggle
 // Read from the config each time it opens (scripts/list-shortcuts.py), so a
 // shortcut just added shows, grouped by kind and described in the shell's
@@ -44,6 +45,7 @@ ModalPanel {
   readonly property var categories: ["apps", "shell", "windows", "workspaces", "other"]
 
   maxPanelWidth: 820
+  placement: Settings.placementOf(Settings.shortcutsPlacement)
   maxPanelHeight: 680
   focusTarget: input
 

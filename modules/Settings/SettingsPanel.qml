@@ -237,6 +237,8 @@ ModalPanel {
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
+    // A panel's own placement only counts while they aren't all in one place.
+    if (Settings.choices[row.key] === Settings.panelPlacements) return Settings.panelPlacement === "each"
     // An OSD in the center of the screen touches no edge.
     if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
     if (row.key === "lockKeysOsdMargin") return Settings.lockKeysOsdPosition !== "center-center"
@@ -281,6 +283,7 @@ ModalPanel {
     if ((row.key === "curvedJoinsRow" || row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && Theme.borderWidth > 0) return I18n.tr("settings.curvedJoins.disabledBorder")
     if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && !Theme.curvedJoins) return I18n.tr("settings.curvedJoinsRadius.disabledOff")
     if (row.key === "curvedJoinsRadius" && Settings.curvedJoinsRadiusSame) return I18n.tr("settings.curvedJoinsRadius.disabledSame")
+    if (Settings.choices[row.key] === Settings.panelPlacements && Settings.panelPlacement !== "each") return I18n.tr("settings.placement.disabledAll")
     if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")
@@ -304,6 +307,8 @@ ModalPanel {
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
     if (row.key === "clockDate") return root.clockDateOptions
+    if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
+    if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
   }
 
@@ -315,6 +320,14 @@ ModalPanel {
   // Which edge of the screen the bar is on, named in the current language.
   readonly property var barPositionOptions: Settings.choices.barPosition
     .map(name => ({ value: name, text: I18n.tr("settings.barPosition." + name) }))
+
+  // Where a panel can open, named in the current language.
+  readonly property var placementOptions: Settings.panelPlacements
+    .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
+
+  // The same for every panel at once, or each its own.
+  readonly property var allPlacementOptions: Settings.choices.panelPlacement
+    .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
@@ -368,6 +381,7 @@ ModalPanel {
   // some languages (French), and so is what they share a row with. Never
   // narrower than the usual size.
   maxPanelWidth: Math.max(920, root.neededWidth)
+  placement: Settings.placementOf(Settings.settingsPlacement)
   // Tall enough for the whole page (its title, tabs and rows, with the
   // margins around them, and the keys hint under them), never shorter than
   // the usual size; the screen still caps it (see ModalPanel), the rows

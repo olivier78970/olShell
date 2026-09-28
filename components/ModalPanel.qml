@@ -17,8 +17,9 @@ import qs.config
 // The backdrop and the frame are two separate layer-shell surfaces (see
 // frameWindow below) so a blur layer rule can target just the frame.
 //
-// With `attached`, the panel opens against the bar instead, like the clock
-// panel: on `anchorItem`'s screen - or, without an anchorItem (when opened
+// With a `placement` on the bar ("bar-left", "bar-center" or "bar-right";
+// `attached` is then true), the panel opens against the bar instead, like
+// the clock panel, at that end or in the middle of it: on `anchorItem`'s screen - or, without an anchorItem (when opened
 // by IPC), the focused one - with nothing dimmed. Neither of these windows
 // shows then: the frame is drawn inside that screen's bar (see
 // config/BarSlots.qml), which also takes care of the click outside.
@@ -50,8 +51,22 @@ PanelWindow {
   // Whether the panel is open; the owner binds it (not `visible`, which an
   // attached panel keeps false).
   property bool open: false
-  // Opens against the bar rather than centered on the screen (see above).
-  property bool attached: false
+  // Where the panel opens: "center" (of the screen), against its left or
+  // right edge halfway down ("center-left", "center-right", as far from that
+  // edge as the bar is from it), against the bar at its
+  // left end, in its middle or at its right end ("bar-left", "bar-center",
+  // "bar-right"), or the same against the screen's edge opposite the bar
+  // ("opposite-left", "opposite-center", "opposite-right"), as far from it
+  // and from the sides as the bar is from its own; one of
+  // Settings.panelPlacements.
+  property string placement: "center"
+  // Whether it opens against the bar rather than centered on the screen
+  // (see above).
+  readonly property bool attached: root.placement.startsWith("bar-")
+  // Where along the bar an attached panel goes: "left", "center" or "right".
+  readonly property string barAlign: root.attached ? root.placement.slice(4) : "center"
+  // Whether it opens against the edge opposite the bar.
+  readonly property bool opposite: root.placement.startsWith("opposite-")
   // The bar widget an attached panel opens from, if any.
   property Item anchorItem: null
 
@@ -187,8 +202,19 @@ PanelWindow {
       top: true
       left: true
     }
-    margins.left: (root.width - frame.width) / 2
-    margins.top: (root.height - Math.max(frame.height, Math.min(root.placementHeight, root.areaHeight * 0.9))) / 2
+    margins.left: {
+      const align = root.opposite ? root.placement.slice(9)
+        : root.placement === "center-left" ? "left"
+        : root.placement === "center-right" ? "right"
+        : "center"
+      if (align === "left") return Theme.barMarginLeft
+      if (align === "right") return root.width - frame.width - Theme.barMarginRight
+      return (root.width - frame.width) / 2
+    }
+    margins.top: {
+      if (!root.opposite) return (root.height - Math.max(frame.height, Math.min(root.placementHeight, root.areaHeight * 0.9))) / 2
+      return Theme.barPosition === "bottom" ? Theme.barMarginBottom : root.height - frame.height - Theme.barMarginTop
+    }
     implicitWidth: frame.width
     implicitHeight: frame.height
 
@@ -210,10 +236,13 @@ PanelWindow {
       // In the bar's slot while an attached panel is open, in frameWindow
       // otherwise.
       parent: root.hostSlot ?? frameWindow.contentItem
+      // Read by the bar's slot to place it along the bar.
+      readonly property string barAlign: root.barAlign
       // An attached frame stays within the bar's span, and leaves room for
-      // the bar itself.
-      width: Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9)
-      height: Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9)
+      // the bar itself. Whole pixels, so its sides sit on pixel edges, as the
+      // curved joins beside them do (see the bar's panelSlot).
+      width: Math.floor(Math.min(root.maxPanelWidth, root.attached ? root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight : root.areaWidth * 0.9))
+      height: Math.floor(Math.min(root.maxPanelHeight, root.attached ? root.areaHeight - root.barZone - 20 : root.areaHeight * 0.9))
       radius: Theme.radiusFor(height)
       topLeftRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
       topRightRadius: root.attached ? Theme.attachedCorner(radius, true) : radius
@@ -229,8 +258,12 @@ PanelWindow {
       focus: true
 
       // Curves it out of the bar when attached flush against it.
+      // None on the side flush with an end of the bar, where there is no bar
+      // edge to curve from.
       BarFillets {
         visible: root.attached && root.framed
+        showLeft: root.barAlign !== "left"
+        showRight: root.barAlign !== "right"
         color: frame.color
         borderColor: frame.border.color
       }
