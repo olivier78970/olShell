@@ -249,9 +249,9 @@ Item {
     width: parent.width
     spacing: 10
 
-    // Here: a larger clock, the time and today's date.
+    // Here: a larger clock, the time and today's date, centered.
     Row {
-      width: parent.width
+      anchors.horizontalCenter: parent.horizontalCenter
       spacing: 18
 
       ClockFace {
