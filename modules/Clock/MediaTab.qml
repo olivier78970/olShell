@@ -25,6 +25,10 @@ Item {
 
   implicitHeight: root.player ? column.implicitHeight : empty.implicitHeight
 
+  // Whether the app gives the track's length (a browser often doesn't): the
+  // progress bar only moves, and seeks, with it.
+  readonly property bool hasLength: (root.player?.lengthSupported ?? false) && root.player.length > 0
+
   // "m:ss" (or "h:mm:ss") for a time in seconds.
   function formatTime(seconds) {
     const total = Math.max(0, Math.floor(seconds))
@@ -39,7 +43,7 @@ Item {
   Timer {
     interval: 1000
     repeat: true
-    running: root.visible && root.player !== null && root.player.isPlaying && root.player.positionSupported
+    running: root.visible && root.player !== null && root.player.isPlaying && root.player.positionSupported && root.hasLength
     onTriggered: root.player.positionChanged()
   }
 
@@ -273,16 +277,16 @@ Item {
       }
     }
 
-    // The progress, and the times on either side of it.
+    // The progress, and the times on either side of it; left empty, with
+    // dashes for the times, when the app doesn't give the track's length.
     Row {
-      visible: root.player?.lengthSupported ?? false
       width: parent.width
       spacing: 10
 
       ThemedText {
         id: elapsed
         anchors.verticalCenter: parent.verticalCenter
-        text: root.formatTime(progress.dragging ? progress.dragValue * root.player.length : root.player?.position ?? 0)
+        text: !root.hasLength ? "–:––" : root.formatTime(progress.dragging ? progress.dragValue * root.player.length : root.player.position)
         sizeScale: 0.7
         opacity: 0.7
       }
@@ -291,15 +295,15 @@ Item {
         id: progress
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width - elapsed.width - total.width - parent.spacing * 2
-        value: root.player && root.player.length > 0 ? root.player.position / root.player.length : 0
-        interactive: (root.player?.canSeek ?? false) && (root.player?.positionSupported ?? false)
+        value: root.hasLength ? root.player.position / root.player.length : 0
+        interactive: root.hasLength && (root.player?.canSeek ?? false) && (root.player?.positionSupported ?? false)
         onMoved: value => root.player.position = value * root.player.length
       }
 
       ThemedText {
         id: total
         anchors.verticalCenter: parent.verticalCenter
-        text: root.formatTime(root.player?.length ?? 0)
+        text: root.hasLength ? root.formatTime(root.player.length) : "–:––"
         sizeScale: 0.7
         opacity: 0.7
       }
