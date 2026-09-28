@@ -4,11 +4,13 @@ import qs.config
 import qs.modules.Settings
 import qs.services
 
-// The clocks page of the clock popup: the time here, then the time now in
-// each place set in the settings (Settings.worldClocks, see
-// services/WorldClock.qml), each with whether it's day or night there, the
-// day it is there next to today's, and how far ahead or behind it is. With
-// no place yet, a button opens the settings where they're added.
+// The clocks page of the clock popup: the time here, large, by an analog
+// clock and today's date, then a card for each place set in the settings
+// (Settings.worldClocks, see services/WorldClock.qml), two to a row: an
+// analog clock, the place, its time, and as pills the day it is there next
+// to today's and how far ahead or behind it is. A place's card is tinted
+// warm by day and deep blue by night. With no place yet, a button opens the
+// settings where they're added.
 Item {
   id: root
 
@@ -49,68 +51,138 @@ Item {
     return days > 0 ? I18n.tr("clock.world.tomorrow") : days < 0 ? I18n.tr("clock.world.yesterday") : I18n.tr("clock.world.today")
   }
 
+  // How far a zone is ahead of (or behind) here, and its zone's abbreviation
+  // when it has a real one (some zones only have "+07").
+  function zoneText(zone) {
+    const abbrev = WorldClock.zones[zone]?.abbrev ?? ""
+    return [root.offsetText(zone), /^[+-]/.test(abbrev) ? "" : abbrev].filter(part => part.length > 0).join("  ")
+  }
+
+  // The tints of a place's card by day and by night.
+  readonly property color dayTint: "#f6b73c"
+  readonly property color nightTint: "#3b4a9c"
+
   // Whether it's night at `date` (before 6 or from 20 o'clock).
   function isNight(date) {
     return date.getHours() < 6 || date.getHours() >= 20
   }
 
-  // A place's row: its name and details on the left, its time on the right.
-  component PlaceRow: Item {
-    id: place
+  // A clock hand on a face `size` wide: `length` (of the radius) long,
+  // `thickness` wide, turned `angle` degrees from 12 o'clock.
+  component Hand: Rectangle {
+    id: hand
 
-    property string name: ""
-    property string details: ""
+    property real size: 64
+    property real length: 0.5
+    property real thickness: 2
+    property real angle: 0
+
+    x: (hand.size - width) / 2
+    y: hand.size / 2 - height + hand.thickness / 2
+    width: hand.thickness
+    height: hand.size / 2 * hand.length
+    radius: hand.thickness / 2
+    antialiasing: true
+    transform: Rotation {
+      origin.x: hand.width / 2
+      origin.y: hand.height - hand.thickness / 2
+      angle: hand.angle
+    }
+  }
+
+  // An analog clock showing `time`: a face with its twelve marks, and the
+  // hour, minute and (with `seconds`) second hands. Lighter by day, darker by
+  // night.
+  component ClockFace: Item {
+    id: face
+
     property var time: null
-    property bool here: false
+    property bool seconds: false
+    readonly property bool night: face.time ? root.isNight(face.time) : false
+    readonly property real hours: face.time ? face.time.getHours() % 12 + face.time.getMinutes() / 60 : 0
+    readonly property real minutes: face.time ? face.time.getMinutes() + face.time.getSeconds() / 60 : 0
 
-    width: parent.width
-    height: Math.max(names.implicitHeight, clock.implicitHeight) + 12
+    implicitWidth: 64
+    implicitHeight: 64
 
-    Column {
-      id: names
-      anchors.left: parent.left
-      anchors.right: clock.left
-      anchors.rightMargin: 12
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 2
+    Rectangle {
+      anchors.fill: parent
+      radius: width / 2
+      color: face.night ? Qt.rgba(0, 0, 0, 0.35) : Qt.rgba(1, 1, 1, 0.12)
+      border.color: Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.35)
+      border.width: 1
+    }
 
-      ThemedText {
-        width: parent.width
-        elide: Text.ElideRight
-        text: place.name
-        font.bold: true
-        color: place.here ? Theme.accentColor : Theme.textColor
-      }
+    // The marks, longer at 12, 3, 6 and 9.
+    Repeater {
+      model: 12
 
-      ThemedText {
-        visible: text.length > 0
-        width: parent.width
-        elide: Text.ElideRight
-        text: place.details
-        sizeScale: 0.7
-        opacity: 0.65
+      Rectangle {
+        required property int index
+        readonly property bool major: index % 3 === 0
+
+        x: (face.width - width) / 2
+        y: face.height * 0.06
+        width: major ? 2 : 1
+        height: face.height * (major ? 0.1 : 0.06)
+        color: Theme.textColor
+        opacity: major ? 0.8 : 0.4
+        transform: Rotation {
+          origin.x: width / 2
+          origin.y: face.height / 2 - face.height * 0.06
+          angle: index * 30
+        }
       }
     }
 
-    Row {
-      id: clock
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 10
+    Hand {
+      size: face.width
+      length: 0.55
+      thickness: face.width / 22
+      angle: face.hours * 30
+      color: Theme.textColor
+    }
 
-      ThemedText {
-        anchors.verticalCenter: parent.verticalCenter
-        text: place.time ? (root.isNight(place.time) ? "󰖔" : "󰖙") : ""
-        color: Theme.accentColor
-        opacity: 0.8
-      }
+    Hand {
+      size: face.width
+      length: 0.8
+      thickness: face.width / 32
+      angle: face.minutes * 6
+      color: Theme.textColor
+    }
 
-      ThemedText {
-        anchors.verticalCenter: parent.verticalCenter
-        text: place.time ? root.timeText(place.time) : "–:––"
-        sizeScale: 1.6
-        font.bold: true
-      }
+    Hand {
+      size: face.width
+      visible: face.seconds
+      length: 0.85
+      thickness: 1
+      angle: face.time ? face.time.getSeconds() * 6 : 0
+      color: Theme.accentColor
+    }
+
+    Rectangle {
+      anchors.centerIn: parent
+      width: face.width / 12
+      height: width
+      radius: width / 2
+      color: Theme.accentColor
+    }
+  }
+
+  // A small rounded label.
+  component Pill: Rectangle {
+    property alias text: pillText.text
+
+    width: pillText.implicitWidth + 12
+    height: pillText.implicitHeight + 4
+    radius: height / 2
+    color: Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.1)
+
+    ThemedText {
+      id: pillText
+      anchors.centerIn: parent
+      sizeScale: 0.65
+      opacity: 0.85
     }
   }
 
@@ -175,37 +247,134 @@ Item {
     id: column
     visible: Settings.worldClocks.length > 0
     width: parent.width
-    spacing: 0
+    spacing: 10
 
-    PlaceRow {
-      name: I18n.tr("clock.world.here")
-      details: root.dayText(root.now)
-      time: root.now
-      here: true
-    }
-
-    Rectangle {
+    // Here: a larger clock, the time and today's date.
+    Row {
       width: parent.width
-      height: 1
-      color: Theme.outlineColor
-      opacity: 0.5
+      spacing: 18
+
+      ClockFace {
+        width: 92
+        height: 92
+        time: root.now
+        seconds: true
+      }
+
+      Column {
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 2
+
+        ThemedText {
+          text: I18n.tr("clock.world.here")
+          sizeScale: 0.75
+          color: Theme.accentColor
+          font.bold: true
+        }
+
+        ThemedText {
+          text: root.timeText(root.now)
+          sizeScale: 2.4
+          font.bold: true
+        }
+
+        ThemedText {
+          text: {
+            const date = root.now.toLocaleDateString(I18n.locale, I18n.value("format.date.long"))
+            return date.charAt(0).toUpperCase() + date.slice(1)
+          }
+          sizeScale: 0.75
+          opacity: 0.65
+        }
+      }
     }
 
-    Repeater {
-      model: Settings.worldClocks
+    // The places, two to a row (or one, alone).
+    Grid {
+      id: grid
+      width: parent.width
+      columns: Settings.worldClocks.length > 1 ? 2 : 1
+      spacing: 8
 
-      PlaceRow {
-        required property var modelData
+      Repeater {
+        model: Settings.worldClocks
 
-        readonly property var zoneTime: WorldClock.timeIn(modelData.zone, root.now)
+        Rectangle {
+          id: card
 
-        name: modelData.name
-        // Its day, how far ahead or behind, and its zone's abbreviation
-        // when it has a real one (some zones only have "+07").
-        readonly property string abbrev: WorldClock.zones[modelData.zone]?.abbrev ?? ""
-        details: zoneTime ? [root.dayText(zoneTime), root.offsetText(modelData.zone), /^[+-]/.test(abbrev) ? "" : abbrev]
-          .filter(part => part.length > 0).join("  ·  ") : ""
-        time: zoneTime
+          required property var modelData
+          readonly property var time: WorldClock.timeIn(card.modelData.zone, root.now)
+          readonly property bool night: card.time ? root.isNight(card.time) : false
+          readonly property color tint: card.night ? root.nightTint : root.dayTint
+
+          width: (grid.width - grid.spacing * (grid.columns - 1)) / grid.columns
+          height: Math.max(face.height, details.implicitHeight) + 20
+          radius: Theme.radiusFor(Math.min(height, 60))
+          // The panel's own card color, tinted by day or night.
+          color: Qt.tint(Qt.rgba(Theme.backgroundColor.r, Theme.backgroundColor.g, Theme.backgroundColor.b, 0.5), Qt.rgba(card.tint.r, card.tint.g, card.tint.b, card.night ? 0.3 : 0.16))
+          border.color: Qt.rgba(card.tint.r, card.tint.g, card.tint.b, 0.45)
+          border.width: 1
+
+          ClockFace {
+            id: face
+            x: 10
+            anchors.verticalCenter: parent.verticalCenter
+            width: 58
+            height: 58
+            time: card.time
+          }
+
+          Column {
+            id: details
+            anchors.left: face.right
+            anchors.leftMargin: 12
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 3
+
+            ThemedText {
+              width: parent.width
+              elide: Text.ElideRight
+              text: card.modelData.name.split(",")[0]
+              font.bold: true
+              sizeScale: 0.85
+            }
+
+            Row {
+              spacing: 6
+
+              ThemedText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: card.time ? root.timeText(card.time) : "–:––"
+                sizeScale: 1.5
+                font.bold: true
+              }
+
+              ThemedText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: card.night ? "󰖔" : "󰖙"
+                color: card.tint
+                sizeScale: 0.9
+              }
+            }
+
+            Flow {
+              width: parent.width
+              spacing: 4
+
+              Pill {
+                visible: card.time !== null
+                text: card.time ? root.dayText(card.time) : ""
+              }
+
+              Pill {
+                visible: text.length > 0
+                text: root.zoneText(card.modelData.zone)
+              }
+            }
+          }
+        }
       }
     }
   }
