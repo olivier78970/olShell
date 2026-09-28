@@ -9,20 +9,27 @@ Scope {
   IpcHandler {
     target: "switcher"
 
-    // Opens it on the previously focused window, or closes it.
+    // Opens it on the previously focused window; bound to a shortcut, which
+    // it finds in the Hyprland config, pressing that again moves on and
+    // releasing its modifier switches (see AppSwitcherState.toggle()).
     function toggle(): void {
       AppSwitcherState.toggle()
     }
 
-    // Selects the next window (the previously focused one when it opens), for
-    // a Super+Tab binding; releasing the modifier held switches to it.
+    // Selects the next window (the previously focused one when it opens);
+    // releasing the modifier held switches to it.
     function next(): void {
       AppSwitcherState.step(1)
     }
 
-    // Selects the window before, for a Super+Shift+Tab binding.
+    // Selects the window before (the last one when it opens).
     function prev(): void {
       AppSwitcherState.step(-1)
+    }
+
+    // Closes it without switching.
+    function close(): void {
+      AppSwitcherState.visible = false
     }
 
     // Switches to the selected window, for a binding on the modifier's

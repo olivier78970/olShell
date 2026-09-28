@@ -7,14 +7,16 @@ import qs.components
 import qs.config
 
 // The app switcher: Hyprland's windows, the most recently focused first,
-// placed like the other panels (Settings.switcherPlacement), toggled from
+// placed like the other panels (Settings.switcherPlacement), opened from
 // outside via:
 //   quickshell -p . ipc call switcher toggle
-// or stepped through with `switcher next` / `switcher prev` (a Super+Tab
-// binding), which open it on the previously focused window. Up/Down, Tab /
-// Shift+Tab (or Left/Right) move, Enter or a click switches to the window,
-// and so does releasing the Super, Alt or Ctrl key held when it was opened
-// by stepping (or `switcher confirm`); Escape closes.
+// bound to a shortcut in the Hyprland config (such as Super+Tab), which it
+// then follows (AppSwitcherState.shortcut): it opens on the previously
+// focused window, the shortcut pressed again moves on (with Shift, back),
+// and releasing its modifier switches to the selected window. `switcher
+// next` / `switcher prev` step the same way. Up/Down, Tab / Shift+Tab (or
+// Left/Right) move too, Enter or a click switches to the window (so does
+// `switcher confirm`), Escape closes.
 ModalPanel {
   id: root
 
@@ -91,8 +93,35 @@ ModalPanel {
     }
   }
 
+  // The Qt keys a key of the shortcut (as list-shortcuts.py names it) can
+  // come as: the modifiers' left and right keys, and the named keys; a
+  // single character is its own code (upper case, as Qt's keys are).
+  function qtKeys(name) {
+    switch (name) {
+    case "Super": return [Qt.Key_Meta, Qt.Key_Super_L, Qt.Key_Super_R]
+    case "Alt": return [Qt.Key_Alt]
+    case "AltGr": return [Qt.Key_AltGr]
+    case "Ctrl": return [Qt.Key_Control]
+    case "Shift": return [Qt.Key_Shift]
+    case "Tab": return [Qt.Key_Tab, Qt.Key_Backtab]
+    case "Space": return [Qt.Key_Space]
+    case "Enter": return [Qt.Key_Return, Qt.Key_Enter]
+    default: return name.length === 1 ? [name.toUpperCase().charCodeAt(0)] : []
+    }
+  }
+
+  // The keys whose release switches to the selected window: the shortcut's
+  // modifiers, or while it isn't known, Super, Alt and Ctrl.
+  readonly property var releaseKeys: (AppSwitcherState.modifiers.length > 0 ? AppSwitcherState.modifiers : ["Super", "Alt", "Ctrl"])
+    .reduce((keys, name) => keys.concat(root.qtKeys(name)), [])
+
   onKeyPressed: event => {
-    if (event.key === Qt.Key_Down || event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+    // The shortcut's key reaching the panel (Hyprland takes the shortcut
+    // itself, but not with Shift added): back with Shift, on otherwise.
+    if (AppSwitcherState.key !== "" && root.qtKeys(AppSwitcherState.key).includes(event.key)) {
+      AppSwitcherState.current += (event.modifiers & Qt.ShiftModifier) ? -1 : 1
+      event.accepted = true
+    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
       AppSwitcherState.current += 1
       event.accepted = true
     } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Left || event.key === Qt.Key_Backtab) {
@@ -105,16 +134,14 @@ ModalPanel {
   }
 
   // Holds the keyboard: the keys pressed go on to the frame (and
-  // onKeyPressed above), and the release of the modifier held while
-  // stepping switches to the selected window.
+  // onKeyPressed above), and the release of the shortcut's modifier while
+  // cycling switches to the selected window.
   Item {
     id: keys
     focus: true
 
     Keys.onReleased: event => {
-      const modifier = event.key === Qt.Key_Alt || event.key === Qt.Key_Meta || event.key === Qt.Key_Super_L
-        || event.key === Qt.Key_Super_R || event.key === Qt.Key_Control
-      if (AppSwitcherState.cycling && modifier) {
+      if (AppSwitcherState.cycling && root.releaseKeys.includes(event.key) && !event.isAutoRepeat) {
         root.activate(root.selected)
         event.accepted = true
       }

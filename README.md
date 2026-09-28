@@ -125,7 +125,7 @@ For the features that use them:
 ├── scripts/apply-wallpaper.py   # Shows an image as the wallpaper with awww, starting its daemon if needed (used by the wallpaper panel)
 ├── scripts/screenshot.py        # Takes a screenshot (screen, rectangle or window), saves and copies it (used by services/Screenshot.qml)
 ├── scripts/lock-keys-watch.py   # Prints the Caps/Num Lock state on every change (used by services/LockKeys.qml)
-├── scripts/list-shortcuts.py # Reads the shortcuts from the Hyprland config, as JSON (for the shortcuts panel)
+├── scripts/list-shortcuts.py # Reads the shortcuts from the Hyprland config, as JSON (for the shortcuts panel, and the app switcher's own shortcut)
 ├── scripts/tui-launch.py     # Themes and starts btop or gdu in a terminal (used by services/TuiWindow.qml)
 ├── scripts/default-search-engine.py # Reads the default browser's default search engine, as JSON (for the launcher's web search)
 ├── scripts/matugen-run.py    # Runs matugen with only the templates of the apps turned on, plus the added apps' (used by services/Matugen.qml)
@@ -277,7 +277,9 @@ The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher to
 
 `quickshell -p . ipc call switcher toggle` opens a panel listing Hyprland's open windows, the most recently focused first, each with its icon, title, app and workspace, and the previously focused one selected. **↑/↓**, **Tab / Shift+Tab** (or **←/→**) move the selection, **Enter** or a click switches to the window (on its workspace), **Escape** or a click outside closes. It is placed like the other panels (the settings' **Panels** category, `switcherPlacement`).
 
-For **Super+Tab**, bind `switcher next` (and `switcher prev` to **Super+Shift+Tab** to go back) instead, e.g. `hl.bind("SUPER + TAB", hl.dsp.exec_cmd("qs ipc call switcher next"))`: the first press opens it on the previously focused window, each further press moves on, and releasing the key held (Super, or Alt or Ctrl if bound to those) switches to the selected window. The panel only sees that release once it has the keyboard, so a quick Super+Tab can be over before it does: bind `switcher confirm`, which switches to the selected window, to the modifier's release in Hyprland too.
+Bound to a shortcut in the Hyprland config, e.g. `hl.bind("SUPER + TAB", hl.dsp.exec_cmd("qs ipc call switcher toggle"))`, it works like Alt+Tab with that shortcut, whatever it is: it finds the shortcut in the config each time it opens (with [scripts/list-shortcuts.py](scripts/list-shortcuts.py)), then pressing it again while holding its modifier moves on (with **Shift** added, back), and releasing the modifier switches to the selected window. So `toggle` only closes it when its shortcut has no modifier; otherwise **Escape** does, or `switcher close`.
+
+`switcher next` and `switcher prev` step the same way (the first opens it on the previously focused window, the second on the last one), for binds of your own; releasing Super, Alt or Ctrl switches then, or the `toggle` shortcut's modifiers once it is known. The panel only sees that release once it has the keyboard, so a very quick press can be over before it does: bind `switcher confirm`, which switches to the selected window, to the modifier's release in Hyprland too.
 
 ## Keyboard shortcuts
 
@@ -410,7 +412,7 @@ quickshell -p . ipc call btop cpu                      # ... showing only the CP
 quickshell -p . ipc call gdu toggle                    # open/close the gdu window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call shortcuts toggle              # open/close the keyboard shortcuts panel
-quickshell -p . ipc call switcher toggle               # open/close the app switcher (also: next, prev, confirm)
+quickshell -p . ipc call switcher toggle               # open the app switcher, or move on while open (also: next, prev, confirm, close)
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call notifications toggle          # open/close the notification center
 quickshell -p . ipc call notifications dnd 1           # do not disturb on (0: off); also toggleDnd, clear, count

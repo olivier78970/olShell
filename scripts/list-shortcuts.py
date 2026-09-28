@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lists the Hyprland config's shortcuts with the Super key, as JSON.
 
-Usage: list-shortcuts.py [CONFIG]   (default: ~/.config/hypr/hyprland.lua)
+Usage: list-shortcuts.py [--all] [CONFIG]   (default: ~/.config/hypr/hyprland.lua)
 
 A Lua config binds each shortcut to a Lua function, so `hyprctl binds` only
 knows its keys: what it does is read here from the config's own
@@ -15,7 +15,9 @@ Prints {"shortcuts": [...], "running": N}: each shortcut is
 where ACTION is a kind the shell describes in its own language ("exec",
 "shell", "close", "focusWorkspace"...; "other" with the raw call in "arg"),
 and "running" is how many binds with Super Hyprland itself has, to spot any
-this couldn't read. Shortcuts without Super (media keys, Print...) are left out.
+this couldn't read. Shortcuts without Super (media keys, Print...) are left out,
+unless --all is given (the app switcher looks for its own shortcut that way,
+whatever its keys).
 """
 
 import json
@@ -24,7 +26,10 @@ import re
 import subprocess
 import sys
 
-CONFIG = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/.config/hypr/hyprland.lua")
+ARGS = [arg for arg in sys.argv[1:] if arg != "--all"]
+# Whether to list the shortcuts without Super too.
+ALL = "--all" in sys.argv[1:]
+CONFIG = os.path.expanduser(ARGS[0] if ARGS else "~/.config/hypr/hyprland.lua")
 
 # Keycodes (code:N) of the keys a config usually names that way.
 KEYCODES = {**{10 + i: str((i + 1) % 10) for i in range(10)},
@@ -249,7 +254,7 @@ def main():
             continue
         options = table(parts[2], variables) if len(parts) > 2 else {}
         labels = key_labels(keys)
-        if "Super" not in labels:
+        if "Super" not in labels and not ALL:
             continue
         shortcut = {"keys": labels, **describe(parts[1], variables)}
         if options.get("description"):
