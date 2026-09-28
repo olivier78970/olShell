@@ -66,10 +66,12 @@ ModalPanel {
   readonly property int iconSize: Settings.switcherIconSize
   readonly property real rowHeight: root.iconSize + 24
   // A card's picture (its window's, or its icon) and the card itself: the
-  // picture, then a line of each text size, measured by the probes below.
+  // picture, then its texts, each on up to cardLines lines (measured by the
+  // probes below).
   readonly property real mediaWidth: root.previews ? 240 : root.iconSize
   readonly property real mediaHeight: root.previews ? 150 : root.iconSize
-  readonly property real cardWidth: Math.max(140, root.mediaWidth + 20, root.iconSize + 100)
+  readonly property real cardWidth: Math.max(190, root.mediaWidth + 20, root.iconSize + 120)
+  readonly property int cardLines: 2
   readonly property real cardHeight: 14 + root.mediaHeight
     + (root.showDetails || Settings.switcherShowTitle ? 10 : 0)
     + (Settings.switcherShowTitle ? titleProbe.implicitHeight : 0)
@@ -247,17 +249,18 @@ ModalPanel {
       font.bold: true
     }
 
-    // A line of each text size of a card, measured for its height; never shown.
+    // cardLines lines of each text size of a card (or one, in a row),
+    // measured for its height; never shown.
     ThemedText {
       id: titleProbe
       visible: false
-      text: "Ag"
+      text: Array(root.horizontal ? root.cardLines : 1).fill("Ag").join("\n")
     }
 
     ThemedText {
       id: detailsProbe
       visible: false
-      text: "Ag"
+      text: Array(root.horizontal ? root.cardLines : 1).fill("Ag").join("\n")
       sizeScale: 0.75
     }
 
@@ -358,7 +361,12 @@ ModalPanel {
           ThemedText {
             visible: Settings.switcherShowTitle
             width: parent.width
+            // On a card it wraps, on up to cardLines lines, before being cut.
+            height: root.horizontal ? titleProbe.implicitHeight : implicitHeight
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
+            verticalAlignment: Text.AlignTop
+            wrapMode: root.horizontal ? Text.Wrap : Text.NoWrap
+            maximumLineCount: root.horizontal ? root.cardLines : 1
             elide: Text.ElideRight
             text: entry.window ? (entry.window.title || entry.window.class) : ""
             color: entry.textColor
@@ -369,6 +377,8 @@ ModalPanel {
             visible: text.length > 0
             width: parent.width
             horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
+            wrapMode: root.horizontal ? Text.Wrap : Text.NoWrap
+            maximumLineCount: root.horizontal ? root.cardLines : 1
             elide: Text.ElideRight
             text: entry.window ? root.detailsOf(entry.modelData, entry.window) : ""
             color: entry.textColor
