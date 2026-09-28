@@ -40,9 +40,9 @@ Scope {
       readonly property int nearMargin: ({ top: Theme.barMarginTop, bottom: Theme.barMarginBottom, left: Theme.barMarginLeft, right: Theme.barMarginRight })[Theme.barPosition]
       // The margin on the far side, between the bar and the windows.
       readonly property int farMargin: ({ top: Theme.barMarginBottom, bottom: Theme.barMarginTop, left: Theme.barMarginRight, right: Theme.barMarginLeft })[Theme.barPosition]
-      // How long showing/tucking the bar away takes, in ms; 0 (snaps
-      // instead) when animating it is turned off.
-      readonly property int revealDuration: Theme.barAutoHideAnimated ? Theme.barAutoHideDuration : 0
+      // How long showing/tucking the bar away takes, in ms: the shell's
+      // animation duration, or 0 (snaps instead) with animations turned off.
+      readonly property int revealDuration: Theme.animationDuration
       // Whether the bar's own space is reserved right now (see
       // exclusiveZone): true the instant it's revealed, so windows make
       // room for it right as it starts appearing, but only false once its

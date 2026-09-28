@@ -34,7 +34,7 @@ Singleton {
     windowInactiveOpacity: [0.1, 1],
     spacing: [0, 40],
     barHeight: [28, 72],
-    barAutoHideDuration: [0, 600],
+    animationDuration: [50, 600],
     barAutoHideDelay: [0, 3000],
     barMarginTop: [0, 100],
     barMarginBottom: [0, 100],
@@ -131,10 +131,11 @@ Singleton {
   // Whether the bar tucks itself away until the pointer reaches the edge of
   // the screen it's anchored to.
   readonly property bool barAutoHide: root.valid("barAutoHide", file.adapter.barAutoHide)
-  // Whether showing/tucking the bar away slides and fades it, or snaps.
-  readonly property bool barAutoHideAnimated: root.valid("barAutoHideAnimated", file.adapter.barAutoHideAnimated)
-  // How long that takes, in milliseconds; has no effect while it doesn't animate.
-  readonly property int barAutoHideDuration: root.valid("barAutoHideDuration", file.adapter.barAutoHideDuration)
+  // Whether the shell animates (the bar widgets' popups and the panels coming
+  // and going, the auto-hiding bar sliding in and out), and how long one
+  // animation takes, in ms.
+  readonly property bool animations: root.valid("animations", file.adapter.animations)
+  readonly property int animationDuration: root.valid("animationDuration", file.adapter.animationDuration)
   // How long, in milliseconds, the pointer has to be away from the bar (and
   // its margins) before it's tucked away again.
   readonly property int barAutoHideDelay: root.valid("barAutoHideDelay", file.adapter.barAutoHideDelay)
@@ -842,8 +843,8 @@ Singleton {
       property real opacity: Defaults.values.opacity
       property int spacing: Defaults.values.spacing
       property bool barAutoHide: Defaults.values.barAutoHide
-      property bool barAutoHideAnimated: Defaults.values.barAutoHideAnimated
-      property int barAutoHideDuration: Defaults.values.barAutoHideDuration
+      property bool animations: Defaults.values.animations
+      property int animationDuration: Defaults.values.animationDuration
       property int barAutoHideDelay: Defaults.values.barAutoHideDelay
       property string barPosition: Defaults.values.barPosition
       property int barHeight: Defaults.values.barHeight

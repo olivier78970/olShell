@@ -4,7 +4,9 @@ import qs.config
 
 // Rounded popup panel anchored below a widget (above it on a bottom bar, and
 // beside it, level with it, on a side bar), styled to match the bar's pills.
-// Put PowerMenuOption (or similar) rows inside it.
+// Put PowerMenuOption (or similar) rows inside it. Open or close it with
+// `open`: it slides out from under the bar (a submenu from under its menu)
+// and fades in, and back as it closes, staying `visible` until it's in.
 //
 // Not a popup surface of its own: while shown, it's drawn inside its bar's
 // own surface instead (see Bar.qml's popupLayer and config/BarSlots.qml), so
@@ -39,6 +41,23 @@ Item {
   property Item openSubmenu: null
   // True while the pointer is over the popup itself.
   readonly property bool containsMouse: hover.hovered
+  // Whether it's open (see above).
+  property bool open: false
+  // How far out it is, from 0 (in) to 1 (all out), easing toward `open`.
+  property real progress: root.open ? 1 : 0
+
+  Behavior on progress {
+    NumberAnimation { duration: Theme.animationDuration; easing.type: Easing.OutCubic }
+  }
+
+  // Where its surface is drawn, back toward the bar (or, for a submenu, its
+  // menu) by the part not out yet.
+  readonly property point slide: {
+    const hidden = 1 - root.progress
+    if (root.parentMenu) return Qt.point((root.x > root.parentMenu.x ? -1 : 1) * hidden * root.width, 0)
+    if (Theme.barVertical) return Qt.point((root.barAtLeft ? -1 : 1) * hidden * root.width, 0)
+    return Qt.point(0, (root.barAtTop ? -1 : 1) * hidden * root.height)
+  }
 
   readonly property bool barAtTop: Theme.barPosition !== "bottom"
   // Whether the bar stands against the left edge, where popups open to its
@@ -57,16 +76,18 @@ Item {
     target: root.grabFocus ? root.host : null
 
     function onDismissed() {
-      root.visible = false
+      root.open = false
     }
   }
 
-  visible: false
+  // Drawn while open, and while sliding back in; fading along.
+  visible: root.open || root.progress > 0
+  opacity: root.progress
 
-  onVisibleChanged: {
-    if (!root.visible) root.activeEntry = null
+  onOpenChanged: {
+    if (!root.open) root.activeEntry = null
     if (root.parentMenu) {
-      if (root.visible) root.parentMenu.openSubmenu = root
+      if (root.open) root.parentMenu.openSubmenu = root
       else if (root.parentMenu.openSubmenu === root) root.parentMenu.openSubmenu = null
     }
   }
@@ -89,10 +110,10 @@ Item {
   // row, drawn twice over, showed as a thin dark line. Looked up again as it
   // opens or resizes.
   x: {
-    // Read so it's looked up again each time it's shown: the widget can have
+    // Read so it's looked up again each time it opens: the widget can have
     // moved in the bar since (layout changed in the settings), which nothing
     // below would otherwise notice.
-    root.visible
+    root.open
     if (!root.host || !root.anchorItem) return 0
     if (root.parentMenu) {
       const menu = root.parentMenu
@@ -114,7 +135,7 @@ Item {
   }
   y: {
     if (Theme.barVertical) {
-      root.visible
+      root.open
       if (!root.host || !root.anchorItem) return 0
       // A submenu: level with the entry it opens from, moved back up only as
       // far as it needs to end with the bar.
@@ -159,7 +180,7 @@ Item {
   // upward), its bottom with the entry's bottom. Looked up again as the menu
   // moves or scrolls.
   readonly property real entryEdge: {
-    root.visible
+    root.open
     if (!root.parentMenu || !root.host || !root.anchorItem) return 0
     root.parentMenu.y
     root.parentMenu.scrollY
@@ -289,61 +310,72 @@ Item {
   readonly property real cornerBottomLeft: background.bottomLeftRadius
   readonly property real cornerBottomRight: background.bottomRightRadius
 
+  // Clips the surface at the popup's own edges (the bar's, on the side
+  // against it) while it slides out or back in (see slide).
   Item {
-    id: surface
     anchors.fill: parent
-    clip: true
+    clip: root.progress < 1
 
-    Rectangle {
-      id: background
+    Item {
+      id: surface
       anchors.fill: parent
-      radius: Theme.radiusFor(height)
-      // Flush with the bar (no gap set, see Theme.attachedCorner), both
-      // corners against it are squared off so the popup flows out of the
-      // bar (and the bar's or its end pill's corner, see Bar.qml's popupLayer), like the
-      // attached panels. A submenu squares off, the same way, those on the
-      // side against its menu that actually touch it instead, and so does
-      // the menu, those on the side against its submenu that touch it.
-      topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (root.submenuOnLeft && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topLeft") === 0) ? 0 : radius
-      topRightRadius: (root.flushRight && root.topTouchesMenu) || (root.submenuOnRight && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topRight") === 0) ? 0 : radius
-      bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (root.submenuOnLeft && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomLeft") === 0) ? 0 : radius
-      bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (root.submenuOnRight && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomRight") === 0) ? 0 : radius
-      color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
-      border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
-      border.width: Theme.borderWidth
-    }
-
-    HoverHandler {
-      id: hover
-    }
-
-    // Scrolls (mouse wheel, or dragging) when the entries don't all fit.
-    Flickable {
-      id: flick
-      anchors.fill: parent
-      anchors.margins: root.padding
-      contentWidth: column.implicitWidth
-      contentHeight: column.implicitHeight
-      interactive: flick.contentHeight > flick.height
-      boundsBehavior: Flickable.StopAtBounds
       clip: true
-
-      Column {
-        id: column
-        spacing: 6
+      transform: Translate {
+        x: root.slide.x
+        y: root.slide.y
       }
-    }
 
-    // A slim scroll position indicator, in the right padding, while it scrolls.
-    Rectangle {
-      visible: flick.interactive
-      x: parent.width - root.padding / 2 - width / 2
-      y: root.padding + flick.visibleArea.yPosition * flick.height
-      width: 3
-      height: flick.visibleArea.heightRatio * flick.height
-      radius: width / 2
-      color: Theme.textColor
-      opacity: 0.35
+      Rectangle {
+        id: background
+        anchors.fill: parent
+        radius: Theme.radiusFor(height)
+        // Flush with the bar (no gap set, see Theme.attachedCorner), both
+        // corners against it are squared off so the popup flows out of the
+        // bar (and the bar's or its end pill's corner, see Bar.qml's popupLayer), like the
+        // attached panels. A submenu squares off, the same way, those on the
+        // side against its menu that actually touch it instead, and so does
+        // the menu, those on the side against its submenu that touch it.
+        topLeftRadius: (root.flushLeft && root.topTouchesMenu) || (root.submenuOnLeft && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topLeft") === 0) ? 0 : radius
+        topRightRadius: (root.flushRight && root.topTouchesMenu) || (root.submenuOnRight && root.topTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "topRight") === 0) ? 0 : radius
+        bottomLeftRadius: (root.flushLeft && root.bottomTouchesMenu) || (root.submenuOnLeft && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomLeft") === 0) ? 0 : radius
+        bottomRightRadius: (root.flushRight && root.bottomTouchesMenu) || (root.submenuOnRight && root.bottomTouchesSubmenu) || (!root.parentMenu && Theme.attachedCorner(radius, "bottomRight") === 0) ? 0 : radius
+        color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
+        border.color: Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity)
+        border.width: Theme.borderWidth
+      }
+
+      HoverHandler {
+        id: hover
+      }
+
+      // Scrolls (mouse wheel, or dragging) when the entries don't all fit.
+      Flickable {
+        id: flick
+        anchors.fill: parent
+        anchors.margins: root.padding
+        contentWidth: column.implicitWidth
+        contentHeight: column.implicitHeight
+        interactive: flick.contentHeight > flick.height
+        boundsBehavior: Flickable.StopAtBounds
+        clip: true
+
+        Column {
+          id: column
+          spacing: 6
+        }
+      }
+
+      // A slim scroll position indicator, in the right padding, while it scrolls.
+      Rectangle {
+        visible: flick.interactive
+        x: parent.width - root.padding / 2 - width / 2
+        y: root.padding + flick.visibleArea.yPosition * flick.height
+        width: 3
+        height: flick.visibleArea.heightRatio * flick.height
+        radius: width / 2
+        color: Theme.textColor
+        opacity: 0.35
+      }
     }
   }
 }

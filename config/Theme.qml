@@ -7,8 +7,6 @@ import QtQuick
 Singleton {
   // Adjustable from the settings panel (see Settings.qml).
   readonly property bool barAutoHide: Settings.barAutoHide
-  readonly property bool barAutoHideAnimated: Settings.barAutoHideAnimated
-  readonly property int barAutoHideDuration: Settings.barAutoHideDuration
   readonly property int barAutoHideDelay: Settings.barAutoHideDelay
   readonly property string barPosition: Settings.barPosition
   // Whether the bar stands against the left or right edge of the screen, its
@@ -27,6 +25,9 @@ Singleton {
   readonly property int barMarginTop: Settings.barMarginTop
   readonly property int barMarginBottom: Settings.barMarginBottom
   readonly property int panelGap: Settings.panelGap
+  // How long an animation takes (a bar widget's popup sliding out or back
+  // in), in ms: 0, so things snap instead, with animations turned off.
+  readonly property int animationDuration: Settings.animations ? Settings.animationDuration : 0
   // Whether surfaces join with curves: turned on, and only without borders
   // (a border would run along the curve and the bar's edge both).
   readonly property bool curvedJoins: Settings.curvedJoins && Settings.borderWidth === 0

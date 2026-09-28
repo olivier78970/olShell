@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 import qs.services
 
@@ -20,14 +21,16 @@ Scope {
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
     // workspaceCount, launcherResults,
-    // barAutoHideDuration, barAutoHideDelay, borderWidth, fontSize, fontWeight,
+    // barAutoHideDelay, animationDuration, borderWidth,
+    // fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,
     // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius, blurSize,
     // blurPasses, blurVibrancy, blurContrast, blurBrightness, blurNoise,
     // windowBorderWidth, windowRounding, windowGapsIn, windowGapsOut,
     // windowActiveOpacity, windowInactiveOpacity); out-of-range values are
     // clamped.
-    // The yes/no settings (barAutoHide, barAutoHideAnimated, borderOpaque,
+    // The yes/no settings (barAutoHide, animations,
+    // borderOpaque,
     // workspaceCountFromHyprland, clockSeconds, cpuRing, ramRing, diskRing,
     // volumeRing, networkRing, activeWindowIconOnly, blur, blurXray,
     // windowBorderSame, windowRoundingSame, windowGapsInSame, curvedJoins,
@@ -217,8 +220,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: SettingsPanelState.visible || SettingsPanelState.resuming
+  }
+
   LazyLoader {
-    active: SettingsPanelState.visible || SettingsPanelState.resuming
+    active: linger.active
 
     SettingsPanel {}
   }

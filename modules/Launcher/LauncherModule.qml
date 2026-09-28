@@ -1,5 +1,6 @@
 import Quickshell
 import Quickshell.Io
+import qs.components
 import qs.config
 
 // The launcher (LauncherPanel.qml), built only while it is open and freed once
@@ -14,8 +15,14 @@ Scope {
     }
   }
 
+  // Keeps the panel a moment after it closes, so it can animate away.
+  Linger {
+    id: linger
+    when: LauncherState.visible
+  }
+
   LazyLoader {
-    active: LauncherState.visible
+    active: linger.active
 
     LauncherPanel {}
   }

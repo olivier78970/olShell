@@ -106,19 +106,54 @@ PanelWindow {
   // whole screen, including the strip behind the top bar.
   exclusionMode: ExclusionMode.Ignore
 
-  visible: root.open && !root.attached
+  // How far it has come in, from 0 (gone) to 1 (all there), easing toward
+  // `open`: an attached panel slides out from under the bar, the others grow
+  // a little as they fade in (see frame), and the reverse as it closes.
+  // Driven by an animation of its own rather than a Behavior, which doesn't
+  // animate the first change of a panel built already open (see below).
+  property real progress: 0
+  // Whether it's drawn: while open, and while it's still going away.
+  readonly property bool shown: root.open || root.progress > 0
+
+  NumberAnimation {
+    id: progressAnimation
+    target: root
+    property: "progress"
+    duration: Theme.animationDuration
+    easing.type: Easing.OutCubic
+  }
+
+  // Eases `progress` to 1 while open, to 0 otherwise.
+  function animateProgress() {
+    progressAnimation.stop()
+    progressAnimation.to = root.open ? 1 : 0
+    progressAnimation.start()
+  }
+
+  visible: root.shown && !root.attached
 
   onOpenChanged: {
     if (root.open) root.opened()
+    root.animateProgress()
   }
 
   // A panel only built when it opens (see the *Module.qml files, which load
-  // it with a LazyLoader) is open from the start, so `open` and `hostSlot`
-  // never change for it: it opens here instead.
+  // it with a LazyLoader, kept a moment longer so it can animate away) is open
+  // from the start, so `open` and `hostSlot` never change for it: it opens
+  // here instead.
   Component.onCompleted: {
+    root.animateProgress()
     if (!root.open) return
     root.opened()
     if (root.hostSlot) Qt.callLater(() => root.focusTarget.forceActiveFocus())
+  }
+
+  // For an attached panel, where its body is drawn: back toward the bar by the
+  // part not out yet.
+  readonly property point slide: {
+    const hidden = root.attached ? 1 - root.progress : 0
+    if (Theme.barVertical) return Qt.point((Theme.barPosition === "left" ? -1 : 1) * hidden * frame.width, 0)
+    return Qt.point(0, (Theme.barPosition === "bottom" ? 1 : -1) * hidden * frame.height)
   }
 
   // What the bar takes up across its edge of the screen, margins included.
@@ -134,7 +169,7 @@ PanelWindow {
   }
 
   // The bar slot an open attached panel's frame is drawn in, if any.
-  readonly property Item hostSlot: root.open && root.attached ? BarSlots.slotFor(root.targetScreen) : null
+  readonly property Item hostSlot: root.shown && root.attached ? BarSlots.slotFor(root.targetScreen) : null
   // The room the frame sizes itself to: the backdrop's, or the target
   // screen's for an attached panel (whose backdrop never shows).
   readonly property real areaWidth: root.attached && root.targetScreen ? root.targetScreen.width : root.width
@@ -246,7 +281,7 @@ PanelWindow {
       if (frameWindow.visible) root.focusTarget.forceActiveFocus()
     }
 
-    Rectangle {
+    Item {
       id: frame
       // In the bar's slot while an attached panel is open, in frameWindow
       // otherwise.
@@ -262,19 +297,16 @@ PanelWindow {
       height: Math.floor(Math.min(root.maxPanelHeight, !root.attached ? root.areaHeight * 0.9
         : Theme.barVertical ? root.areaHeight - Theme.barMarginTop - Theme.barMarginBottom
         : root.areaHeight - root.barZone - 20))
-      radius: Theme.radiusFor(Math.min(width, height))
-      topLeftRadius: root.attached ? Theme.attachedCorner(radius, "topLeft") : radius
-      topRightRadius: root.attached ? Theme.attachedCorner(radius, "topRight") : radius
-      bottomLeftRadius: root.attached ? Theme.attachedCorner(radius, "bottomLeft") : radius
-      bottomRightRadius: root.attached ? Theme.attachedCorner(radius, "bottomRight") : radius
-      color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
-      // The border follows the real widget opacity (and Theme.borderOpaque),
-      // not `panelOpacity`: a panel like the settings one can clamp its own
-      // fill higher to stay readable, but that readability floor isn't a
-      // reason to also mute how much the border itself fades.
-      border.color: root.framed ? Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity) : "transparent"
-      border.width: root.framed ? Theme.borderWidth : 0
       focus: true
+      opacity: root.progress
+
+      // Not attached, it grows from a little smaller as it comes in.
+      transform: Scale {
+        origin.x: frame.width / 2
+        origin.y: frame.height / 2
+        xScale: root.attached ? 1 : 0.94 + 0.06 * root.progress
+        yScale: root.attached ? 1 : 0.94 + 0.06 * root.progress
+      }
 
       // Curves it out of the bar when attached flush against it.
       // None on the side flush with an end of the bar, where there is no bar
@@ -283,8 +315,8 @@ PanelWindow {
         visible: root.attached && root.framed
         showStart: root.barAlign !== "left"
         showEnd: root.barAlign !== "right"
-        color: frame.color
-        borderColor: frame.border.color
+        color: body.color
+        borderColor: body.border.color
       }
 
       Keys.onPressed: event => {
@@ -298,13 +330,42 @@ PanelWindow {
         }
       }
 
-      // Content never fades with the widget opacity, same as a bar pill's:
-      // only the fill and border do, so text and icons stay fully readable.
-      // A separate item from `frame` so it doesn't inherit the fill/border's
-      // own opacity/color handling.
+      // Clips the body at the frame's edges (the bar's, on the side against
+      // it) while it slides out from under the bar or back.
       Item {
-        id: contentHolder
         anchors.fill: parent
+        clip: root.attached && root.progress < 1
+
+        Rectangle {
+          id: body
+          width: frame.width
+          height: frame.height
+          transform: Translate {
+            x: root.slide.x
+            y: root.slide.y
+          }
+          radius: Theme.radiusFor(Math.min(width, height))
+          topLeftRadius: root.attached ? Theme.attachedCorner(radius, "topLeft") : radius
+          topRightRadius: root.attached ? Theme.attachedCorner(radius, "topRight") : radius
+          bottomLeftRadius: root.attached ? Theme.attachedCorner(radius, "bottomLeft") : radius
+          bottomRightRadius: root.attached ? Theme.attachedCorner(radius, "bottomRight") : radius
+          color: root.framed ? Theme.fade(Theme.pillColor, root.panelOpacity) : "transparent"
+          // The border follows the real widget opacity (and Theme.borderOpaque),
+          // not `panelOpacity`: a panel like the settings one can clamp its own
+          // fill higher to stay readable, but that readability floor isn't a
+          // reason to also mute how much the border itself fades.
+          border.color: root.framed ? Theme.fade(Theme.outlineColor, Theme.borderOpaque ? 1 : Theme.widgetOpacity) : "transparent"
+          border.width: root.framed ? Theme.borderWidth : 0
+
+          // Content never fades with the widget opacity, same as a bar pill's:
+          // only the fill and border do, so text and icons stay fully readable.
+          // A separate item from `body` so it doesn't inherit the fill/border's
+          // own opacity/color handling.
+          Item {
+            id: contentHolder
+            anchors.fill: parent
+          }
+        }
       }
     }
   }
