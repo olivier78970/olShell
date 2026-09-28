@@ -15,12 +15,12 @@ Scope {
     }
 
     // Selects the next window (the previously focused one when it opens), for
-    // an Alt+Tab binding; releasing the modifier held switches to it.
+    // a Super+Tab binding; releasing the modifier held switches to it.
     function next(): void {
       AppSwitcherState.step(1)
     }
 
-    // Selects the window before, for an Alt+Shift+Tab binding.
+    // Selects the window before, for a Super+Shift+Tab binding.
     function prev(): void {
       AppSwitcherState.step(-1)
     }

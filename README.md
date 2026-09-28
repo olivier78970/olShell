@@ -277,7 +277,7 @@ The apps icon in the middle of the bar, or `quickshell -p . ipc call launcher to
 
 `quickshell -p . ipc call switcher toggle` opens a panel listing Hyprland's open windows, the most recently focused first, each with its icon, title, app and workspace, and the previously focused one selected. **↑/↓**, **Tab / Shift+Tab** (or **←/→**) move the selection, **Enter** or a click switches to the window (on its workspace), **Escape** or a click outside closes. It is placed like the other panels (the settings' **Panels** category, `switcherPlacement`).
 
-For Alt+Tab, bind `switcher next` (and `switcher prev` to go back) instead: the first press opens it on the previously focused window, each further press moves on, and releasing the key held (Alt, Super or Ctrl) switches to the selected window. The panel only sees that release once it has the keyboard, so a quick Alt+Tab can be over before it does: bind `switcher confirm`, which switches to the selected window, to the modifier's release in Hyprland too.
+For **Super+Tab**, bind `switcher next` (and `switcher prev` to **Super+Shift+Tab** to go back) instead, e.g. `hl.bind("SUPER + TAB", hl.dsp.exec_cmd("qs ipc call switcher next"))`: the first press opens it on the previously focused window, each further press moves on, and releasing the key held (Super, or Alt or Ctrl if bound to those) switches to the selected window. The panel only sees that release once it has the keyboard, so a quick Super+Tab can be over before it does: bind `switcher confirm`, which switches to the selected window, to the modifier's release in Hyprland too.
 
 ## Keyboard shortcuts
 

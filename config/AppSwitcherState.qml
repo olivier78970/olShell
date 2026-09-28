@@ -8,7 +8,7 @@ Singleton {
   id: root
 
   property bool visible: false
-  // Whether it was opened by stepping (`next` / `prev`, as an Alt+Tab
+  // Whether it was opened by stepping (`next` / `prev`, as a Super+Tab
   // binding does): releasing the modifier held then switches to the selected
   // window, as `confirm` does.
   property bool cycling: false

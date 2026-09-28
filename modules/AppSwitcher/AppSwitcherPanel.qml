@@ -10,10 +10,10 @@ import qs.config
 // placed like the other panels (Settings.switcherPlacement), toggled from
 // outside via:
 //   quickshell -p . ipc call switcher toggle
-// or stepped through with `switcher next` / `switcher prev` (an Alt+Tab
+// or stepped through with `switcher next` / `switcher prev` (a Super+Tab
 // binding), which open it on the previously focused window. Up/Down, Tab /
 // Shift+Tab (or Left/Right) move, Enter or a click switches to the window,
-// and so does releasing the Alt, Super or Ctrl key held when it was opened
+// and so does releasing the Super, Alt or Ctrl key held when it was opened
 // by stepping (or `switcher confirm`); Escape closes.
 ModalPanel {
   id: root
