@@ -99,6 +99,7 @@ Singleton {
     powerPlacement: root.panelPlacements,
     notificationActionsPlacement: root.panelPlacements,
     switcherPlacement: root.panelPlacements,
+    switcherOrientation: ["vertical", "horizontal"],
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -334,6 +335,9 @@ Singleton {
   readonly property string powerPlacement: root.valid("powerPlacement", file.adapter.powerPlacement)
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
   readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
+  // Whether the app switcher lists the windows in a column ("vertical") or
+  // side by side ("horizontal", one of choices.switcherOrientation).
+  readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement"]
@@ -845,6 +849,7 @@ Singleton {
       property string powerPlacement: Defaults.values.powerPlacement
       property string notificationActionsPlacement: Defaults.values.notificationActionsPlacement
       property string switcherPlacement: Defaults.values.switcherPlacement
+      property string switcherOrientation: Defaults.values.switcherOrientation
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds

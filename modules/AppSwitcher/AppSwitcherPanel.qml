@@ -7,7 +7,8 @@ import qs.components
 import qs.config
 
 // The app switcher: Hyprland's windows, the most recently focused first,
-// placed like the other panels (Settings.switcherPlacement), opened from
+// in a column or side by side (Settings.switcherOrientation), placed like
+// the other panels (Settings.switcherPlacement), opened from
 // outside via:
 //   quickshell -p . ipc call switcher toggle
 // bound to a shortcut in the Hyprland config (such as Super+Tab), which it
@@ -31,13 +32,30 @@ ModalPanel {
     ? ((AppSwitcherState.current % root.windows.length) + root.windows.length) % root.windows.length
     : -1
 
-  // The rows shown at most before the list scrolls, and their height.
+  // Whether the windows are side by side, as cards, rather than in a column
+  // of rows.
+  readonly property bool horizontal: Settings.switcherOrientation === "horizontal"
+  // The windows shown at most before the list scrolls: rows in a column,
+  // cards side by side.
   readonly property int maxRows: 8
+  readonly property int maxCards: 6
   readonly property int rowHeight: 56
+  // A card: its width, and its height (its icon, and a line of each text
+  // size under it, measured by the probes below).
+  readonly property int cardWidth: 168
+  readonly property int cardIcon: 48
+  readonly property real cardHeight: 14 + root.cardIcon + 10 + titleProbe.implicitHeight + detailsProbe.implicitHeight + 14
+  // How many windows there is room for (at least one, for the messages).
+  readonly property int shown: Math.max(root.windows.length, 1)
 
-  maxPanelWidth: 640
-  // As tall as its rows, up to maxRows.
-  maxPanelHeight: 16 * 2 + title.implicitHeight + 12 + Math.min(Math.max(root.windows.length, 1), root.maxRows) * (root.rowHeight + list.spacing)
+  // As wide as its cards side by side (up to maxCards; no narrower than
+  // the title needs), or a fixed width for rows; as tall as its rows (up to
+  // maxRows) or its cards.
+  maxPanelWidth: root.horizontal
+    ? Math.max(16 * 2 + Math.min(root.shown, root.maxCards) * (root.cardWidth + list.spacing) - list.spacing, title.implicitWidth + 16 * 2)
+    : 640
+  maxPanelHeight: 16 * 2 + title.implicitHeight + 12
+    + (root.horizontal ? root.cardHeight : Math.min(root.shown, root.maxRows) * (root.rowHeight + list.spacing))
   placement: Settings.switcherPlacement
   focusTarget: keys
 
@@ -155,15 +173,31 @@ ModalPanel {
 
     ThemedText {
       id: title
+      anchors.horizontalCenter: parent.horizontalCenter
       text: I18n.tr("switcher.title")
       sizeScale: 1.2
       font.bold: true
+    }
+
+    // A line of each text size of a card, measured for its height; never shown.
+    ThemedText {
+      id: titleProbe
+      visible: false
+      text: "Ag"
+    }
+
+    ThemedText {
+      id: detailsProbe
+      visible: false
+      text: "Ag"
+      sizeScale: 0.75
     }
 
     ListView {
       id: list
       width: parent.width
       height: parent.height - title.height - parent.spacing
+      orientation: root.horizontal ? ListView.Horizontal : ListView.Vertical
       clip: true
       spacing: 2
       boundsBehavior: Flickable.StopAtBounds
@@ -185,9 +219,9 @@ ModalPanel {
         readonly property bool current: entry.index === root.selected
         readonly property string iconSource: root.iconOf(entry.modelData)
 
-        width: list.width
-        height: root.rowHeight
-        radius: Theme.radiusFor(height)
+        width: root.horizontal ? root.cardWidth : list.width
+        height: root.horizontal ? list.height : root.rowHeight
+        radius: Theme.radiusFor(root.horizontal ? root.rowHeight : height)
         color: entry.current ? Theme.accentColor
           : hover.hovered ? Qt.rgba(Theme.textColor.r, Theme.textColor.g, Theme.textColor.b, 0.06) : "transparent"
 
@@ -199,14 +233,14 @@ ModalPanel {
           onTapped: root.activate(entry.index)
         }
 
+        // Before the texts in a row, above them on a card.
         IconImage {
           id: icon
           visible: entry.iconSource !== "" && icon.status !== Image.Error
-          anchors.left: parent.left
-          anchors.leftMargin: 12
-          anchors.verticalCenter: parent.verticalCenter
-          width: 32
-          height: 32
+          x: root.horizontal ? (parent.width - width) / 2 : 12
+          y: root.horizontal ? 14 : (parent.height - height) / 2
+          width: root.horizontal ? root.cardIcon : 32
+          height: width
           source: entry.iconSource
         }
 
@@ -216,20 +250,19 @@ ModalPanel {
           visible: !icon.visible
           anchors.centerIn: icon
           text: "󰀻"
-          sizeScale: 1.4
+          sizeScale: root.horizontal ? 2.2 : 1.4
           color: entry.current ? Theme.backgroundColor : Theme.textColor
         }
 
         Column {
-          anchors.left: icon.right
-          anchors.leftMargin: 12
-          anchors.right: parent.right
-          anchors.rightMargin: 12
-          anchors.verticalCenter: parent.verticalCenter
-          spacing: 1
+          x: root.horizontal ? 10 : icon.x + icon.width + 12
+          y: root.horizontal ? icon.y + icon.height + 10 : (parent.height - height) / 2
+          width: root.horizontal ? parent.width - 20 : parent.width - x - 12
+          spacing: root.horizontal ? 0 : 1
 
           ThemedText {
             width: parent.width
+            horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
             text: entry.modelData.title || entry.modelData.class
             color: entry.current ? Theme.backgroundColor : Theme.textColor
@@ -238,6 +271,7 @@ ModalPanel {
           // Its app and workspace.
           ThemedText {
             width: parent.width
+            horizontalAlignment: root.horizontal ? Text.AlignHCenter : Text.AlignLeft
             elide: Text.ElideRight
             text: I18n.tr("switcher.details", entry.modelData.class, entry.modelData.workspace?.name ?? "")
             color: entry.current ? Theme.backgroundColor : Theme.textColor

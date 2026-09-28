@@ -304,6 +304,7 @@ ModalPanel {
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
     if (row.key === "clockDate") return root.clockDateOptions
+    if (row.key === "switcherOrientation") return root.switcherOrientationOptions
     if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
@@ -325,6 +326,10 @@ ModalPanel {
   // The same for every panel at once, and "each" for when they differ.
   readonly property var allPlacementOptions: Settings.choices.panelPlacement
     .map(name => ({ value: name, text: I18n.tr("settings.placement." + name) }))
+
+  // The app switcher's directions, named in the current language.
+  readonly property var switcherOrientationOptions: Settings.choices.switcherOrientation
+    .map(name => ({ value: name, text: I18n.tr("settings.switcherOrientation." + name) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab

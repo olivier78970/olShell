@@ -102,6 +102,7 @@ Singleton {
     powerPlacement: "bar-center",
     notificationActionsPlacement: "center",
     switcherPlacement: "center",
+    switcherOrientation: "vertical",
     clockDate: "long",
     clockSeconds: true,
     launcherResults: 7,

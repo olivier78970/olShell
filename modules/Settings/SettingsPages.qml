@@ -33,7 +33,10 @@ Singleton {
     { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
-    { id: "panels", icon: "󰖲", label: I18n.tr("settings.category.panels") },
+    { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
+      { id: "panels", label: I18n.tr("settings.tab.placement") },
+      { id: "panelSettings", label: I18n.tr("settings.tab.panelSettings") }
+    ] },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -160,6 +163,7 @@ Singleton {
     { key: "powerPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.power") },
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
+    { key: "switcherOrientation", category: "panelSettings", kind: "buttons", title: I18n.tr("settings.placement.switcher"), label: I18n.tr("settings.switcherOrientation") },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }
