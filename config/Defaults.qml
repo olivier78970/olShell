@@ -102,6 +102,7 @@ Singleton {
     themePlacement: "bar-center",
     powerPlacement: "bar-center",
     notificationActionsPlacement: "center",
+    switcherPlacement: "center",
     clockDate: "long",
     clockSeconds: true,
     launcherResults: 7,

@@ -29,6 +29,7 @@ Singleton {
     NotificationCenterState.visible = false
     ClockPanelState.visible = false
     ShortcutsPanelState.visible = false
+    AppSwitcherState.visible = false
     NotificationActionsState.visible = false
     root.anchorItem = anchor
     root.visible = !root.visible

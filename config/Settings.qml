@@ -98,6 +98,7 @@ Singleton {
     themePlacement: root.panelPlacements,
     powerPlacement: root.panelPlacements,
     notificationActionsPlacement: root.panelPlacements,
+    switcherPlacement: root.panelPlacements,
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -336,6 +337,7 @@ Singleton {
   readonly property string themePlacement: root.valid("themePlacement", file.adapter.themePlacement)
   readonly property string powerPlacement: root.valid("powerPlacement", file.adapter.powerPlacement)
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
+  readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
 
   // Where a panel whose own placement is `own` opens: there, or where
   // panelPlacement puts them all.
@@ -838,6 +840,7 @@ Singleton {
       property string themePlacement: Defaults.values.themePlacement
       property string powerPlacement: Defaults.values.powerPlacement
       property string notificationActionsPlacement: Defaults.values.notificationActionsPlacement
+      property string switcherPlacement: Defaults.values.switcherPlacement
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds

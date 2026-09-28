@@ -159,6 +159,7 @@ Singleton {
     { key: "themePlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.theme") },
     { key: "powerPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.power") },
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
+    { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
     { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }
