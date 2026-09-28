@@ -167,6 +167,7 @@ Singleton {
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
     { key: "clockPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.clock") },
+    { key: "notificationCenterPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.notifications") },
     { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
     { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
     { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [

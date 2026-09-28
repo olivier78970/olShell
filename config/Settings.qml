@@ -102,6 +102,7 @@ Singleton {
     notificationActionsPlacement: root.panelPlacements,
     switcherPlacement: root.panelPlacements,
     clockPlacement: root.panelPlacements,
+    notificationCenterPlacement: root.panelPlacements,
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
@@ -341,6 +342,7 @@ Singleton {
   readonly property string notificationActionsPlacement: root.valid("notificationActionsPlacement", file.adapter.notificationActionsPlacement)
   readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
   readonly property string clockPlacement: root.valid("clockPlacement", file.adapter.clockPlacement)
+  readonly property string notificationCenterPlacement: root.valid("notificationCenterPlacement", file.adapter.notificationCenterPlacement)
   // Whether the app switcher lists the windows in a column ("vertical") or
   // side by side ("horizontal", one of choices.switcherOrientation).
   readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
@@ -382,7 +384,7 @@ Singleton {
   readonly property string weatherLocation: root.valid("weatherLocation", file.adapter.weatherLocation)
 
   // The panels' placement settings, which panelPlacement sets all at once.
-  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement"]
+  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement"]
   // Where every panel opens, when they all open in the same place, or
   // "each" when they don't. Not saved: setting it sets each of them (see
   // set()).
@@ -920,6 +922,7 @@ Singleton {
       property string notificationActionsPlacement: Defaults.values.notificationActionsPlacement
       property string switcherPlacement: Defaults.values.switcherPlacement
       property string clockPlacement: Defaults.values.clockPlacement
+      property string notificationCenterPlacement: Defaults.values.notificationCenterPlacement
       property string switcherOrientation: Defaults.values.switcherOrientation
       property string switcherScope: Defaults.values.switcherScope
       property bool switcherGroupApps: Defaults.values.switcherGroupApps
