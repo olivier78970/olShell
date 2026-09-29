@@ -20,7 +20,7 @@ Scope {
 
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
-    // workspaceCount, launcherResults,
+    // workspaceCount, launcherResults, launcherHistory,
     // barAutoHideDelay, animationDuration, hyprlandAnimationDuration, borderWidth,
     // fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,

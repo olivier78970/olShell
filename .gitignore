@@ -3,6 +3,7 @@
 config/GeneratedColors.json
 config/ThemeState.json
 config/LocaleState.json
+config/LauncherState.json
 config/Settings.json
 config/UserDefaults.json
 config/NotificationActions.json

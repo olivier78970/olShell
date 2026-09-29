@@ -92,6 +92,7 @@ Singleton {
 
     "launcher.search": "Search applications…",
     "launcher.noResults": "No results",
+    "launcher.recent": "Recently opened",
     "launcher.tab.all": "All",
     "launcher.searchAll": "Search applications, files and the web…",
     "launcher.tab.apps": "Applications",
@@ -543,6 +544,7 @@ Singleton {
     "settings.placement.opposite-right.side": "Opposite edge, at the bottom",
     "settings.launcherTab": "Default tab",
     "settings.launcherResults": "Results shown",
+    "settings.launcherHistory": "History length",
     "settings.launcherEngines": "Web search engines  ·  %s in the address is where the search goes",
     "settings.launcherEngines.browser": "Browser's default engine ({0})",
     "settings.launcherEngines.browserUnknown": "Browser's default engine (not found: {0} instead)",
@@ -699,6 +701,7 @@ Singleton {
 
     "launcher.search": "Rechercher une application…",
     "launcher.noResults": "Aucun résultat",
+    "launcher.recent": "Ouvertes récemment",
     "launcher.tab.all": "Tout",
     "launcher.searchAll": "Rechercher des applications, des fichiers et sur le web…",
     "launcher.tab.apps": "Applications",
@@ -1150,6 +1153,7 @@ Singleton {
     "settings.placement.opposite-right.side": "Bord opposé, en bas",
     "settings.launcherTab": "Onglet par défaut",
     "settings.launcherResults": "Résultats affichés",
+    "settings.launcherHistory": "Taille de l'historique",
     "settings.launcherEngines": "Moteurs de recherche web  ·  %s dans l'adresse marque la recherche",
     "settings.launcherEngines.browser": "Moteur par défaut du navigateur ({0})",
     "settings.launcherEngines.browserUnknown": "Moteur par défaut du navigateur (introuvable : {0} à la place)",
@@ -1306,6 +1310,7 @@ Singleton {
 
     "launcher.search": "Buscar aplicaciones…",
     "launcher.noResults": "Sin resultados",
+    "launcher.recent": "Abiertas recientemente",
     "launcher.tab.all": "Todo",
     "launcher.searchAll": "Buscar aplicaciones, archivos y en la web…",
     "launcher.tab.apps": "Aplicaciones",
@@ -1757,6 +1762,7 @@ Singleton {
     "settings.placement.opposite-right.side": "Borde opuesto, abajo",
     "settings.launcherTab": "Pestaña predeterminada",
     "settings.launcherResults": "Resultados mostrados",
+    "settings.launcherHistory": "Longitud del historial",
     "settings.launcherEngines": "Motores de búsqueda web  ·  %s en la dirección marca la búsqueda",
     "settings.launcherEngines.browser": "Motor predeterminado del navegador ({0})",
     "settings.launcherEngines.browserUnknown": "Motor predeterminado del navegador (no encontrado: {0} en su lugar)",
