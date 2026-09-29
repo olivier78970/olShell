@@ -29,6 +29,10 @@ Singleton {
   // The application last opened from the launcher (git-ignored).
   readonly property string launcherState: Quickshell.shellPath("config/LauncherState.json")
 
+  // The chat AI's last question and answer, shown again after a restart
+  // (git-ignored).
+  readonly property string chatAiState: Quickshell.shellPath("config/ChatAiState.json")
+
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 
@@ -45,6 +49,11 @@ Singleton {
 
   // Reads the default browser's default search engine, for the launcher.
   readonly property string defaultSearchEngineScript: Quickshell.shellPath("scripts/default-search-engine.py")
+
+  // Asks the chat AI panel's question, and keeps its providers' API keys in
+  // the secret keyring.
+  readonly property string aiAskScript: Quickshell.shellPath("scripts/ai-ask.py")
+  readonly property string aiKeyScript: Quickshell.shellPath("scripts/ai-key.py")
 
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.

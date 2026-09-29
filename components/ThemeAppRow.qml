@@ -235,7 +235,20 @@ Item {
 
       // (A refused value leaves the field open: settled again only when
       // closed.)
-      onAccepted: {
+      // Enter saves what was typed. Taken here rather than with onAccepted:
+      // TextInput passes Enter on to its parent after accepting, and the
+      // settings panel would take it as an Enter on the row, opening the field
+      // again.
+      Keys.onReturnPressed: event => {
+        input.submit()
+        event.accepted = true
+      }
+      Keys.onEnterPressed: event => {
+        input.submit()
+        event.accepted = true
+      }
+
+      function submit() {
         box.settled = true
         root.committed(box.field, input.text)
         if (box.editing) box.settled = false

@@ -30,7 +30,8 @@ Singleton {
     volume: volume,
     notifications: notifications,
     lock: lock,
-    power: power
+    power: power,
+    chatAi: chatAi
   })
 
   Component { id: launcher; LauncherTrigger {} }
@@ -54,4 +55,5 @@ Singleton {
   Component { id: notifications; NotificationBell {} }
   Component { id: lock; LockButton {} }
   Component { id: power; PowerTrigger {} }
+  Component { id: chatAi; ChatAiTrigger {} }
 }

@@ -365,7 +365,20 @@ Item {
         }
 
         // An unfinished number leaves the value as it was.
-        onAccepted: {
+        // Enter saves what was typed. Taken here rather than with onAccepted:
+        // TextInput passes Enter on to its parent after accepting, and the
+        // settings panel would take it as an Enter on the row, opening the field
+        // again.
+        Keys.onReturnPressed: event => {
+          field.submit()
+          event.accepted = true
+        }
+        Keys.onEnterPressed: event => {
+          field.submit()
+          event.accepted = true
+        }
+
+        function submit() {
           const typed = root.typedValue()
           root.settled = true
           if (isNaN(typed)) root.cancelled()

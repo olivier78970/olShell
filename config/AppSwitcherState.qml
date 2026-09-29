@@ -39,6 +39,7 @@ Singleton {
     ClockPanelState.visible = false
     ShortcutsPanelState.visible = false
     NotificationActionsState.visible = false
+    ChatAiState.visible = false
   }
 
   // Opens it on the previously focused window. While it's open, moves on
