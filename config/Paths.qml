@@ -26,6 +26,9 @@ Singleton {
   // above, only there once something has been saved.
   readonly property string notificationActions: Quickshell.shellPath("config/NotificationActions.json")
 
+  // The application last opened from the launcher (git-ignored).
+  readonly property string launcherState: Quickshell.shellPath("config/LauncherState.json")
+
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 

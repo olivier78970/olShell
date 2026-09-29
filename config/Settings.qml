@@ -54,6 +54,7 @@ Singleton {
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
     launcherResults: [3, 20],
+    launcherHistory: [0, 10],
     switcherIconSize: [24, 96],
     switcherMaxShown: [3, 20],
     volumeOsdMargin: [0, 400],
@@ -428,6 +429,9 @@ Singleton {
   // many results its list is tall enough to show at once (more scroll).
   readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
   readonly property int launcherResults: root.valid("launcherResults", file.adapter.launcherResults)
+  // How many of the applications last opened the launcher lists first with
+  // an empty search (0: none).
+  readonly property int launcherHistory: root.valid("launcherHistory", file.adapter.launcherHistory)
   // The bar clock: how it shows the date (one of choices.clockDate: the day
   // and month spelled out, abbreviated, in figures, or no date), and whether
   // the time has seconds (without them the clock only changes once a minute).
@@ -1038,6 +1042,7 @@ Singleton {
       property bool networkRing: Defaults.values.networkRing
       property bool activeWindowIconOnly: Defaults.values.activeWindowIconOnly
       property int launcherResults: Defaults.values.launcherResults
+      property int launcherHistory: Defaults.values.launcherHistory
       property var launcherEngines: Defaults.values.launcherEngines
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff

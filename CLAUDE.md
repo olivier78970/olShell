@@ -58,7 +58,7 @@ The per-file tree is in README.md's Structure section.
 ## Conventions
 
 - **Visible text:** every string goes through `I18n.tr("dotted.key", args...)`. Add the key to all three dictionaries in `config/Translations.qml` (en, fr, es); `{0}` / `{1}` are the placeholders.
-- **Git-ignored runtime state:** `config/*.json` files (Settings, UserDefaults, ThemeState, LocaleState, GeneratedColors, NotificationActions). Back up `Settings.json` before anything that resets or bulk-changes settings.
+- **Git-ignored runtime state:** `config/*.json` files (Settings, UserDefaults, ThemeState, LocaleState, LauncherState, GeneratedColors, NotificationActions). Back up `Settings.json` before anything that resets or bulk-changes settings.
 - **Hyprland:** dynamic rules set via `hyprctl keyword` are wiped when Hyprland reloads its config (matugen triggers a reload shortly after login). Reapply them on `Hyprland.rawEvent` `configreloaded`. Layer-rule namespace matches are regexes, so anchor them with `^...$`.
 - **Comments:** comments explain what an item is for, in full sentences, above properties and functions. Match that density.
 - **Commit messages:** a single imperative sentence describing the user-visible change, with no type prefix (e.g. "Add tabs to the launcher: all, applications, files and the web").

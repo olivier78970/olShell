@@ -142,6 +142,7 @@ Singleton {
     networkRing: true,
     activeWindowIconOnly: false,
     launcherResults: 10,
+    launcherHistory: 3,
     launcherEngines: [
       { browser: true, on: true },
       { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", on: true },

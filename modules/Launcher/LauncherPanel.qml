@@ -92,7 +92,7 @@ ModalPanel {
     root.fileResults = []
     root.fileResultsQuery = ""
     input.text = ""
-    list.currentIndex = 0
+    list.currentIndex = root.firstSelectable()
     root.leaveEntry()
     // Pick up applications installed since the last look.
     DesktopLocale.refresh()
@@ -147,15 +147,32 @@ ModalPanel {
     return (entry.categories ?? []).includes("Game") && !Apps.notGames.includes(entry.id)
   }
 
+  // The applications last opened from the launcher, the latest first, as
+  // many as the settings ask for (Settings.launcherHistory; 0: none), leaving
+  // out any no longer installed or shown.
+  function recentEntries() {
+    return LauncherState.recentApps
+      .map(id => DesktopEntries.byId(id))
+      .filter(entry => entry && !entry.noDisplay)
+      .slice(0, Settings.launcherHistory)
+  }
+
   // Visible applications matching the query, best first; alphabetical when
-  // the query is empty. With `keep`, only the ones it returns true for.
+  // the query is empty, after the ones last opened (see recentEntries()).
+  // With `keep`, only the ones it returns true for.
   function search(query, keep) {
     const entries = DesktopEntries.applications.values
       .filter(entry => !entry.noDisplay && (!keep || keep(entry)))
       .map(entry => ({ entry: entry, text: root.describe(entry) }))
     const q = query.trim().toLowerCase()
     if (q.length === 0) {
-      return entries.sort((a, b) => a.text.name.localeCompare(b.text.name)).map(item => item.entry)
+      const recent = root.recentEntries()
+      // Place in the history, the ones not in it after all of them.
+      const rank = entry => {
+        const index = recent.indexOf(entry)
+        return index < 0 ? recent.length : index
+      }
+      return entries.sort((a, b) => rank(a.entry) - rank(b.entry) || a.text.name.localeCompare(b.text.name)).map(item => item.entry)
     }
 
     const scored = []
@@ -316,8 +333,8 @@ ModalPanel {
 
   // The all tab: with a query, the best applications, then games, files and
   // the web (everything the web tab offers), each under its heading; without
-  // one, all the applications, then all the games (there's nothing to look
-  // for in files or on the web).
+  // one, the applications last opened, then all the other applications, then
+  // all the other games (there's nothing to look for in files or on the web).
   function allResults(query) {
     const q = query.trim()
     const apps = root.gameResults(query, true)
@@ -329,8 +346,11 @@ ModalPanel {
       for (const item of list) items.push(item)
     }
     if (q === "") {
-      section(I18n.tr("launcher.tab.apps"), apps)
-      section(I18n.tr("launcher.tab.games"), games)
+      const recent = root.recentEntries()
+      const others = list => list.filter(item => !recent.includes(item.entry))
+      section(I18n.tr("launcher.recent"), recent.map(entry => ({ kind: "app", entry: entry })))
+      section(I18n.tr("launcher.tab.apps"), others(apps))
+      section(I18n.tr("launcher.tab.games"), others(games))
       return items
     }
     section(I18n.tr("launcher.tab.apps"), apps.slice(0, root.allAppCount))
@@ -383,6 +403,7 @@ ModalPanel {
     if (list.currentIndex < 0 || list.currentIndex >= root.results.length) return
     const item = root.results[list.currentIndex]
     if (item.kind === "heading") return
+    if (item.kind === "app") LauncherState.addRecent(item.entry.id)
     if (item.kind === "app" && item.entry.runInTerminal) root.launchInTerminal(item.entry)
     else if (item.kind === "app") item.entry.execute()
     else Quickshell.execDetached(["xdg-open", item.kind === "file" ? item.path : item.url])
@@ -574,7 +595,7 @@ ModalPanel {
             width: parent.width
             elide: Text.ElideRight
             text: entry.app ? (root.describe(entry.app).comment || root.describe(entry.app).genericName)
-              : entry.modelData.kind === "file" ? entry.modelData.dir : entry.modelData.subtitle
+              : entry.modelData.kind === "file" ? entry.modelData.dir : (entry.modelData.subtitle ?? "")
             color: entry.current ? Theme.backgroundColor : Theme.textColor
             opacity: 0.6
             sizeScale: 0.7
