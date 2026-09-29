@@ -54,12 +54,13 @@ Singleton {
 
   // The last question, the provider asked and its answer (Markdown), the
   // tools the AI used on the way ({ name, arg, path }), and what went wrong
-  // ("" if nothing).
-  property string question: ""
-  property string askedProvider: ""
-  property string answer: ""
-  property var steps: []
-  property string error: ""
+  // ("" if nothing). Saved in ChatAiState.json once answered (see save), and
+  // read back from it when the shell starts.
+  property string question: saved.adapter.question
+  property string askedProvider: saved.adapter.askedProvider
+  property string answer: saved.adapter.answer
+  property var steps: saved.adapter.steps
+  property string error: saved.adapter.error
   readonly property bool busy: asker.running
 
   // Which providers have an API key in the keyring, by id (see refreshKeys).
@@ -85,10 +86,12 @@ Singleton {
     root.askedProvider = root.provider ? root.provider.name : ""
     if (!root.provider) {
       root.error = I18n.tr("chatAi.error.noProvider")
+      root.save()
       return
     }
     if (root.provider.model === "") {
       root.error = I18n.tr("chatAi.error.noModel", root.provider.name)
+      root.save()
       return
     }
     asker.command = ["python3", Paths.aiAskScript, "--provider", root.provider.id,
@@ -105,6 +108,28 @@ Singleton {
     if (!root.busy) return
     asker.running = false
     root.error = I18n.tr("chatAi.cancelled")
+  }
+
+  // Forgets the last question and its answer, here and in the saved file.
+  // Ignored while a question is being answered.
+  function clear() {
+    if (root.busy) return
+    root.question = ""
+    root.askedProvider = ""
+    root.answer = ""
+    root.steps = []
+    root.error = ""
+    root.save()
+  }
+
+  // Saves the last question and its answer, to show again after a restart.
+  function save() {
+    saved.adapter.question = root.question
+    saved.adapter.askedProvider = root.askedProvider
+    saved.adapter.answer = root.answer
+    saved.adapter.steps = root.steps
+    saved.adapter.error = root.error
+    saved.writeAdapter()
   }
 
   // Picks the provider asked next, by id.
@@ -260,6 +285,25 @@ Singleton {
 
     onExited: (exitCode, exitStatus) => {
       if (exitCode !== 0 && root.answer === "" && root.error === "") root.error = I18n.tr("chatAi.error.failed", exitCode)
+      root.save()
+    }
+  }
+
+  // The last question and its answer, as saved (git-ignored); the
+  // properties above follow it once it is read, a moment after the shell
+  // starts. The file only exists once a question has been answered.
+  FileView {
+    id: saved
+    path: Paths.chatAiState
+    blockLoading: true
+    printErrors: false
+
+    JsonAdapter {
+      property string question: ""
+      property string askedProvider: ""
+      property string answer: ""
+      property var steps: []
+      property string error: ""
     }
   }
 

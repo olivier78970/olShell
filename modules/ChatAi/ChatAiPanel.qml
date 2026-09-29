@@ -665,13 +665,35 @@ ModalPanel {
           }
         }
 
-        // Copies the answer.
+        // Clears the question and its answer (also from the saved file),
+        // and copies the answer.
         Row {
-          visible: ChatAi.answer !== "" && !ChatAi.busy
+          visible: ChatAi.question !== "" && !ChatAi.busy
           anchors.right: parent.right
           spacing: 4
 
           ThemedText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: I18n.tr("chatAi.clear")
+            sizeScale: 0.8
+            opacity: 0.6
+          }
+
+          IconButton {
+            anchors.verticalCenter: parent.verticalCenter
+            icon: "󰃢"
+            sizeScale: 1
+            onClicked: ChatAi.clear()
+          }
+
+          Item {
+            visible: ChatAi.answer !== ""
+            width: 12
+            height: 1
+          }
+
+          ThemedText {
+            visible: ChatAi.answer !== ""
             anchors.verticalCenter: parent.verticalCenter
             text: I18n.tr("chatAi.copy")
             sizeScale: 0.8
@@ -679,6 +701,7 @@ ModalPanel {
           }
 
           IconButton {
+            visible: ChatAi.answer !== ""
             anchors.verticalCenter: parent.verticalCenter
             icon: "󰆏"
             sizeScale: 1

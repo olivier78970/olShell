@@ -29,6 +29,10 @@ Singleton {
   // The application last opened from the launcher (git-ignored).
   readonly property string launcherState: Quickshell.shellPath("config/LauncherState.json")
 
+  // The chat AI's last question and answer, shown again after a restart
+  // (git-ignored).
+  readonly property string chatAiState: Quickshell.shellPath("config/ChatAiState.json")
+
   // The chosen language, remembered across restarts (git-ignored).
   readonly property string localeState: Quickshell.shellPath("config/LocaleState.json")
 

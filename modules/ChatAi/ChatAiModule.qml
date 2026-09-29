@@ -28,6 +28,12 @@ Scope {
       ChatAi.cancel()
     }
 
+    // Forgets the last question and its answer (not while one is being
+    // answered).
+    function clear(): void {
+      ChatAi.clear()
+    }
+
     // The last answer (Markdown), "" while there is none.
     function answer(): string {
       return ChatAi.answer
