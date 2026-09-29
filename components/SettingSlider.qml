@@ -11,7 +11,8 @@ import qs.config
 // field can be typed in, like PathRow's - a click on it emits
 // `editRequested` and the owner sets `editing` (as it does for Enter on the
 // row); Enter emits `committed` with the number typed, Escape `cancelled`,
-// and the owner then clears `editing`.
+// and the owner then clears `editing`. A number typed and left any other way
+// (`editing` cleared) is committed too.
 //
 // With `sameText`, a SameButton sits just before the value (or the stepper),
 // so those of every row line up, for a value that can follow one of the
@@ -62,6 +63,10 @@ Item {
   signal moved(real value)
   signal activated()
   signal editRequested()
+  // Whether Enter, Escape or a step ended the typing: any other end of it
+  // (another row or tab, or the panel closing) keeps the number typed.
+  property bool settled: false
+
   signal committed(real value)
   signal cancelled()
   // The row wants keyboard focus back to the owner (editing ended).
@@ -70,6 +75,7 @@ Item {
 
   onEditingChanged: {
     if (root.editing) {
+      root.settled = false
       field.text = String(root.value)
       // A tick later: the field only shows once `editing` has reached its own
       // binding, and a hidden field can't take the keyboard (the first click
@@ -80,9 +86,18 @@ Item {
         field.selectAll()
       })
     } else {
+      const typed = root.typedValue()
+      if (!root.settled && !isNaN(typed) && typed !== root.value) root.committed(typed)
       field.focus = false
       root.released()
     }
+  }
+
+  // The number in the field, snapped to a step (NaN for an unfinished one:
+  // "", "-", "."), a comma accepted as the decimal point.
+  function typedValue() {
+    const typed = parseFloat(field.text.replace(",", "."))
+    return isNaN(typed) ? NaN : root.snap(typed)
   }
 
   readonly property real fraction: root.to > root.from ? Math.max(0, Math.min(1, (root.value - root.from) / (root.to - root.from))) : 0
@@ -278,7 +293,10 @@ Item {
         root.activated()
         // A step ends typing in the field (what was typed is dropped: the step
         // goes from the value as it was).
-        if (root.editing) root.cancelled()
+        if (root.editing) {
+          root.settled = true
+          root.cancelled()
+        }
         button.step()
       }
       onPressAndHold: repeat.start()
@@ -346,14 +364,15 @@ Item {
           regularExpression: root.from < 0 ? /-?\d*([.,]\d*)?/ : /\d*([.,]\d*)?/
         }
 
-        // A number, with a comma accepted as the decimal point; an unfinished
-        // one ("", "-", ".") leaves the value as it was.
+        // An unfinished number leaves the value as it was.
         onAccepted: {
-          const typed = parseFloat(field.text.replace(",", "."))
+          const typed = root.typedValue()
+          root.settled = true
           if (isNaN(typed)) root.cancelled()
-          else root.committed(root.snap(typed))
+          else root.committed(typed)
         }
         Keys.onEscapePressed: event => {
+          root.settled = true
           root.cancelled()
           event.accepted = true
         }

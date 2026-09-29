@@ -538,6 +538,8 @@ ModalPanel {
   maxPanelHeight: Math.max(780, root.neededHeight)
 
   open: SettingsPanelState.visible
+  // Closing keeps what was being typed: ending the typing commits it.
+  onOpenChanged: if (!root.open) root.editKey = ""
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
     if (root.confirmAll) root.confirmAll = false
@@ -625,6 +627,33 @@ ModalPanel {
     // A click sets the tab bar's own index (no longer bound): keep it right.
     tabBar.currentIndex = root.tab
     root.selected = 0
+  }
+
+  // How many things of a row the keys can be on (see toggleFocus): its
+  // buttons, check boxes and fields, or the row as a whole for 1.
+  function stopsOf(row) {
+    if (row.kind === "toggles") return row.toggles.length
+    if (row.kind === "engine") return row.engine.browser ? 1 : 4
+    if (row.kind === "matugenApp") return 6
+    if (row.kind === "appOpacity") return row.general ? 4 : 5
+    if (row.kind === "factoryAll") return root.confirmAll ? 2 : 1
+    if (row.kind === "defaults") return 2
+    return 1
+  }
+
+  // Tab / Shift+Tab: the next / previous thing of the row, then on to the
+  // next / previous row (on its first / last thing), around at the ends.
+  function tabThrough(direction) {
+    const stops = root.stopsOf(root.rows[root.selected])
+    const at = Math.max(0, Math.min(stops - 1, root.toggleFocus))
+    if (at + direction >= 0 && at + direction < stops) {
+      root.toggleFocus = at + direction
+      return
+    }
+    const next = (root.selected + direction + root.rows.length) % root.rows.length
+    root.selected = next
+    // (After the selection: changing it puts the keys on the first.)
+    root.toggleFocus = direction > 0 ? 0 : root.stopsOf(root.rows[next]) - 1
   }
 
   // Moves the selected row's value one step (or `steps` of them) up or down.
@@ -723,7 +752,7 @@ ModalPanel {
       else root.toggleFocus = Math.max(0, Math.min(row.general ? 3 : 4, at + direction))
       event.accepted = true
     } else if (kind === "appOpacity" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      // On a slider, goes on to its link button (Tab is kept for the tabs);
+      // On a slider, goes on to its link button;
       // on a link button, switches it; on the remove button, takes the app
       // out.
       const row = root.rows[root.selected]
@@ -773,14 +802,18 @@ ModalPanel {
         && root.rows[root.selected].kind === "dropdown") {
       root.toggleDropdown(root.rows[root.selected])
       event.accepted = true
-    } else if ((event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) && root.tabs.length > 0) {
-      // Tab / Shift+Tab: the next / previous tab, on a category that has them.
-      root.selectTab(root.tab + (event.key === Qt.Key_Backtab || big ? -1 : 1))
+    } else if ((event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) && (event.modifiers & Qt.ControlModifier)) {
+      // Ctrl+Tab / Ctrl+Shift+Tab: the next / previous tab, on a category
+      // that has them.
+      if (root.tabs.length > 0) root.selectTab(root.tab + (event.key === Qt.Key_Backtab || big ? -1 : 1))
       event.accepted = true
-    } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) {
+    } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+      root.tabThrough(event.key === Qt.Key_Backtab || big ? -1 : 1)
+      event.accepted = true
+    } else if (event.key === Qt.Key_Down) {
       root.selected = Math.min(root.rows.length - 1, root.selected + 1)
       event.accepted = true
-    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) {
+    } else if (event.key === Qt.Key_Up) {
       root.selected = Math.max(0, root.selected - 1)
       event.accepted = true
     } else if (event.key === Qt.Key_PageDown) {
@@ -1178,8 +1211,9 @@ ModalPanel {
                 // but for its own, and another kind's hidden field took the keyboard.
                 editing: row.modelData.kind === "slider" && root.editKey === row.modelData.key
                 onEditRequested: root.editKey = row.modelData.key
+                // (Typing left for another field has moved editKey on already.)
                 onCommitted: value => {
-                  root.editKey = ""
+                  if (root.editKey === row.modelData.key) root.editKey = ""
                   Settings.set(row.modelData.key, value)
                 }
                 onCancelled: root.editKey = ""
@@ -1222,7 +1256,7 @@ ModalPanel {
                 onCommitted: (field, text) => {
                   const fields = {}
                   fields[field] = text.trim()
-                  if (Settings.setEngine(row.modelData.engineIndex, fields)) root.editKey = ""
+                  if (Settings.setEngine(row.modelData.engineIndex, fields) && root.editKey === engineRow.prefix + field) root.editKey = ""
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
@@ -1288,7 +1322,7 @@ ModalPanel {
                 onCommitted: (field, text) => {
                   const fields = {}
                   fields[field] = text.trim()
-                  if (Settings.setMatugenApp(row.modelData.appIndex, fields)) root.editKey = ""
+                  if (Settings.setMatugenApp(row.modelData.appIndex, fields) && root.editKey === matugenAppRow.prefix + field) root.editKey = ""
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
@@ -1333,7 +1367,7 @@ ModalPanel {
                 onActivated: root.selected = row.index
                 onEditRequested: root.editKey = row.modelData.key
                 onCommitted: text => {
-                  root.editKey = ""
+                  if (root.editKey === row.modelData.key) root.editKey = ""
                   if (row.modelData.key === "worldClockAdd") WorldClock.add(text)
                   else Settings.set(row.modelData.key, text)
                 }

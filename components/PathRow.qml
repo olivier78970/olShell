@@ -7,7 +7,8 @@ import qs.config
 // opens a color picker, which emits `picked` with each color picked. Clicking the field
 // emits `editRequested`, and the owner sets `editing` (as it does for Enter on
 // the row); Enter in the field emits `committed` with the text, Escape emits
-// `cancelled`, and the owner then clears `editing`. Up/Down/Tab are kept from the owner's row
+// `cancelled`, and the owner then clears `editing`. Typing that ends any other
+// way (`editing` cleared) is committed too. Up/Down/Tab are kept from the owner's row
 // navigation while typing.
 Item {
   id: root
@@ -19,6 +20,10 @@ Item {
   property string swatch: ""
   // Shown, dimmed, in place of an empty value (what empty stands for).
   property string placeholder: ""
+
+  // Whether Enter or Escape ended the typing: any other end of it (another
+  // row or tab, or the panel closing) keeps what was typed.
+  property bool settled: false
 
   signal committed(string text)
   signal cancelled()
@@ -43,6 +48,7 @@ Item {
 
   onEditingChanged: {
     if (root.editing) {
+      root.settled = false
       field.text = root.value
       // A tick later: the field only shows once `editing` has reached its own
       // binding, and a hidden field can't take the keyboard (the first click
@@ -53,6 +59,7 @@ Item {
         field.cursorPosition = field.text.length
       })
     } else {
+      if (!root.settled && field.text !== root.value) root.committed(field.text)
       field.focus = false
       root.released()
     }
@@ -135,8 +142,12 @@ Item {
       font.weight: Theme.fontWeight
       font.letterSpacing: Theme.fontLetterSpacing
 
-      onAccepted: root.committed(field.text)
+      onAccepted: {
+        root.settled = true
+        root.committed(field.text)
+      }
       Keys.onEscapePressed: event => {
+        root.settled = true
         root.cancelled()
         event.accepted = true
       }

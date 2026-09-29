@@ -11,7 +11,8 @@ import qs.config
 // with its name ("name", "template", "output" or "hook") and the owner sets
 // `editing` to that name (as it does for Enter on the row); Enter in the
 // field emits `committed` with the field's name and text, Escape emits
-// `cancelled`, and the owner then clears `editing`. When the row is
+// `cancelled`, and the owner then clears `editing`. Typing that ends any
+// other way (`editing` moved or cleared) is committed too. When the row is
 // selected, `focusIndex` marks what the keyboard is on: 0 the check box, 1 to
 // 4 the fields in that order, 5 the remove button.
 Item {
@@ -167,6 +168,9 @@ Item {
     property string hint: ""
     property int focusIndex: 0
     readonly property bool editing: root.editing === box.field
+    // Whether Enter or Escape ended the typing: any other end of it (another
+    // field, row or tab, or the panel closing) keeps what was typed.
+    property bool settled: false
 
     height: 30
     radius: Theme.radiusFor(height)
@@ -177,6 +181,7 @@ Item {
 
     onEditingChanged: {
       if (box.editing) {
+        box.settled = false
         input.text = box.value
         // A tick later: the field only shows once `editing` has reached its own
         // binding, and a hidden field can't take the keyboard (the first click
@@ -186,9 +191,12 @@ Item {
           input.forceActiveFocus()
           input.cursorPosition = input.text.length
         })
-      } else if (input.activeFocus) {
-        input.focus = false
-        root.released()
+      } else {
+        if (!box.settled && input.text !== box.value) root.committed(box.field, input.text)
+        if (input.activeFocus) {
+          input.focus = false
+          root.released()
+        }
       }
     }
 
@@ -225,8 +233,15 @@ Item {
       font.weight: Theme.fontWeight
       font.letterSpacing: Theme.fontLetterSpacing
 
-      onAccepted: root.committed(box.field, input.text)
+      // (A refused value leaves the field open: settled again only when
+      // closed.)
+      onAccepted: {
+        box.settled = true
+        root.committed(box.field, input.text)
+        if (box.editing) box.settled = false
+      }
       Keys.onEscapePressed: event => {
+        box.settled = true
         root.cancelled()
         event.accepted = true
       }
