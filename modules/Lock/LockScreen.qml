@@ -23,6 +23,39 @@ Scope {
     onIsIdleChanged: if (isIdle) Lock.lock()
   }
 
+  // While the focused window is fullscreen (Settings.lockStayAwakeFullscreen),
+  // the shell inhibits idling itself: games, played with a gamepad, give no
+  // input the compositor counts and seldom inhibit idling on their own. This
+  // holds off the timer above and an idle daemon's screen blanking alike.
+  readonly property bool stayAwake: Settings.lockStayAwakeFullscreen
+    && !Lock.locked
+    && (ToplevelManager.activeToplevel?.fullscreen ?? false)
+
+  // The inhibitor needs a surface the compositor sees as shown: a transparent
+  // pixel over everything, letting the input through, only while it is needed.
+  PanelWindow {
+    id: inhibitorSurface
+
+    visible: root.stayAwake
+    WlrLayershell.layer: WlrLayer.Overlay
+    // Not Quickshell's default namespace, which services/Blur.qml's rule blurs.
+    WlrLayershell.namespace: "quickshell:idle-inhibit"
+    anchors {
+      top: true
+      left: true
+    }
+    implicitWidth: 1
+    implicitHeight: 1
+    color: "transparent"
+    exclusionMode: ExclusionMode.Ignore
+    mask: Region {}
+
+    IdleInhibitor {
+      window: inhibitorSurface
+      enabled: root.stayAwake
+    }
+  }
+
   WlSessionLock {
     locked: Lock.locked
 

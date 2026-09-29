@@ -169,6 +169,9 @@ Singleton {
     { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
     { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
+    { key: "lockStayAwakeFullscreenRow", category: "lock", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.lockStayAwakeFullscreen"), toggles: [
+      { key: "lockStayAwakeFullscreen", text: "" }
+    ] },
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
     { key: "panelPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.all") },

@@ -421,6 +421,9 @@ Singleton {
   }
   // Minutes without input before the screen locks by itself (0: never).
   readonly property int lockTimeout: root.valid("lockTimeout", file.adapter.lockTimeout)
+  // Whether a fullscreen focused window (a game, a film) keeps the screen from
+  // locking or blanking by itself.
+  readonly property bool lockStayAwakeFullscreen: root.valid("lockStayAwakeFullscreen", file.adapter.lockStayAwakeFullscreen)
   // The launcher: the tab it opens on (one of choices.launcherTab), and how
   // many results its list is tall enough to show at once (more scroll).
   readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
@@ -996,6 +999,7 @@ Singleton {
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
       property int lockTimeout: Defaults.values.lockTimeout
+      property bool lockStayAwakeFullscreen: Defaults.values.lockStayAwakeFullscreen
       property string launcherPlacement: Defaults.values.launcherPlacement
       property string settingsPlacement: Defaults.values.settingsPlacement
       property string shortcutsPlacement: Defaults.values.shortcutsPlacement

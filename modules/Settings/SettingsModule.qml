@@ -39,7 +39,8 @@ Scope {
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenQt, matugenStarship, themeExactApps) take 1 or 0.
+    // matugenQt, matugenStarship, themeExactApps, lockStayAwakeFullscreen) take
+    // 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
     }

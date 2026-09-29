@@ -103,6 +103,7 @@ Singleton {
     lockKeysOsdPosition: "bottom-right",
     lockKeysOsdMargin: 60,
     lockTimeout: 8,
+    lockStayAwakeFullscreen: true,
     launcherTab: "all",
     launcherPlacement: "bar-center",
     settingsPlacement: "bar-center",
