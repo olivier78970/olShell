@@ -26,6 +26,7 @@ Singleton {
     ClockPanelState.visible = false
     ShortcutsPanelState.visible = false
     AppSwitcherState.visible = false
+    ChatAiState.visible = false
   }
 
   // Opens the panel on the list of rules.

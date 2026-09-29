@@ -28,6 +28,7 @@ Singleton {
     ShortcutsPanelState.visible = false
     AppSwitcherState.visible = false
     NotificationActionsState.visible = false
+    ChatAiState.visible = false
     root.visible = !root.visible
   }
 }

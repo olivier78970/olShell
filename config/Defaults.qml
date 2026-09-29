@@ -115,6 +115,7 @@ Singleton {
     switcherPlacement: "bar-center",
     clockPlacement: "bar-center",
     notificationCenterPlacement: "bar-center",
+    chatAiPlacement: "bar-center",
     switcherOrientation: "horizontal",
     switcherScope: "all",
     switcherGroupApps: true,
@@ -148,6 +149,18 @@ Singleton {
       { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", on: true },
       { name: "Wikipedia", url: "https://fr.wikipedia.org/w/index.php?search=%s", on: true }
     ],
+    chatAiProviders: [
+      { builtin: "anthropic", model: "" },
+      { builtin: "openai", model: "" }
+    ],
+    chatAiListDir: true,
+    chatAiFindFiles: true,
+    chatAiSearchText: true,
+    chatAiReadFile: true,
+    chatAiWebSearch: true,
+    chatAiWebFetch: true,
+    chatAiFolders: "",
+    chatAiExclude: "",
     barCollapsed: ["wallpaper"],
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],

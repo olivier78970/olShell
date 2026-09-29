@@ -109,6 +109,7 @@ Singleton {
     switcherPlacement: root.panelPlacements,
     clockPlacement: root.panelPlacements,
     notificationCenterPlacement: root.panelPlacements,
+    chatAiPlacement: root.panelPlacements,
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
@@ -263,7 +264,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -371,6 +372,7 @@ Singleton {
   readonly property string switcherPlacement: root.valid("switcherPlacement", file.adapter.switcherPlacement)
   readonly property string clockPlacement: root.valid("clockPlacement", file.adapter.clockPlacement)
   readonly property string notificationCenterPlacement: root.valid("notificationCenterPlacement", file.adapter.notificationCenterPlacement)
+  readonly property string chatAiPlacement: root.valid("chatAiPlacement", file.adapter.chatAiPlacement)
   // Whether the app switcher lists the windows in a column ("vertical") or
   // side by side ("horizontal", one of choices.switcherOrientation).
   readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
@@ -412,7 +414,7 @@ Singleton {
   readonly property string weatherLocation: root.valid("weatherLocation", file.adapter.weatherLocation)
 
   // The panels' placement settings, which panelPlacement sets all at once.
-  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement"]
+  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement", "chatAiPlacement"]
   // Where every panel opens, when they all open in the same place, or
   // "each" when they don't. Not saved: setting it sets each of them (see
   // set()).
@@ -453,6 +455,66 @@ Singleton {
   // services/WebSearch.qml), which is always in the list once. Those not `on`
   // are left out of the launcher.
   readonly property var launcherEngines: root.valid("launcherEngines", file.adapter.launcherEngines)
+  // The AI providers the chat AI panel can ask, in order: the built-in ones,
+  // { builtin: "anthropic" | "openai", model } (their address and API are
+  // fixed, see services/ChatAi.qml), always in the list once, and those
+  // added, { id, name, url, model }, OpenAI-compatible servers (`url` their
+  // base address, ending with the version: https://api.mistral.ai/v1). `model`
+  // is an id from the provider's own list, "" until one is picked. Their API
+  // keys are in the secret keyring, under the built-in name or the `id`,
+  // never here.
+  readonly property var chatAiProviders: root.valid("chatAiProviders", file.adapter.chatAiProviders)
+  readonly property var chatAiBuiltins: ["anthropic", "openai"]
+
+  // Whether `provider` is a valid added provider: an id, a name and a web
+  // address.
+  function validChatAiProvider(provider) {
+    const text = field => typeof field === "string" && field.trim().length > 0
+    return provider !== null && typeof provider === "object" && text(provider.id) && text(provider.name)
+      && typeof provider.url === "string" && /^https?:\/\/\S+$/.test(provider.url.trim())
+  }
+
+  // Changes `fields` ({ model } of any provider, { name, url } of an added
+  // one) of provider `index`. Returns false, changing nothing, when that
+  // doesn't make a valid provider.
+  function setChatAiProvider(index, fields) {
+    const list = root.chatAiProviders.map(provider => Object.assign({}, provider))
+    if (index < 0 || index >= list.length) return false
+    const provider = Object.assign(list[index], fields)
+    if (!provider.builtin && !root.validChatAiProvider(provider)) return false
+    root.set("chatAiProviders", list)
+    return true
+  }
+
+  // Adds an OpenAI-compatible provider at the end of the list; false if it
+  // isn't valid.
+  function addChatAiProvider(name, url) {
+    const provider = { id: "custom-" + Date.now(), name: name, url: url, model: "" }
+    if (!root.validChatAiProvider(provider)) return false
+    root.set("chatAiProviders", root.chatAiProviders.concat([provider]))
+    return true
+  }
+
+  // Takes added provider `index` out of the list; the built-in ones can't be.
+  function removeChatAiProvider(index) {
+    if (root.chatAiProviders[index] === undefined || root.chatAiProviders[index].builtin) return
+    root.set("chatAiProviders", root.chatAiProviders.filter((provider, other) => other !== index))
+  }
+  // The tools the AI may use, each on or off: list a folder, find files by
+  // name, search text in files, read a file, and with Anthropic, search the
+  // web (each search billed by it) and read web pages (see
+  // scripts/ai-ask.py).
+  readonly property bool chatAiListDir: root.valid("chatAiListDir", file.adapter.chatAiListDir)
+  readonly property bool chatAiFindFiles: root.valid("chatAiFindFiles", file.adapter.chatAiFindFiles)
+  readonly property bool chatAiSearchText: root.valid("chatAiSearchText", file.adapter.chatAiSearchText)
+  readonly property bool chatAiReadFile: root.valid("chatAiReadFile", file.adapter.chatAiReadFile)
+  readonly property bool chatAiWebSearch: root.valid("chatAiWebSearch", file.adapter.chatAiWebSearch)
+  readonly property bool chatAiWebFetch: root.valid("chatAiWebFetch", file.adapter.chatAiWebFetch)
+  // Folders it may read besides the home folder, and paths or file name
+  // patterns ("*.sqlite") it may not, on top of the built-in secrets (see
+  // scripts/ai-ask.py); both comma-separated, "" for none.
+  readonly property string chatAiFolders: root.valid("chatAiFolders", file.adapter.chatAiFolders)
+  readonly property string chatAiExclude: root.valid("chatAiExclude", file.adapter.chatAiExclude)
 
   // Whether `name` and `url` make a search engine: a name, and a web address
   // with %s in it.
@@ -593,6 +655,25 @@ Singleton {
     // The added apps: those with a name, their other fields as text.
     // The app opacities: those with a class (once each), their opacities
     // within limits.appOpacity, on hundredths.
+    // The chat AI's providers: the built-in ones once each (put back first
+    // if missing), and the valid added ones, once each by id.
+    if (key === "chatAiProviders") {
+      if (value === null || typeof value !== "object") return root.defaults[key]
+      const text = field => typeof field === "string" ? field.trim() : ""
+      const list = []
+      for (const provider of root.asArray(value)) {
+        if (provider === null || typeof provider !== "object") continue
+        if (root.chatAiBuiltins.includes(provider.builtin)) {
+          if (!list.some(other => other.builtin === provider.builtin)) list.push({ builtin: provider.builtin, model: text(provider.model) })
+        } else if (root.validChatAiProvider(provider) && !list.some(other => other.id === provider.id)) {
+          list.push({ id: text(provider.id), name: text(provider.name), url: text(provider.url), model: text(provider.model) })
+        }
+      }
+      const missing = root.chatAiBuiltins.filter(builtin => !list.some(other => other.builtin === builtin))
+      return missing.map(builtin => ({ builtin: builtin, model: "" })).concat(list)
+    }
+    // The chat AI's added and excluded folders: text.
+    if (key === "chatAiFolders" || key === "chatAiExclude") return typeof value === "string" ? value.trim().slice(0, 1000) : root.defaults[key]
     if (key === "appOpacities") {
       const [low, high] = root.limits.appOpacity
       const opacity = value => typeof value === "number" && !isNaN(value) ? Math.round(Math.max(low, Math.min(high, value)) * 100) / 100 : 1
@@ -848,6 +929,14 @@ Singleton {
       root.addAppOpacity(value)
       return
     }
+    // A chat AI provider's model, by the provider's id (the settings panel's
+    // model rows).
+    if (typeof key === "string" && key.startsWith("chatAiModel:")) {
+      const id = key.slice("chatAiModel:".length)
+      const index = root.chatAiProviders.findIndex(provider => (provider.builtin ?? provider.id) === id)
+      if (index >= 0 && typeof value === "string") root.setChatAiProvider(index, { model: value })
+      return
+    }
     if (root.defaults[key] === undefined) return
     // A color mistyped in the settings keeps the one there was.
     if (root.colorKeys.includes(key) && !root.validColor(value)) return
@@ -1014,6 +1103,7 @@ Singleton {
       property string switcherPlacement: Defaults.values.switcherPlacement
       property string clockPlacement: Defaults.values.clockPlacement
       property string notificationCenterPlacement: Defaults.values.notificationCenterPlacement
+      property string chatAiPlacement: Defaults.values.chatAiPlacement
       property string switcherOrientation: Defaults.values.switcherOrientation
       property string switcherScope: Defaults.values.switcherScope
       property bool switcherGroupApps: Defaults.values.switcherGroupApps
@@ -1044,6 +1134,15 @@ Singleton {
       property int launcherResults: Defaults.values.launcherResults
       property int launcherHistory: Defaults.values.launcherHistory
       property var launcherEngines: Defaults.values.launcherEngines
+      property var chatAiProviders: Defaults.values.chatAiProviders
+      property bool chatAiListDir: Defaults.values.chatAiListDir
+      property bool chatAiFindFiles: Defaults.values.chatAiFindFiles
+      property bool chatAiSearchText: Defaults.values.chatAiSearchText
+      property bool chatAiReadFile: Defaults.values.chatAiReadFile
+      property bool chatAiWebSearch: Defaults.values.chatAiWebSearch
+      property bool chatAiWebFetch: Defaults.values.chatAiWebFetch
+      property string chatAiFolders: Defaults.values.chatAiFolders
+      property string chatAiExclude: Defaults.values.chatAiExclude
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff
       property var barLastPlace: ({})

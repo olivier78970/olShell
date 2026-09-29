@@ -32,7 +32,7 @@ ModalPanel {
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the theme's added apps
   // and each page's defaults row.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
 
   // The Clock tab's places for the clocks tab, a row each with a button
   // taking it out, then a row typing in a place to add (Enter searches for
@@ -77,6 +77,115 @@ ModalPanel {
     canMoveBack: index > 0,
     canMoveForward: index < Settings.launcherEngines.length - 1
   })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
+
+  // The chat AI category's providers, two rows each (its name and key, and
+  // for an added one its address; then its model, picked from its own list),
+  // then a row adding one. `providerId` is the provider's id (see
+  // services/ChatAi.qml).
+  readonly property var chatAiProviderRows: ChatAi.known.reduce((rows, provider, index) => rows.concat([{
+    key: "chatAiProvider:" + provider.id,
+    category: "chatAi",
+    kind: "chatAiProvider",
+    provider: provider,
+    providerId: provider.id,
+    label: provider.name,
+    title: index === 0 ? I18n.tr("settings.chatAiProviders") : ""
+  }, {
+    key: "chatAiModel:" + provider.id,
+    category: "chatAi",
+    kind: "dropdown",
+    providerId: provider.id,
+    label: I18n.tr("settings.chatAi.model")
+  }]), []).concat([{ key: "addChatAiProvider", category: "chatAi", kind: "action", label: I18n.tr("settings.chatAiProviders.add") }])
+
+  // A provider's models to pick from, the one set first when its list
+  // doesn't have it; while there is no list, only the one set, named by how
+  // listing them went.
+  function chatAiModelOptions(id) {
+    const current = ChatAi.providerOf(id)?.model ?? ""
+    const models = ChatAi.models[id] ?? []
+    if (models.length === 0) return [{ value: current, text: current !== "" ? current : root.chatAiModelsStatus(id) }]
+    const options = models.map(model => ({ value: model.id, text: model.name !== model.id ? model.name + "  ·  " + model.id : model.id }))
+    return models.some(model => model.id === current) || current === "" ? options : [{ value: current, text: current }].concat(options)
+  }
+
+  // Why a provider's models can't be picked from yet, "" when they can.
+  function chatAiModelsStatus(id) {
+    const status = ChatAi.modelsStatus[id] ?? ""
+    const provider = ChatAi.providerOf(id)
+    if (status === "ok") return (ChatAi.models[id] ?? []).length > 0 ? "" : I18n.tr("settings.chatAi.models.none")
+    if (status === "loading") return I18n.tr("settings.chatAi.models.loading")
+    if (status !== "") return I18n.tr("settings.chatAi.models.error", status)
+    return provider?.builtin && !ChatAi.hasKey[id] ? I18n.tr("settings.chatAi.models.noKey") : I18n.tr("settings.chatAi.models.loading")
+  }
+
+  // What the keys do on a provider's row, on what they are on (see
+  // ChatAiProviderRow's stops): type in a field, or remove it.
+  function pressChatAiProvider(row, index) {
+    const stop = row.provider.builtin ? ["key"][index] : ["name", "url", "key", "remove"][index]
+    if (stop === "remove") ChatAi.remove(row.providerId)
+    else if (stop) root.editKey = row.key + ":" + stop
+  }
+
+  // A field of a provider typed in: the key goes to the keyring (empty, it
+  // is taken out), the rest to the settings, a new address listing the
+  // models again. False for a refused value (no name, or an address that
+  // isn't a web one).
+  function commitChatAiProvider(row, field, text) {
+    if (field === "key") {
+      const key = text.trim()
+      // A saved key is only replaced or removed once confirmed (see
+      // pendingKey); an empty field with no key saved changes nothing.
+      if (ChatAi.hasKey[row.providerId]) {
+        root.pendingKey = { providerId: row.providerId, key: key }
+        // On Cancel, the safe answer.
+        root.toggleFocus = 1
+      } else if (key !== "") {
+        ChatAi.setKey(row.providerId, key)
+      }
+      return true
+    }
+    const fields = {}
+    fields[field] = text.trim()
+    if (!Settings.setChatAiProvider(row.provider.index, fields)) return false
+    if (field === "url") ChatAi.forgetModels(row.providerId)
+    return true
+  }
+
+  // A change of a saved API key waiting for its confirmation, { providerId,
+  // key } ("" to remove it), or null: the provider's row asks meanwhile. The
+  // key is only held here until answered.
+  property var pendingKey: null
+
+  // What a provider's row asks about its key: "replace", "remove" or "".
+  function askingOf(row) {
+    if (!root.pendingKey || root.pendingKey.providerId !== row.providerId) return ""
+    return root.pendingKey.key === "" ? "remove" : "replace"
+  }
+
+  // The answer to it: Confirm (0) saves or removes the key, Cancel (1) keeps
+  // the one there was.
+  function answerPendingKey(index) {
+    const pending = root.pendingKey
+    root.pendingKey = null
+    root.toggleFocus = 0
+    if (index === 0 && pending) ChatAi.setKey(pending.providerId, pending.key)
+  }
+
+  // Adds an OpenAI-compatible provider, selects its row and starts typing its
+  // name.
+  function addChatAiProvider() {
+    if (!Settings.addChatAiProvider(I18n.tr("settings.chatAiProviders.new"), "https://api.example.com/v1")) return
+    const added = Settings.chatAiProviders[Settings.chatAiProviders.length - 1]
+    const key = "chatAiProvider:" + added.id
+    Qt.callLater(() => {
+      const index = root.rows.findIndex(row => row.key === key)
+      if (index < 0) return
+      root.selected = index
+      root.toggleFocus = 0
+      root.editKey = key + ":name"
+    })
+  }
 
   // The App opacity tab's apps with an opacity of their own: the row adding
   // one, picked among the apps with a window open, then a row for each (see
@@ -146,7 +255,12 @@ ModalPanel {
   // shows.
   property var openClasses: []
 
-  onPageChanged: if (root.page === "appOpacity") clientsProcess.running = true
+  // (And whether each chat AI provider has a key, and its models, each time
+  // its page shows.)
+  onPageChanged: {
+    if (root.page === "appOpacity") clientsProcess.running = true
+    if (root.page === "chatAi") ChatAi.refreshKeys()
+  }
   Component.onCompleted: if (root.page === "appOpacity") clientsProcess.running = true
 
   Process {
@@ -276,6 +390,7 @@ ModalPanel {
     if (row.key === "themeAccent") return root.themeAccentCurrent
     // Adding an app holds no value of its own.
     if (row.key === "appOpacityAdd") return ""
+    if (row.key.startsWith("chatAiModel:")) return ChatAi.providerOf(row.providerId)?.model ?? ""
     return Settings.get(row.key)
   }
 
@@ -318,6 +433,7 @@ ModalPanel {
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "customCopy") return I18n.tr("settings.custom.copyButton")
     if (row.key === "addMatugenApp") return I18n.tr("settings.launcherEngines.addButton")
+    if (row.key === "addChatAiProvider") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key.startsWith("worldClock:")) return I18n.tr("settings.worldClocks.remove")
     return ""
   }
@@ -327,6 +443,7 @@ ModalPanel {
     if (row.key === "addEngine") root.addEngine()
     if (row.key === "customCopy") root.copyToCustom()
     if (row.key === "addMatugenApp") root.addMatugenApp()
+    if (row.key === "addChatAiProvider") root.addChatAiProvider()
     if (row.key.startsWith("worldClock:")) Settings.removeWorldClock(row.clockIndex)
   }
 
@@ -343,6 +460,8 @@ ModalPanel {
 
   // Whether row `row` can be adjusted right now.
   function rowEnabled(row) {
+    // A provider's model is picked from its list, once there is one.
+    if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId) === ""
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "animationDuration") return Settings.animations
@@ -390,6 +509,7 @@ ModalPanel {
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
+    if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId)
     if (root.blurRows.includes(row.key) && !Settings.blur) return I18n.tr("settings.blur.disabledOff")
     if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
     if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
@@ -419,6 +539,7 @@ ModalPanel {
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
+    if (row.key.startsWith("chatAiModel:")) return root.chatAiModelOptions(row.providerId)
     if (row.key === "appOpacityAdd") return root.appOpacityOptions
     if (row.key === "hyprlandWindowStyle" || row.key === "hyprlandWorkspaceStyle") return Settings.choices[row.key]
       .map(name => ({ value: name, text: I18n.tr("settings.hyprlandStyle." + name) }))
@@ -524,6 +645,12 @@ ModalPanel {
   // The row being typed into (its key, "" for none): a text field has the
   // keyboard then, and the panel's own keys are off.
   property string editKey: ""
+  // Whether what the keys are on in the selected row (a field, a button) is
+  // marked: not once typing in a field ends (Enter, Escape), so the field
+  // doesn't look still active, until the keys move or another row is picked
+  // (the row itself stays highlighted).
+  property bool showSelection: true
+  onEditKeyChanged: root.showSelection = root.editKey !== "" || root.pendingKey !== null
 
   // Wide enough for the widest row of the category: the names are longer in
   // some languages (French), and so is what they share a row with. Never
@@ -539,16 +666,22 @@ ModalPanel {
 
   open: SettingsPanelState.visible
   // Closing keeps what was being typed: ending the typing commits it.
-  onOpenChanged: if (!root.open) root.editKey = ""
+  onOpenChanged: {
+    if (root.open) return
+    root.editKey = ""
+    root.pendingKey = null
+  }
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
-    if (root.confirmAll) root.confirmAll = false
+    if (root.pendingKey) root.answerPendingKey(1)
+    else if (root.confirmAll) root.confirmAll = false
     else if (root.confirmKey !== "") root.confirmKey = ""
     else if (root.editKey !== "") root.editKey = ""
     else if (root.openKey !== "") root.openKey = ""
     else SettingsPanelState.visible = false
   }
   onOpened: {
+    root.showSelection = true
     if (SettingsPanelState.resuming) {
       SettingsPanelState.resuming = false
       return
@@ -560,12 +693,15 @@ ModalPanel {
     WebSearch.refresh()
   }
   onSelectedChanged: {
+    root.pendingKey = null
     root.syncSelectedKey()
     root.openKey = ""
     root.editKey = ""
     root.confirmKey = ""
     root.confirmAll = false
     root.toggleFocus = 0
+    // (After clearing editKey, which hides it.)
+    root.showSelection = true
   }
 
   // Whether the factory reset of everything (the general category's row) waits
@@ -609,6 +745,7 @@ ModalPanel {
   }
 
   function selectCategory(index) {
+    root.pendingKey = null
     root.openKey = ""
     root.editKey = ""
     root.confirmKey = ""
@@ -619,6 +756,7 @@ ModalPanel {
 
   // Shows tab `index` of the current category, wrapping around at both ends.
   function selectTab(index) {
+    root.pendingKey = null
     root.openKey = ""
     root.editKey = ""
     root.confirmKey = ""
@@ -635,6 +773,7 @@ ModalPanel {
     if (row.kind === "toggles") return row.toggles.length
     if (row.kind === "engine") return row.engine.browser ? 1 : 4
     if (row.kind === "matugenApp") return 6
+    if (row.kind === "chatAiProvider") return root.askingOf(row) !== "" ? 2 : row.provider.builtin ? 1 : 4
     if (row.kind === "appOpacity") return row.general ? 4 : 5
     if (row.kind === "factoryAll") return root.confirmAll ? 2 : 1
     if (row.kind === "defaults") return 2
@@ -708,6 +847,8 @@ ModalPanel {
   }
 
   onKeyPressed: event => {
+    // A key shows the selection again (hidden once typing ended).
+    if (root.editKey === "") root.showSelection = true
     // While typing in a text field, its keys are its own (it took the ones
     // it uses; the rest, like Page Up, are not the panel's).
     if (root.editKey !== "") {
@@ -731,6 +872,15 @@ ModalPanel {
       const direction = event.key === Qt.Key_Left ? -1 : 1
       if (big) root.moveEngine(row, direction)
       else root.toggleFocus = Math.max(0, Math.min(row.engine.browser ? 0 : 3, root.toggleFocus + direction))
+      event.accepted = true
+    } else if (kind === "chatAiProvider" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Left / Right: what the keys are on (the fields, remove).
+      const last = root.stopsOf(root.rows[root.selected]) - 1
+      root.toggleFocus = Math.max(0, Math.min(last, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+      event.accepted = true
+    } else if (kind === "chatAiProvider" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      if (root.askingOf(root.rows[root.selected]) !== "") root.answerPendingKey(root.toggleFocus)
+      else root.pressChatAiProvider(root.rows[root.selected], root.toggleFocus)
       event.accepted = true
     } else if (kind === "matugenApp" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Left / Right: what the keys are on (check box, the fields, remove).
@@ -1095,11 +1245,11 @@ ModalPanel {
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, chatAiProviderRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" || row.modelData.kind === "chatAiProvider" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1153,7 +1303,7 @@ ModalPanel {
                   { text: I18n.tr("settings.defaults.factory"), enabled: true }
                 ]
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 onActivated: root.selected = row.index
                 onPressed: index => root.pressFactoryAll(index)
               }
@@ -1184,7 +1334,7 @@ ModalPanel {
                   { text: I18n.tr("settings.defaults.factory"), enabled: true }
                 ]
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 onActivated: root.selected = row.index
                 onPressed: index => root.pressDefaults(row.modelData.category, index)
               }
@@ -1241,7 +1391,7 @@ ModalPanel {
                 canMoveBack: row.modelData.canMoveBack ?? false
                 canMoveForward: row.modelData.canMoveForward ?? false
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 editing: root.editKey.startsWith(engineRow.prefix) ? root.editKey.slice(engineRow.prefix.length) : ""
                 onActivated: root.selected = row.index
                 onToggled: Settings.setEngine(row.modelData.engineIndex, { on: !row.modelData.engine.on })
@@ -1290,7 +1440,7 @@ ModalPanel {
                 from: Settings.limits.appOpacity[0]
                 to: Settings.limits.appOpacity[1]
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 onActivated: root.selected = row.index
                 onMoved: (field, value) => root.setOpacity(row.modelData, field, value)
                 onRemoved: Settings.removeAppOpacity(row.modelData.appIndex)
@@ -1309,7 +1459,7 @@ ModalPanel {
                 hook: row.modelData.app?.hook ?? ""
                 on: row.modelData.app?.on ?? false
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 editing: root.editKey.startsWith(matugenAppRow.prefix) ? root.editKey.slice(matugenAppRow.prefix.length) : ""
                 onActivated: root.selected = row.index
                 onToggled: Settings.setMatugenApp(row.modelData.appIndex, { on: !row.modelData.app.on })
@@ -1328,6 +1478,39 @@ ModalPanel {
                 onReleased: root.focusTarget.forceActiveFocus()
               }
 
+              ChatAiProviderRow {
+                id: chatAiProviderRow
+                readonly property string prefix: row.modelData.key + ":"
+
+                visible: row.modelData.kind === "chatAiProvider"
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                builtin: row.modelData.provider?.builtin ?? false
+                name: row.modelData.provider?.name ?? ""
+                url: row.modelData.provider?.url ?? ""
+                hasKey: ChatAi.hasKey[row.modelData.providerId ?? ""] === true
+                selected: root.selected === row.index
+                focusIndex: root.showSelection ? root.toggleFocus : -1
+                editing: root.editKey.startsWith(chatAiProviderRow.prefix) ? root.editKey.slice(chatAiProviderRow.prefix.length) : ""
+                asking: row.modelData.kind === "chatAiProvider" ? root.askingOf(row.modelData) : ""
+                onAnswered: index => {
+                  root.toggleFocus = index
+                  root.answerPendingKey(index)
+                }
+                onActivated: root.selected = row.index
+                onRemoved: ChatAi.remove(row.modelData.providerId)
+                onEditRequested: field => {
+                  root.toggleFocus = chatAiProviderRow.stops.indexOf(field)
+                  root.editKey = chatAiProviderRow.prefix + field
+                }
+                // A refused value leaves the field open to be typed again.
+                onCommitted: (field, text) => {
+                  if (root.commitChatAiProvider(row.modelData, field, text) && root.editKey === chatAiProviderRow.prefix + field) root.editKey = ""
+                }
+                onCancelled: root.editKey = ""
+                onReleased: root.focusTarget.forceActiveFocus()
+              }
+
               ToggleRow {
                 id: toggleRow
                 controlX: root.controlX
@@ -1339,7 +1522,7 @@ ModalPanel {
                 checkBoxes: row.modelData.checkBoxes ?? false
                 checked: root.checkedOf(row.modelData)
                 selected: root.selected === row.index
-                focusIndex: root.toggleFocus
+                focusIndex: root.showSelection ? root.toggleFocus : -1
                 interactive: root.rowEnabled(row.modelData)
                 disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: {

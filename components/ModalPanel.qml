@@ -35,6 +35,10 @@ PanelWindow {
   // this tall would have it, rather than moving as it grows and shrinks. 0
   // centers it on its own height.
   property real placementHeight: 0
+  // Whether the frame may grow to all the room the screen has for it
+  // (`roomHeight`) rather than 90 % of it: a panel whose height follows its
+  // content (the chat AI's) sets it.
+  property bool fitScreen: false
   // Opacity of the frame's own fill (never its content, see contentHolder
   // below, or its border, which follows Theme.widgetOpacity directly).
   property real panelOpacity: Theme.widgetOpacity
@@ -175,6 +179,18 @@ PanelWindow {
   readonly property real areaWidth: root.attached && root.targetScreen ? root.targetScreen.width : root.width
   readonly property real areaHeight: root.attached && root.targetScreen ? root.targetScreen.height : root.height
 
+  // The tallest the frame can be with `fitScreen`: the screen's height less
+  // the bar, and a gap (Settings.panelGap) between the frame and the bar and
+  // between it and the screen's edges. Centered on the whole screen, the
+  // frame keeps clear of the bar on both sides.
+  readonly property real roomHeight: {
+    const gap = Math.max(0, Theme.panelGap)
+    if (Theme.barVertical) return root.areaHeight - 2 * gap
+    if (root.attached) return root.areaHeight - root.barZone - Theme.panelOffset() - gap
+    if (root.opposite) return root.areaHeight - root.barZone - 2 * gap
+    return root.areaHeight - 2 * (root.barZone + gap)
+  }
+
   // Takes the keyboard once in the bar (its window gets it from the bar's
   // focus grab), a tick later so the frame has actually moved there; by
   // then a panel closed at once may already be gone.
@@ -294,7 +310,8 @@ PanelWindow {
       width: Math.floor(Math.min(root.maxPanelWidth, !root.attached ? root.areaWidth * 0.9
         : Theme.barVertical ? root.areaWidth - root.barZone - 20
         : root.areaWidth - Theme.barMarginLeft - Theme.barMarginRight))
-      height: Math.floor(Math.min(root.maxPanelHeight, !root.attached ? root.areaHeight * 0.9
+      height: Math.floor(Math.min(root.maxPanelHeight, root.fitScreen ? root.roomHeight
+        : !root.attached ? root.areaHeight * 0.9
         : Theme.barVertical ? root.areaHeight - Theme.barMarginTop - Theme.barMarginBottom
         : root.areaHeight - root.barZone - 20))
       focus: true

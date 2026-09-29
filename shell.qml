@@ -6,6 +6,7 @@ import Quickshell
 import qs.components
 import qs.modules.AppSwitcher
 import qs.modules.Bar
+import qs.modules.ChatAi
 import qs.modules.Clock
 import qs.modules.Launcher
 import qs.modules.Lock
@@ -43,6 +44,9 @@ ShellRoot {
   // saved settings from the start.
   readonly property var hyprlandWindows: HyprlandWindows.active
   readonly property var hyprlandAnimations: HyprlandAnimations.active
+  // And the one making way for the keyring's password prompt, which has to
+  // be listening before the prompt opens.
+  readonly property var keyringPrompt: KeyringPrompt.active
 
   Bar {}
   ClockPanel {}
@@ -56,6 +60,7 @@ ShellRoot {
   LauncherModule {}
   SettingsModule {}
   ShortcutsModule {}
+  ChatAiModule {}
   AppSwitcherModule {}
   NotificationPopups {}
   NotificationCenter {}

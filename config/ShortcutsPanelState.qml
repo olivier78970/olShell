@@ -20,6 +20,7 @@ Singleton {
     ClockPanelState.visible = false
     NotificationActionsState.visible = false
     AppSwitcherState.visible = false
+    ChatAiState.visible = false
     root.visible = !root.visible
   }
 }
