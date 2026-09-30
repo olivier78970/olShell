@@ -23,7 +23,8 @@ ModalPanel {
   // ModalPanel's fitScreen); a longer answer scrolls.
   fitScreen: true
   // (While the menu is open, at least tall enough to hold it.)
-  maxPanelHeight: Math.max(32 + titleRow.height + questionBox.height + 24 + answerColumn.implicitHeight,
+  maxPanelHeight: Math.max(32 + titleRow.height + questionBox.height + 24 + answerColumn.implicitHeight
+      + (statusBox.visible ? statusBox.height + 12 : 0),
     root.menuOpen ? 16 + titleRow.height + 4 + modelMenu.height + 16 : 0)
   placement: Settings.chatAiPlacement
   focusTarget: input
@@ -147,6 +148,45 @@ ModalPanel {
     return text !== key ? text : step.name + " " + step.arg + " " + step.path
   }
 
+  // The whole exchange as plain text: the question, what the AI looked at
+  // and its answer, for copying it all at once.
+  function exchangeText() {
+    const parts = [ChatAi.question]
+    if (ChatAi.steps.length > 0) parts.push(ChatAi.steps.map(step => "- " + root.stepText(step)).join("\n"))
+    parts.push(ChatAi.error !== "" ? ChatAi.error : ChatAi.answer)
+    return parts.filter(part => part !== "").join("\n\n")
+  }
+
+  // What the last question used, in one line: the tokens sent and received
+  // (with those read from the provider's cache and spent reasoning, when
+  // there were any), the web searches, and the requests when it took several
+  // (see ChatAi.usage).
+  function usageText(usage) {
+    const count = number => Number(number).toLocaleString(Qt.locale(), "f", 0)
+    const parts = [I18n.tr("chatAi.usage.tokens", count(usage.input), count(usage.output))]
+    if (usage.cached > 0) parts.push(I18n.tr("chatAi.usage.cached", count(usage.cached)))
+    if (usage.reasoning > 0) parts.push(I18n.tr("chatAi.usage.reasoning", count(usage.reasoning)))
+    if (usage.searches > 0) parts.push(I18n.tr("chatAi.usage.searches", count(usage.searches)))
+    if (usage.requests > 1) parts.push(I18n.tr("chatAi.usage.requests", count(usage.requests)))
+    return parts.join("  ·  ")
+  }
+
+  // The AI's access options, in the order of the settings' Access tab, for the
+  // icons in the title row: the icon, its name, whether its setting is on and
+  // whether the provider asked can do it (the web search needs one with a web
+  // search tool), and `shown: false` for the one only Anthropic has, reading
+  // pages, which isn't shown for the others (see ChatAi.providers).
+  readonly property var accessOptions: [
+    { glyph: "󰉋", label: I18n.tr("chatAi.access.listDir"), enabled: Settings.chatAiListDir, supported: true },
+    { glyph: "󰱼", label: I18n.tr("chatAi.access.findFiles"), enabled: Settings.chatAiFindFiles, supported: true },
+    { glyph: "󱎸", label: I18n.tr("chatAi.access.searchText"), enabled: Settings.chatAiSearchText, supported: true },
+    { glyph: "󰈙", label: I18n.tr("chatAi.access.readFile"), enabled: Settings.chatAiReadFile, supported: true },
+    { glyph: "󰖟", label: I18n.tr("chatAi.access.webSearch"), enabled: Settings.chatAiWebSearch, supported: ChatAi.provider?.webSearch ?? false },
+    { glyph: "󰌷", label: I18n.tr("chatAi.access.webFetch"), enabled: Settings.chatAiWebFetch, supported: ChatAi.provider?.protocol === "anthropic", shown: ChatAi.provider?.protocol === "anthropic" },
+    { glyph: "󱓷", label: I18n.tr("chatAi.access.shellDocs"), enabled: Settings.chatAiShellDocs, supported: true },
+    { glyph: "󰆍", label: I18n.tr("chatAi.access.shellIpc"), enabled: Settings.chatAiShellIpc, supported: true }
+  ]
+
   // Whether the menu picking the provider and model is open, the entry the
   // keys are on in it, and the tallest it gets (it scrolls past that).
   property bool menuOpen: false
@@ -244,6 +284,51 @@ ModalPanel {
     Quickshell.execDetached(["sh", "-c", root.revealCommand, "sh", path, url, folder])
   }
 
+  // The link of the answer whose tooltip is (about to be) shown, where the
+  // pointer was (in panel coordinates), and whether it's visible yet.
+  property string tipLink: ""
+  property real tipX: 0
+  property real tipY: 0
+  property bool tipShown: false
+
+  // The pointer rests on a link: show its tooltip once it stops moving for
+  // a moment (and leave it where it is while it moves on the same link).
+  // Called for every hover event, and a still pointer gets one each time
+  // the window redraws (the question box's blinking cursor): only a real
+  // move starts the wait again.
+  function hoverLink(link, point) {
+    if (root.tipLink === link && root.tipX === point.x && root.tipY === point.y) return
+    if (root.tipLink !== link) root.tipShown = false
+    root.tipLink = link
+    if (!root.tipShown) {
+      root.tipX = point.x
+      root.tipY = point.y
+      tipTimer.restart()
+    }
+  }
+
+  function leaveLink() {
+    tipTimer.stop()
+    root.tipShown = false
+    root.tipLink = ""
+  }
+
+  // What a link's tooltip says: where it leads (a file's path from ~, a web
+  // address as it is), or for a folder icon, that it shows the file in the
+  // file manager.
+  function tipText(link) {
+    const reveal = link.startsWith("reveal:")
+    const target = reveal ? link.slice("reveal:".length) : link
+    if (!target.startsWith("file://")) return target
+    let path = target.slice("file://".length)
+    try {
+      path = decodeURIComponent(path)
+    } catch (error) {}
+    const home = Quickshell.env("HOME")
+    if (path === home || path.startsWith(home + "/")) path = "~" + path.slice(home.length)
+    return reveal ? I18n.tr("chatAi.tip.reveal", path) : path
+  }
+
   // Opens a web address in the browser, closing the panel as showPath does.
   function openWeb(url) {
     ChatAiState.visible = false
@@ -297,6 +382,44 @@ ModalPanel {
     root.menuOpen = false
   }
 
+  // Which question of ChatAi.history the question box shows (counted back
+  // from the newest), -1 for what was being typed, which draft keeps.
+  property int historyAt: -1
+  property string draft: ""
+
+  // The text selected with the mouse in the question, the answer or the error
+  // (never more than one at a time) and the TextEdit holding it. Focus stays
+  // in the question box, so Ctrl+C there copies this when it has no
+  // selection of its own (see the question box's Keys.onPressed).
+  property string selection: ""
+  property var selectionOwner: null
+
+  // Called when `edit`'s selection changes.
+  function noteSelection(edit) {
+    if (edit.selectedText === "") {
+      if (root.selectionOwner === edit) {
+        root.selectionOwner = null
+        root.selection = ""
+      }
+      return
+    }
+    const previous = root.selectionOwner
+    root.selectionOwner = edit
+    root.selection = edit.selectedText
+    if (previous && previous !== edit) previous.deselect()
+  }
+
+  // Steps the question box `direction` questions back (1) or forward (-1)
+  // through the history, keeping what was typed to come back to.
+  function browseHistory(direction) {
+    const at = root.historyAt + direction
+    if (at < -1 || at >= ChatAi.history.length) return
+    if (root.historyAt === -1) root.draft = input.text
+    root.historyAt = at
+    input.text = at === -1 ? root.draft : ChatAi.history[ChatAi.history.length - 1 - at]
+    input.cursorPosition = input.text.length
+  }
+
   onKeyPressed: event => {
     const control = (event.modifiers & Qt.ControlModifier) !== 0
     const shift = (event.modifiers & Qt.ShiftModifier) !== 0
@@ -317,11 +440,13 @@ ModalPanel {
       root.cycleProvider(event.key === Qt.Key_Backtab || shift ? -1 : 1)
       event.accepted = true
     } else if (control && shift && event.key === Qt.Key_C) {
-      if (ChatAi.answer !== "") Quickshell.clipboardText = ChatAi.answer
+      if (ChatAi.question !== "") Quickshell.clipboardText = root.exchangeText()
+      event.accepted = true
+    } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+      root.browseHistory(event.key === Qt.Key_Up ? 1 : -1)
       event.accepted = true
     } else {
-      const step = event.key === Qt.Key_Down ? 60 : event.key === Qt.Key_Up ? -60
-        : event.key === Qt.Key_PageDown ? answerView.height * 0.9 : event.key === Qt.Key_PageUp ? -answerView.height * 0.9 : 0
+      const step = event.key === Qt.Key_PageDown ? answerView.height * 0.9 : event.key === Qt.Key_PageUp ? -answerView.height * 0.9 : 0
       if (step === 0) return
       answerView.contentY = Math.max(0, Math.min(answerView.contentHeight - answerView.height, answerView.contentY + step))
       event.accepted = true
@@ -349,12 +474,92 @@ ModalPanel {
         font.bold: true
       }
 
+      // One icon for each of the AI's access options of the settings (its tools:
+      // folders, files, the web, the shell), in the accent color when it is on
+      // and crossed and dimmed when it is off or the provider asked can't do it,
+      // with which one and why on hover.
+      Row {
+        id: accessRow
+        visible: Settings.chatAiShowAccess && ChatAi.providers.length > 0
+        anchors.right: defaultButton.visible ? defaultButton.left : modelButton.left
+        anchors.rightMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+
+        Repeater {
+          model: root.accessOptions
+
+          Item {
+            id: accessItem
+
+            required property var modelData
+            readonly property bool on: accessItem.modelData.enabled && accessItem.modelData.supported
+
+            visible: accessItem.modelData.shown ?? true
+            width: accessGlyph.implicitWidth
+            height: modelButton.height
+
+            ThemedText {
+              id: accessGlyph
+              anchors.centerIn: parent
+              text: accessItem.modelData.glyph
+              sizeScale: 0.9
+              font.strikeout: !accessItem.on
+              color: accessItem.on ? Theme.accentColor : Theme.textColor
+              opacity: accessItem.on ? 1 : 0.4
+            }
+
+            HoverHandler {
+              id: accessHover
+            }
+
+            DisabledTooltip {
+              anchorItem: accessItem
+              text: accessItem.on ? I18n.tr("chatAi.access.on", accessItem.modelData.label)
+                : !accessItem.modelData.supported ? I18n.tr("chatAi.access.unsupported", accessItem.modelData.label, ChatAi.provider?.name ?? "")
+                : I18n.tr("chatAi.access.off", accessItem.modelData.label)
+              visible: accessHover.hovered
+            }
+          }
+        }
+      }
+
+      // Goes back to the default provider and model, once another is picked.
+      Rectangle {
+        id: defaultButton
+        visible: ChatAi.providers.length > 0 && !ChatAi.onDefault
+        anchors.right: modelButton.left
+        anchors.rightMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        width: defaultText.implicitWidth + 24
+        height: modelButton.height
+        radius: Theme.radiusFor(height)
+        color: defaultMouse.containsMouse ? Theme.borderColor : "transparent"
+        border.color: Theme.outlineColor
+        border.width: 1
+
+        ThemedText {
+          id: defaultText
+          anchors.centerIn: parent
+          text: I18n.tr("chatAi.default")
+          sizeScale: 0.85
+        }
+
+        MouseArea {
+          id: defaultMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: ChatAi.selectDefault()
+        }
+      }
+
       Rectangle {
         id: modelButton
         visible: ChatAi.providers.length > 0
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.min(modelText.implicitWidth + 24, titleRow.width - title.width - 16)
+        width: Math.min(modelText.implicitWidth + 24, titleRow.width - title.width - 16 - (accessRow.visible ? accessRow.width + 8 : 0) - (defaultButton.visible ? defaultButton.width + 8 : 0))
         height: modelText.implicitHeight + 10
         radius: Theme.radiusFor(height)
         color: root.menuOpen || modelMouse.containsMouse ? Theme.borderColor : "transparent"
@@ -417,11 +622,22 @@ ModalPanel {
         font.underline: Theme.fontUnderline
         font.pixelSize: Theme.fontSize()
 
+        // Ctrl+C with nothing selected here copies the selection made in the
+        // answer above (see selection).
+        Keys.onPressed: event => {
+          if ((event.modifiers & Qt.ControlModifier) && !(event.modifiers & Qt.ShiftModifier) && event.key === Qt.Key_C
+              && input.selectedText === "" && root.selectionOwner && root.selection !== "") {
+            Quickshell.clipboardText = root.selection
+            event.accepted = true
+          }
+        }
+
         onAccepted: {
           // (Enter goes on to the panel, which picks from the open menu.)
           if (root.menuOpen || ChatAi.busy || input.text.trim() === "") return
           ChatAi.ask(input.text)
           input.text = ""
+          root.historyAt = -1
           answerView.contentY = 0
         }
 
@@ -455,23 +671,49 @@ ModalPanel {
     Flickable {
       id: answerView
       width: parent.width
-      height: parent.height - titleRow.height - questionBox.height - parent.spacing * 2
+      height: parent.height - titleRow.height - questionBox.height - (statusBox.visible ? statusBox.height + parent.spacing : 0) - parent.spacing * 2
       clip: true
       contentWidth: width
       contentHeight: answerColumn.implicitHeight
       boundsBehavior: Flickable.StopAtBounds
+
+      // A slim scroll position indicator at the right edge, when the answer
+      // is longer than the room (like the popup menus').
+      Rectangle {
+        parent: answerView
+        visible: answerView.contentHeight > answerView.height
+        x: answerView.width - width - 1
+        y: answerView.visibleArea.yPosition * answerView.height
+        width: 3
+        height: answerView.visibleArea.heightRatio * answerView.height
+        radius: width / 2
+        color: Theme.textColor
+        opacity: 0.35
+      }
 
       Column {
         id: answerColumn
         width: answerView.width
         spacing: 10
 
-        ThemedText {
+        // The question, whose text can be selected.
+        TextEdit {
+          id: questionText
           visible: ChatAi.question !== ""
           width: parent.width
-          wrapMode: Text.Wrap
+          readOnly: true
+          selectByMouse: true
+          onSelectedTextChanged: root.noteSelection(questionText)
+          activeFocusOnPress: false
+          wrapMode: TextEdit.Wrap
           text: ChatAi.question
-          font.bold: true
+          color: Theme.textColor
+          selectionColor: Theme.accentColor
+          selectedTextColor: Theme.backgroundColor
+          font.family: Theme.fontFamily
+          font.weight: Font.Bold
+          font.letterSpacing: Theme.fontLetterSpacing
+          font.pixelSize: Theme.fontSize()
         }
 
         // Between the question and the answer (or where it is) when the AI
@@ -480,23 +722,57 @@ ModalPanel {
           visible: ChatAi.question !== "" && ChatAi.steps.length === 0 && (ChatAi.busy || ChatAi.error !== "" || ChatAi.answer !== "")
         }
 
-        // What the AI searched and read, one line each.
+        // What the AI searched and read: one line with the latest step and
+        // how many there were, which a click opens into one line each, whose
+        // text can be selected.
         Column {
+          id: stepsBox
           width: parent.width
           spacing: 2
           visible: ChatAi.steps.length > 0
 
-          Repeater {
-            model: ChatAi.steps
+          // Whether every step is listed rather than only the latest.
+          property bool expanded: false
+
+          MouseArea {
+            width: parent.width
+            height: stepsSummary.implicitHeight
+            cursorShape: Qt.PointingHandCursor
+            onClicked: stepsBox.expanded = !stepsBox.expanded
 
             ThemedText {
-              required property var modelData
+              id: stepsSummary
               width: parent.width
               elide: Text.ElideMiddle
-              text: "  " + root.stepText(modelData)
+              text: (stepsBox.expanded ? "󰅀 " : "󰅂 ") + I18n.tr("chatAi.steps.summary", ChatAi.steps.length,
+                ChatAi.steps.length > 0 ? root.stepText(ChatAi.steps[ChatAi.steps.length - 1]) : "")
               sizeScale: 0.8
               opacity: 0.6
             }
+          }
+
+          // Every step, one per line, in one block so that a selection can
+          // run over several of them (a long one wraps rather than being cut).
+          TextEdit {
+            id: stepsText
+            visible: stepsBox.expanded
+            width: parent.width
+            leftPadding: 20
+            readOnly: true
+            selectByMouse: true
+            onSelectedTextChanged: root.noteSelection(stepsText)
+            activeFocusOnPress: false
+            wrapMode: TextEdit.WrapAnywhere
+            textFormat: TextEdit.PlainText
+            text: stepsBox.expanded ? ChatAi.steps.map(step => root.stepText(step)).join("\n") : ""
+            color: Theme.textColor
+            opacity: 0.6
+            selectionColor: Theme.accentColor
+            selectedTextColor: Theme.backgroundColor
+            font.family: Theme.fontFamily
+            font.weight: Theme.fontWeight
+            font.letterSpacing: Theme.fontLetterSpacing
+            font.pixelSize: Theme.fontSize() * 0.8
           }
         }
 
@@ -517,12 +793,24 @@ ModalPanel {
           }
         }
 
-        ThemedText {
+        // The error, whose text can be selected.
+        TextEdit {
+          id: errorText
           visible: ChatAi.error !== ""
           width: parent.width
-          wrapMode: Text.Wrap
+          readOnly: true
+          selectByMouse: true
+          onSelectedTextChanged: root.noteSelection(errorText)
+          activeFocusOnPress: false
+          wrapMode: TextEdit.Wrap
           text: ChatAi.error
           color: Theme.accentColor
+          selectionColor: Theme.accentColor
+          selectedTextColor: Theme.backgroundColor
+          font.family: Theme.fontFamily
+          font.weight: Theme.fontWeight
+          font.letterSpacing: Theme.fontLetterSpacing
+          font.pixelSize: Theme.fontSize()
         }
 
         // The answer, in Markdown, cut at its images: its text can be
@@ -552,6 +840,7 @@ ModalPanel {
               width: parent.width
               readOnly: true
               selectByMouse: true
+              onSelectedTextChanged: root.noteSelection(answerText)
               wrapMode: TextEdit.Wrap
               textFormat: TextEdit.MarkdownText
               text: segment.image ? "" : segment.modelData.text
@@ -577,7 +866,12 @@ ModalPanel {
               // text can be selected).
               HoverHandler {
                 cursorShape: answerText.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
+                // The link's tooltip (see hoverLink).
+                onPointChanged: {
+                  if (answerText.hoveredLink !== "") root.hoverLink(answerText.hoveredLink, answerText.mapToItem(root.panel, point.position.x, point.position.y))
+                }
               }
+              onHoveredLinkChanged: if (answerText.hoveredLink === "") root.leaveLink()
             }
 
             // The image, as wide as it is up to the panel's width and at most
@@ -665,57 +959,158 @@ ModalPanel {
           }
         }
 
-        // Clears the question and its answer (also from the saved file),
-        // and copies the answer.
-        Row {
-          visible: ChatAi.question !== "" && !ChatAi.busy
-          anchors.right: parent.right
-          spacing: 4
+        // The shell actions the AI proposed (see ChatAi.actions): a button
+        // each, running its IPC call when clicked, with the call beside it
+        // and then what it gave (or why it failed).
+        Column {
+          visible: ChatAi.actions.length > 0 && !ChatAi.busy
+          width: parent.width
+          spacing: 6
 
-          ThemedText {
-            anchors.verticalCenter: parent.verticalCenter
-            text: I18n.tr("chatAi.clear")
-            sizeScale: 0.8
-            opacity: 0.6
-          }
+          Repeater {
+            model: ChatAi.actions
 
-          IconButton {
-            anchors.verticalCenter: parent.verticalCenter
-            icon: "󰃢"
-            sizeScale: 1
-            onClicked: ChatAi.clear()
-          }
+            Row {
+              id: actionRow
+              required property var modelData
+              required property int index
+              // How running it went (see ChatAi.actionResults), null before.
+              readonly property var outcome: ChatAi.actionResults[index] ?? null
+              readonly property string command: [modelData.target, modelData.function].concat(modelData.args ?? []).join(" ")
+              width: parent.width
+              spacing: 10
 
-          Item {
-            visible: ChatAi.answer !== ""
-            width: 12
-            height: 1
-          }
+              Rectangle {
+                id: actionChip
+                width: Math.min(actionLabel.implicitWidth + actionGlyph.implicitWidth + 32, actionRow.width * 0.6)
+                height: actionLabel.implicitHeight + 12
+                radius: Theme.radiusFor(height)
+                color: actionMouse.containsMouse && actionMouse.enabled ? Theme.borderColor : "transparent"
+                border.color: actionRow.outcome && actionRow.outcome.status === "failed" ? Theme.warningColor : Theme.accentColor
+                border.width: 1
+                opacity: Settings.chatAiShellIpc ? 1 : 0.5
 
-          ThemedText {
-            visible: ChatAi.answer !== ""
-            anchors.verticalCenter: parent.verticalCenter
-            text: I18n.tr("chatAi.copy")
-            sizeScale: 0.8
-            opacity: 0.6
-          }
+                ThemedText {
+                  id: actionGlyph
+                  anchors.left: parent.left
+                  anchors.leftMargin: 12
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: !actionRow.outcome ? "󰐊" : actionRow.outcome.status === "running" ? "󰔟"
+                    : actionRow.outcome.status === "done" ? "󰄬" : "󰅖"
+                  color: actionRow.outcome && actionRow.outcome.status === "failed" ? Theme.warningColor : Theme.accentColor
+                }
 
-          IconButton {
-            visible: ChatAi.answer !== ""
-            anchors.verticalCenter: parent.verticalCenter
-            icon: "󰆏"
-            sizeScale: 1
-            onClicked: Quickshell.clipboardText = ChatAi.answer
+                ThemedText {
+                  id: actionLabel
+                  anchors.left: actionGlyph.right
+                  anchors.leftMargin: 8
+                  anchors.right: parent.right
+                  anchors.rightMargin: 12
+                  anchors.verticalCenter: parent.verticalCenter
+                  elide: Text.ElideRight
+                  text: actionRow.modelData.label
+                }
+
+                MouseArea {
+                  id: actionMouse
+                  anchors.fill: parent
+                  enabled: Settings.chatAiShellIpc && !(actionRow.outcome && actionRow.outcome.status === "running")
+                  hoverEnabled: true
+                  cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                  onClicked: ChatAi.runAction(actionRow.index)
+                }
+              }
+
+              // The call, then what it gave; or why it can't run.
+              ThemedText {
+                anchors.verticalCenter: actionChip.verticalCenter
+                width: actionRow.width - actionChip.width - actionRow.spacing
+                elide: Text.ElideRight
+                text: !Settings.chatAiShellIpc ? I18n.tr("chatAi.actions.off")
+                  : actionRow.outcome && actionRow.outcome.result !== "" ? actionRow.command + "  →  " + actionRow.outcome.result
+                  : actionRow.command
+                color: actionRow.outcome && actionRow.outcome.status === "failed" ? Theme.warningColor : Theme.textColor
+                sizeScale: 0.8
+                opacity: 0.6
+              }
+            }
           }
         }
 
         // Nothing asked yet.
         ThemedText {
-          visible: ChatAi.question === "" && ChatAi.error === ""
+          visible: Settings.chatAiShowHint && ChatAi.question === "" && ChatAi.error === ""
           width: parent.width
           wrapMode: Text.WordWrap
           text: I18n.tr("chatAi.hint")
           opacity: 0.5
+        }
+      }
+    }
+
+    // Along the bottom, what the last question used, and the buttons to
+    // clear the question with its answer (also from the saved file) and
+    // to copy them.
+    Item {
+      id: statusBox
+      // What the usage says, "" when there is nothing to show.
+      readonly property string usage: Settings.chatAiShowUsage && ChatAi.question !== "" && (ChatAi.usage.requests ?? 0) > 0
+        ? root.usageText(ChatAi.usage) : ""
+
+      visible: ChatAi.question !== ""
+      width: parent.width
+      height: Math.max(usageLabel.implicitHeight, buttons.height)
+
+      ThemedText {
+        id: usageLabel
+        anchors.left: parent.left
+        anchors.right: buttons.left
+        anchors.rightMargin: 8
+        anchors.verticalCenter: parent.verticalCenter
+        elide: Text.ElideRight
+        text: statusBox.usage
+        sizeScale: 0.75
+        opacity: 0.5
+      }
+
+      Row {
+        id: buttons
+        visible: !ChatAi.busy
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 4
+
+        ThemedText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: I18n.tr("chatAi.clear")
+          sizeScale: 0.8
+          opacity: 0.6
+        }
+
+        IconButton {
+          anchors.verticalCenter: parent.verticalCenter
+          icon: "󰃢"
+          sizeScale: 1
+          onClicked: ChatAi.clear()
+        }
+
+        Item {
+          width: 12
+          height: 1
+        }
+
+        ThemedText {
+          anchors.verticalCenter: parent.verticalCenter
+          text: I18n.tr("chatAi.copy")
+          sizeScale: 0.8
+          opacity: 0.6
+        }
+
+        IconButton {
+          anchors.verticalCenter: parent.verticalCenter
+          icon: "󰆏"
+          sizeScale: 1
+          onClicked: Quickshell.clipboardText = root.exchangeText()
         }
       }
     }
@@ -863,4 +1258,37 @@ ModalPanel {
     }
   }
 
+  Timer {
+    id: tipTimer
+    interval: 500
+    onTriggered: root.tipShown = true
+  }
+
+  // Tooltip saying where the hovered link of the answer leads.
+  Rectangle {
+    id: tooltip
+
+    visible: root.tipShown && root.tipLink !== ""
+    z: 10
+    width: tipLabel.width + 20
+    height: tipLabel.implicitHeight + 14
+    // Just below the pointer, kept inside the panel; above it when there's
+    // no room underneath.
+    x: Math.max(8, Math.min(root.tipX + 12, root.panel.width - width - 8))
+    y: root.tipY + 24 + height > root.panel.height - 8 ? root.tipY - height - 12 : root.tipY + 24
+    radius: Theme.radiusFor(height)
+    color: Theme.backgroundColor
+    border.color: Theme.outlineColor
+    border.width: Theme.borderWidth
+
+    ThemedText {
+      id: tipLabel
+      x: 10
+      y: 7
+      width: Math.min(implicitWidth, root.panel.width - 48)
+      elide: Text.ElideMiddle
+      text: root.tipLink !== "" ? root.tipText(root.tipLink) : ""
+      sizeScale: 0.8
+    }
+  }
 }

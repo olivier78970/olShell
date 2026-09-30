@@ -78,25 +78,35 @@ ModalPanel {
     canMoveForward: index < Settings.launcherEngines.length - 1
   })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
 
-  // The chat AI category's providers, two rows each (its name and key, and
-  // for an added one its address; then its model, picked from its own list),
-  // then a row adding one. `providerId` is the provider's id (see
-  // services/ChatAi.qml).
-  readonly property var chatAiProviderRows: ChatAi.known.reduce((rows, provider, index) => rows.concat([{
+  // The chat AI category's default provider, a row adding one, then the
+  // providers, two rows each (its name and key, and for an added one its
+  // address; then its model, picked from its own list). `providerId` is the
+  // provider's id (see services/ChatAi.qml).
+  readonly property var chatAiProviderRows: [{
+    key: "chatAiDefaultProvider",
+    category: "chatAi",
+    kind: "dropdown",
+    label: I18n.tr("settings.chatAiDefaultProvider")
+  }, {
+    key: "addChatAiProvider",
+    category: "chatAi",
+    kind: "action",
+    label: I18n.tr("settings.chatAiProviders.add")
+  }].concat(ChatAi.known.reduce((rows, provider, index) => rows.concat([{
     key: "chatAiProvider:" + provider.id,
     category: "chatAi",
     kind: "chatAiProvider",
     provider: provider,
     providerId: provider.id,
     label: provider.name,
-    title: index === 0 ? I18n.tr("settings.chatAiProviders") : ""
+    separator: true
   }, {
     key: "chatAiModel:" + provider.id,
     category: "chatAi",
     kind: "dropdown",
     providerId: provider.id,
     label: I18n.tr("settings.chatAi.model")
-  }]), []).concat([{ key: "addChatAiProvider", category: "chatAi", kind: "action", label: I18n.tr("settings.chatAiProviders.add") }])
+  }]), []))
 
   // A provider's models to pick from, the one set first when its list
   // doesn't have it; while there is no list, only the one set, named by how
@@ -391,6 +401,7 @@ ModalPanel {
     // Adding an app holds no value of its own.
     if (row.key === "appOpacityAdd") return ""
     if (row.key.startsWith("chatAiModel:")) return ChatAi.providerOf(row.providerId)?.model ?? ""
+    if (row.key === "chatAiDefaultProvider") return ChatAi.defaultProviderId
     return Settings.get(row.key)
   }
 
@@ -540,6 +551,7 @@ ModalPanel {
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelOptions(row.providerId)
+    if (row.key === "chatAiDefaultProvider") return ChatAi.known.map(provider => ({ value: provider.id, text: provider.name }))
     if (row.key === "appOpacityAdd") return root.appOpacityOptions
     if (row.key === "hyprlandWindowStyle" || row.key === "hyprlandWorkspaceStyle") return Settings.choices[row.key]
       .map(name => ({ value: name, text: I18n.tr("settings.hyprlandStyle." + name) }))
@@ -820,7 +832,7 @@ ModalPanel {
       return
     }
     const values = root.optionsOf(row).map(option => option.value)
-    root.highlight = Math.max(0, values.indexOf(Settings.get(row.key)))
+    root.highlight = Math.max(0, values.indexOf(root.currentOf(row)))
     root.openKey = row.key
   }
 
@@ -1241,7 +1253,7 @@ ModalPanel {
               // engines, the settings' sections).
               readonly property string title: row.modelData.title ?? ""
               readonly property real titleHeight: row.title !== "" ? 34 : 0
-              readonly property real gapHeight: row.modelData.kind === "defaults" ? 16 : 0
+              readonly property real gapHeight: row.modelData.kind === "defaults" || row.modelData.separator === true ? 16 : 0
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
@@ -1271,6 +1283,20 @@ ModalPanel {
                 anchors.leftMargin: 10
                 anchors.right: parent.right
                 anchors.verticalCenter: titleText.verticalCenter
+                height: 1
+                color: Theme.separatorColor
+                opacity: 0.6
+              }
+
+              // A line across the gap above a row with `separator` (between the
+              // chat AI's providers).
+              Rectangle {
+                visible: row.modelData.separator === true
+                anchors.left: parent.left
+                anchors.leftMargin: 4
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.topMargin: 8
                 height: 1
                 color: Theme.separatorColor
                 opacity: 0.6
@@ -1392,7 +1418,7 @@ ModalPanel {
                 canMoveForward: row.modelData.canMoveForward ?? false
                 selected: root.selected === row.index
                 focusIndex: root.showSelection ? root.toggleFocus : -1
-                editing: root.editKey.startsWith(engineRow.prefix) ? root.editKey.slice(engineRow.prefix.length) : ""
+                editing: row.modelData.kind === "engine" && root.editKey.startsWith(engineRow.prefix) ? root.editKey.slice(engineRow.prefix.length) : ""
                 onActivated: root.selected = row.index
                 onToggled: Settings.setEngine(row.modelData.engineIndex, { on: !row.modelData.engine.on })
                 onMoved: steps => root.moveEngine(row.modelData, steps)
@@ -1460,7 +1486,7 @@ ModalPanel {
                 on: row.modelData.app?.on ?? false
                 selected: root.selected === row.index
                 focusIndex: root.showSelection ? root.toggleFocus : -1
-                editing: root.editKey.startsWith(matugenAppRow.prefix) ? root.editKey.slice(matugenAppRow.prefix.length) : ""
+                editing: row.modelData.kind === "matugenApp" && root.editKey.startsWith(matugenAppRow.prefix) ? root.editKey.slice(matugenAppRow.prefix.length) : ""
                 onActivated: root.selected = row.index
                 onToggled: Settings.setMatugenApp(row.modelData.appIndex, { on: !row.modelData.app.on })
                 onRemoved: Settings.removeMatugenApp(row.modelData.appIndex)
@@ -1491,7 +1517,7 @@ ModalPanel {
                 hasKey: ChatAi.hasKey[row.modelData.providerId ?? ""] === true
                 selected: root.selected === row.index
                 focusIndex: root.showSelection ? root.toggleFocus : -1
-                editing: root.editKey.startsWith(chatAiProviderRow.prefix) ? root.editKey.slice(chatAiProviderRow.prefix.length) : ""
+                editing: row.modelData.kind === "chatAiProvider" && root.editKey.startsWith(chatAiProviderRow.prefix) ? root.editKey.slice(chatAiProviderRow.prefix.length) : ""
                 asking: row.modelData.kind === "chatAiProvider" ? root.askingOf(row.modelData) : ""
                 onAnswered: index => {
                   root.toggleFocus = index

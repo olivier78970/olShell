@@ -55,6 +55,7 @@ Singleton {
     lockTimeout: [0, 60],
     launcherResults: [3, 20],
     launcherHistory: [0, 10],
+    chatAiHistory: [0, 200],
     switcherIconSize: [24, 96],
     switcherMaxShown: [3, 20],
     volumeOsdMargin: [0, 400],
@@ -456,7 +457,7 @@ Singleton {
   // are left out of the launcher.
   readonly property var launcherEngines: root.valid("launcherEngines", file.adapter.launcherEngines)
   // The AI providers the chat AI panel can ask, in order: the built-in ones,
-  // { builtin: "anthropic" | "openai", model } (their address and API are
+  // { builtin: "anthropic" | "openai" | "xai" | "google", model } (their address and API are
   // fixed, see services/ChatAi.qml), always in the list once, and those
   // added, { id, name, url, model }, OpenAI-compatible servers (`url` their
   // base address, ending with the version: https://api.mistral.ai/v1). `model`
@@ -464,7 +465,7 @@ Singleton {
   // keys are in the secret keyring, under the built-in name or the `id`,
   // never here.
   readonly property var chatAiProviders: root.valid("chatAiProviders", file.adapter.chatAiProviders)
-  readonly property var chatAiBuiltins: ["anthropic", "openai"]
+  readonly property var chatAiBuiltins: ["anthropic", "openai", "xai", "google"]
 
   // Whether `provider` is a valid added provider: an id, a name and a web
   // address.
@@ -510,11 +511,32 @@ Singleton {
   readonly property bool chatAiReadFile: root.valid("chatAiReadFile", file.adapter.chatAiReadFile)
   readonly property bool chatAiWebSearch: root.valid("chatAiWebSearch", file.adapter.chatAiWebSearch)
   readonly property bool chatAiWebFetch: root.valid("chatAiWebFetch", file.adapter.chatAiWebFetch)
+  // What it may do with the shell itself: search and read its documentation
+  // (README.md), and run its IPC calls, all but those that can't be undone
+  // (see IPC_BLOCKED in scripts/ai-ask.py).
+  readonly property bool chatAiShellDocs: root.valid("chatAiShellDocs", file.adapter.chatAiShellDocs)
+  readonly property bool chatAiShellIpc: root.valid("chatAiShellIpc", file.adapter.chatAiShellIpc)
   // Folders it may read besides the home folder, and paths or file name
   // patterns ("*.sqlite") it may not, on top of the built-in secrets (see
   // scripts/ai-ask.py); both comma-separated, "" for none.
   readonly property string chatAiFolders: root.valid("chatAiFolders", file.adapter.chatAiFolders)
   readonly property string chatAiExclude: root.valid("chatAiExclude", file.adapter.chatAiExclude)
+  // How many past questions the chat AI keeps for the question box's arrow
+  // keys (0: none).
+  readonly property int chatAiHistory: root.valid("chatAiHistory", file.adapter.chatAiHistory)
+  // The chat AI provider asked when the panel opens (its id, see
+  // services/ChatAi.qml), "" for the first one that can be asked. Its model
+  // is the one set on its own row.
+  readonly property string chatAiDefaultProvider: root.valid("chatAiDefaultProvider", file.adapter.chatAiDefaultProvider)
+  // Whether the line along the bottom of the chat AI panel, saying what the
+  // last question used, is shown.
+  readonly property bool chatAiShowUsage: root.valid("chatAiShowUsage", file.adapter.chatAiShowUsage)
+  // Whether the chat AI panel shows its hint (how it works, its keys) while it
+  // is empty: before a first question, and after clearing it.
+  readonly property bool chatAiShowHint: root.valid("chatAiShowHint", file.adapter.chatAiShowHint)
+  // Whether the chat AI panel's title row shows the icons of the AI's access
+  // options (its tools), on or off.
+  readonly property bool chatAiShowAccess: root.valid("chatAiShowAccess", file.adapter.chatAiShowAccess)
 
   // Whether `name` and `url` make a search engine: a name, and a web address
   // with %s in it.
@@ -669,8 +691,12 @@ Singleton {
           list.push({ id: text(provider.id), name: text(provider.name), url: text(provider.url), model: text(provider.model) })
         }
       }
+      // A built-in one missing (added since the file was written) comes after the
+      // built-in ones there, before those added.
       const missing = root.chatAiBuiltins.filter(builtin => !list.some(other => other.builtin === builtin))
-      return missing.map(builtin => ({ builtin: builtin, model: "" })).concat(list)
+      return list.filter(provider => provider.builtin !== undefined)
+        .concat(missing.map(builtin => ({ builtin: builtin, model: "" })))
+        .concat(list.filter(provider => provider.builtin === undefined))
     }
     // The chat AI's added and excluded folders: text.
     if (key === "chatAiFolders" || key === "chatAiExclude") return typeof value === "string" ? value.trim().slice(0, 1000) : root.defaults[key]
@@ -704,6 +730,8 @@ Singleton {
       return path.startsWith("/") ? path : root.defaults[key]
     }
     if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
+    // A provider's id, or "" for the first one that can be asked.
+    if (key === "chatAiDefaultProvider") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     // A place's name, or "" for none.
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
@@ -814,6 +842,15 @@ Singleton {
       else groups[groups.length - 1].push(id)
     })
     return groups
+  }
+
+  // The widget starting the group widget `id` is in (itself when it starts
+  // one, or is off the bar).
+  function leaderOf(id) {
+    const zone = root.zoneOf(id)
+    if (zone === "off") return id
+    const group = root.groupsOf(zone).find(group => group.includes(id))
+    return group ? group[0] : id
   }
 
   // Whether the group `leader` starts is "on", "hover" or "off".
@@ -1141,8 +1178,15 @@ Singleton {
       property bool chatAiReadFile: Defaults.values.chatAiReadFile
       property bool chatAiWebSearch: Defaults.values.chatAiWebSearch
       property bool chatAiWebFetch: Defaults.values.chatAiWebFetch
+      property bool chatAiShellDocs: Defaults.values.chatAiShellDocs
+      property bool chatAiShellIpc: Defaults.values.chatAiShellIpc
       property string chatAiFolders: Defaults.values.chatAiFolders
       property string chatAiExclude: Defaults.values.chatAiExclude
+      property int chatAiHistory: Defaults.values.chatAiHistory
+      property string chatAiDefaultProvider: Defaults.values.chatAiDefaultProvider
+      property bool chatAiShowUsage: Defaults.values.chatAiShowUsage
+      property bool chatAiShowHint: Defaults.values.chatAiShowHint
+      property bool chatAiShowAccess: Defaults.values.chatAiShowAccess
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff
       property var barLastPlace: ({})

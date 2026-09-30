@@ -9,8 +9,8 @@ Singleton {
   id: root
 
   property bool visible: false
-  // The id of the provider picked in the panel, "" for the first one that
-  // can be asked (see services/ChatAi.qml); kept between openings.
+  // The id of the provider picked in the panel, "" for the default one of
+  // the settings (see services/ChatAi.qml); kept between openings.
   property string provider: ""
   // The model picked in the panel for each provider, by provider id, in
   // place of its default (the one set in the settings) until the shell

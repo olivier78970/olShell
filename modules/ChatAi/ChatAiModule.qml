@@ -65,6 +65,12 @@ Scope {
     function selectModel(id: string, model: string): void {
       ChatAi.selectModel(id, model)
     }
+
+    // Goes back to the default provider (the settings') and its default
+    // model, forgetting what was picked.
+    function selectDefault(): void {
+      ChatAi.selectDefault()
+    }
   }
 
   // Keeps the panel a moment after it closes, so it can animate away.

@@ -2,7 +2,7 @@ import QtQuick
 import qs.config
 
 // A chat AI provider's row in the settings. A built-in one (Anthropic,
-// OpenAI) shows its name and a field for its API key; one the user added
+// OpenAI, xAI, Google) shows its name and a field for its API key; one the user added
 // has fields for its name, its address and its API key, and a button taking
 // it out of the list (`removed`). The key field never shows the key: only
 // whether one is saved (`hasKey`), and what is typed in it is hidden.
@@ -16,7 +16,8 @@ import qs.config
 // marks what the keyboard is on, in the order of `stops`.
 //
 // While `asking` is set ("replace" or "remove"), the row asks instead
-// whether to replace or remove the saved key, with Confirm and Cancel
+// whether to replace or remove the saved key (`name` is whose), with Confirm
+// and Cancel
 // (`answered` with 0 or 1; `focusIndex` is then on one of them).
 Item {
   id: root
@@ -115,7 +116,7 @@ Item {
     field: "key"
     secret: true
     value: ""
-    hint: I18n.tr(root.hasKey ? "settings.chatAiProviders.keySaved" : "settings.chatAiProviders.key")
+    hint: I18n.tr("settings.chatAiProviders.key")
   }
 
   // The remove button, for an added provider.
@@ -186,17 +187,26 @@ Item {
     border.color: box.editing ? Theme.accentColor : (root.focused(box.field) ? Theme.textColor : Theme.outlineColor)
     border.width: !box.editing && root.focused(box.field) ? 2 : 1
 
+    // Starts the typing: the keyboard goes to the field, with the value in it.
+    function begin() {
+      box.settled = false
+      input.text = box.value
+      // A tick later: the field only shows once `editing` has reached its own
+      // binding, and a hidden field can't take the keyboard.
+      Qt.callLater(() => {
+        if (!box?.editing) return
+        input.forceActiveFocus()
+        input.cursorPosition = input.text.length
+      })
+    }
+
+    // (A row added with its field already being typed in, as a new provider's
+    // name, never sees `editing` change.)
+    Component.onCompleted: if (box.editing) box.begin()
+
     onEditingChanged: {
       if (box.editing) {
-        box.settled = false
-        input.text = box.value
-        // A tick later: the field only shows once `editing` has reached its own
-        // binding, and a hidden field can't take the keyboard.
-        Qt.callLater(() => {
-          if (!box?.editing) return
-          input.forceActiveFocus()
-          input.cursorPosition = input.text.length
-        })
+        box.begin()
       } else {
         if (!box.settled && input.text !== box.value) root.committed(box.field, input.text)
         // Nothing of a key stays in the field.
