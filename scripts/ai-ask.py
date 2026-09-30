@@ -804,6 +804,19 @@ def remind(guard, names, reminded):
     return not reminded and guard.used_shell and guard.proposed == 0 and "shell_ipc_propose" in names
 
 
+# How many steps before the last the tools are narrowed to shell_ipc_propose
+# (see wrapping_up).
+WRAP_UP_STEPS = 2
+
+
+def wrapping_up(step, names):
+    """Whether the model is near the end of its steps and can only propose
+    action buttons now (when it has that tool): it writes its answer with
+    them, and the reminder (see remind) still has a step left when it
+    proposes none."""
+    return "shell_ipc_propose" in names and step >= MAX_STEPS - WRAP_UP_STEPS
+
+
 def run_tool(guard, name, args):
     # (A tool that is off is refused even if the model asks for it anyway.)
     if name not in TOOLS or name not in guard.tools:
@@ -960,9 +973,13 @@ def ask_anthropic(options, key, system, question, guard, names):
         web_tools = [{"type": versions[0][name], "name": name, "max_uses": WEB_MAX_USES}
                      for name in web] if versions[0] else []
         body = {"model": options.model, "max_tokens": 8192, "system": system, "messages": messages}
+        if wrapping_up(step, names):
+            step_tools, web_tools = [tool for tool in tools if tool["name"] == "shell_ipc_propose"], []
+        else:
+            step_tools = tools
         # (No tool at all: the APIs refuse an empty list.)
-        if tools or web_tools:
-            body["tools"] = tools + web_tools
+        if step_tools or web_tools:
+            body["tools"] = step_tools + web_tools
             # Out of steps: an answer from what it has read so far.
             if step == MAX_STEPS:
                 body["tool_choice"] = {"type": "none"}
@@ -1066,7 +1083,8 @@ def ask_openai_responses(options, key, system, question, guard, names):
         if previous:
             body["previous_response_id"] = previous
         if tools:
-            body["tools"] = tools
+            body["tools"] = [tool for tool in tools if tool.get("name") == "shell_ipc_propose"] \
+                if wrapping_up(step, names) else tools
             if step == MAX_STEPS:
                 body["tool_choice"] = "none"
         try:
@@ -1134,7 +1152,8 @@ def ask_openai(options, key, system, question, guard, names):
     for step in range(MAX_STEPS + 1):
         body = {"model": options.model, "messages": messages}
         if tools:
-            body["tools"] = tools
+            body["tools"] = [tool for tool in tools if tool["function"]["name"] == "shell_ipc_propose"] \
+                if wrapping_up(step, names) else tools
             if step == MAX_STEPS:
                 body["tool_choice"] = "none"
         if no_reasoning:
@@ -1287,6 +1306,9 @@ def main():
         + (f"You can also use {' and '.join(sorted(web))}, for what their files don't say "
            "or what may have changed since your training; never put anything from their files in a search. "
            if web else "You can't reach the web. ")
+        + ("You have a limited number of steps: keep your research short, about six lookups (several at "
+           "once are fine), then answer. "
+           if names & set(TOOLS) else "")
         + f"Today is {time.strftime('%A %Y-%m-%d, %H:%M')}. "
         "The user can't reply, so end with the answer itself: no closing question or offer of more help "
         "(\"Would you like me to...?\", \"Let me know if...\", \"I can also...\"), and nothing asking them to give, send or clarify anything; "
