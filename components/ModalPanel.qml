@@ -304,6 +304,10 @@ PanelWindow {
       // In the bar's slot while an attached panel is open, in frameWindow
       // otherwise.
       parent: root.hostSlot ?? frameWindow.contentItem
+      // Hidden with the panel, so what it holds (gauges easing, timers
+      // running on `visible`) stops while it's closed instead of keeping
+      // the bar redrawing.
+      visible: root.shown
       // Read by the bar's slot to place it along the bar.
       readonly property string barAlign: root.barAlign
       // An attached frame stays within the bar's span, and leaves room for

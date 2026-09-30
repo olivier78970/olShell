@@ -25,6 +25,8 @@ Item {
   Component.onCompleted: root.shown = Math.max(0, Math.min(1, root.value))
 
   Behavior on shown {
+    // Not while hidden: the animation would keep the shell redrawing.
+    enabled: root.visible
     NumberAnimation { duration: 500; easing.type: Easing.OutCubic }
   }
 
