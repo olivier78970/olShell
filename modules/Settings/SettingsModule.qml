@@ -48,7 +48,7 @@ Scope {
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
-    // disk, network, connection, bluetooth, volume, notifications, lock, power),
+    // disk, network, connection, bluetooth, volume, notifications, lock, power, chatAi),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
@@ -204,8 +204,8 @@ Scope {
     // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
-    // notificationActionsPlacement, switcherPlacement, clockPlacement and
-    // notificationCenterPlacement; a value
+    // notificationActionsPlacement, switcherPlacement, clockPlacement,
+    // notificationCenterPlacement and chatAiPlacement; a value
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
     // (customBackground, customPill, customBorder, customText, customAccent:

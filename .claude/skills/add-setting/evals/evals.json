@@ -1,0 +1,8 @@
+{
+  "skill_name": "add-setting",
+  "evals": [
+    {"id": 1, "prompt": "The notification popups are always 380 px wide. Make their width adjustable in the Notifications settings, from 280 to 600 px, 380 by default.", "expected_output": "A notificationWidth-style slider setting wired through Defaults, Settings limits/property/adapter, the Notifications page row, IPC comment, 3 translations, README table + set list, and used by NotificationPopups.qml.", "files": []},
+    {"id": 2, "prompt": "Add an option to turn off the launcher tooltip that shows the process name when I rest the pointer on an entry.", "expected_output": "A boolean check-box setting in the Launcher category, wired everywhere, gating the tooltip in LauncherPanel.qml, listed in IPC set 1/0 comment and README.", "files": []},
+    {"id": 3, "prompt": "I'd like to choose the launcher's icon size: small, medium or large, medium being today's size.", "expected_output": "A choice setting with choices [small, medium, large], a buttons row, options in SettingsPanel optionsOf, per-value translations in en/fr/es, IPC choose comment, README, and LauncherPanel icons sized from it.", "files": []}
+  ]
+}
