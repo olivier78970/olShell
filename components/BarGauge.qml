@@ -18,7 +18,13 @@ Item {
   // How thick the ring is, in pixels.
   property real thickness: 3
   // The value as drawn, eased toward `value` so the ring doesn't jump.
-  property real shown: Math.max(0, Math.min(1, root.value))
+  property real shown: 0
+  // Follows `value` only once it has moved by about a pixel of the ring, so
+  // a reading that jitters (the network's, the processor's) doesn't start
+  // an easing, and so redraw every frame for its length, each time.
+  readonly property real target: Math.max(0, Math.min(1, root.value))
+  onTargetChanged: if (Math.abs(root.target - root.shown) >= 0.015 || root.target === 0 || root.target === 1) root.shown = root.target
+  Component.onCompleted: root.shown = root.target
 
   Behavior on shown {
     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }

@@ -9,7 +9,8 @@ import qs.config
 // conversation, of Anthropic, OpenAI or an OpenAI-compatible provider the
 // user added. The request runs in
 // scripts/ai-ask.py, which lets the AI search and read the user's files
-// (read-only, see there) and looks the provider's API key up in the secret
+// (read-only, see there) and the shell's documentation, run the shell's IPC
+// calls if the settings allow it, and looks the provider's API key up in the secret
 // keyring itself. Held here rather than in the panel, so an answer still
 // arrives while the panel is closed and is there when it opens again.
 // Each provider's models are listed from its API once it has a key, for the
@@ -18,10 +19,13 @@ Singleton {
   id: root
 
   // The built-in providers, by id: their name, the API they speak and its
-  // address, which the settings don't show.
+  // address, which the settings don't show, and whether the AI can search the
+  // web through them (`webSearch`, see scripts/ai-ask.py).
   readonly property var builtins: ({
-    anthropic: { name: "Anthropic", protocol: "anthropic", url: "https://api.anthropic.com/v1" },
-    openai: { name: "OpenAI", protocol: "openai", url: "https://api.openai.com/v1" }
+    anthropic: { name: "Anthropic", protocol: "anthropic", url: "https://api.anthropic.com/v1", webSearch: true },
+    openai: { name: "OpenAI", protocol: "openai", url: "https://api.openai.com/v1", webSearch: true },
+    xai: { name: "xAI", protocol: "openai", url: "https://api.x.ai/v1", webSearch: true },
+    google: { name: "Google", protocol: "openai", url: "https://generativelanguage.googleapis.com/v1beta/openai", webSearch: false }
   })
 
   // Every provider of Settings.chatAiProviders, in order: { id (its name in
@@ -39,18 +43,33 @@ Singleton {
     { name: "search_text", key: "chatAiSearchText" },
     { name: "read_file", key: "chatAiReadFile" },
     { name: "web_search", key: "chatAiWebSearch" },
-    { name: "web_fetch", key: "chatAiWebFetch" }
+    { name: "web_fetch", key: "chatAiWebFetch" },
+    { name: "shell_docs_search", key: "chatAiShellDocs" },
+    { name: "shell_docs_read", key: "chatAiShellDocs" },
+    { name: "shell_settings", key: "chatAiShellDocs" },
+    { name: "shell_ipc_list", key: "chatAiShellIpc" },
+    { name: "shell_ipc_call", key: "chatAiShellIpc" },
+    { name: "shell_ipc_propose", key: "chatAiShellIpc" }
   ]
 
   // The providers that can be asked (the built-in ones once they have a key;
   // an added one may be a local server needing none), and the one that is:
-  // the one picked in the panel, else the first. Each with `model` the one
+  // the one picked in the panel, else the default one of the settings (when it
+  // can be asked), else the first. Each with `model` the one
   // it is asked (the one picked in the panel, else its default) and
   // `defaultModel` the one set in the settings.
   readonly property var providers: root.known
     .filter(provider => !provider.builtin || root.hasKey[provider.id] === true)
     .map(provider => Object.assign({}, provider, { defaultModel: provider.model, model: ChatAiState.models[provider.id] || provider.model }))
-  readonly property var provider: root.providers.find(provider => provider.id === ChatAiState.provider) ?? root.providers[0] ?? null
+  readonly property var provider: root.providers.find(provider => provider.id === ChatAiState.provider)
+    ?? root.providers.find(provider => provider.id === Settings.chatAiDefaultProvider) ?? root.providers[0] ?? null
+  // Whether the panel asks the default provider (see provider) with its default
+  // model: nothing is picked in the panel, or what is picked is that.
+  readonly property bool onDefault: (root.provider?.id ?? "") === (root.providers.find(provider => provider.id === Settings.chatAiDefaultProvider) ?? root.providers[0])?.id
+    && Object.keys(ChatAiState.models).length === 0
+  // The id of the default provider of the settings (Settings.chatAiDefaultProvider,
+  // else the first provider), for the settings to show as picked.
+  readonly property string defaultProviderId: (root.known.find(provider => provider.id === Settings.chatAiDefaultProvider) ?? root.known[0])?.id ?? ""
 
   // The last question, the provider asked and its answer (Markdown), the
   // tools the AI used on the way ({ name, arg, path }), and what went wrong
@@ -61,6 +80,20 @@ Singleton {
   property string answer: saved.adapter.answer
   property var steps: saved.adapter.steps
   property string error: saved.adapter.error
+  // What asking it used, the totals of the provider's requests ({ requests,
+  // input, output, cached, reasoning, searches }, see scripts/ai-ask.py),
+  // saved with the answer; empty before a first one.
+  property var usage: saved.adapter.usage
+  // The shell actions the AI proposed under its answer ({ label, target,
+  // function, args }, see scripts/ai-ask.py's shell_ipc_propose), each run
+  // by a click (see runAction); saved with the answer. And how running each
+  // went, by index: { status: "running", "done" or "failed", result: what
+  // the call printed }, until the next question.
+  property var actions: saved.adapter.actions
+  property var actionResults: ({})
+  // The questions asked, the oldest first, for the question box to step back
+  // through (at most Settings.chatAiHistory); saved with the answer.
+  property var history: saved.adapter.history
   readonly property bool busy: asker.running
 
   // Which providers have an API key in the keyring, by id (see refreshKeys).
@@ -80,9 +113,14 @@ Singleton {
     const question = (text ?? "").trim()
     if (question.length === 0 || root.busy) return
     root.question = question
+    const kept = root.history.filter(entry => entry !== question).concat([question])
+    root.history = Settings.chatAiHistory > 0 ? kept.slice(-Settings.chatAiHistory) : []
     root.answer = ""
     root.steps = []
     root.error = ""
+    root.usage = {}
+    root.actions = []
+    root.actionResults = {}
     root.askedProvider = root.provider ? root.provider.name : ""
     if (!root.provider) {
       root.error = I18n.tr("chatAi.error.noProvider")
@@ -98,7 +136,7 @@ Singleton {
       "--protocol", root.provider.protocol, "--url", root.provider.url, "--model", root.provider.model,
       "--folders", Settings.chatAiFolders, "--exclude", Settings.chatAiExclude,
       "--tools", root.toolKeys.filter(tool => Settings[tool.key]).map(tool => tool.name).join(","),
-      "--language", I18n.language,
+      "--shell", Paths.shellDir, "--language", I18n.language,
       "--", question]
     asker.running = true
   }
@@ -119,7 +157,28 @@ Singleton {
     root.answer = ""
     root.steps = []
     root.error = ""
+    root.usage = {}
+    root.actions = []
+    root.actionResults = {}
     root.save()
+  }
+
+  // Runs proposed action `index` (see actions) as the shell's IPC call,
+  // unless one is already running; with the chat's shell commands turned
+  // off since it was proposed, nothing runs.
+  function runAction(index) {
+    const action = root.actions[index]
+    if (!action || actionRunner.running || !Settings.chatAiShellIpc) return
+    root.setActionResult(index, "running", "")
+    actionRunner.index = index
+    actionRunner.command = ["quickshell", "ipc", "-p", Paths.shellDir, "call", action.target, action.function].concat(action.args ?? [])
+    actionRunner.running = true
+  }
+
+  function setActionResult(index, status, result) {
+    const results = Object.assign({}, root.actionResults)
+    results[index] = { status: status, result: result }
+    root.actionResults = results
   }
 
   // Saves the last question and its answer, to show again after a restart.
@@ -129,12 +188,22 @@ Singleton {
     saved.adapter.answer = root.answer
     saved.adapter.steps = root.steps
     saved.adapter.error = root.error
+    saved.adapter.usage = root.usage
+    saved.adapter.actions = root.actions
+    saved.adapter.history = root.history
     saved.writeAdapter()
   }
 
   // Picks the provider asked next, by id.
   function select(id) {
     ChatAiState.provider = id
+  }
+
+  // Goes back to the default provider and its default model, forgetting what
+  // was picked in the panel.
+  function selectDefault() {
+    ChatAiState.provider = ""
+    ChatAiState.models = {}
   }
 
   // Picks the model provider `id` is asked, until the shell restarts; its
@@ -278,6 +347,8 @@ Singleton {
           return
         }
         if (message.event === "tool") root.steps = root.steps.concat([{ name: message.name, arg: message.arg, path: message.path }])
+        else if (message.event === "action") root.actions = root.actions.concat([{ label: message.label, target: message.target, function: message.function, args: message.args }])
+        else if (message.event === "usage") root.usage = { requests: message.requests, input: message.input, output: message.output, cached: message.cached, reasoning: message.reasoning, searches: message.searches }
         else if (message.event === "answer") root.answer = message.text
         else if (message.event === "error") root.error = message.message
       }
@@ -304,6 +375,48 @@ Singleton {
       property string answer: ""
       property var steps: []
       property string error: ""
+      property var usage: ({})
+      property var actions: []
+      property var history: []
+    }
+  }
+
+  // Runs a proposed action (see runAction). What it prints is its result:
+  // a value, or the shell's complaint (which it prints with a zero exit
+  // code too, so an output starting like one counts as failed). Read once
+  // it has exited and both its outputs are in, whichever comes last.
+  Process {
+    id: actionRunner
+
+    property int index: -1
+    property int exitCode: 0
+    property int parts: 0
+
+    // (The shell exports QS_CONFIG_PATH; -p names it anyway.)
+    environment: ({ QS_CONFIG_PATH: null })
+
+    onStarted: actionRunner.parts = 0
+
+    stdout: StdioCollector {
+      id: actionOutput
+      onStreamFinished: actionRunner.partDone()
+    }
+    stderr: StdioCollector {
+      id: actionErrors
+      onStreamFinished: actionRunner.partDone()
+    }
+
+    onExited: (exitCode, exitStatus) => {
+      actionRunner.exitCode = exitCode
+      actionRunner.partDone()
+    }
+
+    function partDone() {
+      actionRunner.parts += 1
+      if (actionRunner.parts < 3) return
+      const output = (actionOutput.text + actionErrors.text).trim()
+      const failed = actionRunner.exitCode !== 0 || /^(Too (few|many) arguments|No (target|function)|ipc:)/.test(output)
+      root.setActionResult(actionRunner.index, failed ? "failed" : "done", output)
     }
   }
 

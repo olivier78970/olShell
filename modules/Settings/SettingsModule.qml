@@ -18,9 +18,59 @@ Scope {
       SettingsPanelState.toggle()
     }
 
+    // The panel's map as JSON, for scripts (the chat AI): its pages, in
+    // order ({ id, name }, the name as the panel shows it, "Category > Tab"),
+    // each setting's page and name there ({ key: { page, name } }, e.g.
+    // "Bar > Position"), and each bar widget's name ({ id: name }), all in the
+    // current language; and the values each setting with a list of choices
+    // takes ({ key: [values] }).
+    function map(): string {
+      const pages = []
+      const pageNames = {}
+      for (const category of SettingsPages.categories) {
+        for (const tab of category.tabs ?? [null]) {
+          const id = tab ? tab.id : category.id
+          pageNames[id] = tab ? category.label + " > " + tab.label : category.label
+          pages.push({ id: id, name: pageNames[id] })
+        }
+      }
+      const settings = {}
+      const add = (key, page, name) => {
+        if (Settings.defaults[key] === undefined || settings[key] !== undefined) return
+        settings[key] = { page: page, name: name ? pageNames[page] + " > " + name : pageNames[page] }
+      }
+      for (const row of SettingsPages.rows) {
+        add(row.key, row.category, row.label)
+        for (const toggle of row.toggles ?? []) add(toggle.key, row.category, toggle.text ? row.label + " > " + toggle.text : row.label)
+        for (const key of row.settings ?? []) add(key, row.category, row.label)
+        if (row.same) add(row.same, row.category, row.label + " > " + (row.sameText ?? ""))
+      }
+      // The settings with no row of their own (the bar's layout, the lists
+      // edited in rows of their own): named after their page.
+      for (const page of pages) {
+        for (const key of SettingsPages.keysOf(page.id)) add(key, page.id, "")
+      }
+      const widgets = {}
+      for (const id of Settings.widgetIds) widgets[id] = I18n.tr("settings.widget." + id)
+      return JSON.stringify({ pages: pages, settings: settings, widgets: widgets, choices: Settings.choices })
+    }
+
+    // Opens the panel on a page: a category without tabs or a tab (the
+    // names saveDefaults takes, e.g. "wallpaper", "launcher", "panels" for
+    // the Panels category's Placement tab, "blur"), or a category with tabs
+    // by its id, on its first tab. An unknown page opens it where it was.
+    function open(page: string): void {
+      const category = SettingsPages.categories.findIndex(category => category.id === page || (category.tabs ?? []).some(tab => tab.id === page))
+      if (category >= 0) {
+        SettingsPanelState.category = category
+        SettingsPanelState.tab = Math.max(0, (SettingsPages.categories[category].tabs ?? []).findIndex(tab => tab.id === page))
+      }
+      if (!SettingsPanelState.visible) SettingsPanelState.toggle()
+    }
+
     // Sets one numeric setting by name (radius, opacity, spacing, barHeight,
     // barMarginTop, barMarginBottom, barMarginLeft, barMarginRight, panelGap,
-    // workspaceCount, launcherResults, launcherHistory,
+    // workspaceCount, launcherResults, launcherHistory, chatAiHistory,
     // barAutoHideDelay, animationDuration, hyprlandAnimationDuration, borderWidth,
     // fontSize, fontWeight,
     // fontLetterSpacing, wallpaperDuration, matugenContrast,
@@ -39,7 +89,10 @@ Scope {
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenQt, matugenStarship, themeExactApps, lockStayAwakeFullscreen) take
+    // matugenQt, matugenStarship, themeExactApps, lockStayAwakeFullscreen,
+    // chatAiListDir, chatAiFindFiles, chatAiSearchText, chatAiReadFile,
+    // chatAiWebSearch, chatAiWebFetch, chatAiShellDocs, chatAiShellIpc,
+    // chatAiShowUsage, chatAiShowHint, chatAiShowAccess) take
     // 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
@@ -71,17 +124,17 @@ Scope {
       Settings.setDivider(widget, on !== 0)
     }
 
-    // Sets the mode of the group that widget starts: "on", "hover" (shown only
+    // Sets the mode of the group that widget is in: "on", "hover" (shown only
     // while its pill is hovered) or "off". A group starts at the first widget
     // of a pill and at each widget with a divider before it.
     function group(widget: string, mode: string): void {
-      Settings.setGroupMode(widget, mode)
+      Settings.setGroupMode(Settings.leaderOf(widget), mode)
     }
 
-    // Moves the group that widget starts `steps` places later (negative:
+    // Moves the group that widget is in `steps` places later (negative:
     // earlier) in its pill.
     function moveGroup(widget: string, steps: int): void {
-      Settings.moveGroup(widget, steps)
+      Settings.moveGroup(Settings.leaderOf(widget), steps)
     }
 
     // The bar's layout as JSON: { "left": [ids], "center": [ids], "right":
@@ -209,11 +262,14 @@ Scope {
     // not in the list is ignored), for the font family (any installed family,
     // e.g. "DejaVu Sans Mono") and for the custom theme's colors
     // (customBackground, customPill, customBorder, customText, customAccent:
-    // a "#rrggbb" color), and for the weather's place (weatherLocation: a
+    // a "#rrggbb" color), for the chat AI's default provider
+    // (chatAiDefaultProvider: a provider's id, e.g. "anthropic", or "" for the
+    // first one that can be asked), and for the weather's place (weatherLocation: a
     // place's name, or "" to find it from the internet address).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value)
         : key === "weatherLocation" ? true
+        : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
     }

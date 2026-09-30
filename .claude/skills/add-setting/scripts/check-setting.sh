@@ -53,14 +53,20 @@ fi
 check "SettingsPages.qml row or toggle" "key: \"$key\"" modules/Settings/SettingsPages.qml
 check "SettingsModule.qml IPC comment" "\b$key\b" modules/Settings/SettingsModule.qml
 
-# The label must be in each of the three dictionaries (en, fr, es).
-labels=$(grep -cE "^\s*\"settings\.$key\":" config/Translations.qml)
-if [ "${labels:-0}" -ge 3 ]; then
-  printf '  OK       Translations label x%s\n' "$labels"
-else
-  printf '  MISSING  Translations label (found %s of 3: en, fr, es)\n' "${labels:-0}"
-  missing=$((missing + 1))
-fi
+# Its label must be in each of the three dictionaries (en, fr, es): the text
+# keys on its row's line in SettingsPages.qml (a check box in a grouped row
+# has its own), else settings.<key>.
+texts=$(grep -E "key: \"$key\"" modules/Settings/SettingsPages.qml | grep -oE 'I18n\.tr\("[^"]+"' | sed 's/I18n\.tr("//; s/"$//' | sort -u)
+[ -n "$texts" ] || texts="settings.$key"
+for text in $texts; do
+  labels=$(grep -cE "^\s*\"${text//./\\.}\":" config/Translations.qml)
+  if [ "${labels:-0}" -ge 3 ]; then
+    printf '  OK       Translations %s x%s\n' "$text" "$labels"
+  else
+    printf '  MISSING  Translations %s (found %s of 3: en, fr, es)\n' "$text" "${labels:-0}"
+    missing=$((missing + 1))
+  fi
+done
 
 check "README 'From a script' section" "\`$key\`" README.md
 

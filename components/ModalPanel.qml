@@ -180,14 +180,16 @@ PanelWindow {
   readonly property real areaHeight: root.attached && root.targetScreen ? root.targetScreen.height : root.height
 
   // The tallest the frame can be with `fitScreen`: the screen's height less
-  // the bar, and a gap (Settings.panelGap) between the frame and the bar and
-  // between it and the screen's edges. Centered on the whole screen, the
-  // frame keeps clear of the bar on both sides.
+  // the bar, a gap (Settings.panelGap) between the frame and the bar, and
+  // between it and the far edge of the screen the same margin as a tall
+  // popup menu keeps (see PopupMenu's room). Centered on the whole screen,
+  // the frame keeps clear of the bar on both sides.
   readonly property real roomHeight: {
     const gap = Math.max(0, Theme.panelGap)
-    if (Theme.barVertical) return root.areaHeight - 2 * gap
-    if (root.attached) return root.areaHeight - root.barZone - Theme.panelOffset() - gap
-    if (root.opposite) return root.areaHeight - root.barZone - 2 * gap
+    const edge = 10
+    if (Theme.barVertical) return root.areaHeight - 2 * edge
+    if (root.attached) return root.areaHeight - root.barZone - Theme.panelOffset() - edge
+    if (root.opposite) return root.areaHeight - root.barZone - gap - edge
     return root.areaHeight - 2 * (root.barZone + gap)
   }
 
@@ -302,6 +304,10 @@ PanelWindow {
       // In the bar's slot while an attached panel is open, in frameWindow
       // otherwise.
       parent: root.hostSlot ?? frameWindow.contentItem
+      // Hidden with the panel, so what it holds (gauges easing, timers
+      // running on `visible`) stops while it's closed instead of keeping
+      // the bar redrawing.
+      visible: root.shown
       // Read by the bar's slot to place it along the bar.
       readonly property string barAlign: root.barAlign
       // An attached frame stays within the bar's span, and leaves room for

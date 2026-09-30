@@ -46,7 +46,13 @@ Singleton {
       { id: "switcher", label: I18n.tr("settings.placement.switcher") },
       { id: "clockPanel", label: I18n.tr("settings.category.clock") }
     ] },
-    { id: "chatAi", icon: "󰭹", label: I18n.tr("settings.category.chatAi") },
+    // Chat AI: the providers, what the AI may reach, then the question history
+    // and the status lines.
+    { id: "chatAiCategory", icon: "󰭹", label: I18n.tr("settings.category.chatAi"), tabs: [
+      { id: "chatAi", label: I18n.tr("settings.chatAiProviders") },
+      { id: "chatAiAccess", label: I18n.tr("settings.tab.chatAiAccess") },
+      { id: "chatAiHistory", label: I18n.tr("settings.tab.chatAiHistory") }
+    ] },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -189,18 +195,32 @@ Singleton {
     { key: "notificationCenterPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationCenter") },
     { key: "chatAiPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.chatAi") },
     // The tools the AI may use, on or off.
-    { key: "chatAiFileTools", category: "chatAi", kind: "toggles", title: I18n.tr("settings.chatAi.access"), label: I18n.tr("settings.chatAiFileTools"), toggles: [
+    { key: "chatAiFileTools", category: "chatAiAccess", kind: "toggles", label: I18n.tr("settings.chatAiFileTools"), toggles: [
       { key: "chatAiListDir", text: I18n.tr("settings.chatAiTool.listDir") },
       { key: "chatAiFindFiles", text: I18n.tr("settings.chatAiTool.findFiles") },
       { key: "chatAiSearchText", text: I18n.tr("settings.chatAiTool.searchText") },
       { key: "chatAiReadFile", text: I18n.tr("settings.chatAiTool.readFile") }
     ] },
-    { key: "chatAiWebTools", category: "chatAi", kind: "toggles", label: I18n.tr("settings.chatAiWebTools"), toggles: [
+    { key: "chatAiWebTools", category: "chatAiAccess", kind: "toggles", label: I18n.tr("settings.chatAiWebTools"), toggles: [
       { key: "chatAiWebSearch", text: I18n.tr("settings.chatAiTool.webSearch") },
       { key: "chatAiWebFetch", text: I18n.tr("settings.chatAiTool.webFetch") }
     ] },
-    { key: "chatAiFolders", category: "chatAi", kind: "path", label: I18n.tr("settings.chatAiFolders"), placeholder: I18n.tr("settings.chatAiFolders.none") },
-    { key: "chatAiExclude", category: "chatAi", kind: "path", label: I18n.tr("settings.chatAiExclude"), placeholder: I18n.tr("settings.chatAiExclude.none") },
+    { key: "chatAiShellTools", category: "chatAiAccess", kind: "toggles", label: I18n.tr("settings.chatAiShellTools"), toggles: [
+      { key: "chatAiShellDocs", text: I18n.tr("settings.chatAiTool.shellDocs") },
+      { key: "chatAiShellIpc", text: I18n.tr("settings.chatAiTool.shellIpc") }
+    ] },
+    { key: "chatAiFolders", category: "chatAiAccess", kind: "path", label: I18n.tr("settings.chatAiFolders"), placeholder: I18n.tr("settings.chatAiExclude.none") },
+    { key: "chatAiExclude", category: "chatAiAccess", kind: "path", label: I18n.tr("settings.chatAiExclude"), placeholder: I18n.tr("settings.chatAiExclude.none") },
+    { key: "chatAiHistory", category: "chatAiHistory", kind: "slider", stepper: true, label: I18n.tr("settings.chatAiHistory"), step: 1, format: v => String(v) },
+    { key: "chatAiShowUsageRow", category: "chatAiHistory", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.chatAiShowUsage"), toggles: [
+      { key: "chatAiShowUsage", text: "" }
+    ] },
+    { key: "chatAiShowHintRow", category: "chatAiHistory", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.chatAiShowHint"), toggles: [
+      { key: "chatAiShowHint", text: "" }
+    ] },
+    { key: "chatAiShowAccessRow", category: "chatAiHistory", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.chatAiShowAccess"), toggles: [
+      { key: "chatAiShowAccess", text: "" }
+    ] },
     { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
     { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
     { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
@@ -271,7 +291,7 @@ Singleton {
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
     // Nor do the chat AI's providers.
-    if (categoryId === "chatAi") keys.push("chatAiProviders")
+    if (categoryId === "chatAi") keys.push("chatAiProviders", "chatAiDefaultProvider")
     // Nor do the clocks tab's places.
     if (categoryId === "clockPanel") keys.push("worldClocks")
     // Nor do the theme's added apps.

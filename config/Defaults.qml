@@ -151,7 +151,9 @@ Singleton {
     ],
     chatAiProviders: [
       { builtin: "anthropic", model: "" },
-      { builtin: "openai", model: "" }
+      { builtin: "openai", model: "" },
+      { builtin: "xai", model: "" },
+      { builtin: "google", model: "" }
     ],
     chatAiListDir: true,
     chatAiFindFiles: true,
@@ -159,8 +161,15 @@ Singleton {
     chatAiReadFile: true,
     chatAiWebSearch: true,
     chatAiWebFetch: true,
+    chatAiShellDocs: true,
+    chatAiShellIpc: false,
     chatAiFolders: "",
     chatAiExclude: "",
+    chatAiHistory: 50,
+    chatAiDefaultProvider: "",
+    chatAiShowUsage: true,
+    chatAiShowHint: true,
+    chatAiShowAccess: true,
     barCollapsed: ["wallpaper"],
     barGroupsOff: [],
     barLeft: ["launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
