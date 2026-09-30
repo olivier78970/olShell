@@ -65,11 +65,12 @@ case ${1:-status} in
     backup
     git -C "$repo" archive master | tar -x -C "$deployed"
     echo "deployed master ($(git -C "$repo" log -1 --format='%h %s' master | cut -c1-80))"
-    # Files left over from older versions (git archive only adds and
-    # replaces), leaving out the git-ignored files the shell writes itself
-    # (the config/*.json state, matugen/active.toml), which are meant to stay.
+    # Files a deploy no longer copies (git archive only adds and replaces):
+    # removed from master, or export-ignored in .gitattributes. The
+    # git-ignored files the shell writes itself (the config/*.json state,
+    # matugen/active.toml) are meant to stay, so they are left out.
     stale=$(cd "$deployed" && find . -type f ! -path './config/*.json' | sed 's|^\./||' | sort \
-      | comm -23 - <(git -C "$repo" ls-tree -r --name-only master | sort))
+      | comm -23 - <(git -C "$repo" archive master | tar -t | grep -v '/$' | sort))
     ignored=$(printf '%s\n' "$stale" | git -C "$repo" check-ignore --stdin --no-index)
     [ -n "$ignored" ] && stale=$(printf '%s\n' "$stale" | grep -vxF -f <(printf '%s\n' "$ignored"))
     [ -n "$stale" ] && { echo "in the deployed copy but not in master (not deleted):"; echo "$stale" | sed 's/^/  /'; }

@@ -36,7 +36,7 @@ $S backup                  # copy both shells' config/*.json to ~/.cache/olshell
 Deploy only when the user asks.
 
 1. `deploy` copies **master**, so the change must be committed and merged first. Feature work happens on a branch, merged into master with a `Merge <branch>: <what it does>` commit. Ask before merging if the user hasn't said to.
-2. `$S deploy`. It leaves the deployed copy's settings files alone, and lists files that are in the deployed copy but no longer in master; ask before deleting them.
+2. `$S deploy`. It leaves the deployed copy's settings files alone, and lists files in the deployed copy that a deploy no longer copies (removed from master, or kept out by `.gitattributes`: `.claude/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`); ask before deleting them.
 3. `$S deployed`, which stops the checkout shell and starts the deployed one.
 4. The shell points Hyprland's `QS_CONFIG_PATH` at its own folder about a second after it starts. To confirm the shortcuts reach the deployed copy:
    ```sh
