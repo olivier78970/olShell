@@ -13,3 +13,6 @@ config/NotificationActions.json
 # The copy of matugen/quickshell.toml with only the apps turned on, written
 # by scripts/matugen-run.py before each run.
 matugen/active.toml
+
+# Python bytecode from running the scripts.
+__pycache__/
