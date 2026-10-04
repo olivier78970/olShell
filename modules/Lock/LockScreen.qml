@@ -15,9 +15,12 @@ Scope {
   id: root
 
   // Locks after Settings.lockTimeout minutes without input (0: never). Playing
-  // video and the like, which inhibit idling, hold it off.
+  // video and the like, which inhibit idling, hold it off. It is also switched
+  // off while the fullscreen rule below applies, so that it counts a full new
+  // timeout once the rule ends, rather than firing at once because the compositor
+  // let a timeout that ran out during the game through.
   IdleMonitor {
-    enabled: Settings.lockTimeout > 0 && !Lock.locked
+    enabled: Settings.lockTimeout > 0 && !Lock.locked && !root.stayAwake
     timeout: Settings.lockTimeout * 60
     respectInhibitors: true
     onIsIdleChanged: if (isIdle) Lock.lock()
@@ -27,9 +30,23 @@ Scope {
   // the shell inhibits idling itself: games, played with a gamepad, give no
   // input the compositor counts and seldom inhibit idling on their own. This
   // holds off the timer above and an idle daemon's screen blanking alike.
-  readonly property bool stayAwake: Settings.lockStayAwakeFullscreen
+  readonly property bool fullscreenFocused: Settings.lockStayAwakeFullscreen
     && !Lock.locked
     && (ToplevelManager.activeToplevel?.fullscreen ?? false)
+
+  // Focus can drop for a moment while a game runs (a notification, a popup), and
+  // the idle timer has usually run past its timeout by then, so it would lock
+  // the instant the inhibitor lifted. The inhibitor lingers a little after the
+  // fullscreen window loses focus.
+  onFullscreenFocusedChanged: if (!fullscreenFocused) lingerTimer.restart()
+  Timer {
+    id: lingerTimer
+    interval: 15000
+  }
+
+  readonly property bool stayAwake: Settings.lockStayAwakeFullscreen
+    && !Lock.locked
+    && (fullscreenFocused || lingerTimer.running)
 
   // The inhibitor needs a surface the compositor sees as shown: a transparent
   // pixel over everything, letting the input through, only while it is needed.
