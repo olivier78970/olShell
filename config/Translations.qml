@@ -716,7 +716,10 @@ Singleton {
     "theme.color.pill": "Pill",
     "theme.color.border": "Border",
     "theme.color.text": "Text",
-    "theme.color.accent": "Accent"
+    "theme.color.accent": "Accent",
+    "theme.color.outline": "Outline",
+    "theme.color.separator": "Separator",
+    "theme.color.warning": "Warning"
   })
 
   readonly property var fr: ({
@@ -1426,7 +1429,10 @@ Singleton {
     "theme.color.pill": "Pilule",
     "theme.color.border": "Bordure",
     "theme.color.text": "Texte",
-    "theme.color.accent": "Accent"
+    "theme.color.accent": "Accent",
+    "theme.color.outline": "Contour",
+    "theme.color.separator": "Séparateur",
+    "theme.color.warning": "Alerte"
   })
 
   readonly property var es: ({
@@ -2136,6 +2142,9 @@ Singleton {
     "theme.color.pill": "Píldora",
     "theme.color.border": "Borde",
     "theme.color.text": "Texto",
-    "theme.color.accent": "Acento"
+    "theme.color.accent": "Acento",
+    "theme.color.outline": "Contorno",
+    "theme.color.separator": "Separador",
+    "theme.color.warning": "Aviso"
   })
 }

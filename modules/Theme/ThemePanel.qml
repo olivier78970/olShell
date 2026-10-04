@@ -106,7 +106,8 @@ CarouselPanel {
           }
         }
 
-        // Each color role with its value, shown only for the centered card.
+        // Each color role with its value, then the colors derived from them
+        // (the same ways Theme derives them), shown only for the centered card.
         Column {
           visible: card.current
           anchors.horizontalCenter: parent.horizontalCenter
@@ -114,18 +115,21 @@ CarouselPanel {
 
           Repeater {
             model: [
-              { label: I18n.tr("theme.color.background"), key: "backgroundColor" },
-              { label: I18n.tr("theme.color.pill"), key: "pillColor" },
-              { label: I18n.tr("theme.color.border"), key: "borderColor" },
-              { label: I18n.tr("theme.color.text"), key: "textColor" },
-              { label: I18n.tr("theme.color.accent"), key: "accentColor" }
+              { label: I18n.tr("theme.color.background"), color: c => c.backgroundColor },
+              { label: I18n.tr("theme.color.pill"), color: c => c.pillColor },
+              { label: I18n.tr("theme.color.border"), color: c => c.borderColor },
+              { label: I18n.tr("theme.color.text"), color: c => c.textColor },
+              { label: I18n.tr("theme.color.accent"), color: c => c.accentColor },
+              { label: I18n.tr("theme.color.outline"), color: c => Theme.outlineOf(c.pillColor, c.textColor) },
+              { label: I18n.tr("theme.color.separator"), color: c => Qt.darker(c.textColor, 1.3) },
+              { label: I18n.tr("theme.color.warning"), color: c => Theme.warningColor }
             ]
 
             Row {
               id: colorRow
 
               required property var modelData
-              readonly property string value: String(card.colors[colorRow.modelData.key])
+              readonly property string value: String(colorRow.modelData.color(card.colors))
 
               spacing: 6
 
@@ -140,7 +144,7 @@ CarouselPanel {
               }
 
               ThemedText {
-                width: 48
+                width: 56
                 text: colorRow.modelData.label
                 color: card.colors.textColor
                 opacity: 0.7
