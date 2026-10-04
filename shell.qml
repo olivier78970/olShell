@@ -52,7 +52,6 @@ ShellRoot {
 
   Bar {}
   ClockPanel {}
-  PowerConfirmDialog {}
   VolumeOsd {}
   ZoomOsd {}
   ZoomShield {}

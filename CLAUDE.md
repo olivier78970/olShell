@@ -15,7 +15,7 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 
 There is no build step, linter or test suite. The checks are scripts, run from the repo root:
 - `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists.
-- The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel's `toggle()` closes all the others) and `check-widget.sh`.
+- The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`) and `check-widget.sh`.
 
 ## Running
 
@@ -30,7 +30,7 @@ The per-file tree is in README.md's Structure section.
 - **Imports:** Quickshell turns every directory into a module, so files are imported as `qs.<path>` (`import qs.config`, `qs.services`, `qs.components`, `qs.modules.Bar.Widgets`), never by relative path.
 - **`shell.qml`** instantiates every module. Singletons are created lazily, so a service that has to exist from startup (to own an IPC target or a D-Bus name, or to apply a saved state) gets a dummy `readonly property var x: Service.prop` reference in `shell.qml`.
 - **`config/`** holds singletons for state and configuration:
-  - Each full-screen panel has a `*State.qml` singleton with `visible` and `toggle()`. Panels grab the keyboard, so every `toggle()` first closes all the other panels.
+  - Each full-screen panel has a `*State.qml` singleton with `visible` and `toggle()`. Panels grab the keyboard, so every one opens through `Panels.open()` (`config/Panels.qml`), which closes the other panels and waits for their closing animation first.
   - Settings flow `Defaults.qml` (factory values) → `Settings.qml` (reads the git-ignored `Settings.json`, clamps to `limits` / `choices`, and layers the user defaults from `UserDefaults.json`) → `Theme.qml` (what widgets bind to for the look). The settings panel's categories and rows are in `modules/Settings/SettingsPages.qml`.
   - Colors: `GeneratedColors.qml` gives the active palette, either a fixed preset from `ThemePresets.qml` or matugen's `GeneratedColors.json`. `Theme` derives the rest from it.
 - **`services/`** holds singletons wrapping system state and processes (audio, notifications server, lock/PAM, screenshots, matugen, system stats, zoom, blur, the synced Hyprland window look, the chat AI). Most also expose an `IpcHandler`; so do the panels in `modules/`.

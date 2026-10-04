@@ -18,17 +18,12 @@ Singleton {
   property int tab: 0
 
   function toggle() {
-    // All these panels grab the keyboard, so only one may be open at a time.
-    WallpaperPanelState.visible = false
-    ThemePanelState.visible = false
-    LauncherState.visible = false
-    NotificationCenterState.visible = false
-    PowerPanelState.visible = false
-    ClockPanelState.visible = false
-    ShortcutsPanelState.visible = false
-    AppSwitcherState.visible = false
-    NotificationActionsState.visible = false
-    ChatAiState.visible = false
-    root.visible = !root.visible
+    // Asked again while it is still waiting to open: cancel that.
+    if (Panels.cancel(root)) return
+    if (root.visible) {
+      root.visible = false
+      return
+    }
+    Panels.open(root, () => root.visible = true)
   }
 }

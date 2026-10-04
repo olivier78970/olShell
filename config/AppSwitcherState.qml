@@ -28,25 +28,13 @@ Singleton {
   // Asked of the panel by `confirm`: switch to the selected window.
   signal confirmRequested()
 
-  // Closes every other panel, since they all grab the keyboard.
-  function closeOthers() {
-    WallpaperPanelState.visible = false
-    ThemePanelState.visible = false
-    LauncherState.visible = false
-    SettingsPanelState.visible = false
-    NotificationCenterState.visible = false
-    PowerPanelState.visible = false
-    ClockPanelState.visible = false
-    ShortcutsPanelState.visible = false
-    NotificationActionsState.visible = false
-    ChatAiState.visible = false
-  }
-
   // Opens it on the previously focused window. While it's open, moves on
   // to the next window instead, as the shortcut pressed again with its
   // modifier still held does; it only closes when the shortcut has no
   // modifier to release.
   function toggle() {
+    // Asked again while it is still waiting to open: cancel that.
+    if (Panels.cancel(root)) return
     if (root.visible && root.cycling) {
       root.current += 1
       return
@@ -55,10 +43,11 @@ Singleton {
       root.visible = false
       return
     }
-    root.closeOthers()
-    root.cycling = root.shortcut.length === 0 || root.modifiers.length > 0
-    root.current = 1
-    root.visible = true
+    Panels.open(root, () => {
+      root.cycling = root.shortcut.length === 0 || root.modifiers.length > 0
+      root.current = 1
+      root.visible = true
+    })
   }
 
   // Moves the selection `delta` windows on (negative: back); opens it first,
@@ -69,10 +58,11 @@ Singleton {
       root.current += delta
       return
     }
-    root.closeOthers()
-    root.cycling = true
-    root.current = delta > 0 ? 1 : -1
-    root.visible = true
+    Panels.open(root, () => {
+      root.cycling = true
+      root.current = delta > 0 ? 1 : -1
+      root.visible = true
+    })
   }
 
   // Switches to the selected window, if it's open.

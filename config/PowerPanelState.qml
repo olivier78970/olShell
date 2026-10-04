@@ -15,24 +15,17 @@ Singleton {
   property Item anchorItem: null
 
   function toggle(item) {
+    // Asked again while it is still waiting to open: cancel that.
+    if (Panels.cancel(root)) return
     const anchor = item ?? null
     // Clicked from another screen's bar while open: move there instead.
     if (root.visible && anchor !== null && root.anchorItem !== null && root.anchorItem !== anchor) {
       root.anchorItem = anchor
       return
     }
-    // All these panels grab the keyboard, so only one may be open at a time.
-    WallpaperPanelState.visible = false
-    ThemePanelState.visible = false
-    LauncherState.visible = false
-    SettingsPanelState.visible = false
-    NotificationCenterState.visible = false
-    ClockPanelState.visible = false
-    ShortcutsPanelState.visible = false
-    AppSwitcherState.visible = false
-    NotificationActionsState.visible = false
-    ChatAiState.visible = false
-    root.anchorItem = anchor
-    root.visible = !root.visible
+    Panels.open(root, () => {
+      root.anchorItem = anchor
+      root.visible = !root.visible
+    })
   }
 }

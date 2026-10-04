@@ -15,44 +15,34 @@ Singleton {
   // Opened from the settings panel: closing it goes back there.
   property bool fromSettings: false
 
-  function closeOthers() {
-    // Panels grab the keyboard, so only one may be open at a time.
-    WallpaperPanelState.visible = false
-    ThemePanelState.visible = false
-    LauncherState.visible = false
-    SettingsPanelState.visible = false
-    NotificationCenterState.visible = false
-    PowerPanelState.visible = false
-    ClockPanelState.visible = false
-    ShortcutsPanelState.visible = false
-    AppSwitcherState.visible = false
-    ChatAiState.visible = false
-  }
-
   // Opens the panel on the list of rules.
   function open(fromSettings) {
-    root.closeOthers()
-    root.draft = null
-    root.fromSettings = fromSettings === true
-    root.visible = true
+    Panels.open(root, () => {
+      root.draft = null
+      root.fromSettings = fromSettings === true
+      root.visible = true
+    })
   }
 
   // Opens the panel on a new rule, filled in from `notification`.
   function openFor(notification) {
-    root.closeOthers()
-    root.draft = {
-      app: notification.appName ?? "",
-      appMode: "is",
-      summary: notification.summary ?? "",
-      summaryMode: "is",
-      body: notification.body ?? "",
-      bodyMode: "starts"
-    }
-    root.fromSettings = false
-    root.visible = true
+    Panels.open(root, () => {
+      root.draft = {
+        app: notification.appName ?? "",
+        appMode: "is",
+        summary: notification.summary ?? "",
+        summaryMode: "is",
+        body: notification.body ?? "",
+        bodyMode: "starts"
+      }
+      root.fromSettings = false
+      root.visible = true
+    })
   }
 
   function toggle() {
+    // Asked again while it is still waiting to open: cancel that.
+    if (Panels.cancel(root)) return
     if (root.visible) root.close()
     else root.open(false)
   }

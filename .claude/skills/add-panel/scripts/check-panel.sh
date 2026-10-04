@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Checks the wiring of a full-screen panel, and that every panel's toggle()
-# closes all the others.
+# Checks the wiring of a full-screen panel, and that every panel State is in
+# Panels.all and opens through Panels.open().
 # Usage (from the repo root): check-panel.sh <State> <id> <ipc target>
 #   e.g. check-panel.sh ChatAiState chatAi chatai
 set -u
@@ -24,18 +24,20 @@ check() {
 echo "Panel $state ($id, IPC target '$target'):"
 check "config/$state.qml with toggle()" "function toggle" "config/$state.qml"
 
-# The panel States are the ones with a toggle(); each must close every other.
+# The panel States are the ones with a toggle(); each must be in Panels.all
+# and open through Panels.open(), which closes the others.
 panels=$(grep -l 'function toggle' config/*State.qml | xargs -n1 basename | sed 's/\.qml$//')
 for panel in $panels; do
-  for other in $panels; do
-    [ "$panel" = "$other" ] && continue
-    if ! grep -qE "^\s*$other\.visible = false" "config/$panel.qml"; then
-      printf '  MISSING  %s.toggle() does not close %s\n' "$panel" "$other"
-      missing=$((missing + 1))
-    fi
-  done
+  if ! grep -qE "\b$panel\b" config/Panels.qml; then
+    printf '  MISSING  %s is not in Panels.all (config/Panels.qml)\n' "$panel"
+    missing=$((missing + 1))
+  fi
+  if ! grep -qE "Panels\.open\(" "config/$panel.qml"; then
+    printf '  MISSING  %s does not open through Panels.open()\n' "$panel"
+    missing=$((missing + 1))
+  fi
 done
-[ "$missing" -eq 0 ] && printf '  OK       every panel toggle() closes the %s others\n' "$(($(echo "$panels" | wc -l) - 1))"
+[ "$missing" -eq 0 ] && printf '  OK       the %s panel States are in Panels.all and open through Panels.open()\n' "$(echo "$panels" | wc -l)"
 
 module=$(grep -lE "IpcHandler" modules/*/*Module.qml 2>/dev/null | xargs grep -lE "\b$state\b" 2>/dev/null | head -1)
 if [ -n "$module" ]; then

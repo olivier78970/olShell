@@ -16,22 +16,15 @@ Singleton {
   property Item anchorItem: null
 
   function toggle(item) {
+    // Asked again while it is still waiting to open: cancel that.
+    if (Panels.cancel(root)) return
     if (root.visible && root.anchorItem === item) {
       root.visible = false
       return
     }
-    // Only one of these panels is shown at a time.
-    WallpaperPanelState.visible = false
-    ThemePanelState.visible = false
-    LauncherState.visible = false
-    SettingsPanelState.visible = false
-    NotificationCenterState.visible = false
-    PowerPanelState.visible = false
-    ShortcutsPanelState.visible = false
-    AppSwitcherState.visible = false
-    NotificationActionsState.visible = false
-    ChatAiState.visible = false
-    root.anchorItem = item
-    root.visible = true
+    Panels.open(root, () => {
+      root.anchorItem = item
+      root.visible = true
+    })
   }
 }
