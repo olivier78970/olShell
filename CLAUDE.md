@@ -25,22 +25,6 @@ Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not
 
 ## Architecture
 
-```
-.
-├── shell.qml          # Root: instantiates every module
-├── config/            # State and configuration singletons (panel States, Defaults → Settings → Theme, colors, translations)
-├── services/          # Singletons wrapping system state and processes, most with an IpcHandler
-├── components/        # Generic building blocks (ModalPanel, CarouselPanel, settings rows, buttons, popups)
-├── modules/           # One directory per feature
-│   ├── Bar/           # The bar, WidgetZone / WidgetSlot, BarWidgets registry
-│   │   └── Widgets/   # The bar widgets
-│   ├── AppSwitcher/  ChatAi/  Clock/  Launcher/  Lock/  Notifications/  Osd/
-│   └── Polkit/  Power/  Settings/  Shortcuts/  Theme/  Wallpapers/
-├── scripts/           # Python helpers run through Process
-├── matugen/           # matugen config and the templates it fills
-└── .claude/           # Claude Code skills and check scripts (not deployed)
-```
-
 The per-file tree is in README.md's Structure section.
 
 - **Imports:** Quickshell turns every directory into a module, so files are imported as `qs.<path>` (`import qs.config`, `qs.services`, `qs.components`, `qs.modules.Bar.Widgets`), never by relative path.
