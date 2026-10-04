@@ -9,6 +9,7 @@ import qs.config
 Scope {
   IpcHandler {
     target: "launcher"
+    enabled: Settings.widgetEnabled("launcher")
 
     function toggle(): void {
       LauncherState.toggle()
@@ -22,7 +23,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("launcher")
 
     LauncherPanel {}
   }

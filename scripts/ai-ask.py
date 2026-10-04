@@ -523,6 +523,7 @@ def bar_widgets(state, widget_names):
              "barRight": "the Right lane (the right end of the bar, or its bottom on a side bar)"}
     dividers = set(state.get("barDividers") or [])
     hover, off = set(state.get("barCollapsed") or []), set(state.get("barGroupsOff") or [])
+    disabled = set(state.get("barDisabled") or [])
     name = lambda id: widget_names.get(id, id)
     where = {}
     for lane, words in lanes.items():
@@ -540,7 +541,8 @@ def bar_widgets(state, widget_names):
                 where[id] = (f"in {words}, in the group {members}; that group's mode is {mode} "
                              f"(the modes are on, hover and off: settings group {id} <mode> changes it)")
     for id in widget_names:
-        where.setdefault(id, "off: not on the bar (in the Off lane of the layout)")
+        where.setdefault(id, "disabled: off the bar and not loaded at all, with its feature and IPC calls (settings widgetEnabled " + id + " 1 loads it again)"
+                         if id in disabled else "off: not on the bar (in the Off lane of the layout)")
     return where
 
 

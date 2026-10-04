@@ -121,31 +121,38 @@ Singleton {
     Settings.set("notificationDnd", on)
   }
 
-  NotificationServer {
-    id: server
+  // The server owns the D-Bus name only while the notifications widget is
+  // enabled; disabled, it is released for another daemon.
+  LazyLoader {
+    active: Settings.widgetEnabled("notifications")
 
-    bodySupported: true
-    bodyMarkupSupported: true
-    bodyHyperlinksSupported: true
-    actionsSupported: true
-    imageSupported: true
-    persistenceSupported: true
+    NotificationServer {
+      id: server
 
-    onNotification: notification => {
-      notification.tracked = true
-      const rules = NotificationActions.matching(notification)
-      root.add(notification, !rules.some(rule => rule.silent))
-      for (const rule of rules) NotificationActions.run(rule, notification)
-    }
+      bodySupported: true
+      bodyMarkupSupported: true
+      bodyHyperlinksSupported: true
+      actionsSupported: true
+      imageSupported: true
+      persistenceSupported: true
 
-    Component.onCompleted: {
-      // Notifications that outlived a reload of the shell: already seen.
-      for (const notification of server.trackedNotifications.values) root.add(notification, false)
+      onNotification: notification => {
+        notification.tracked = true
+        const rules = NotificationActions.matching(notification)
+        root.add(notification, !rules.some(rule => rule.silent))
+        for (const rule of rules) NotificationActions.run(rule, notification)
+      }
+
+      Component.onCompleted: {
+        // Notifications that outlived a reload of the shell: already seen.
+        for (const notification of server.trackedNotifications.values) root.add(notification, false)
+      }
     }
   }
 
   IpcHandler {
     target: "notifications"
+    enabled: Settings.widgetEnabled("notifications")
 
     function toggle(): void {
       NotificationCenterState.toggle()

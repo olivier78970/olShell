@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import qs.config
 
 // Default output volume/mute state, shared by the bar widget and the OSD.
 // A singleton so there is one Pipewire tracker and one IPC target no
@@ -37,6 +38,7 @@ Singleton {
   //   quickshell -p . ipc call volume mute
   IpcHandler {
     target: "volume"
+    enabled: Settings.widgetEnabled("volume")
 
     function increase(step: real): void {
       root.adjust(step)

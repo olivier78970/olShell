@@ -11,6 +11,7 @@ Scope {
   // do (suspend at once, the rest through the confirmation).
   IpcHandler {
     target: "power"
+    enabled: Settings.widgetEnabled("power")
 
     function toggle(): void {
       PowerPanelState.toggle()
@@ -49,7 +50,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("power")
 
     PowerPanel {}
   }

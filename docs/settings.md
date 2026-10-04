@@ -36,7 +36,7 @@ The settings, with their range:
 | Top bar | Top bar right margin | 0 – 300 px | 5 |
 | Top bar | Bar style | Individual widgets (each pill has its own background) / Full bar (one background behind every widget, the pills' own go transparent) | Individual widgets |
 | Top bar | Top bar opacity | 0 – 100 % (only in the Full bar style) | 60 % |
-| Bar widgets (Layout tab) | The bar's layout, arranged by dragging (see below): a lane per zone of the bar (left, center, right) with its groups in bar order, each group one cell holding its widgets, and a lane of the widgets that are off. Drag a widget into a group to join it, between groups (or into an empty lane) to start a group of its own, or to Off to turn it off; drag a group by its handle (󰇛) to move it with its widgets and mode, or to Off; a line shows where the drop goes. Each group's button switches it between shown (󰈈), shown on hover (󰍽) and hidden (󰈉). The settings button can't be turned off | — | the original layout |
+| Bar widgets (Layout tab) | The bar's layout, arranged by dragging (see below): a lane per zone of the bar (left, center, right) with its groups in bar order, each group one cell holding its widgets, a lane of the widgets that are off and a lane of the ones that are disabled. Drag a widget into a group to join it, between groups (or into an empty lane) to start a group of its own, or to Off to turn it off; drag a group by its handle (󰇛) to move it with its widgets and mode, or to Off; a line shows where the drop goes. Each group's button switches it between shown (󰈈), shown on hover (󰍽) and hidden (󰈉). The settings button can't be turned off | — | the original layout |
 | Bar widgets (Side-bar look tab) | Side-bar look, also on a top or bottom bar: CPU, RAM, Disk and Volume as a ring around their icon filled to their value, Network as a ring around each arrow filled to its speed against the last minute's highest (at least 1 MiB/s) (the figures move to their popup), Window title as its icon only (the title on hover); on a left or right bar they always look this way | on / off button for each | all off |
 | Bar widgets (Clock tab) | Clock: date (each choice shown as today's date written that way, in the current language) | Long (Sunday, September 27, 2026) / Short (Sun, Sep 27) / Numeric (09/27/2026) / No date | Long |
 | Bar widgets (Clock tab) | Clock: show seconds (without them the clock, and the bar, only update once a minute) | check box | on |
@@ -110,12 +110,25 @@ The widgets of a pill are split into **groups** by dividers: a group starts at t
 Drag a widget into a group to join it where you drop it, between groups (or into an empty lane) to start a group of its own there, or to **Off** to turn it off (turned on again from the IPC call, it goes back where it was);
 drag a group by its handle (󰇛) to move it, with its widgets and mode, anywhere in a lane, or to **Off** to turn all its widgets off.
 A line shows where the drop goes.
+
+**Disabled.** A widget dropped on the **Disabled (not loaded)** lane is off the bar like an **Off** one, and its whole feature is unloaded too: the widget, its panel or popup, its service, its OSD and its IPC calls, which no longer exist (`ipc show` doesn't list them).
+Drag it back into a lane, or run `settings widgetEnabled <widget> 1`, to load it again where it was.
+The settings button can't be disabled.
+What each widget takes with it:
+
+- `launcher`, `theme`, `wallpaper`, `shortcuts`, `chatAi`, `power`, `clock`: their panel and its IPC target (`wallpaper` also stops the saved wallpaper being restored at startup, `clock` the `weather` calls, `power` its confirmation).
+- `notifications`: the notification pop-ups, the center and the rules panel, and the notification server itself, which gives up the D-Bus name.
+- `volume`: the volume OSD and the `volume` calls.
+- `zoom`: the zoom OSD, its look-only shield and the `zoom` calls, and the screen goes back to no zoom.
+- `screenshot`, `disk` (`gdu`), `webApps`, `lock` (the lock screen and idle timer, and `lock` calls): their `screenshot`, `gdu`, `webApps` and `lock` calls.
+- `cpu`, `ram`, `network`: the `btop` calls, once all three are disabled.
+- `workspaces`, `activeWindow`, `tray`, `connection`, `bluetooth`: only the widget itself.
 Each group's button switches its mode: shown (󰈈), off and never shown (󰈉, its widgets stay in the group so it can be turned on again), or shown only on hover (󰍽): while the pointer is over its pill its widgets slide open, and shut again half a second after you leave it (the group of a widget whose popup is showing, such as the clock, stays open until the popup closes, so the popup keeps its anchor).
 A divider only shows when its widget does and something shown comes before it in the pill, so there is none at the start of a pill or for a widget with nothing to show (the window title when no window is open);
 a pill with nothing left in it disappears, a pill whose groups are all on hover keeps a small dots icon to hover, and a pill whose groups are all off is not drawn.
 By default there is a divider before every widget except the launcher, the settings button, the clock and the tray, which is how the bar looked before this was adjustable.
 The settings button can go anywhere but off, so this panel stays reachable by clicking.
-The layout is saved as three lists (`barLeft`, `barCenter`, `barRight`), the widgets with a divider before them (`barDividers`) and the widgets starting a group shown only on hover (`barCollapsed`) or off (`barGroupsOff`) in `config/Settings.json`; a widget listed twice or unknown is ignored.
+The layout is saved as three lists (`barLeft`, `barCenter`, `barRight`), the widgets with a divider before them (`barDividers`) and the widgets starting a group shown only on hover (`barCollapsed`) or off (`barGroupsOff`), and the disabled widgets (`barDisabled`), in `config/Settings.json`; a widget listed twice or unknown is ignored.
 
 Bar position picks which edge of the screen the bar is anchored to.
 Either way, the top and bottom margins keep their own meaning: whichever is on the side the bar is anchored to is the gap between the bar and that edge, and the other becomes extra room kept free on the far side of the bar (the bar reserves its height plus this much, so windows start that much further away), on top of your compositor's own gaps;
@@ -161,6 +174,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - The bar's layout:
   - `place <widget> <zone> [position]`: zone `left`, `center`, `right` or `off`; position from 0, or -1 for the end.
   - `widgetShown <widget> <1|0>`: put a widget on the bar, back where it was, or take it off.
+  - `widgetEnabled <widget> <1|0>`: enable a widget (loaded again, back where it was) or disable it (off the bar, and its feature and IPC calls unloaded). `place` on a disabled widget enables it.
   - `move <widget> <steps>`: negative for earlier.
   - `divider <widget> <1|0>`: the divider before a widget.
   - `group <widget> <on|hover|off>`: the mode of the group that widget is in.

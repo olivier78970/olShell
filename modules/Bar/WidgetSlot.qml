@@ -48,6 +48,8 @@ BarStack {
 
   Loader {
     id: loader
+    // A disabled widget is never loaded, wherever the layout puts it.
+    active: Settings.widgetEnabled(root.widget)
     sourceComponent: BarWidgets.components[root.widget]
   }
 }

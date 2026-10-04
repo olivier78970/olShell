@@ -11,6 +11,7 @@ import qs.services
 Scope {
   IpcHandler {
     target: "chatai"
+    enabled: Settings.widgetEnabled("chatAi")
 
     // Opens or closes the panel.
     function toggle(): void {
@@ -80,7 +81,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("chatAi")
 
     ChatAiPanel {}
   }

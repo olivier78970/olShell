@@ -4,13 +4,15 @@ import qs.config
 
 // The bar's layout, to arrange by dragging: a lane for each zone of the bar
 // (left, center, right) holding its groups in bar order, each group one
-// cell with its widgets in it, and a lane of the widgets that are off.
+// cell with its widgets in it, a lane of the widgets that are off, and a lane
+// of the ones that are disabled (off the bar and not loaded at all).
 //
 // A widget dragged into a group joins it where it is dropped; dropped in a
 // lane but outside any group, it starts a group of its own there; dropped on
-// the off lane, it is turned off. A group dragged by its handle (on its
-// left) moves with its widgets and mode to where it is dropped in a lane, or
-// turns them all off on the off lane. A line shows where the drop would go.
+// the off lane, it is turned off, and on the disabled lane, disabled. A group
+// dragged by its handle (on its left) moves with its widgets and mode to where
+// it is dropped in a lane, or turns them all off (or disables them) on the
+// off (or disabled) lane. A line shows where the drop would go.
 // Each group's button switches its mode: shown, shown on hover, hidden. The
 // changes go to Settings.arrange(), which refuses to turn off the settings
 // button.
@@ -19,7 +21,8 @@ Item {
 
   // What the lanes show: Settings.arrangement(), and the widgets off.
   readonly property var zones: Settings.arrangement()
-  readonly property var offWidgets: Settings.widgetIds.filter(id => Settings.zoneOf(id) === "off")
+  readonly property var offWidgets: Settings.widgetIds.filter(id => Settings.zoneOf(id) === "off" && Settings.widgetEnabled(id))
+  readonly property var disabledWidgets: Settings.widgetIds.filter(id => !Settings.widgetEnabled(id))
 
   // The icon of each widget, as the bar draws it.
   readonly property var icons: ({
@@ -103,6 +106,7 @@ Item {
   // outside the lanes.
   function targetAt(point) {
     if (root.contains(offLane, point)) return { zone: "off" }
+    if (root.contains(disabledLane, point)) return { zone: "disabled" }
     for (let lane = 0; lane < lanes.count; lane++) {
       const item = lanes.itemAt(lane)
       if (!item || !root.contains(item, point)) continue
@@ -133,22 +137,29 @@ Item {
     return zones
   }
 
-  // Moves widget `id` (in `from`, a zone or "off") to `target`. It is first
+  // Whether a zone name is one of the lanes off the bar.
+  function away(zone) {
+    return zone === "off" || zone === "disabled"
+  }
+
+  // Moves widget `id` (in `from`, a zone, "off" or "disabled") to `target`. It is first
   // blanked where it was, so the target's places still count as they were.
   function dropWidget(id, from, target) {
-    if (target.zone === "off" && id === "settings") return
+    if (root.away(target.zone) && id === "settings") return
     const zones = root.copyZones()
-    if (from !== "off") {
+    if (!root.away(from)) {
       for (const group of zones[from]) {
         const index = group.ids.indexOf(id)
         if (index >= 0) group.ids[index] = null
       }
     }
-    if (target.zone !== "off") {
+    if (!root.away(target.zone)) {
       if (target.group !== undefined) zones[target.zone][target.group].ids.splice(target.index, 0, id)
       else zones[target.zone].splice(target.newGroup, 0, { ids: [id], mode: "on" })
     }
-    Settings.arrange(root.cleaned(zones))
+    const cleaned = root.cleaned(zones)
+    cleaned.disabled = Settings.disabledWidgets.filter(other => other !== id).concat(target.zone === "disabled" ? [id] : [])
+    Settings.arrange(cleaned)
   }
 
   // Moves group `group` of zone `from`, with its mode, to `target` (before
@@ -156,10 +167,12 @@ Item {
   function dropGroup(from, group, target) {
     const zones = root.copyZones()
     const moved = zones[from][group]
-    if (target.zone === "off" && moved.ids.includes("settings")) return
+    if (root.away(target.zone) && moved.ids.includes("settings")) return
     zones[from][group] = null
-    if (target.zone !== "off") zones[target.zone].splice(target.newGroup, 0, moved)
-    Settings.arrange(root.cleaned(zones))
+    if (!root.away(target.zone)) zones[target.zone].splice(target.newGroup, 0, moved)
+    const cleaned = root.cleaned(zones)
+    cleaned.disabled = Settings.disabledWidgets.filter(other => !moved.ids.includes(other)).concat(target.zone === "disabled" ? moved.ids : [])
+    Settings.arrange(cleaned)
   }
 
   // Switches group `group` of `zone` to its next mode.
@@ -227,6 +240,23 @@ Item {
         }
       }
     }
+
+    // The widgets that are disabled: unloaded, with their feature.
+    Lane {
+      id: disabledLane
+      zone: "disabled"
+      title: I18n.tr("settings.zone.disabled")
+
+      Repeater {
+        model: root.disabledWidgets
+
+        Chip {
+          required property string modelData
+          widget: modelData
+          zone: "disabled"
+        }
+      }
+    }
   }
 
   // Where a drop would go: a line before the place, or after the last.
@@ -249,7 +279,7 @@ Item {
   // there's none to draw (the off lane lights up instead).
   function indicatorPlace() {
     const target = root.target
-    if (target === null || target.zone === "off") return null
+    if (target === null || root.away(target.zone)) return null
     const lane = lanes.itemAt(Settings.zones.indexOf(target.zone))
     if (!lane) return null
     const items = target.group !== undefined ? lane.cells()[target.group].chips() : lane.cells()
@@ -296,7 +326,7 @@ Item {
     readonly property Item flowItem: flow
     default property alias items: flow.data
     // Lit while a drop there would turn something off.
-    readonly property bool lit: lane.zone === "off" && root.target?.zone === "off"
+    readonly property bool lit: root.away(lane.zone) && root.target?.zone === lane.zone
 
     width: parent.width
     height: laneTitle.height + flow.height + 20

@@ -22,7 +22,8 @@ Singleton {
   property string error: ""
 
   function lock() {
-    if (root.locked) return
+    // With the lock widget disabled, the lock screen isn't loaded either.
+    if (root.locked || !Settings.widgetEnabled("lock")) return
     // The other panels grab the keyboard: put them away.
     WallpaperPanelState.visible = false
     ThemePanelState.visible = false
@@ -72,6 +73,7 @@ Singleton {
 
   IpcHandler {
     target: "lock"
+    enabled: Settings.widgetEnabled("lock")
 
     // Locks the screen (there is no unlock call: that takes the password).
     function lock(): void {

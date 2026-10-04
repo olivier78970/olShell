@@ -30,6 +30,7 @@ Singleton {
 
   IpcHandler {
     target: "gdu"
+    enabled: Settings.widgetEnabled("disk")
 
     function toggle(): void {
       root.toggle()

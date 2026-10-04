@@ -4,6 +4,7 @@
 //@ pragma IconTheme Adwaita
 import Quickshell
 import qs.components
+import qs.config
 import qs.modules.AppSwitcher
 import qs.modules.Bar
 import qs.modules.ChatAi
@@ -20,6 +21,9 @@ import qs.modules.Theme
 import qs.modules.Wallpapers
 import qs.services
 
+// A widget that is disabled (see Settings.widgetEnabled) has its feature left
+// out here (or its IPC handler turned off in its module or service), so none
+// of it is loaded.
 ShellRoot {
   // Singletons are created on first use; this one has to exist from the
   // start to answer its IPC calls and track the focused monitor.
@@ -51,22 +55,54 @@ ShellRoot {
   readonly property var webApps: WebApps.shown
 
   Bar {}
-  ClockPanel {}
-  VolumeOsd {}
-  ZoomOsd {}
-  ZoomShield {}
+  LazyLoader {
+    active: Settings.widgetEnabled("clock")
+
+    ClockPanel {}
+  }
+  LazyLoader {
+    active: Settings.widgetEnabled("volume")
+
+    VolumeOsd {}
+  }
+  LazyLoader {
+    active: Settings.widgetEnabled("zoom")
+
+    ZoomOsd {}
+  }
+  LazyLoader {
+    active: Settings.widgetEnabled("zoom")
+
+    ZoomShield {}
+  }
   LockKeysOsd {}
-  WallpaperPanel {}
+  LazyLoader {
+    active: Settings.widgetEnabled("wallpaper")
+
+    WallpaperPanel {}
+  }
   ThemeModule {}
   LauncherModule {}
   SettingsModule {}
   ShortcutsModule {}
   ChatAiModule {}
   AppSwitcherModule {}
-  NotificationPopups {}
-  NotificationCenter {}
+  LazyLoader {
+    active: Settings.widgetEnabled("notifications")
+
+    NotificationPopups {}
+  }
+  LazyLoader {
+    active: Settings.widgetEnabled("notifications")
+
+    NotificationCenter {}
+  }
   NotificationActionsModule {}
   PowerModule {}
   PolkitDialog {}
-  LockScreen {}
+  LazyLoader {
+    active: Settings.widgetEnabled("lock")
+
+    LockScreen {}
+  }
 }
