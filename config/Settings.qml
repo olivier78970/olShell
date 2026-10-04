@@ -50,6 +50,8 @@ Singleton {
     fontWeight: [100, 900],
     fontLetterSpacing: [-2, 6],
     wallpaperDuration: [0.5, 10],
+    wallpaperSideCount: [1, 5],
+    themeSideCount: [1, 5],
     notificationTimeout: [2, 30],
     notificationMax: [1, 8],
     lockTimeout: [0, 60],
@@ -58,6 +60,7 @@ Singleton {
     chatAiHistory: [0, 200],
     switcherIconSize: [24, 96],
     switcherMaxShown: [3, 20],
+    osdMargin: [0, 400],
     volumeOsdMargin: [0, 400],
     lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
@@ -70,6 +73,9 @@ Singleton {
 
   // Where an OSD can be put on the screen: the vertical place, a dash, the
   // horizontal one.
+  // How a picker's carousel can lay out its cards (see
+  // components/CarouselCard.qml).
+  readonly property var carouselStyles: ["coverflow", "gentle", "fan", "deck", "row"]
   readonly property var osdPositions: ["bottom-center", "bottom-left", "bottom-right", "center-center", "center-left", "center-right", "top-center", "top-left", "top-right"]
 
   // Where a full-screen panel opens: centered on the screen, or only
@@ -97,6 +103,7 @@ Singleton {
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
+    osdPosition: root.osdPositions,
     volumeOsdPosition: root.osdPositions,
     lockKeysOsdPosition: root.osdPositions,
     panelPlacement: ["each"].concat(root.panelPlacements),
@@ -114,6 +121,8 @@ Singleton {
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
+    wallpaperCarousel: root.carouselStyles,
+    themeCarousel: root.carouselStyles,
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
     matugenScheme: ["tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral", "monochrome"],
     matugenSource: ["saturation", "dominant", "less-saturation", "darkness", "lightness"],
@@ -289,6 +298,14 @@ Singleton {
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
   readonly property real wallpaperDuration: root.valid("wallpaperDuration", file.adapter.wallpaperDuration)
+  // How the wallpaper panel shows the wallpapers (one of
+  // choices.wallpaperCarousel, see components/CarouselCard.qml), and how
+  // many on each side of the selected one.
+  readonly property string wallpaperCarousel: root.valid("wallpaperCarousel", file.adapter.wallpaperCarousel)
+  readonly property int wallpaperSideCount: root.valid("wallpaperSideCount", file.adapter.wallpaperSideCount)
+  // The same for the theme panel.
+  readonly property string themeCarousel: root.valid("themeCarousel", file.adapter.themeCarousel)
+  readonly property int themeSideCount: root.valid("themeSideCount", file.adapter.themeSideCount)
   // How matugen builds the "Automatique" palette from the wallpaper: the style
   // of the scheme (one of choices.matugenScheme) and which of the wallpaper's
   // colors it starts from (one of choices.matugenSource).
@@ -361,6 +378,12 @@ Singleton {
   readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
   readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
   readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
+  // The same for every OSD at once, and whether each OSD follows it (rather
+  // than its own position and distance above).
+  readonly property string osdPosition: root.valid("osdPosition", file.adapter.osdPosition)
+  readonly property int osdMargin: root.valid("osdMargin", file.adapter.osdMargin)
+  readonly property bool volumeOsdSame: root.valid("volumeOsdSame", file.adapter.volumeOsdSame)
+  readonly property bool lockKeysOsdSame: root.valid("lockKeysOsdSame", file.adapter.lockKeysOsdSame)
   // Where each full-screen panel opens (one of panelPlacements each, see
   // components/ModalPanel.qml's `placement`).
   readonly property string launcherPlacement: root.valid("launcherPlacement", file.adapter.launcherPlacement)
@@ -1149,6 +1172,10 @@ Singleton {
       property bool fontOutline: Defaults.values.fontOutline
       property string wallpaperTransition: Defaults.values.wallpaperTransition
       property real wallpaperDuration: Defaults.values.wallpaperDuration
+      property string wallpaperCarousel: Defaults.values.wallpaperCarousel
+      property int wallpaperSideCount: Defaults.values.wallpaperSideCount
+      property string themeCarousel: Defaults.values.themeCarousel
+      property int themeSideCount: Defaults.values.themeSideCount
       property string matugenScheme: Defaults.values.matugenScheme
       property string matugenSource: Defaults.values.matugenSource
       property real matugenContrast: Defaults.values.matugenContrast
@@ -1181,6 +1208,10 @@ Singleton {
       property int volumeOsdMargin: Defaults.values.volumeOsdMargin
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
+      property string osdPosition: Defaults.values.osdPosition
+      property int osdMargin: Defaults.values.osdMargin
+      property bool volumeOsdSame: Defaults.values.volumeOsdSame
+      property bool lockKeysOsdSame: Defaults.values.lockKeysOsdSame
       property int lockTimeout: Defaults.values.lockTimeout
       property bool lockStayAwakeFullscreen: Defaults.values.lockStayAwakeFullscreen
       property string launcherPlacement: Defaults.values.launcherPlacement

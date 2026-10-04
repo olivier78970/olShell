@@ -73,11 +73,13 @@ Scope {
     // workspaceCount, launcherResults, launcherHistory, chatAiHistory,
     // barAutoHideDelay, animationDuration, hyprlandAnimationDuration, borderWidth,
     // fontSize, fontWeight,
-    // fontLetterSpacing, wallpaperDuration, matugenContrast,
+    // fontLetterSpacing, wallpaperDuration, wallpaperSideCount, themeSideCount,
+    // matugenContrast,
     // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius, blurSize,
     // blurPasses, blurVibrancy, blurContrast, blurBrightness, blurNoise,
     // windowBorderWidth, windowRounding, windowGapsIn, windowGapsOut,
-    // windowActiveOpacity, windowInactiveOpacity); out-of-range values are
+    // windowActiveOpacity, windowInactiveOpacity, osdMargin, volumeOsdMargin,
+    // lockKeysOsdMargin); out-of-range values are
     // clamped.
     // The yes/no settings (barAutoHide, animations, hyprlandAnimations,
     // hyprlandAnimationSame,
@@ -85,7 +87,7 @@ Scope {
     // workspaceCountFromHyprland, clockSeconds, cpuRing, ramRing, diskRing,
     // volumeRing, networkRing, activeWindowIconOnly, blur, blurXray,
     // windowBorderSame, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
-    // windowInactiveOpacitySame,
+    // windowInactiveOpacitySame, volumeOsdSame, lockKeysOsdSame,
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
@@ -277,11 +279,12 @@ Scope {
     }
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
+    // wallpaperCarousel, themeCarousel,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
     // hyprlandWorkspaceStyle, launcherTab, clockDate,
     // switcherOrientation, switcherScope, weatherUnit,
-    // notificationPosition, volumeOsdPosition, lockKeysOsdPosition, and the
+    // notificationPosition, osdPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
     // notificationActionsPlacement, switcherPlacement, clockPlacement,
@@ -322,7 +325,8 @@ Scope {
 
     // Saves the current values of a page (appearance, blur, windows, text, bar,
     // layout,
-    // widgetSettings, wallpaper, theme, notifications, osd, lock, launcher,
+    // widgetSettings, wallpaper, theme, notifications, osd, volumeOsd,
+    // lockKeysOsd, lock, launcher,
     // panels, switcher, clockPanel or general) as your own defaults.
     function saveDefaults(category: string): void {
       if (SettingsPages.pages.includes(category)) SettingsPages.saveDefaults(category)

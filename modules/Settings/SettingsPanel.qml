@@ -23,11 +23,12 @@ ModalPanel {
   readonly property var pages: SettingsPages.pages
 
   // The tabs of the current category ([] for none), the one showing, and the
-  // page they make current.
+  // page they make current (the last tab while `tab` is still another
+  // category's, past this one's tabs, as the category changes).
   readonly property var tabs: root.categories[root.category].tabs ?? []
   property int tab: SettingsPanelState.tab
   onTabChanged: SettingsPanelState.tab = root.tab
-  readonly property string page: root.tabs.length > 0 ? root.tabs[root.tab].id : root.categories[root.category].id
+  readonly property string page: root.tabs.length > 0 ? root.tabs[Math.min(root.tab, root.tabs.length - 1)].id : root.categories[root.category].id
 
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps
@@ -324,16 +325,16 @@ ModalPanel {
     .map(appClass => ({ value: appClass, text: root.appName(appClass) }))
     .sort((a, b) => a.text.localeCompare(b.text)))
 
-  // The theme category's added apps (after the other apps' row), a row each,
+  // The Other apps tab's added apps (after its row of the other apps), a row each,
   // and the row adding one. `appIndex` is its app's place in
   // Settings.matugenApps.
   readonly property var matugenAppRows: Settings.matugenApps.map((app, index) => ({
     key: "matugenApp:" + index,
-    category: "theme",
+    category: "themeApps",
     kind: "matugenApp",
     app: app,
     appIndex: index
-  })).concat([{ key: "addMatugenApp", category: "theme", kind: "action", label: I18n.tr("settings.matugenApps.add") }])
+  })).concat([{ key: "addMatugenApp", category: "themeApps", kind: "action", label: I18n.tr("settings.matugenApps.add") }])
 
   // The fields of an added app's row, by its focusIndex (see ThemeAppRow).
   readonly property var matugenAppFields: ["", "name", "template", "output", "hook"]
@@ -414,6 +415,10 @@ ModalPanel {
   // The OSD positions, named in the current language.
   readonly property var osdPositionOptions: Settings.osdPositions
     .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
+
+  // The pickers' carousel styles, named in the current language.
+  readonly property var carouselOptions: Settings.carouselStyles
+    .map(name => ({ value: name, text: I18n.tr("settings.carousel." + name) }))
 
   // The wallpaper transitions, named in the current language.
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
@@ -539,9 +544,13 @@ ModalPanel {
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
     // Only the app switcher's cards have room for a window's picture.
     if (row.key === "switcherPreviewsRow") return Settings.switcherOrientation === "horizontal"
-    // An OSD in the center of the screen touches no edge.
-    if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
-    if (row.key === "lockKeysOsdMargin") return Settings.lockKeysOsdPosition !== "center-center"
+    // An OSD following the General tab has nothing of its own to set, and
+    // one in the center of the screen touches no edge.
+    if (row.key === "volumeOsdPosition") return !Settings.volumeOsdSame
+    if (row.key === "lockKeysOsdPosition") return !Settings.lockKeysOsdSame
+    if (row.key === "osdMargin") return Settings.osdPosition !== "center-center"
+    if (row.key === "volumeOsdMargin") return !Settings.volumeOsdSame && Settings.volumeOsdPosition !== "center-center"
+    if (row.key === "lockKeysOsdMargin") return !Settings.lockKeysOsdSame && Settings.lockKeysOsdPosition !== "center-center"
     // A fixed theme doesn't take its colors from the wallpaper.
     if (root.matugenAutoRows.includes(row.key)) return ThemeState.active.kind === "auto"
     // Only the "Automatique" theme and the fixed ones with a light version
@@ -586,6 +595,9 @@ ModalPanel {
     if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && !Theme.curvedJoins) return I18n.tr("settings.curvedJoinsRadius.disabledOff")
     if (row.key === "curvedJoinsRadius" && Settings.curvedJoinsRadiusSame) return I18n.tr("settings.curvedJoinsRadius.disabledSame")
     if (row.key === "switcherPreviewsRow" && Settings.switcherOrientation !== "horizontal") return I18n.tr("settings.switcherPreviews.disabled")
+    if (["volumeOsdPosition", "volumeOsdMargin"].includes(row.key) && Settings.volumeOsdSame) return I18n.tr("settings.osdSame.disabled")
+    if (["lockKeysOsdPosition", "lockKeysOsdMargin"].includes(row.key) && Settings.lockKeysOsdSame) return I18n.tr("settings.osdSame.disabled")
+    if (row.key === "osdMargin" && Settings.osdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")
@@ -606,10 +618,11 @@ ModalPanel {
       .map(name => ({ value: name, text: I18n.tr("settings.hyprlandStyle." + name) }))
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
+    if (row.key === "wallpaperCarousel" || row.key === "themeCarousel") return root.carouselOptions
     if (root.matugenOptions[row.key] !== undefined) return root.matugenOptions[row.key]
     if (row.key === "themeAccent") return root.themeAccentOptions
     if (row.key === "notificationPosition") return root.positionOptions
-    if (row.key === "volumeOsdPosition" || row.key === "lockKeysOsdPosition") return root.osdPositionOptions
+    if (["osdPosition", "volumeOsdPosition", "lockKeysOsdPosition"].includes(row.key)) return root.osdPositionOptions
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
@@ -678,11 +691,11 @@ ModalPanel {
   // The rows of the current page; `selected` indexes into these.
   readonly property var rows: root.allRows.filter(row => row.category === root.page)
   property int selected: 0
-  // The width the panel needs for the rows of the current category: the widest
-  // row, and what surrounds them (the category rail, its divider, the margins
-  // and the room for the scroll bar).
+  // The width the panel needs for the current category: its widest row, or
+  // its tabs if they are wider, and what surrounds them (the category rail,
+  // its divider, the margins and the room for the scroll bar).
   readonly property real neededWidth: {
-    let need = 0
+    let need = tabBar.visible ? tabBar.implicitWidth : 0
     for (let i = 0; i < rowsRepeater.count; i++) need = Math.max(need, rowsRepeater.itemAt(i)?.need ?? 0)
     return rail.width + 79 + need
   }

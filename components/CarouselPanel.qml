@@ -3,9 +3,9 @@ import qs.config
 
 // Picker shared by the wallpaper and theme panels: a ModalPanel holding a
 // title, a carousel of `model` entries drawn with `delegate` (a Component
-// whose root is a CarouselCard), and a counter. Left/Right browse, Enter or
-// a click on a card emits `accepted`. Extra children (e.g. a corner button)
-// are placed on the panel.
+// whose root is a CarouselCard), and a counter. Left/Right or the mouse
+// wheel browse, Enter or a click on a card emits `accepted`. Extra children
+// (e.g. a corner button) are placed on the panel.
 ModalPanel {
   id: root
 
@@ -17,6 +17,12 @@ ModalPanel {
 
   // How many entries are visible on each side of the centered one.
   property int sideVisibleCount: 2
+  // How the cards are laid out: "row", side by side, all the same size but
+  // the centered one, or one of the stacked styles ("coverflow", "gentle",
+  // "fan", "deck"; see CarouselCard): the centered card large and in front,
+  // the others overlapping behind it, smaller and darker the further they
+  // are.
+  property string style: "row"
 
   property alias currentIndex: carousel.currentIndex
   readonly property int count: carousel.count
@@ -81,6 +87,9 @@ ModalPanel {
 
       PathView {
         id: carousel
+
+        // Read by the cards.
+        readonly property string style: root.style
         // Panel width minus room for the two arrows and their spacing.
         width: root.panel.width - 220
         // Leaves room above and below for the title and counter rows.
@@ -99,6 +108,15 @@ ModalPanel {
           startX: 0
           startY: carousel.height / 2
           PathLine { x: carousel.width; y: carousel.height / 2 }
+        }
+
+        // The wheel browses too, a notch an entry.
+        WheelHandler {
+          acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+          onWheel: event => {
+            if (event.angleDelta.y < 0 || event.angleDelta.x < 0) carousel.incrementCurrentIndex()
+            else if (event.angleDelta.y > 0 || event.angleDelta.x > 0) carousel.decrementCurrentIndex()
+          }
         }
       }
 

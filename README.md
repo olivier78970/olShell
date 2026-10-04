@@ -89,7 +89,7 @@ For the features that use them:
 │   ├── Pill.qml, BarStack.qml, BarText.qml, BarGauge.qml, Linger.qml, Separator.qml, IconButton.qml, TabBar.qml, PowerMenuOption.qml, PopupTitle.qml   # Bar pill, row-or-column layout, text, side-bar ring gauge, divider, buttons, popup title, keep-alive for closing panels
 │   ├── PopupMenu.qml, HoverPopup.qml   # Popup windows: a menu, and one opened by hovering
 │   ├── ModalPanel.qml        # Base of the full-screen panels: backdrop, frame, keyboard focus
-│   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes)
+│   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes): cards stacked in one of several styles, or side by side
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
 │   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
 │   ├── Fillet.qml, BarFillets.qml   # Concave corners where a surface meets the bar
@@ -217,26 +217,34 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Bar widgets (Settings tab) | Clock: show seconds (without them the clock, and the bar, only update once a minute) | check box | on |
 | Wallpaper | Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
 | Wallpaper | Transition duration | 0.5 – 10 s | 2 s |
-| Theme | All themes: mode (dark or light: the Automatique palette, matugen's `--mode`, and the fixed themes that have a light version; for a light theme the olShell GTK theme is built on adw-gtk3 instead of adw-gtk3-dark, see [GTK](#gtk); disabled for a theme with no light version and for the custom theme) | Dark / Light | Dark |
-| Theme | All themes: widget background (the color of the shell's widgets, popups and panels: for Automatique one of matugen's surface colors, `surface_container_lowest` to `_highest`, needing no matugen run; for the other themes their own, moved toward the background or the text) | Closest to the background / Close to the background / Normal / Raised / Most raised | Normal |
-| Theme | Automatic theme: palette style (how matugen builds the palette from the wallpaper, its `--type`) | Tonal (calm) / Content (close to the wallpaper) / Fidelity (closest to the wallpaper) / Vibrant / Expressive / Fruit salad / Rainbow / Neutral / Monochrome | Tonal |
-| Theme | Automatic theme: starting color (which of the wallpaper's colors the palette is built around: every color of it, not only the accent) | Most saturated / Most common / Least saturated / Darkest / Lightest | Most saturated |
-| Theme | Automatic theme: contrast (matugen's `--contrast`; its values below 0 make the text too dim to read, so they're left out) | Standard – +100 % | Standard |
-| Theme | Automatic theme: background lightness (matugen's `--lightness-dark` or `--lightness-light`, scaled to what stays usable in the mode: from about -0.1 to +0.2 in dark, -0.2 to +0.05 in light; further, the background and the pills turn the same pure black or white) | -100 % (darker) – +100 % (lighter) | Standard |
-| Theme | Automatic theme: accent color (which of the palette's colors the shell uses as its accent, each shown in its color; the shell only, the other apps keep theirs, and it needs no matugen run) | Primary / Secondary / Tertiary | Primary |
-| Theme | Fixed themes: accent color (the theme's own accents, as color dots; kept from one theme to the next by the color it is, e.g. purple is Catppuccin's mauve and Dracula's purple, and a theme without that color uses its own) | The theme's own / blue / purple / pink / red / orange / yellow / green / cyan, those the theme has | The theme's own |
-| Theme | Fixed themes: exact colors in the other apps (a fixed or custom theme's apps get its background, text, widget, border and accent colors, instead of the palette matugen builds around its accent; see [Theming with matugen](#theming-with-matugen-automatique)) | check box | on |
-| Theme | Custom theme: background, widget background, border, text and accent (typed as `#rrggbb`, or picked by clicking the color dot before each: a square of saturation and brightness for a hue picked on a bar, applied as you drag, or **From the screen**, which runs hyprpicker (`screenColorPicker` in [config/Apps.qml](config/Apps.qml)) to click a color anywhere, the settings panel hiding meanwhile and coming back where it was, with the picker closed; a mistyped color keeps the one there was), and **Copy its colors** (start from the theme in use) | any color | Catppuccin Mocha's |
-| Theme | Other apps themed with the shell (with any theme; one turned off keeps the colors it last got, and turning one on colors it now; see [Theming with matugen](#theming-with-matugen-automatique)) | Hyprland / Zen / Alacritty / GTK / Qt / Starship, each on or off | all on |
-| Theme | Other apps: added apps (each an app with a matugen template of your own: on / off, its name, the template file, the file matugen writes from it and a command run after, e.g. to reload the app; **Add** adds one and a bin removes it; an app without a template or an output file, or whose template can't be read, is left out of the runs instead of making them fail; the template uses matugen's syntax, and can use the shell's own data too, see [Theming with matugen](#theming-with-matugen-automatique)) | any | none |
+| Wallpaper | Carousel style (how the wallpaper panel lays out the wallpapers: the selected one large and in front, the others overlapping behind it, smaller and darker the further they are, turned toward it in 3D (Cover flow, or a little: Gentle tilt), facing you (Flat fan) or fanned out and dropping like a hand of cards (Deck of cards); or all side by side, the selected one grown (Side by side)) | Cover flow / Gentle tilt / Flat fan / Deck of cards / Side by side | Gentle tilt |
+| Wallpaper | Wallpapers on each side of the selected one in the wallpaper panel (stacked, fewer spread out more and overlap less) | 1 – 5 | 3 |
+| Theme (General tab) | Mode (dark or light: the Automatique palette, matugen's `--mode`, and the fixed themes that have a light version; for a light theme the olShell GTK theme is built on adw-gtk3 instead of adw-gtk3-dark, see [GTK](#gtk); disabled for a theme with no light version and for the custom theme) | Dark / Light | Dark |
+| Theme (General tab) | Widget background (the color of the shell's widgets, popups and panels: for Automatique one of matugen's surface colors, `surface_container_lowest` to `_highest`, needing no matugen run; for the other themes their own, moved toward the background or the text) | Closest to the background / Close to the background / Normal / Raised / Most raised | Normal |
+| Theme (General tab) | Carousel style of the theme panel (as for the [wallpaper panel](#settings)'s) | Cover flow / Gentle tilt / Flat fan / Deck of cards / Side by side | Gentle tilt |
+| Theme (General tab) | Themes on each side of the selected one in the theme panel | 1 – 5 | 3 |
+| Theme (Automatic theme tab) | Palette style (how matugen builds the palette from the wallpaper, its `--type`) | Tonal (calm) / Content (close to the wallpaper) / Fidelity (closest to the wallpaper) / Vibrant / Expressive / Fruit salad / Rainbow / Neutral / Monochrome | Tonal |
+| Theme (Automatic theme tab) | Starting color (which of the wallpaper's colors the palette is built around: every color of it, not only the accent) | Most saturated / Most common / Least saturated / Darkest / Lightest | Most saturated |
+| Theme (Automatic theme tab) | Contrast (matugen's `--contrast`; its values below 0 make the text too dim to read, so they're left out) | Standard – +100 % | Standard |
+| Theme (Automatic theme tab) | Background lightness (matugen's `--lightness-dark` or `--lightness-light`, scaled to what stays usable in the mode: from about -0.1 to +0.2 in dark, -0.2 to +0.05 in light; further, the background and the pills turn the same pure black or white) | -100 % (darker) – +100 % (lighter) | Standard |
+| Theme (Automatic theme tab) | Accent color (which of the palette's colors the shell uses as its accent, each shown in its color; the shell only, the other apps keep theirs, and it needs no matugen run) | Primary / Secondary / Tertiary | Primary |
+| Theme (Fixed themes tab) | Accent color (the theme's own accents, as color dots; kept from one theme to the next by the color it is, e.g. purple is Catppuccin's mauve and Dracula's purple, and a theme without that color uses its own) | The theme's own / blue / purple / pink / red / orange / yellow / green / cyan, those the theme has | The theme's own |
+| Theme (Fixed themes tab) | Exact colors in the other apps (a fixed or custom theme's apps get its background, text, widget, border and accent colors, instead of the palette matugen builds around its accent; see [Theming with matugen](#theming-with-matugen-automatique)) | check box | on |
+| Theme (Custom theme tab) | Background, widget background, border, text and accent (typed as `#rrggbb`, or picked by clicking the color dot before each: a square of saturation and brightness for a hue picked on a bar, applied as you drag, or **From the screen**, which runs hyprpicker (`screenColorPicker` in [config/Apps.qml](config/Apps.qml)) to click a color anywhere, the settings panel hiding meanwhile and coming back where it was, with the picker closed; a mistyped color keeps the one there was), and **Copy its colors** (start from the theme in use) | any color | Catppuccin Mocha's |
+| Theme (Other apps tab) | Other apps themed with the shell (with any theme; one turned off keeps the colors it last got, and turning one on colors it now; see [Theming with matugen](#theming-with-matugen-automatique)) | Hyprland / Zen / Alacritty / GTK / Qt / Starship, each on or off | all on |
+| Theme (Other apps tab) | Added apps (each an app with a matugen template of your own: on / off, its name, the template file, the file matugen writes from it and a command run after, e.g. to reload the app; **Add** adds one and a bin removes it; an app without a template or an output file, or whose template can't be read, is left out of the runs instead of making them fail; the template uses matugen's syntax, and can use the shell's own data too, see [Theming with matugen](#theming-with-matugen-automatique)) | any | none |
 | Notifications | Pop-up duration | 2 – 30 s | 4 s |
 | Notifications | Pop-ups at once | 1 – 8 | 4 |
 | Notifications | Notification position (a list of small screens with a block where the pop-ups go, and the name) | Top right / Top center / Top left / Right center / Left center / Bottom right / Bottom center / Bottom left | Top right |
 | Notifications | Do not disturb | check box | off |
-| OSD | Volume: position (a list of small screens with a block where the popup goes, and the name; also the volume pill on the lock screen) | Bottom center / Bottom left / Bottom right / Center / Left center / Right center / Top center / Top left / Top right | Bottom center |
-| OSD | Volume: distance from the edge (from the edges it is placed against; at the top or bottom on the bar's side, from the bar; disabled while the position is Center) | 0 – 400 px | 60 px |
-| OSD | Caps Lock / Num Lock: position | as for the volume | Bottom center |
-| OSD | Caps Lock / Num Lock: distance from the edge (as for the volume) | 0 – 400 px | 60 px |
+| OSD (General tab) | Position of every OSD that follows it (a list of small screens with a block where the popup goes, and the name; also the volume pill on the lock screen, when the volume OSD follows it) | Bottom center / Bottom left / Bottom right / Center / Left center / Right center / Top center / Top left / Top right | Bottom center |
+| OSD (General tab) | Distance from the edge (from the edges it is placed against; at the top or bottom on the bar's side, from the bar; disabled while the position is Center) | 0 – 400 px | 60 px |
+| OSD (Volume tab) | Same as every OSD (follow the General tab's position and distance; off: the two below) | check box | on |
+| OSD (Volume tab) | Position, its own (also the volume pill on the lock screen) | as in the General tab | Bottom center |
+| OSD (Volume tab) | Distance from the edge, its own | 0 – 400 px | 60 px |
+| OSD (Caps Lock / Num Lock tab) | Same as every OSD (as for the volume) | check box | off |
+| OSD (Caps Lock / Num Lock tab) | Position, its own | as in the General tab | Bottom right |
+| OSD (Caps Lock / Num Lock tab) | Distance from the edge, its own | 0 – 400 px | 60 px |
 | Lock screen | Lock after (minutes without keyboard or mouse input) | never, 1 – 60 min | 8 min |
 | Lock screen | Stay awake in fullscreen (while the focused window is fullscreen, a game or a film, the screen neither locks nor blanks by itself) | check box | on |
 | Launcher | Default tab (the one the launcher opens on) | All / Applications / Games / Files / Web / Web apps | All |
@@ -312,8 +320,8 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `fontSize`, `fontWeight` (100 to 900, rounded to hundreds), `fontLetterSpacing`
 - `barHeight`, `barMarginTop`, `barMarginBottom`, `barMarginLeft`, `barMarginRight`, `barOpacity`, `barAutoHideDelay`
 - `workspaceCount`, `zoomMax`, `zoomStep`
-- `wallpaperDuration`, `matugenContrast` (0 to 1), `matugenLightness` (-1 to 1)
-- `notificationTimeout`, `notificationMax`, `volumeOsdMargin`, `lockKeysOsdMargin`, `lockTimeout`
+- `wallpaperDuration`, `wallpaperSideCount`, `themeSideCount`, `matugenContrast` (0 to 1), `matugenLightness` (-1 to 1)
+- `notificationTimeout`, `notificationMax`, `osdMargin`, `volumeOsdMargin`, `lockKeysOsdMargin`, `lockTimeout`
 - `launcherResults`, `launcherHistory`, `chatAiHistory`, `switcherIconSize`, `switcherMaxShown`
 
 **Yes/no** (`set`, 1 or 0):
@@ -325,7 +333,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `barAutoHide`, `workspaceCountFromHyprland`, `zoomBlocksInput`, `activeWindowIconOnly`, `clockSeconds`
 - `cpuRing`, `ramRing`, `diskRing`, `volumeRing`, `networkRing`
 - `matugenHyprland`, `matugenZen`, `matugenAlacritty`, `matugenGtk`, `matugenQt`, `matugenStarship`, `themeExactApps`
-- `notificationDnd`, `screenshotEdit`, `lockStayAwakeFullscreen`
+- `notificationDnd`, `volumeOsdSame`, `lockKeysOsdSame`, `screenshotEdit`, `lockStayAwakeFullscreen`
 - `switcherGroupApps`, `switcherShowTitle`, `switcherShowApp`, `switcherShowWorkspace`, `switcherReleaseSwitch`, `switcherPreviews`
 - `clockShowAgenda`, `clockShowPerformance`, `clockShowMedia`, `clockShowWeather`, `clockShowWorld`
 - `chatAiListDir`, `chatAiFindFiles`, `chatAiSearchText`, `chatAiReadFile`, `chatAiWebSearch`, `chatAiWebFetch`, `chatAiShellDocs`, `chatAiShellIpc`, `chatAiShowUsage`, `chatAiShowHint`, `chatAiShowAccess`
@@ -345,10 +353,11 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 | `barPosition` | `top`, `bottom`, `left`, `right` |
 | `hyprlandWindowStyle` | `config`, `popin`, `slide`, `gnomed` |
 | `hyprlandWorkspaceStyle` | `config`, `slide`, `slidevert`, `fade`, `slidefade`, `slidefadevert` |
+| `wallpaperCarousel`, `themeCarousel` | `coverflow`, `gentle`, `fan`, `deck`, `row` |
 | `wallpaperTransition` | `fade`, `none`, `left`, `right`, `top`, `bottom`, `wipe`, `wave`, `grow`, `center`, `outer`, `any`, `random` |
 | `screenshotMode` | `screen`, `region`, `window` |
 | `notificationPosition` | `top-right`, `top-center`, `top-left`, `center-right`, `center-left`, `bottom-right`, `bottom-center`, `bottom-left` |
-| `volumeOsdPosition`, `lockKeysOsdPosition` | `bottom-center`, `bottom-left`, `bottom-right`, `center-center`, `center-left`, `center-right`, `top-center`, `top-left`, `top-right` |
+| `osdPosition`, `volumeOsdPosition`, `lockKeysOsdPosition` | `bottom-center`, `bottom-left`, `bottom-right`, `center-center`, `center-left`, `center-right`, `top-center`, `top-left`, `top-right` |
 | `launcherPlacement`, `settingsPlacement`, `shortcutsPlacement`, `wallpaperPlacement`, `themePlacement`, `powerPlacement`, `notificationActionsPlacement`, `switcherPlacement`, `clockPlacement`, `notificationCenterPlacement`, `chatAiPlacement` | `center`, `center-left`, `center-right`, `bar-left`, `bar-center`, `bar-right`, `opposite-left`, `opposite-center`, `opposite-right` |
 | `panelPlacement` | the same: sets every panel's placement at once; `getChoice` gives theirs when they all match, `each` otherwise |
 | `launcherTab` | `all`, `apps`, `games`, `files`, `web`, `webApps` |
@@ -367,7 +376,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 
 **Widgets** (`place` and the other layout calls): `launcher`, `settings`, `workspaces`, `activeWindow`, `clock`, `wallpaper`, `theme`, `screenshot`, `zoom`, `shortcuts`, `tray`, `cpu`, `ram`, `disk`, `network`, `connection`, `bluetooth`, `volume`, `notifications`, `lock`, `power`, `chatAi`, `webApps`.
 
-**Categories** (`saveDefaults`, `restoreDefaults`): `appearance` (its General tab), `blur` (its Blur tab), `windows` (its Hyprland tab), `appOpacity` (its App opacity tab), `animations` (the Animations category's General tab), `hyprlandAnimations` (its Hyprland tab), `text`, `bar`, `layout` (the Layout tab), `widgetSettings` (the Settings tab), `wallpaper`, `theme`, `notifications`, `osd`, `lock`, `launcher`, `webApps`, `chatAi` (the Chat AI category's Providers tab), `chatAiAccess` (its Access tab), `chatAiHistory` (its Miscellaneous tab), `panels` (its Placement tab), `switcher` (its App switcher tab), `clockPanel` (its Clock tab), `general`.
+**Categories** (`saveDefaults`, `restoreDefaults`): `appearance` (its General tab), `blur` (its Blur tab), `windows` (its Hyprland tab), `appOpacity` (its App opacity tab), `animations` (the Animations category's General tab), `hyprlandAnimations` (its Hyprland tab), `text`, `bar`, `layout` (the Layout tab), `widgetSettings` (the Settings tab), `wallpaper`, `theme` (the Theme category's General tab), `matugen` (its Automatic theme tab), `themeFixed` (its Fixed themes tab), `themeCustom` (its Custom theme tab), `themeApps` (its Other apps tab), `notifications`, `osd` (the OSD category's General tab), `volumeOsd` (its Volume tab), `lockKeysOsd` (its Caps Lock / Num Lock tab), `lock`, `launcher`, `webApps`, `chatAi` (the Chat AI category's Providers tab), `chatAiAccess` (its Access tab), `chatAiHistory` (its Miscellaneous tab), `panels` (its Placement tab), `switcher` (its App switcher tab), `clockPanel` (its Clock tab), `general`.
 
 The wallpaper transition and its duration apply the next time a wallpaper is applied (they are the `awww img` `--transition-type` and `--transition-duration`), including when the shell restores the last one at startup.
 
@@ -437,11 +446,11 @@ The providers are set in the settings' **Chat AI** category, in its **Providers*
 
 ## Themes
 
-The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique**, ten fixed themes (Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, One, Rosé Pine, Everforest and Kanagawa) and **Custom**. Each card shows its theme as it would be used, with the settings' mode, accent and widget background. The **Automatique** button in the top-right corner jumps to its card and applies it. Left/Right browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
+The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique**, ten fixed themes (Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, One, Rosé Pine, Everforest and Kanagawa) and **Custom**. Each card shows its theme as it would be used, with the settings' mode, accent and widget background. The **Automatique** button in the top-right corner jumps to its card and applies it. The cards are laid out as for the [wallpapers](#wallpapers), in the style and with as many on each side as the settings' **Theme** category (its General tab) says. Left/Right or the mouse wheel browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
 
 - **Automatique** uses the palette matugen generates from the current wallpaper (below).
 - A fixed theme ignores the wallpaper, which is only remembered for when you switch back to Automatique. Each has a dark version and, when the theme has an official one, a light version, used when the settings' **Theme** mode is Light: Catppuccin Mocha / Latte, Gruvbox Dark / Light, Tokyo Night / Day, Solarized Dark / Light, One Dark / Light, Rosé Pine / Dawn, Everforest Dark / Light and Kanagawa / Lotus (Dracula and Nord are dark only). Its accent is one of the theme's own accents, picked in the settings by the color it is (blue, purple, pink, red, orange, yellow, green, cyan), so it stays a purple accent, say, from one theme to the next; a theme without that color uses its own default.
-- **Custom** uses the five colors set in the settings' **Theme** category (Custom theme), typed as `#rrggbb` or picked with the color picker their dot opens; **Copy its colors** starts them from the theme in use. It is as light or as dark as its background.
+- **Custom** uses the five colors set in the settings' **Theme** category (its Custom theme tab), typed as `#rrggbb` or picked with the color picker their dot opens; **Copy its colors** starts them from the theme in use. It is as light or as dark as its background.
 
 To add or edit a theme, change the list in [config/ThemePresets.qml](config/ThemePresets.qml): each version defines four of the five colors of [matugen/quickshell-theme.json.template](matugen/quickshell-theme.json.template) and its accents, by color name, with the default one. The palettes are the themes' published colors, as they were written in; check them against the theme's own page before relying on one.
 
@@ -454,8 +463,8 @@ Colors come from `config/GeneratedColors.json`, which matugen writes from the cu
 - applying a wallpaper regenerates everything from it when **Automatique** is selected; a fixed theme ignores the wallpaper, which is only remembered;
 - selecting a theme regenerates everything: from the wallpaper for **Automatique**, or from the theme's accent color for a fixed or custom one, in the theme's mode (light for a light version). With **Exact colors in the other apps** on (the default), the apps' templates then use the theme's own background, text, widget, border and accent colors for those roles, and matugen's palette around the accent only for the others (the terminal's ANSI colors, error, ...), so they match the shell exactly;
 - changing a setting of the settings' **Theme** category the colors are made from regenerates everything, a second after the last change (so dragging a slider runs matugen once, not at every step), unless the colors are back to what they were made with: the mode, the Automatic theme's palette style, starting color, contrast and background lightness, a fixed theme's accent and widget background, the custom theme's colors, and **Exact colors in the other apps**. A fixed theme's apps get matugen's default style around its accent, whatever the Automatic theme's style. The Automatic theme's accent and widget background need no run: `config/GeneratedColors.json` holds every candidate and the shell picks from them;
-- adding an app in the settings' **Theme** category (Other apps), with its template and output file, or changing or turning on an added one, also regenerates everything; the script writes a `[templates.addedN]` section for each in `matugen/active.toml`;
-- turning an app on in the settings' **Theme** category (Other apps) regenerates everything, with any theme, so it gets the current colors now; one turned off is left out of the runs (the shell runs matugen through [scripts/matugen-run.py](scripts/matugen-run.py), which writes `matugen/active.toml` without the other apps' templates) and keeps the colors it last got. Turning Hyprland off also means a run no longer makes Hyprland reload its config;
+- adding an app in the settings' **Theme** category (its Other apps tab), with its template and output file, or changing or turning on an added one, also regenerates everything; the script writes a `[templates.addedN]` section for each in `matugen/active.toml`;
+- turning an app on in the settings' **Theme** category (its Other apps tab) regenerates everything, with any theme, so it gets the current colors now; one turned off is left out of the runs (the shell runs matugen through [scripts/matugen-run.py](scripts/matugen-run.py), which writes `matugen/active.toml` without the other apps' templates) and keeps the colors it last got. Turning Hyprland off also means a run no longer makes Hyprland reload its config;
 - restoring the last wallpaper when the shell starts only regenerates the colors if the theme, the wallpaper or its file, or the Automatic theme's settings changed since the last run (remembered in `config/ThemeState.json`): rewriting `~/.config/hypr/colors.lua` makes Hyprland reload its config, which would otherwise happen on every start of the shell for nothing. `ipc call wallpapers applyLast` always regenerates them.
 
 A fixed theme has no image, only five colors, so matugen builds a full palette around its accent: the apps get colors in the theme's family, not its exact palette (Dracula's purple accent gives a purple-tinted dark background, not Dracula's own `#282a36`). The shell itself always uses a fixed theme's exact colors. Every run also rewrites `config/GeneratedColors.json`, which **Automatique** reads: while a fixed theme is selected it holds that theme's palette, so the "Automatique" card of the theme panel previews those colors, not the wallpaper's, and selecting **Automatique** regenerates it from the wallpaper (the shell shows the previous palette until matugen has finished, about a second). The last wallpaper is remembered in `config/ThemeState.json` for that; until a wallpaper has been applied once, that state is empty and selecting **Automatique** regenerates nothing.
@@ -466,7 +475,7 @@ A template for an app added in the settings is any file in matugen's template sy
 
 ## Zen browser
 
-[matugen/quickshell.toml](matugen/quickshell.toml) also has a template, [matugen/zen-theme.css.template](matugen/zen-theme.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the theme the shell is using, so the browser follows the wallpaper and theme changes along with the bar. Turn Zen off in the settings' **Theme** category (Other apps) if you don't use it. Zen follows its own light or dark mode, whatever the Automatic theme's mode: the template gives it both variants of each color.
+[matugen/quickshell.toml](matugen/quickshell.toml) also has a template, [matugen/zen-theme.css.template](matugen/zen-theme.css.template), which colors [Zen browser](https://zen-browser.app)'s interface — tabs, sidebar, URL bar, panels and the window background — with the theme the shell is using, so the browser follows the wallpaper and theme changes along with the bar. Turn Zen off in the settings' **Theme** category (its Other apps tab) if you don't use it. Zen follows its own light or dark mode, whatever the Automatic theme's mode: the template gives it both variants of each color.
 
 It writes `userChrome.css` into the Zen profile, which is the one place in that file that has to be edited for your machine: `output_path` points at the profile marked `Default=1` in `~/.config/zen/profiles.ini`. Firefox ignores `userChrome.css` unless one pref is on, so the profile also needs a `user.js` containing:
 
@@ -491,7 +500,7 @@ The web apps widget (a globe, first on the left of the bar) opens a menu of web 
 import = ["~/.config/alacritty/theme.toml"]
 ```
 
-Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Turn alacritty off in the settings' **Theme** category (Other apps) if you don't use it. The same goes for Hyprland (writes `~/.config/hypr/colors.lua`) and starship (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template). The btop and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
+Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)). Turn alacritty off in the settings' **Theme** category (its Other apps tab) if you don't use it. The same goes for Hyprland (writes `~/.config/hypr/colors.lua`) and starship (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template). The btop and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
 
 ## GTK
 
@@ -506,7 +515,7 @@ To set it up:
 - Don't keep a `~/.config/gtk-3.0/gtk.css`: an app reads it as it starts, above the theme, so it would pin that moment's colors.
 - `~/.config/gtk-4.0/gtk.css` and `gtk-dark.css` must not be symlinks to a GTK theme (as `nwg-look`'s "export GTK4 symlinks" option or a theme installer leaves them): matugen would write through the link into the theme's own file, fail if it isn't yours, and stop the whole run there. Remove the links (and turn that option off); libadwaita prefers `gtk-dark.css` in dark mode, so a leftover one also hides the generated colors.
 - Set the `org.gnome.desktop.interface color-scheme` to `prefer-dark` so the apps use the dark variant the palette is generated for (`gsettings set org.gnome.desktop.interface color-scheme prefer-dark`), or to `prefer-light` if you set the Automatic theme's mode to Light. The shell doesn't change it.
-- Turn GTK off in the settings' **Theme** category (Other apps) if you don't want GTK apps themed.
+- Turn GTK off in the settings' **Theme** category (its Other apps tab) if you don't want GTK apps themed.
 
 ## Qt
 
@@ -517,7 +526,7 @@ To set it up:
 - Install qt6ct (and qt5ct for Qt5 apps), and have Qt apps use it: `env = QT_QPA_PLATFORMTHEME,qt6ct` in the Hyprland config (`qt5ct` instead for Qt5 apps, which only load their own). Log out and back in.
 - Run a theme or wallpaper change once so matugen writes the olShell color scheme, then in qt6ct (and qt5ct) set the style to **Fusion** (it draws everything from the palette), check **Custom** under Palette, pick **olShell** and apply. Restart already running Qt apps once.
 - KDE apps (Dolphin, Kate...) read KDE's own color schemes for part of their colors, so they are only partly themed.
-- Turn Qt off in the settings' **Theme** category (Other apps) if you don't want Qt apps themed.
+- Turn Qt off in the settings' **Theme** category (its Other apps tab) if you don't want Qt apps themed.
 
 ## Clock popup
 
@@ -547,7 +556,7 @@ The figures come from [services/SystemStats.qml](services/SystemStats.qml), whic
 
 The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry. Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](config/Paths.qml).
 
-Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+The pictures are shown in a carousel: by default the selected one large and in front, three on each side stacked behind it, overlapping, turned slightly toward it, smaller and darker the further they are, sliding into place as you browse. The **Wallpaper** category of the settings changes its style (a cover flow, a gentle tilt, a flat fan, a fanned deck of cards, or side by side) and how many wallpapers show on each side. Left/Right or the mouse wheel browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
 Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell applies the last wallpaper (the one remembered in `config/ThemeState.json`) as soon as it starts, and again 5 seconds later if it is the picture of the day (in case a new one was downloaded meanwhile), so the wallpaper is back at login (the `applyLast` IPC call does the same on demand, see [IPC](#ipc)); the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The transition's type and duration (a 2 s fade by default) are [settings](#settings); the image fill and the transition's smoothness are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
@@ -634,6 +643,6 @@ The shell is the session's polkit authentication agent ([services/Polkit.qml](se
 
 ## Lock keys OSD
 
-Switching Caps Lock or Num Lock on or off briefly shows a popup at the bottom of the screen, where the volume OSD appears by default (the settings panel's **OSD** category places each of them), with the key's icon and its new state (accent-colored when on). The state isn't announced at startup, only on changes.
+Switching Caps Lock or Num Lock on or off briefly shows a popup at the bottom of the screen, where the volume OSD appears by default (the settings panel's **OSD** category places them all at once in its General tab, or each in its own tab with **Same as every OSD** unticked), with the key's icon and its new state (accent-colored when on). The state isn't announced at startup, only on changes.
 
 [services/LockKeys.qml](services/LockKeys.qml) runs [scripts/lock-keys-watch.py](scripts/lock-keys-watch.py), which polls the lock LEDs the kernel exposes in `/sys/class/leds/*::capslock` and `*::numlock` (ten times a second, from one process) and reports each change. A lock counts as on when any keyboard's LED is on, and keyboards plugged in later are picked up. This works on any compositor but needs those LEDs to exist, which is the case for ordinary keyboards.

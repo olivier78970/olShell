@@ -34,9 +34,22 @@ Singleton {
       { id: "widgetSettings", label: I18n.tr("settings.tab.widgetSettings") }
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
-    { id: "theme", icon: "󰸌", label: I18n.tr("settings.category.theme") },
+    // Theme: what goes for every theme, then a tab for each kind of theme
+    // with settings of its own, then the other apps it colors.
+    { id: "themeCategory", icon: "󰸌", label: I18n.tr("settings.category.theme"), tabs: [
+      { id: "theme", label: I18n.tr("settings.tab.appearance") },
+      { id: "matugen", label: I18n.tr("settings.matugen") },
+      { id: "themeFixed", label: I18n.tr("settings.theme.fixed") },
+      { id: "themeCustom", label: I18n.tr("settings.theme.custom") },
+      { id: "themeApps", label: I18n.tr("settings.matugenApps.title") }
+    ] },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
-    { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
+    // OSD: where every popup goes, then a tab for each.
+    { id: "osdCategory", icon: "󰕾", label: I18n.tr("settings.category.osd"), tabs: [
+      { id: "osd", label: I18n.tr("settings.tab.appearance") },
+      { id: "volumeOsd", label: I18n.tr("settings.osd.volume") },
+      { id: "lockKeysOsd", label: I18n.tr("settings.osd.lockKeys") }
+    ] },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "webApps", icon: "󰖟", label: I18n.tr("settings.category.webApps") },
@@ -140,24 +153,28 @@ Singleton {
     { key: "barLayout", category: "layout", kind: "layoutEditor", label: "" },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
-    { key: "themeMode", category: "theme", kind: "buttons", title: I18n.tr("settings.theme.all"), label: I18n.tr("settings.themeMode") },
+    { key: "wallpaperCarousel", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.carouselStyle") },
+    { key: "wallpaperSideCount", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperSideCount"), step: 1, format: v => String(v) },
+    { key: "themeMode", category: "theme", kind: "buttons", label: I18n.tr("settings.themeMode") },
     { key: "themePill", category: "theme", kind: "dropdown", label: I18n.tr("settings.themePill") },
-    { key: "matugenScheme", category: "theme", kind: "dropdown", title: I18n.tr("settings.matugen"), label: I18n.tr("settings.matugenScheme") },
-    { key: "matugenSource", category: "theme", kind: "dropdown", label: I18n.tr("settings.matugenSource") },
-    { key: "matugenContrast", category: "theme", kind: "slider", label: I18n.tr("settings.matugenContrast"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : "+" + Math.round(v * 100) + " %" },
-    { key: "matugenLightness", category: "theme", kind: "slider", label: I18n.tr("settings.matugenLightness"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : (v > 0 ? "+" : "") + Math.round(v * 100) + " %" },
-    { key: "matugenAccent", category: "theme", kind: "buttons", label: I18n.tr("settings.matugenAccent") },
-    { key: "themeAccent", category: "theme", kind: "buttons", title: I18n.tr("settings.theme.fixed"), label: I18n.tr("settings.themeAccent") },
-    { key: "themeExactAppsRow", category: "theme", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.themeExactApps"), toggles: [
+    { key: "themeCarousel", category: "theme", kind: "dropdown", label: I18n.tr("settings.carouselStyle") },
+    { key: "themeSideCount", category: "theme", kind: "slider", label: I18n.tr("settings.themeSideCount"), step: 1, format: v => String(v) },
+    { key: "matugenScheme", category: "matugen", kind: "dropdown", label: I18n.tr("settings.matugenScheme") },
+    { key: "matugenSource", category: "matugen", kind: "dropdown", label: I18n.tr("settings.matugenSource") },
+    { key: "matugenContrast", category: "matugen", kind: "slider", label: I18n.tr("settings.matugenContrast"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : "+" + Math.round(v * 100) + " %" },
+    { key: "matugenLightness", category: "matugen", kind: "slider", label: I18n.tr("settings.matugenLightness"), step: 0.1, format: v => v === 0 ? I18n.tr("settings.matugen.standard") : (v > 0 ? "+" : "") + Math.round(v * 100) + " %" },
+    { key: "matugenAccent", category: "matugen", kind: "buttons", label: I18n.tr("settings.matugenAccent") },
+    { key: "themeAccent", category: "themeFixed", kind: "buttons", label: I18n.tr("settings.themeAccent") },
+    { key: "themeExactAppsRow", category: "themeFixed", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.themeExactApps"), toggles: [
       { key: "themeExactApps", text: "" }
     ] },
-    { key: "customBackground", category: "theme", kind: "path", swatch: true, title: I18n.tr("settings.theme.custom"), label: I18n.tr("settings.custom.background") },
-    { key: "customPill", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.pill") },
-    { key: "customBorder", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.border") },
-    { key: "customText", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.text") },
-    { key: "customAccent", category: "theme", kind: "path", swatch: true, label: I18n.tr("settings.custom.accent") },
-    { key: "customCopy", category: "theme", kind: "action", label: I18n.tr("settings.custom.copy") },
-    { key: "matugenAppsRow", category: "theme", kind: "toggles", title: I18n.tr("settings.matugenApps.title"), label: I18n.tr("settings.matugenApps"), toggles: [
+    { key: "customBackground", category: "themeCustom", kind: "path", swatch: true, label: I18n.tr("settings.custom.background") },
+    { key: "customPill", category: "themeCustom", kind: "path", swatch: true, label: I18n.tr("settings.custom.pill") },
+    { key: "customBorder", category: "themeCustom", kind: "path", swatch: true, label: I18n.tr("settings.custom.border") },
+    { key: "customText", category: "themeCustom", kind: "path", swatch: true, label: I18n.tr("settings.custom.text") },
+    { key: "customAccent", category: "themeCustom", kind: "path", swatch: true, label: I18n.tr("settings.custom.accent") },
+    { key: "customCopy", category: "themeCustom", kind: "action", label: I18n.tr("settings.custom.copy") },
+    { key: "matugenAppsRow", category: "themeApps", kind: "toggles", label: I18n.tr("settings.matugenApps"), toggles: [
       { key: "matugenHyprland", text: "Hyprland" },
       { key: "matugenZen", text: "Zen" },
       { key: "matugenAlacritty", text: "Alacritty" },
@@ -172,10 +189,18 @@ Singleton {
       { key: "notificationDnd", text: "" }
     ] },
     { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
-    { key: "volumeOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.volume"), label: I18n.tr("settings.osdPosition") },
-    { key: "volumeOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
-    { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
-    { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "osdPosition", category: "osd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "osdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "volumeOsdSameRow", category: "volumeOsd", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.osdSame"), toggles: [
+      { key: "volumeOsdSame", text: "" }
+    ] },
+    { key: "volumeOsdPosition", category: "volumeOsd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "volumeOsdMargin", category: "volumeOsd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "lockKeysOsdSameRow", category: "lockKeysOsd", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.osdSame"), toggles: [
+      { key: "lockKeysOsdSame", text: "" }
+    ] },
+    { key: "lockKeysOsdPosition", category: "lockKeysOsd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "lockKeysOsdMargin", category: "lockKeysOsd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "lockStayAwakeFullscreenRow", category: "lock", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.lockStayAwakeFullscreen"), toggles: [
       { key: "lockStayAwakeFullscreen", text: "" }
@@ -298,8 +323,8 @@ Singleton {
     if (categoryId === "chatAi") keys.push("chatAiProviders", "chatAiDefaultProvider")
     // Nor do the clocks tab's places.
     if (categoryId === "clockPanel") keys.push("worldClocks")
-    // Nor do the theme's added apps.
-    if (categoryId === "theme") keys.push("matugenApps")
+    // Nor do the Other apps tab's added apps.
+    if (categoryId === "themeApps") keys.push("matugenApps")
     // Nor do the App opacity tab's app opacities.
     if (categoryId === "appOpacity") keys.push("appOpacities")
     return keys
