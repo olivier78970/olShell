@@ -14,6 +14,7 @@ S=.claude/skills/test-deploy/scripts/shell.sh
 $S status                  # which shell is running
 $S dev                     # run the checkout (refuses while the deployed shell runs)
 $S dev --stop-deployed     # only once the user has agreed to stop the deployed shell
+$S restart                 # stop the checkout shell and run it again (a fresh start, not a live reload)
 $S log [lines]             # the checkout shell's log
 $S deploy                  # copy master into ~/.config/olShell
 $S deployed                # stop the checkout, run the deployed copy again

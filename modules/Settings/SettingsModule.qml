@@ -324,8 +324,8 @@ Scope {
     }
 
     // Saves the current values of a page (appearance, blur, windows, text, bar,
-    // layout,
-    // widgetSettings, wallpaper, theme, notifications, osd, volumeOsd,
+    // layout, widgetWorkspaces, widgetSideLook, widgetClock, widgetZoom,
+    // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher,
     // panels, switcher, clockPanel or general) as your own defaults.
     function saveDefaults(category: string): void {

@@ -29,9 +29,14 @@ Singleton {
     ] },
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
+    // Bar widgets: the layout, then a tab for each widget with settings of
+    // its own.
     { id: "barWidgets", icon: "󰀻", label: I18n.tr("settings.category.barWidgets"), tabs: [
       { id: "layout", label: I18n.tr("settings.tab.layout") },
-      { id: "widgetSettings", label: I18n.tr("settings.tab.widgetSettings") }
+      { id: "widgetWorkspaces", label: I18n.tr("settings.category.workspaces") },
+      { id: "widgetSideLook", label: I18n.tr("settings.sideLook") },
+      { id: "widgetClock", label: I18n.tr("settings.category.clock") },
+      { id: "widgetZoom", label: I18n.tr("settings.category.zoom") }
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     // Theme: what goes for every theme, then a tab for each kind of theme
@@ -93,8 +98,8 @@ Singleton {
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
-    { key: "workspaceCount", category: "widgetSettings", kind: "slider", title: I18n.tr("settings.category.workspaces"), label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
-    { key: "workspaceCountFromHyprlandRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspaceCountFromHyprland"), toggles: [
+    { key: "workspaceCount", category: "widgetWorkspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
+    { key: "workspaceCountFromHyprlandRow", category: "widgetWorkspaces", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspaceCountFromHyprland"), toggles: [
       { key: "workspaceCountFromHyprland", text: "" }
     ] },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
@@ -275,7 +280,7 @@ Singleton {
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
-    { key: "sideLookRow", category: "widgetSettings", kind: "toggles", title: I18n.tr("settings.sideLook"), label: I18n.tr("settings.sideLook.label"), toggles: [
+    { key: "sideLookRow", category: "widgetSideLook", kind: "toggles", label: I18n.tr("settings.sideLook.label"), toggles: [
       { key: "cpuRing", text: I18n.tr("settings.widget.cpu") },
       { key: "ramRing", text: I18n.tr("settings.widget.ram") },
       { key: "diskRing", text: I18n.tr("settings.widget.disk") },
@@ -283,13 +288,13 @@ Singleton {
       { key: "networkRing", text: I18n.tr("settings.widget.network") },
       { key: "activeWindowIconOnly", text: I18n.tr("settings.widget.activeWindow") }
     ] },
-    { key: "clockDate", category: "widgetSettings", kind: "dropdown", title: I18n.tr("settings.category.clock"), label: I18n.tr("settings.clockDate") },
-    { key: "clockSecondsRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
+    { key: "clockDate", category: "widgetClock", kind: "dropdown", label: I18n.tr("settings.clockDate") },
+    { key: "clockSecondsRow", category: "widgetClock", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }
     ] },
-    { key: "zoomMax", category: "widgetSettings", kind: "slider", title: I18n.tr("settings.category.zoom"), label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
-    { key: "zoomStep", category: "widgetSettings", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
-    { key: "zoomBlocksInputRow", category: "widgetSettings", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
+    { key: "zoomMax", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
+    { key: "zoomStep", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
+    { key: "zoomBlocksInputRow", category: "widgetZoom", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
       { key: "zoomBlocksInput", text: "" }
     ] }
   ]
