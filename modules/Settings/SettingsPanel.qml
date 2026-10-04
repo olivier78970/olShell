@@ -23,11 +23,12 @@ ModalPanel {
   readonly property var pages: SettingsPages.pages
 
   // The tabs of the current category ([] for none), the one showing, and the
-  // page they make current.
+  // page they make current (the last tab while `tab` is still another
+  // category's, past this one's tabs, as the category changes).
   readonly property var tabs: root.categories[root.category].tabs ?? []
   property int tab: SettingsPanelState.tab
   onTabChanged: SettingsPanelState.tab = root.tab
-  readonly property string page: root.tabs.length > 0 ? root.tabs[root.tab].id : root.categories[root.category].id
+  readonly property string page: root.tabs.length > 0 ? root.tabs[Math.min(root.tab, root.tabs.length - 1)].id : root.categories[root.category].id
 
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps
@@ -324,16 +325,16 @@ ModalPanel {
     .map(appClass => ({ value: appClass, text: root.appName(appClass) }))
     .sort((a, b) => a.text.localeCompare(b.text)))
 
-  // The theme category's added apps (after the other apps' row), a row each,
+  // The Other apps tab's added apps (after its row of the other apps), a row each,
   // and the row adding one. `appIndex` is its app's place in
   // Settings.matugenApps.
   readonly property var matugenAppRows: Settings.matugenApps.map((app, index) => ({
     key: "matugenApp:" + index,
-    category: "theme",
+    category: "themeApps",
     kind: "matugenApp",
     app: app,
     appIndex: index
-  })).concat([{ key: "addMatugenApp", category: "theme", kind: "action", label: I18n.tr("settings.matugenApps.add") }])
+  })).concat([{ key: "addMatugenApp", category: "themeApps", kind: "action", label: I18n.tr("settings.matugenApps.add") }])
 
   // The fields of an added app's row, by its focusIndex (see ThemeAppRow).
   readonly property var matugenAppFields: ["", "name", "template", "output", "hook"]
@@ -678,11 +679,11 @@ ModalPanel {
   // The rows of the current page; `selected` indexes into these.
   readonly property var rows: root.allRows.filter(row => row.category === root.page)
   property int selected: 0
-  // The width the panel needs for the rows of the current category: the widest
-  // row, and what surrounds them (the category rail, its divider, the margins
-  // and the room for the scroll bar).
+  // The width the panel needs for the current category: its widest row, or
+  // its tabs if they are wider, and what surrounds them (the category rail,
+  // its divider, the margins and the room for the scroll bar).
   readonly property real neededWidth: {
-    let need = 0
+    let need = tabBar.visible ? tabBar.implicitWidth : 0
     for (let i = 0; i < rowsRepeater.count; i++) need = Math.max(need, rowsRepeater.itemAt(i)?.need ?? 0)
     return rail.width + 79 + need
   }
