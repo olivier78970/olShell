@@ -6,6 +6,7 @@
 #   shell.sh backup                 copy both shells' settings files aside
 #   shell.sh dev [--stop-deployed]  back up, then run the checkout (stopping
 #                                   the deployed shell only with the flag)
+#   shell.sh restart                restart the checkout shell
 #   shell.sh log [lines]            the checkout shell's log (default 60)
 #   shell.sh deploy                 copy master into the deployed copy
 #   shell.sh deployed               stop the checkout, run the deployed copy
@@ -23,6 +24,16 @@ running() { qs list --all 2>/dev/null | grep -F "Config path: $1/shell.qml" >/de
 status() {
   running "$deployed" && echo "deployed shell: running ($deployed)" || echo "deployed shell: not running"
   running "$repo" && echo "checkout shell: running ($repo)" || echo "checkout shell: not running"
+}
+
+# Stops the shell of folder $1 (an absolute path: `quickshell kill -p .` does
+# nothing) and waits until it is gone, so it has released its D-Bus names
+# (notifications, polkit) before another shell starts and wants them.
+stop() {
+  running "$1" || return 0
+  qs kill -p "$1" >/dev/null
+  for _ in 1 2 3 4 5 6 7 8 9 10; do running "$1" || return 0; sleep 0.5; done
+  echo "failed to stop $1"; return 1
 }
 
 backup() {
@@ -52,8 +63,13 @@ case ${1:-status} in
         echo "The deployed shell is running. Ask the user before stopping it, then rerun with --stop-deployed."
         exit 2
       fi
-      qs kill -p "$deployed" >/dev/null
+      stop "$deployed" || exit 1
     fi
+    backup
+    start "$repo"
+    ;;
+  restart)
+    stop "$repo" || exit 1
     backup
     start "$repo"
     ;;
@@ -76,7 +92,7 @@ case ${1:-status} in
     [ -n "$stale" ] && { echo "in the deployed copy but not in master (not deleted):"; echo "$stale" | sed 's/^/  /'; }
     ;;
   deployed)
-    running "$repo" && qs kill -p "$repo" >/dev/null && echo "checkout shell stopped"
+    running "$repo" && stop "$repo" && echo "checkout shell stopped"
     running "$deployed" && { echo "deployed shell already running"; exit 0; }
     start "$deployed"
     ;;

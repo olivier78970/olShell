@@ -11,7 +11,10 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`add-setting`**: a new setting.
 - **`add-panel`**: a new full-screen panel.
 - **`add-bar-widget`**: a new bar widget.
+- **`add-settings-tab`**: a new settings tab, or regrouping rows into tabs.
+- **`add-service`**: a new service in `services/`, with or without IPC.
 - **`test-deploy`**: running the checkout, reading its log, deploying.
+- **`ship`**: commit, merge, push and deploy, when asked.
 
 There is no build step, linter or test suite. The checks are scripts, run from the repo root:
 - `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists.
