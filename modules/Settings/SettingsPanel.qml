@@ -30,9 +30,9 @@ ModalPanel {
   readonly property string page: root.tabs.length > 0 ? root.tabs[root.tab].id : root.categories[root.category].id
 
   // The rows of every category, top to bottom: the ones holding a setting
-  // (see SettingsPages), then the launcher's engines, the theme's added apps
+  // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps
   // and each page's defaults row.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.webAppRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
 
   // The Clock tab's places for the clocks tab, a row each with a button
   // taking it out, then a row typing in a place to add (Enter searches for
@@ -77,6 +77,36 @@ ModalPanel {
     canMoveBack: index > 0,
     canMoveForward: index < Settings.launcherEngines.length - 1
   })).concat([{ key: "addEngine", category: "launcher", kind: "action", label: I18n.tr("settings.launcherEngines.add") }])
+
+  // The web apps category's web apps, a row each in their order, shown like
+  // a search engine's (SearchEngineRow, its check box saying whether the bar
+  // widget's menu offers it; the first with the list's title above it), then
+  // a row adding one. A row's `webApp` is
+  // true, and its `engineIndex` is the app's place in Settings.webApps.
+  readonly property var webAppRows: Settings.webApps.map((app, index) => ({
+    key: "webApp:" + index,
+    category: "webApps",
+    kind: "engine",
+    webApp: true,
+    engine: app,
+    engineIndex: index,
+    label: app.name,
+    title: index === 0 ? I18n.tr("settings.webApps") : "",
+    canMoveBack: index > 0,
+    canMoveForward: index < Settings.webApps.length - 1
+  })).concat([{ key: "addWebApp", category: "webApps", kind: "action", label: I18n.tr("settings.webApps.add"), title: Settings.webApps.length === 0 ? I18n.tr("settings.webApps") : "" }])
+
+  // Changes `fields` of the engine or web app of `row` (see setEngine and
+  // setWebApp in Settings.qml).
+  function setEngine(row, fields) {
+    return row.webApp ? Settings.setWebApp(row.engineIndex, fields) : Settings.setEngine(row.engineIndex, fields)
+  }
+
+  // Takes the engine or web app of `row` out of its list.
+  function removeEngine(row) {
+    if (row.webApp) Settings.removeWebApp(row.engineIndex)
+    else Settings.removeEngine(row.engineIndex)
+  }
 
   // The chat AI category's default provider, a row adding one, then the
   // providers, two rows each (its name and key, and for an added one its
@@ -331,19 +361,36 @@ ModalPanel {
 
   // What the keys do on an engine row, on what they are on (see
   // SearchEngineRow's focusIndex): switch it on or off, type in its name or
-  // address, or remove it.
+  // address, or remove it. The same on a web app's row.
   function pressEngine(row, index) {
-    if (index === 0) Settings.setEngine(row.engineIndex, { on: !row.engine.on })
+    if (index === 0) root.setEngine(row, { on: !row.engine.on })
     else if (index === 1) root.editKey = row.key + ":name"
     else if (index === 2) root.editKey = row.key + ":url"
-    else if (index === 3) Settings.removeEngine(row.engineIndex)
+    else if (index === 3) root.removeEngine(row)
   }
 
-  // Moves the engine of `row` `steps` places, the selection going with it.
+  // Moves the engine or web app of `row` `steps` places, the selection going
+  // with it.
   function moveEngine(row, steps) {
-    const target = Math.max(0, Math.min(Settings.launcherEngines.length - 1, row.engineIndex + steps))
-    root.selectedKey = "engine:" + target
-    Settings.moveEngine(row.engineIndex, steps)
+    const list = row.webApp ? Settings.webApps : Settings.launcherEngines
+    const target = Math.max(0, Math.min(list.length - 1, row.engineIndex + steps))
+    root.selectedKey = (row.webApp ? "webApp:" : "engine:") + target
+    if (row.webApp) Settings.moveWebApp(row.engineIndex, steps)
+    else Settings.moveEngine(row.engineIndex, steps)
+  }
+
+  // Adds a web app with a name and an address to be replaced, selects its
+  // row and starts typing its name.
+  function addWebApp() {
+    if (!Settings.addWebApp(I18n.tr("settings.webApps.new"), "https://example.com")) return
+    const key = "webApp:" + (Settings.webApps.length - 1)
+    Qt.callLater(() => {
+      const index = root.rows.findIndex(row => row.key === key)
+      if (index < 0) return
+      root.selected = index
+      root.toggleFocus = 1
+      root.editKey = key + ":name"
+    })
   }
 
   // Adds a search engine with a name and an address to be replaced, selects
@@ -442,6 +489,7 @@ ModalPanel {
   function actionButtonText(row) {
     if (row.key === "notificationActions") return I18n.tr("settings.notificationActions.manage", NotificationActions.rules.length)
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
+    if (row.key === "addWebApp") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "customCopy") return I18n.tr("settings.custom.copyButton")
     if (row.key === "addMatugenApp") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "addChatAiProvider") return I18n.tr("settings.launcherEngines.addButton")
@@ -452,6 +500,7 @@ ModalPanel {
   function runAction(row) {
     if (row.key === "notificationActions") NotificationActionsState.open(true)
     if (row.key === "addEngine") root.addEngine()
+    if (row.key === "addWebApp") root.addWebApp()
     if (row.key === "customCopy") root.copyToCustom()
     if (row.key === "addMatugenApp") root.addMatugenApp()
     if (row.key === "addChatAiProvider") root.addChatAiProvider()
@@ -1413,6 +1462,7 @@ ModalPanel {
                 label: row.modelData.label
                 name: row.modelData.engine?.name ?? ""
                 url: row.modelData.engine?.url ?? ""
+                iconSource: row.modelData.webApp ? WebApps.iconOf(row.modelData.engine) : ""
                 on: row.modelData.engine?.on ?? false
                 canMoveBack: row.modelData.canMoveBack ?? false
                 canMoveForward: row.modelData.canMoveForward ?? false
@@ -1420,19 +1470,19 @@ ModalPanel {
                 focusIndex: root.showSelection ? root.toggleFocus : -1
                 editing: row.modelData.kind === "engine" && root.editKey.startsWith(engineRow.prefix) ? root.editKey.slice(engineRow.prefix.length) : ""
                 onActivated: root.selected = row.index
-                onToggled: Settings.setEngine(row.modelData.engineIndex, { on: !row.modelData.engine.on })
+                onToggled: root.setEngine(row.modelData, { on: !row.modelData.engine.on })
                 onMoved: steps => root.moveEngine(row.modelData, steps)
-                onRemoved: Settings.removeEngine(row.modelData.engineIndex)
+                onRemoved: root.removeEngine(row.modelData)
                 onEditRequested: field => {
                   root.toggleFocus = field === "name" ? 1 : 2
                   root.editKey = engineRow.prefix + field
                 }
-                // A refused value (no name, or an address without %s)
-                // leaves the field open to be typed again.
+                // A refused value (no name, or an address without %s for
+                // an engine) leaves the field open to be typed again.
                 onCommitted: (field, text) => {
                   const fields = {}
                   fields[field] = text.trim()
-                  if (Settings.setEngine(row.modelData.engineIndex, fields) && root.editKey === engineRow.prefix + field) root.editKey = ""
+                  if (root.setEngine(row.modelData, fields) && root.editKey === engineRow.prefix + field) root.editKey = ""
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()

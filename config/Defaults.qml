@@ -149,6 +149,8 @@ Singleton {
       { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", on: true },
       { name: "Wikipedia", url: "https://fr.wikipedia.org/w/index.php?search=%s", on: true }
     ],
+    webApps: [],
+    webAppCommand: "zen-browser -P webapp --new-window %s",
     chatAiProviders: [
       { builtin: "anthropic", model: "" },
       { builtin: "openai", model: "" },
@@ -172,7 +174,7 @@ Singleton {
     chatAiShowAccess: true,
     barCollapsed: ["wallpaper"],
     barGroupsOff: [],
-    barLeft: ["launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
+    barLeft: ["webApps", "launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
     barCenter: ["clock", "volume"],
     barRight: ["tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "notifications", "power"],
     barDividers: ["workspaces", "activeWindow", "wallpaper", "volume", "cpu", "ram", "disk", "network", "connection", "notifications", "power"]

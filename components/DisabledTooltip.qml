@@ -3,7 +3,8 @@ import Quickshell
 import qs.config
 
 // The tooltip a disabled settings row shows on hover to say why it can't be
-// adjusted, under `anchorItem`. A real popup window, not an item in the
+// adjusted, under `anchorItem` (also used as a plain text tooltip: the chat
+// AI panel's access icons, the launcher's tabs). A real popup window, not an item in the
 // panel's own scene: see SettingSlider.qml's own tooltip for why.
 PopupWindow {
   id: root
