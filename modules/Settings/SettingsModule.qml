@@ -119,6 +119,14 @@ Scope {
       Settings.place(widget, zone, position < 0 ? undefined : position)
     }
 
+    // Enables a bar widget (1: it is loaded again, back where it was on the bar)
+    // or disables it (0: off the bar, and its feature, with its panel, service,
+    // OSD and IPC calls, unloaded, so those calls no longer exist). The settings
+    // button can't be disabled; placing a disabled widget enables it.
+    function widgetEnabled(widget: string, on: int): void {
+      Settings.setWidgetEnabled(widget, on !== 0)
+    }
+
     // Puts a bar widget on the bar (1: back where it was, else where it is by
     // default) or takes it off (0).
     function widgetShown(widget: string, on: int): void {
@@ -152,9 +160,10 @@ Scope {
     // The bar's layout as JSON: { "left": [ids], "center": [ids], "right":
     // [ids], "dividers": [the ids with a divider before them], "collapsed":
     // [the widgets starting a group shown only on hover], "off": [the widgets
-    // starting a group that is off] }.
+    // starting a group that is off], "disabled": [the widgets that are
+    // disabled] }.
     function layout(): string {
-      return JSON.stringify(Object.assign({}, Settings.layout, { dividers: Settings.dividers, collapsed: Settings.collapsed, off: Settings.hiddenGroups }))
+      return JSON.stringify(Object.assign({}, Settings.layout, { dividers: Settings.dividers, collapsed: Settings.collapsed, off: Settings.hiddenGroups, disabled: Settings.disabledWidgets }))
     }
 
     function get(key: string): real {

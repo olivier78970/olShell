@@ -294,6 +294,9 @@ Singleton {
   readonly property var groupModes: ["on", "hover", "off"]
   readonly property var collapsed: root.valid("barCollapsed", file.adapter.barCollapsed)
   readonly property var hiddenGroups: root.valid("barGroupsOff", file.adapter.barGroupsOff)
+  // The widgets that are disabled: off the bar, and their feature (panel, service,
+  // OSD, IPC calls) isn't loaded at all. The settings button can't be one.
+  readonly property var disabledWidgets: root.valid("barDisabled", file.adapter.barDisabled).filter(id => id !== "settings")
   // How awww changes from one wallpaper to the next (one of choices.wallpaperTransition),
   // and how long it takes, in seconds.
   readonly property string wallpaperTransition: root.valid("wallpaperTransition", file.adapter.wallpaperTransition)
@@ -857,6 +860,8 @@ Singleton {
     if (!root.widgetIds.includes(id)) return
     if (zone === "off" && id === "settings") return
     if (zone !== "off" && !root.zones.includes(zone)) return
+    // Putting a disabled widget on the bar enables it.
+    if (zone !== "off" && !root.widgetEnabled(id)) root.set("barDisabled", root.disabledWidgets.filter(other => other !== id))
     // Where it was, for when it is turned on again.
     const from = root.zoneOf(id)
     if (zone === "off" && from !== "off") root.rememberPlace(id, from, root.layout[from].indexOf(id))
@@ -869,6 +874,26 @@ Singleton {
     root.set("barLeft", lists.left)
     root.set("barCenter", lists.center)
     root.set("barRight", lists.right)
+  }
+
+  // Whether widget `id` is enabled (not in the list of disabled ones).
+  function widgetEnabled(id) {
+    return !root.disabledWidgets.includes(id)
+  }
+
+  // Disables widget `id` (taking it off the bar, and unloading its feature) or
+  // enables it again (back where it was on the bar). The settings button can't
+  // be disabled.
+  function setWidgetEnabled(id, on) {
+    if (!root.widgetIds.includes(id) || id === "settings") return
+    if (on) {
+      if (root.widgetEnabled(id)) return
+      root.set("barDisabled", root.disabledWidgets.filter(other => other !== id))
+      root.setWidgetShown(id, true)
+      return
+    }
+    root.place(id, "off")
+    root.set("barDisabled", root.disabledWidgets.concat([id]).filter((other, index, all) => all.indexOf(other) === index))
   }
 
   // Where each widget that was turned off was, by id: { zone, position }.
@@ -986,8 +1011,9 @@ Singleton {
   // zone in the order of its groups, a divider before each group but the
   // first, and each group's mode under its first widget. A widget in none of
   // them is turned off (where it was is remembered, as with place()). Empty
-  // groups are left out; an arrangement without the settings button is
-  // refused (false), so the panel stays reachable by clicking.
+  // groups are left out; `zones.disabled`, when given, lists the widgets to
+  // disable (the others it doesn't place are only off); an arrangement without
+  // the settings button is refused (false), so the panel stays reachable by clicking.
   function arrange(zones) {
     const lists = {}
     for (const zone of root.zones)
@@ -998,6 +1024,8 @@ Singleton {
       const from = root.zoneOf(id)
       if (!placed.includes(id) && from !== "off") root.rememberPlace(id, from, root.layout[from].indexOf(id))
     }
+    const disabled = zones.disabled === undefined ? root.disabledWidgets : root.asArray(zones.disabled)
+    root.set("barDisabled", disabled.filter(id => id !== "settings" && !placed.includes(id)))
     const leaders = [], hover = [], off = []
     for (const zone of root.zones) {
       lists[zone].forEach((group, index) => {
@@ -1275,6 +1303,7 @@ Singleton {
       property bool chatAiShowAccess: Defaults.values.chatAiShowAccess
       property var barCollapsed: Defaults.values.barCollapsed
       property var barGroupsOff: Defaults.values.barGroupsOff
+      property var barDisabled: Defaults.values.barDisabled
       property var barLastPlace: ({})
       property var barLeft: Defaults.values.barLeft
       property var barCenter: Defaults.values.barCenter

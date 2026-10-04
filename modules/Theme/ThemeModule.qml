@@ -9,6 +9,7 @@ import qs.config
 Scope {
   IpcHandler {
     target: "themes"
+    enabled: Settings.widgetEnabled("theme")
 
     function themesToggle(): void {
       ThemePanelState.toggle()
@@ -22,7 +23,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("theme")
 
     ThemePanel {}
   }

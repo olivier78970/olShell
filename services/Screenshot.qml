@@ -48,6 +48,7 @@ Singleton {
 
   IpcHandler {
     target: "screenshot"
+    enabled: Settings.widgetEnabled("screenshot")
 
     // Takes a screenshot in the remembered mode. IPC calls need all their
     // arguments, so this is the one to bind to a key.

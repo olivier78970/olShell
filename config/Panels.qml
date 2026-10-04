@@ -22,6 +22,30 @@ Singleton {
     PowerMenuState
   ]
 
+  // The panels a bar widget opens, by the widget's id: while the widget is
+  // disabled (Settings.widgetEnabled) its panel can't be opened, and one open
+  // when it is disabled closes.
+  readonly property var widgetPanels: ({
+    wallpaper: WallpaperPanelState, theme: ThemePanelState, launcher: LauncherState,
+    notifications: NotificationCenterState, power: PowerPanelState, clock: ClockPanelState,
+    shortcuts: ShortcutsPanelState, chatAi: ChatAiState
+  })
+
+  // Whether `panel` belongs to a widget that is disabled.
+  function disabled(panel) {
+    return Object.keys(root.widgetPanels).some(id => root.widgetPanels[id] === panel && !Settings.widgetEnabled(id))
+  }
+
+  Connections {
+    target: Settings
+
+    function onDisabledWidgetsChanged() {
+      for (const panel of root.all) {
+        if (panel.visible && root.disabled(panel)) panel.visible = false
+      }
+    }
+  }
+
   // When each panel (by its place in `all`) last closed, in milliseconds.
   property var closedAt: ({})
 
@@ -51,6 +75,7 @@ Singleton {
   // visible) once the others have animated away: at once if none was open
   // lately. A later call replaces one still waiting.
   function open(panel, show) {
+    if (root.disabled(panel)) return
     let wait = 0
     root.all.forEach((other, index) => {
       if (other === panel) return

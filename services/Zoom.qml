@@ -28,6 +28,9 @@ Singleton {
   // The current zoom factor (1 = none).
   property real factor: 1
   readonly property bool zoomed: root.factor > 1
+  // Disabling the zoom widget puts the screen back at 1.
+  readonly property bool enabled: Settings.widgetEnabled("zoom")
+  onEnabledChanged: if (!root.enabled) root.reset()
   // Where the pointer was at the last read (readCursor()), in global
   // coordinates: the zoom is centered on it, so it tells what part of the
   // screen is seen (see modules/Osd/ZoomOsd.qml). Asked of Hyprland, since
@@ -140,6 +143,7 @@ Singleton {
 
   IpcHandler {
     target: "zoom"
+    enabled: Settings.widgetEnabled("zoom")
 
     function zoomIn(): void {
       root.zoomIn()

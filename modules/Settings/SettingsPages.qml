@@ -310,7 +310,7 @@ Singleton {
   // widgets category has the bar's layout lists). The language, which the
   // general category also holds, is not a setting: see the functions below.
   function keysOf(categoryId) {
-    if (categoryId === "layout") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff"]
+    if (categoryId === "layout") return ["barLeft", "barCenter", "barRight", "barDividers", "barCollapsed", "barGroupsOff", "barDisabled"]
     const keys = []
     for (const row of root.rows) {
       if (row.category !== categoryId) continue

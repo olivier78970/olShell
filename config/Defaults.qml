@@ -182,6 +182,7 @@ Singleton {
     chatAiShowAccess: true,
     barCollapsed: ["wallpaper"],
     barGroupsOff: [],
+    barDisabled: [],
     barLeft: ["webApps", "launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
     barCenter: ["clock", "volume"],
     barRight: ["tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "notifications", "power"],

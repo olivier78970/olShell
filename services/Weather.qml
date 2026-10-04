@@ -178,6 +178,7 @@ Singleton {
 
   IpcHandler {
     target: "weather"
+    enabled: Settings.widgetEnabled("clock")
 
     // Fetches the weather again now (while the weather tab is on).
     function refresh(): void {

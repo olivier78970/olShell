@@ -168,6 +168,7 @@ Singleton {
 
   IpcHandler {
     target: "webApps"
+    enabled: Settings.widgetEnabled("webApps")
 
     // The web apps as JSON, in order: [{ "name", "url", "on", "open" }],
     // `open` whether its window is open.

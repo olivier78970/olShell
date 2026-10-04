@@ -10,6 +10,7 @@ import qs.config
 Scope {
   IpcHandler {
     target: "shortcuts"
+    enabled: Settings.widgetEnabled("shortcuts")
 
     function toggle(): void {
       ShortcutsPanelState.toggle()
@@ -23,7 +24,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("shortcuts")
 
     ShortcutsPanel {}
   }

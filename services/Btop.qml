@@ -41,6 +41,7 @@ Singleton {
 
   IpcHandler {
     target: "btop"
+    enabled: Settings.widgetEnabled("cpu") || Settings.widgetEnabled("ram") || Settings.widgetEnabled("network")
 
     function toggle(): void {
       root.toggle()

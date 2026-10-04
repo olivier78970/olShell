@@ -10,6 +10,7 @@ import qs.config
 Scope {
   IpcHandler {
     target: "notificationActions"
+    enabled: Settings.widgetEnabled("notifications")
 
     function toggle(): void {
       NotificationActionsState.toggle()
@@ -23,7 +24,7 @@ Scope {
   }
 
   LazyLoader {
-    active: linger.active
+    active: linger.active && Settings.widgetEnabled("notifications")
 
     NotificationActionsPanel {}
   }

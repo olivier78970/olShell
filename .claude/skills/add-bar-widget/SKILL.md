@@ -26,6 +26,17 @@ A widget is listed by id in several places that don't reference each other. One 
 - A tooltip is a `HoverPopup` (call `hoverEntered()` / `hoverExited()` from the `MouseArea`) that starts with `PopupTitle { text: I18n.tr("settings.widget.<id>") }`, as every widget popup has a title. A menu is a `PopupMenu`.
 - A figure that suits a gauge can offer a `<id>Ring` yes/no setting like `cpuRing` (`RingGauge` / `BarGauge`). Settings of the widget itself go on a tab of their own in **Bar widgets** (a `widget<Name>` page in `SettingsPages.categories`, its rows `category: "widget<Name>"`) through the `add-setting` skill.
 
+## A widget that fronts a feature can be disabled
+
+A widget in the layout's **Disabled** lane (`Settings.widgetEnabled(id)` false) must take its whole feature with it: its panel, service, OSD and IPC calls are not loaded. `WidgetSlot` already doesn't load the widget. For the rest:
+
+- an `IpcHandler` of the feature gets `enabled: Settings.widgetEnabled("<id>")` (a handler shared by several widgets is enabled while any of them is);
+- a panel module's `LazyLoader` is `active: linger.active && Settings.widgetEnabled("<id>")`, one built in `shell.qml` sits in a `LazyLoader { active: Settings.widgetEnabled("<id>") }`;
+- a panel the widget opens goes in `Panels.widgetPanels` (config/Panels.qml), which refuses to open it and closes it when disabled;
+- a service that applies an effect (as zoom does) puts it back when disabled.
+
+A widget with no feature of its own (the tray, workspaces) needs none of this. The README's list of what each widget takes with it is in docs/settings.md (**Disabled**).
+
 ## Registering it
 
 1. `modules/Bar/BarWidgets.qml`: `<id>: <id>` in `components`, and `Component { id: <id>; <Component> {} }`.
