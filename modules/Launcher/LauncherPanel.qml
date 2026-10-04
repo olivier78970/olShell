@@ -474,7 +474,9 @@ ModalPanel {
 
     TabBar {
       id: tabBar
+      width: parent.width
       model: root.tabs
+      iconsOnly: true
       onCurrentIndexChanged: if (currentIndex !== root.tab) root.switchTab(currentIndex)
     }
 
