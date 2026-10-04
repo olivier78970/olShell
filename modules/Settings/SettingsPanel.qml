@@ -416,6 +416,10 @@ ModalPanel {
   readonly property var osdPositionOptions: Settings.osdPositions
     .map(name => ({ value: name, text: I18n.tr("settings.position." + name) }))
 
+  // The pickers' carousel styles, named in the current language.
+  readonly property var carouselOptions: Settings.carouselStyles
+    .map(name => ({ value: name, text: I18n.tr("settings.carousel." + name) }))
+
   // The wallpaper transitions, named in the current language.
   readonly property var transitionOptions: Settings.choices.wallpaperTransition
     .map(name => ({ value: name, text: I18n.tr("settings.transition." + name) }))
@@ -614,6 +618,7 @@ ModalPanel {
       .map(name => ({ value: name, text: I18n.tr("settings.hyprlandStyle." + name) }))
     if (row.key === "fontCaps") return root.capsOptions
     if (row.key === "wallpaperTransition") return root.transitionOptions
+    if (row.key === "wallpaperCarousel" || row.key === "themeCarousel") return root.carouselOptions
     if (root.matugenOptions[row.key] !== undefined) return root.matugenOptions[row.key]
     if (row.key === "themeAccent") return root.themeAccentOptions
     if (row.key === "notificationPosition") return root.positionOptions

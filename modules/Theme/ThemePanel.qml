@@ -7,7 +7,7 @@ import qs.services
 // ModalPanel's `placement`, set by Settings.themePlacement), toggled from outside via:
 //   quickshell -p . ipc call themes themesToggle
 // Themes (see ThemePresets) are browsed in a carousel like the wallpaper
-// panel; Enter or a click applies the centered one. The first entry,
+// panel, laid out as Settings.themeCarousel says; Enter or a click applies the centered one. The first entry,
 // "Automatique", follows the wallpaper's matugen palette; the corner button
 // jumps to it and applies it. Each card shows its theme as it would be used
 // (its light version in light mode, the accent picked in the settings...),
@@ -19,6 +19,8 @@ CarouselPanel {
 
   title: I18n.tr("theme.title")
   model: ThemePresets.presets
+  style: Settings.themeCarousel
+  sideVisibleCount: Settings.themeSideCount
   maxPanelWidth: 1700
   maxPanelHeight: 520
 

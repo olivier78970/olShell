@@ -73,7 +73,8 @@ Scope {
     // workspaceCount, launcherResults, launcherHistory, chatAiHistory,
     // barAutoHideDelay, animationDuration, hyprlandAnimationDuration, borderWidth,
     // fontSize, fontWeight,
-    // fontLetterSpacing, wallpaperDuration, matugenContrast,
+    // fontLetterSpacing, wallpaperDuration, wallpaperSideCount, themeSideCount,
+    // matugenContrast,
     // matugenLightness, zoomMax, zoomStep, curvedJoinsRadius, blurSize,
     // blurPasses, blurVibrancy, blurContrast, blurBrightness, blurNoise,
     // windowBorderWidth, windowRounding, windowGapsIn, windowGapsOut,
@@ -278,6 +279,7 @@ Scope {
     }
 
     // The same for a setting with a fixed list of choices (wallpaperTransition,
+    // wallpaperCarousel, themeCarousel,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
     // hyprlandWorkspaceStyle, launcherTab, clockDate,

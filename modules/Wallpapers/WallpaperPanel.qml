@@ -7,8 +7,9 @@ import qs.services
 // Wallpaper picker, attached to the bar or centered on the screen (see
 // ModalPanel's `placement`, set by Settings.wallpaperPlacement), toggled from outside via:
 //   quickshell -p . ipc call wallpapers wallpapersToggle
-// Wallpapers are browsed in a carousel (centered item large, neighbors
-// smaller); Enter or a click applies one with awww.
+// Wallpapers are browsed in a carousel, laid out as Settings.wallpaperCarousel
+// says (by default the centered one large and in front, the others stacked
+// behind it); Enter or a click applies one with awww.
 // The Bing "picture of the day", a random wallpaper, or the last one applied
 // can also be applied directly via:
 //   quickshell -p . ipc call wallpapers applyPod
@@ -24,6 +25,8 @@ CarouselPanel {
   title: I18n.tr("wallpaper.title")
   emptyText: I18n.tr("wallpaper.none")
   model: root.wallpapers
+  style: Settings.wallpaperCarousel
+  sideVisibleCount: Settings.wallpaperSideCount
   maxPanelWidth: 2000
   maxPanelHeight: 650
 
@@ -165,8 +168,10 @@ CarouselPanel {
         source: "file://" + card.modelData
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
+        // Smooth when shrunk, as the side cards are.
+        mipmap: true
         // Decode at roughly the displayed size (x2 covers the
-        // 1.6x scale of the centered item) instead of full
+        // 1.6x scale of the centered item side by side) instead of full
         // resolution, which for Bing wallpapers is huge.
         sourceSize.width: card.width * 2
       }

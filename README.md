@@ -89,7 +89,7 @@ For the features that use them:
 │   ├── Pill.qml, BarStack.qml, BarText.qml, BarGauge.qml, Linger.qml, Separator.qml, IconButton.qml, TabBar.qml, PowerMenuOption.qml, PopupTitle.qml   # Bar pill, row-or-column layout, text, side-bar ring gauge, divider, buttons, popup title, keep-alive for closing panels
 │   ├── PopupMenu.qml, HoverPopup.qml   # Popup windows: a menu, and one opened by hovering
 │   ├── ModalPanel.qml        # Base of the full-screen panels: backdrop, frame, keyboard focus
-│   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes)
+│   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes): cards stacked in one of several styles, or side by side
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
 │   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
 │   ├── Fillet.qml, BarFillets.qml   # Concave corners where a surface meets the bar
@@ -217,8 +217,12 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Bar widgets (Settings tab) | Clock: show seconds (without them the clock, and the bar, only update once a minute) | check box | on |
 | Wallpaper | Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
 | Wallpaper | Transition duration | 0.5 – 10 s | 2 s |
+| Wallpaper | Carousel style (how the wallpaper panel lays out the wallpapers: the selected one large and in front, the others overlapping behind it, smaller and darker the further they are, turned toward it in 3D (Cover flow, or a little: Gentle tilt), facing you (Flat fan) or fanned out and dropping like a hand of cards (Deck of cards); or all side by side, the selected one grown (Side by side)) | Cover flow / Gentle tilt / Flat fan / Deck of cards / Side by side | Gentle tilt |
+| Wallpaper | Wallpapers on each side of the selected one in the wallpaper panel (stacked, fewer spread out more and overlap less) | 1 – 5 | 3 |
 | Theme (General tab) | Mode (dark or light: the Automatique palette, matugen's `--mode`, and the fixed themes that have a light version; for a light theme the olShell GTK theme is built on adw-gtk3 instead of adw-gtk3-dark, see [GTK](#gtk); disabled for a theme with no light version and for the custom theme) | Dark / Light | Dark |
 | Theme (General tab) | Widget background (the color of the shell's widgets, popups and panels: for Automatique one of matugen's surface colors, `surface_container_lowest` to `_highest`, needing no matugen run; for the other themes their own, moved toward the background or the text) | Closest to the background / Close to the background / Normal / Raised / Most raised | Normal |
+| Theme (General tab) | Carousel style of the theme panel (as for the [wallpaper panel](#settings)'s) | Cover flow / Gentle tilt / Flat fan / Deck of cards / Side by side | Gentle tilt |
+| Theme (General tab) | Themes on each side of the selected one in the theme panel | 1 – 5 | 3 |
 | Theme (Automatic theme tab) | Palette style (how matugen builds the palette from the wallpaper, its `--type`) | Tonal (calm) / Content (close to the wallpaper) / Fidelity (closest to the wallpaper) / Vibrant / Expressive / Fruit salad / Rainbow / Neutral / Monochrome | Tonal |
 | Theme (Automatic theme tab) | Starting color (which of the wallpaper's colors the palette is built around: every color of it, not only the accent) | Most saturated / Most common / Least saturated / Darkest / Lightest | Most saturated |
 | Theme (Automatic theme tab) | Contrast (matugen's `--contrast`; its values below 0 make the text too dim to read, so they're left out) | Standard – +100 % | Standard |
@@ -316,7 +320,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `fontSize`, `fontWeight` (100 to 900, rounded to hundreds), `fontLetterSpacing`
 - `barHeight`, `barMarginTop`, `barMarginBottom`, `barMarginLeft`, `barMarginRight`, `barOpacity`, `barAutoHideDelay`
 - `workspaceCount`, `zoomMax`, `zoomStep`
-- `wallpaperDuration`, `matugenContrast` (0 to 1), `matugenLightness` (-1 to 1)
+- `wallpaperDuration`, `wallpaperSideCount`, `themeSideCount`, `matugenContrast` (0 to 1), `matugenLightness` (-1 to 1)
 - `notificationTimeout`, `notificationMax`, `osdMargin`, `volumeOsdMargin`, `lockKeysOsdMargin`, `lockTimeout`
 - `launcherResults`, `launcherHistory`, `chatAiHistory`, `switcherIconSize`, `switcherMaxShown`
 
@@ -349,6 +353,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 | `barPosition` | `top`, `bottom`, `left`, `right` |
 | `hyprlandWindowStyle` | `config`, `popin`, `slide`, `gnomed` |
 | `hyprlandWorkspaceStyle` | `config`, `slide`, `slidevert`, `fade`, `slidefade`, `slidefadevert` |
+| `wallpaperCarousel`, `themeCarousel` | `coverflow`, `gentle`, `fan`, `deck`, `row` |
 | `wallpaperTransition` | `fade`, `none`, `left`, `right`, `top`, `bottom`, `wipe`, `wave`, `grow`, `center`, `outer`, `any`, `random` |
 | `screenshotMode` | `screen`, `region`, `window` |
 | `notificationPosition` | `top-right`, `top-center`, `top-left`, `center-right`, `center-left`, `bottom-right`, `bottom-center`, `bottom-left` |
@@ -441,7 +446,7 @@ The providers are set in the settings' **Chat AI** category, in its **Providers*
 
 ## Themes
 
-The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique**, ten fixed themes (Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, One, Rosé Pine, Everforest and Kanagawa) and **Custom**. Each card shows its theme as it would be used, with the settings' mode, accent and widget background. The **Automatique** button in the top-right corner jumps to its card and applies it. Left/Right browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
+The theme panel (palette icon in the bar, or the IPC call below) lists **Automatique**, ten fixed themes (Catppuccin, Dracula, Nord, Gruvbox, Tokyo Night, Solarized, One, Rosé Pine, Everforest and Kanagawa) and **Custom**. Each card shows its theme as it would be used, with the settings' mode, accent and widget background. The **Automatique** button in the top-right corner jumps to its card and applies it. The cards are laid out as for the [wallpapers](#wallpapers), in the style and with as many on each side as the settings' **Theme** category (its General tab) says. Left/Right or the mouse wheel browse; **Enter** or a click applies; **Escape** or a click outside closes. The choice is saved in `config/ThemeState.json` (git-ignored) and restored on startup.
 
 - **Automatique** uses the palette matugen generates from the current wallpaper (below).
 - A fixed theme ignores the wallpaper, which is only remembered for when you switch back to Automatique. Each has a dark version and, when the theme has an official one, a light version, used when the settings' **Theme** mode is Light: Catppuccin Mocha / Latte, Gruvbox Dark / Light, Tokyo Night / Day, Solarized Dark / Light, One Dark / Light, Rosé Pine / Dawn, Everforest Dark / Light and Kanagawa / Lotus (Dracula and Nord are dark only). Its accent is one of the theme's own accents, picked in the settings by the color it is (blue, purple, pink, red, orange, yellow, green, cyan), so it stays a purple accent, say, from one theme to the next; a theme without that color uses its own default.
@@ -551,7 +556,7 @@ The figures come from [services/SystemStats.qml](services/SystemStats.qml), whic
 
 The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry. Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](config/Paths.qml).
 
-Left/Right browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
+The pictures are shown in a carousel: by default the selected one large and in front, three on each side stacked behind it, overlapping, turned slightly toward it, smaller and darker the further they are, sliding into place as you browse. The **Wallpaper** category of the settings changes its style (a cover flow, a gentle tilt, a flat fan, a fanned deck of cards, or side by side) and how many wallpapers show on each side. Left/Right or the mouse wheel browse without changing anything; **Enter**, clicking a picture, "Image du jour" or "Aléatoire" (top right, next to it: a random wallpaper other than the one in use) applies it (awww sets it, matugen regenerates the palette). **Escape** or a click outside closes the panel.
 
 Applying goes through [scripts/apply-wallpaper.py](scripts/apply-wallpaper.py), which runs `awww img`. awww draws nothing unless its daemon (`awww-daemon`) is running, so the script starts it, detached from the shell, when it isn't, which means nothing has to start it at login: the shell applies the last wallpaper (the one remembered in `config/ThemeState.json`) as soon as it starts, and again 5 seconds later if it is the picture of the day (in case a new one was downloaded meanwhile), so the wallpaper is back at login (the `applyLast` IPC call does the same on demand, see [IPC](#ipc)); the shell no longer uses waypaper, so waypaper's own config is not updated and `waypaper --restore` would restore an older image. The transition's type and duration (a 2 s fade by default) are [settings](#settings); the image fill and the transition's smoothness are the `wallpaperOptions` of [config/Apps.qml](config/Apps.qml), any `awww img` options.
 
