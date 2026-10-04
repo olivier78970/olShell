@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-import Quickshell.Widgets
 import qs.components
 import qs.config
 import qs.services
@@ -592,9 +591,17 @@ ModalPanel {
           width: 32
           height: 32
 
-          IconImage {
+          // At a fixed size, so the icon loads once, at that size. An
+          // IconImage takes its size from the layout and loads first at no
+          // size, where an SVG renders at its own default size and some
+          // (blueman's, with a blur filter) make Qt warn "The requested
+          // buffer size is too big".
+          Image {
             visible: entry.appIcon !== ""
             anchors.fill: parent
+            sourceSize.width: icon.width
+            sourceSize.height: icon.height
+            fillMode: Image.PreserveAspectFit
             asynchronous: true
             source: entry.appIcon
           }
