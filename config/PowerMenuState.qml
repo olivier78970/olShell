@@ -15,6 +15,12 @@ Singleton {
   // "" | "logout" | "restart" | "firmware" | "shutdown"
   property string pendingAction: ""
 
+  // Whether the confirmation dialog is up, so Panels can close it before it
+  // opens another panel (setting it false cancels the request).
+  property bool visible: false
+  onPendingActionChanged: root.visible = root.pendingAction !== ""
+  onVisibleChanged: if (!root.visible) root.cancel()
+
   // The action waiting for the power panel to finish animating away.
   property string requested: ""
 
