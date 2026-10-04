@@ -44,7 +44,12 @@ Singleton {
       { id: "themeApps", label: I18n.tr("settings.matugenApps.title") }
     ] },
     { id: "notifications", icon: "󰂚", label: I18n.tr("settings.category.notifications") },
-    { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
+    // OSD: where every popup goes, then a tab for each.
+    { id: "osdCategory", icon: "󰕾", label: I18n.tr("settings.category.osd"), tabs: [
+      { id: "osd", label: I18n.tr("settings.tab.appearance") },
+      { id: "volumeOsd", label: I18n.tr("settings.osd.volume") },
+      { id: "lockKeysOsd", label: I18n.tr("settings.osd.lockKeys") }
+    ] },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "webApps", icon: "󰖟", label: I18n.tr("settings.category.webApps") },
@@ -180,10 +185,18 @@ Singleton {
       { key: "notificationDnd", text: "" }
     ] },
     { key: "notificationActions", category: "notifications", kind: "action", label: I18n.tr("settings.notificationActions") },
-    { key: "volumeOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.volume"), label: I18n.tr("settings.osdPosition") },
-    { key: "volumeOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
-    { key: "lockKeysOsdPosition", category: "osd", kind: "dropdown", positionIcon: true, title: I18n.tr("settings.osd.lockKeys"), label: I18n.tr("settings.osdPosition") },
-    { key: "lockKeysOsdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "osdPosition", category: "osd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "osdMargin", category: "osd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "volumeOsdSameRow", category: "volumeOsd", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.osdSame"), toggles: [
+      { key: "volumeOsdSame", text: "" }
+    ] },
+    { key: "volumeOsdPosition", category: "volumeOsd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "volumeOsdMargin", category: "volumeOsd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
+    { key: "lockKeysOsdSameRow", category: "lockKeysOsd", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.osdSame"), toggles: [
+      { key: "lockKeysOsdSame", text: "" }
+    ] },
+    { key: "lockKeysOsdPosition", category: "lockKeysOsd", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.osdPosition") },
+    { key: "lockKeysOsdMargin", category: "lockKeysOsd", kind: "slider", label: I18n.tr("settings.osdMargin"), step: 5, format: v => v + " px" },
     { key: "lockTimeout", category: "lock", kind: "slider", label: I18n.tr("settings.lockTimeout"), step: 1, format: v => v === 0 ? I18n.tr("settings.lockTimeout.never") : v + " min" },
     { key: "lockStayAwakeFullscreenRow", category: "lock", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.lockStayAwakeFullscreen"), toggles: [
       { key: "lockStayAwakeFullscreen", text: "" }

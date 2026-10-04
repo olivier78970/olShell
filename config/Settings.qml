@@ -58,6 +58,7 @@ Singleton {
     chatAiHistory: [0, 200],
     switcherIconSize: [24, 96],
     switcherMaxShown: [3, 20],
+    osdMargin: [0, 400],
     volumeOsdMargin: [0, 400],
     lockKeysOsdMargin: [0, 400],
     zoomMax: [2, 10],
@@ -97,6 +98,7 @@ Singleton {
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
     notificationPosition: ["top-right", "top-center", "top-left", "center-right", "center-left", "bottom-right", "bottom-center", "bottom-left"],
+    osdPosition: root.osdPositions,
     volumeOsdPosition: root.osdPositions,
     lockKeysOsdPosition: root.osdPositions,
     panelPlacement: ["each"].concat(root.panelPlacements),
@@ -361,6 +363,12 @@ Singleton {
   readonly property int volumeOsdMargin: root.valid("volumeOsdMargin", file.adapter.volumeOsdMargin)
   readonly property string lockKeysOsdPosition: root.valid("lockKeysOsdPosition", file.adapter.lockKeysOsdPosition)
   readonly property int lockKeysOsdMargin: root.valid("lockKeysOsdMargin", file.adapter.lockKeysOsdMargin)
+  // The same for every OSD at once, and whether each OSD follows it (rather
+  // than its own position and distance above).
+  readonly property string osdPosition: root.valid("osdPosition", file.adapter.osdPosition)
+  readonly property int osdMargin: root.valid("osdMargin", file.adapter.osdMargin)
+  readonly property bool volumeOsdSame: root.valid("volumeOsdSame", file.adapter.volumeOsdSame)
+  readonly property bool lockKeysOsdSame: root.valid("lockKeysOsdSame", file.adapter.lockKeysOsdSame)
   // Where each full-screen panel opens (one of panelPlacements each, see
   // components/ModalPanel.qml's `placement`).
   readonly property string launcherPlacement: root.valid("launcherPlacement", file.adapter.launcherPlacement)
@@ -1181,6 +1189,10 @@ Singleton {
       property int volumeOsdMargin: Defaults.values.volumeOsdMargin
       property string lockKeysOsdPosition: Defaults.values.lockKeysOsdPosition
       property int lockKeysOsdMargin: Defaults.values.lockKeysOsdMargin
+      property string osdPosition: Defaults.values.osdPosition
+      property int osdMargin: Defaults.values.osdMargin
+      property bool volumeOsdSame: Defaults.values.volumeOsdSame
+      property bool lockKeysOsdSame: Defaults.values.lockKeysOsdSame
       property int lockTimeout: Defaults.values.lockTimeout
       property bool lockStayAwakeFullscreen: Defaults.values.lockStayAwakeFullscreen
       property string launcherPlacement: Defaults.values.launcherPlacement

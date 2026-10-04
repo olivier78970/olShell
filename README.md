@@ -233,10 +233,14 @@ The gear icon in the left part of the bar, or `quickshell -p . ipc call settings
 | Notifications | Pop-ups at once | 1 – 8 | 4 |
 | Notifications | Notification position (a list of small screens with a block where the pop-ups go, and the name) | Top right / Top center / Top left / Right center / Left center / Bottom right / Bottom center / Bottom left | Top right |
 | Notifications | Do not disturb | check box | off |
-| OSD | Volume: position (a list of small screens with a block where the popup goes, and the name; also the volume pill on the lock screen) | Bottom center / Bottom left / Bottom right / Center / Left center / Right center / Top center / Top left / Top right | Bottom center |
-| OSD | Volume: distance from the edge (from the edges it is placed against; at the top or bottom on the bar's side, from the bar; disabled while the position is Center) | 0 – 400 px | 60 px |
-| OSD | Caps Lock / Num Lock: position | as for the volume | Bottom center |
-| OSD | Caps Lock / Num Lock: distance from the edge (as for the volume) | 0 – 400 px | 60 px |
+| OSD (General tab) | Position of every OSD that follows it (a list of small screens with a block where the popup goes, and the name; also the volume pill on the lock screen, when the volume OSD follows it) | Bottom center / Bottom left / Bottom right / Center / Left center / Right center / Top center / Top left / Top right | Bottom center |
+| OSD (General tab) | Distance from the edge (from the edges it is placed against; at the top or bottom on the bar's side, from the bar; disabled while the position is Center) | 0 – 400 px | 60 px |
+| OSD (Volume tab) | Same as every OSD (follow the General tab's position and distance; off: the two below) | check box | on |
+| OSD (Volume tab) | Position, its own (also the volume pill on the lock screen) | as in the General tab | Bottom center |
+| OSD (Volume tab) | Distance from the edge, its own | 0 – 400 px | 60 px |
+| OSD (Caps Lock / Num Lock tab) | Same as every OSD (as for the volume) | check box | off |
+| OSD (Caps Lock / Num Lock tab) | Position, its own | as in the General tab | Bottom right |
+| OSD (Caps Lock / Num Lock tab) | Distance from the edge, its own | 0 – 400 px | 60 px |
 | Lock screen | Lock after (minutes without keyboard or mouse input) | never, 1 – 60 min | 8 min |
 | Lock screen | Stay awake in fullscreen (while the focused window is fullscreen, a game or a film, the screen neither locks nor blanks by itself) | check box | on |
 | Launcher | Default tab (the one the launcher opens on) | All / Applications / Games / Files / Web / Web apps | All |
@@ -313,7 +317,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `barHeight`, `barMarginTop`, `barMarginBottom`, `barMarginLeft`, `barMarginRight`, `barOpacity`, `barAutoHideDelay`
 - `workspaceCount`, `zoomMax`, `zoomStep`
 - `wallpaperDuration`, `matugenContrast` (0 to 1), `matugenLightness` (-1 to 1)
-- `notificationTimeout`, `notificationMax`, `volumeOsdMargin`, `lockKeysOsdMargin`, `lockTimeout`
+- `notificationTimeout`, `notificationMax`, `osdMargin`, `volumeOsdMargin`, `lockKeysOsdMargin`, `lockTimeout`
 - `launcherResults`, `launcherHistory`, `chatAiHistory`, `switcherIconSize`, `switcherMaxShown`
 
 **Yes/no** (`set`, 1 or 0):
@@ -325,7 +329,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `barAutoHide`, `workspaceCountFromHyprland`, `zoomBlocksInput`, `activeWindowIconOnly`, `clockSeconds`
 - `cpuRing`, `ramRing`, `diskRing`, `volumeRing`, `networkRing`
 - `matugenHyprland`, `matugenZen`, `matugenAlacritty`, `matugenGtk`, `matugenQt`, `matugenStarship`, `themeExactApps`
-- `notificationDnd`, `screenshotEdit`, `lockStayAwakeFullscreen`
+- `notificationDnd`, `volumeOsdSame`, `lockKeysOsdSame`, `screenshotEdit`, `lockStayAwakeFullscreen`
 - `switcherGroupApps`, `switcherShowTitle`, `switcherShowApp`, `switcherShowWorkspace`, `switcherReleaseSwitch`, `switcherPreviews`
 - `clockShowAgenda`, `clockShowPerformance`, `clockShowMedia`, `clockShowWeather`, `clockShowWorld`
 - `chatAiListDir`, `chatAiFindFiles`, `chatAiSearchText`, `chatAiReadFile`, `chatAiWebSearch`, `chatAiWebFetch`, `chatAiShellDocs`, `chatAiShellIpc`, `chatAiShowUsage`, `chatAiShowHint`, `chatAiShowAccess`
@@ -348,7 +352,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 | `wallpaperTransition` | `fade`, `none`, `left`, `right`, `top`, `bottom`, `wipe`, `wave`, `grow`, `center`, `outer`, `any`, `random` |
 | `screenshotMode` | `screen`, `region`, `window` |
 | `notificationPosition` | `top-right`, `top-center`, `top-left`, `center-right`, `center-left`, `bottom-right`, `bottom-center`, `bottom-left` |
-| `volumeOsdPosition`, `lockKeysOsdPosition` | `bottom-center`, `bottom-left`, `bottom-right`, `center-center`, `center-left`, `center-right`, `top-center`, `top-left`, `top-right` |
+| `osdPosition`, `volumeOsdPosition`, `lockKeysOsdPosition` | `bottom-center`, `bottom-left`, `bottom-right`, `center-center`, `center-left`, `center-right`, `top-center`, `top-left`, `top-right` |
 | `launcherPlacement`, `settingsPlacement`, `shortcutsPlacement`, `wallpaperPlacement`, `themePlacement`, `powerPlacement`, `notificationActionsPlacement`, `switcherPlacement`, `clockPlacement`, `notificationCenterPlacement`, `chatAiPlacement` | `center`, `center-left`, `center-right`, `bar-left`, `bar-center`, `bar-right`, `opposite-left`, `opposite-center`, `opposite-right` |
 | `panelPlacement` | the same: sets every panel's placement at once; `getChoice` gives theirs when they all match, `each` otherwise |
 | `launcherTab` | `all`, `apps`, `games`, `files`, `web`, `webApps` |
@@ -367,7 +371,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 
 **Widgets** (`place` and the other layout calls): `launcher`, `settings`, `workspaces`, `activeWindow`, `clock`, `wallpaper`, `theme`, `screenshot`, `zoom`, `shortcuts`, `tray`, `cpu`, `ram`, `disk`, `network`, `connection`, `bluetooth`, `volume`, `notifications`, `lock`, `power`, `chatAi`, `webApps`.
 
-**Categories** (`saveDefaults`, `restoreDefaults`): `appearance` (its General tab), `blur` (its Blur tab), `windows` (its Hyprland tab), `appOpacity` (its App opacity tab), `animations` (the Animations category's General tab), `hyprlandAnimations` (its Hyprland tab), `text`, `bar`, `layout` (the Layout tab), `widgetSettings` (the Settings tab), `wallpaper`, `theme` (the Theme category's General tab), `matugen` (its Automatic theme tab), `themeFixed` (its Fixed themes tab), `themeCustom` (its Custom theme tab), `themeApps` (its Other apps tab), `notifications`, `osd`, `lock`, `launcher`, `webApps`, `chatAi` (the Chat AI category's Providers tab), `chatAiAccess` (its Access tab), `chatAiHistory` (its Miscellaneous tab), `panels` (its Placement tab), `switcher` (its App switcher tab), `clockPanel` (its Clock tab), `general`.
+**Categories** (`saveDefaults`, `restoreDefaults`): `appearance` (its General tab), `blur` (its Blur tab), `windows` (its Hyprland tab), `appOpacity` (its App opacity tab), `animations` (the Animations category's General tab), `hyprlandAnimations` (its Hyprland tab), `text`, `bar`, `layout` (the Layout tab), `widgetSettings` (the Settings tab), `wallpaper`, `theme` (the Theme category's General tab), `matugen` (its Automatic theme tab), `themeFixed` (its Fixed themes tab), `themeCustom` (its Custom theme tab), `themeApps` (its Other apps tab), `notifications`, `osd` (the OSD category's General tab), `volumeOsd` (its Volume tab), `lockKeysOsd` (its Caps Lock / Num Lock tab), `lock`, `launcher`, `webApps`, `chatAi` (the Chat AI category's Providers tab), `chatAiAccess` (its Access tab), `chatAiHistory` (its Miscellaneous tab), `panels` (its Placement tab), `switcher` (its App switcher tab), `clockPanel` (its Clock tab), `general`.
 
 The wallpaper transition and its duration apply the next time a wallpaper is applied (they are the `awww img` `--transition-type` and `--transition-duration`), including when the shell restores the last one at startup.
 
@@ -634,6 +638,6 @@ The shell is the session's polkit authentication agent ([services/Polkit.qml](se
 
 ## Lock keys OSD
 
-Switching Caps Lock or Num Lock on or off briefly shows a popup at the bottom of the screen, where the volume OSD appears by default (the settings panel's **OSD** category places each of them), with the key's icon and its new state (accent-colored when on). The state isn't announced at startup, only on changes.
+Switching Caps Lock or Num Lock on or off briefly shows a popup at the bottom of the screen, where the volume OSD appears by default (the settings panel's **OSD** category places them all at once in its General tab, or each in its own tab with **Same as every OSD** unticked), with the key's icon and its new state (accent-colored when on). The state isn't announced at startup, only on changes.
 
 [services/LockKeys.qml](services/LockKeys.qml) runs [scripts/lock-keys-watch.py](scripts/lock-keys-watch.py), which polls the lock LEDs the kernel exposes in `/sys/class/leds/*::capslock` and `*::numlock` (ten times a second, from one process) and reports each change. A lock counts as on when any keyboard's LED is on, and keyboards plugged in later are picked up. This works on any compositor but needs those LEDs to exist, which is the case for ordinary keyboards.

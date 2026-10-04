@@ -540,9 +540,13 @@ ModalPanel {
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
     // Only the app switcher's cards have room for a window's picture.
     if (row.key === "switcherPreviewsRow") return Settings.switcherOrientation === "horizontal"
-    // An OSD in the center of the screen touches no edge.
-    if (row.key === "volumeOsdMargin") return Settings.volumeOsdPosition !== "center-center"
-    if (row.key === "lockKeysOsdMargin") return Settings.lockKeysOsdPosition !== "center-center"
+    // An OSD following the General tab has nothing of its own to set, and
+    // one in the center of the screen touches no edge.
+    if (row.key === "volumeOsdPosition") return !Settings.volumeOsdSame
+    if (row.key === "lockKeysOsdPosition") return !Settings.lockKeysOsdSame
+    if (row.key === "osdMargin") return Settings.osdPosition !== "center-center"
+    if (row.key === "volumeOsdMargin") return !Settings.volumeOsdSame && Settings.volumeOsdPosition !== "center-center"
+    if (row.key === "lockKeysOsdMargin") return !Settings.lockKeysOsdSame && Settings.lockKeysOsdPosition !== "center-center"
     // A fixed theme doesn't take its colors from the wallpaper.
     if (root.matugenAutoRows.includes(row.key)) return ThemeState.active.kind === "auto"
     // Only the "Automatique" theme and the fixed ones with a light version
@@ -587,6 +591,9 @@ ModalPanel {
     if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && !Theme.curvedJoins) return I18n.tr("settings.curvedJoinsRadius.disabledOff")
     if (row.key === "curvedJoinsRadius" && Settings.curvedJoinsRadiusSame) return I18n.tr("settings.curvedJoinsRadius.disabledSame")
     if (row.key === "switcherPreviewsRow" && Settings.switcherOrientation !== "horizontal") return I18n.tr("settings.switcherPreviews.disabled")
+    if (["volumeOsdPosition", "volumeOsdMargin"].includes(row.key) && Settings.volumeOsdSame) return I18n.tr("settings.osdSame.disabled")
+    if (["lockKeysOsdPosition", "lockKeysOsdMargin"].includes(row.key) && Settings.lockKeysOsdSame) return I18n.tr("settings.osdSame.disabled")
+    if (row.key === "osdMargin" && Settings.osdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "volumeOsdMargin" && Settings.volumeOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (row.key === "lockKeysOsdMargin" && Settings.lockKeysOsdPosition === "center-center") return I18n.tr("settings.osdMargin.disabledCenter")
     if (root.matugenAutoRows.includes(row.key) && ThemeState.active.kind !== "auto") return I18n.tr("settings.matugen.disabledFixed")
@@ -610,7 +617,7 @@ ModalPanel {
     if (root.matugenOptions[row.key] !== undefined) return root.matugenOptions[row.key]
     if (row.key === "themeAccent") return root.themeAccentOptions
     if (row.key === "notificationPosition") return root.positionOptions
-    if (row.key === "volumeOsdPosition" || row.key === "lockKeysOsdPosition") return root.osdPositionOptions
+    if (["osdPosition", "volumeOsdPosition", "lockKeysOsdPosition"].includes(row.key)) return root.osdPositionOptions
     if (row.key === "barStyle") return root.barStyleOptions
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
