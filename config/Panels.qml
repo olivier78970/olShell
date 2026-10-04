@@ -13,11 +13,13 @@ import Quickshell
 Singleton {
   id: root
 
-  // Every panel's State, each with a `visible` property.
+  // Every panel's State, each with a `visible` property (the power
+  // confirmation dialog's included).
   readonly property var all: [
     WallpaperPanelState, ThemePanelState, LauncherState, SettingsPanelState,
     NotificationCenterState, PowerPanelState, ClockPanelState, ShortcutsPanelState,
-    AppSwitcherState, NotificationActionsState, ChatAiState
+    AppSwitcherState, NotificationActionsState, ChatAiState,
+    PowerMenuState
   ]
 
   // When each panel (by its place in `all`) last closed, in milliseconds.
