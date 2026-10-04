@@ -220,6 +220,18 @@ Scope {
         onCleared: root.dismissAll()
       }
 
+      // Escape closes the open menus, as it does a panel (a panel open on
+      // the bar takes the keys itself). Takes the keyboard as a menu opens.
+      Item {
+        id: menuKeys
+        readonly property bool wanted: popupLayer.grabbing && !root.hosting
+        onWantedChanged: if (menuKeys.wanted) menuKeys.forceActiveFocus()
+        Keys.onEscapePressed: event => {
+          popupLayer.dismissed()
+          event.accepted = true
+        }
+      }
+
       // While a panel or menu is open, an invisible surface over the whole
       // screen but that panel or menu (the bar included) takes any click
       // elsewhere, closes them and swallows it, as a click outside a menu
