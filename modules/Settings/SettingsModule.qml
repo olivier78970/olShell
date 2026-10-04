@@ -101,7 +101,8 @@ Scope {
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
-    // disk, network, connection, bluetooth, volume, notifications, lock, power, chatAi),
+    // disk, network, connection, bluetooth, volume, notifications, lock, power, chatAi,
+    // webApps),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
@@ -197,6 +198,32 @@ Scope {
       Settings.setEngine(index, { on: on !== 0 })
     }
 
+    // The web apps as JSON, in order: [{ "name", "url", "on" }]. The calls
+    // below take a web app's place in that list, from 0.
+    function webApps(): string {
+      return JSON.stringify(Settings.webApps)
+    }
+
+    // Adds a web app at the end (a name and a web address); ignored without
+    // either.
+    function addWebApp(name: string, url: string): void {
+      Settings.addWebApp(name, url)
+    }
+
+    function removeWebApp(index: int): void {
+      Settings.removeWebApp(index)
+    }
+
+    // Moves a web app `steps` places later (negative: earlier).
+    function moveWebApp(index: int, steps: int): void {
+      Settings.moveWebApp(index, steps)
+    }
+
+    // Offers a web app in the bar widget's menu (1) or not (0).
+    function webAppOn(index: int, on: int): void {
+      Settings.setWebApp(index, { on: on !== 0 })
+    }
+
     // The apps with an opacity of their own as JSON: [{ "class", "active",
     // "inactive" }] (Hyprland's window class, the opacities from 0.1 to 1).
     function appOpacities(): string {
@@ -264,11 +291,13 @@ Scope {
     // (customBackground, customPill, customBorder, customText, customAccent:
     // a "#rrggbb" color), for the chat AI's default provider
     // (chatAiDefaultProvider: a provider's id, e.g. "anthropic", or "" for the
-    // first one that can be asked), and for the weather's place (weatherLocation: a
-    // place's name, or "" to find it from the internet address).
+    // first one that can be asked), for the weather's place (weatherLocation: a
+    // place's name, or "" to find it from the internet address), and for the
+    // command opening a web app (webAppCommand: a program and its arguments,
+    // %s for the address; "" for the default).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" ? true
+        : key === "weatherLocation" || key === "webAppCommand" ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)

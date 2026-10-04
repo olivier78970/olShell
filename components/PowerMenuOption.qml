@@ -8,7 +8,11 @@ Rectangle {
 
   property string label: ""
   property string icon: ""
+  // An image shown in place of `icon` when set (a web app's favicon).
+  property string iconSource: ""
   property bool active: false
+  // A dot after the label (a web app whose window is open).
+  property bool marked: false
   signal clicked()
 
   implicitWidth: content.implicitWidth + 24
@@ -24,8 +28,21 @@ Rectangle {
     anchors.centerIn: parent
     spacing: 8
 
+    Image {
+      visible: root.iconSource.length > 0
+      anchors.verticalCenter: parent.verticalCenter
+      width: Theme.fontSize()
+      height: width
+      sourceSize.width: width * 2
+      sourceSize.height: height * 2
+      source: root.iconSource
+      fillMode: Image.PreserveAspectFit
+      smooth: true
+      asynchronous: true
+    }
+
     ThemedText {
-      visible: root.icon.length > 0
+      visible: root.icon.length > 0 && root.iconSource.length === 0
       text: root.icon
       color: mouseArea.containsMouse ? Theme.backgroundColor : (root.active ? Theme.accentColor : Theme.textColor)
     }
@@ -33,6 +50,15 @@ Rectangle {
     ThemedText {
       text: root.label
       color: mouseArea.containsMouse ? Theme.backgroundColor : (root.active ? Theme.accentColor : Theme.textColor)
+    }
+
+    Rectangle {
+      visible: root.marked
+      anchors.verticalCenter: parent.verticalCenter
+      width: 6
+      height: 6
+      radius: 3
+      color: mouseArea.containsMouse ? Theme.backgroundColor : Theme.accentColor
     }
   }
 

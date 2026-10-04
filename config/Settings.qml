@@ -92,7 +92,7 @@ Singleton {
     barStyle: ["widgets", "full"],
     hyprlandWindowStyle: ["config", "popin", "slide", "gnomed"],
     hyprlandWorkspaceStyle: ["config", "slide", "slidevert", "fade", "slidefade", "slidefadevert"],
-    launcherTab: ["all", "apps", "games", "files", "web"],
+    launcherTab: ["all", "apps", "games", "files", "web", "webApps"],
     clockDate: ["long", "short", "numeric", "none"],
     fontCaps: ["none", "upper", "lower", "small"],
     screenshotMode: ["screen", "region", "window"],
@@ -265,7 +265,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -456,6 +456,15 @@ Singleton {
   // services/WebSearch.qml), which is always in the list once. Those not `on`
   // are left out of the launcher.
   readonly property var launcherEngines: root.valid("launcherEngines", file.adapter.launcherEngines)
+  // The web apps the bar's web apps widget opens, in order: each
+  // { name, url, on }, a site opened with webAppCommand (see
+  // services/WebApps.qml). Those not `on` are left out of the
+  // widget's menu.
+  readonly property var webApps: root.valid("webApps", file.adapter.webApps)
+  // The command opening a web app: a program and its arguments, %s standing
+  // for the app's address (added at the end when there is none). Run without
+  // a shell (see services/WebApps.qml); empty puts the default back.
+  readonly property string webAppCommand: root.valid("webAppCommand", file.adapter.webAppCommand)
   // The AI providers the chat AI panel can ask, in order: the built-in ones,
   // { builtin: "anthropic" | "openai" | "xai" | "google", model } (their address and API are
   // fixed, see services/ChatAi.qml), always in the list once, and those
@@ -561,6 +570,43 @@ Singleton {
     if (!root.validEngine(name, url)) return false
     root.set("launcherEngines", root.launcherEngines.concat([{ name: name, url: url, on: true }]))
     return true
+  }
+
+  // Whether `name` and `url` make a web app: a name, and a web address.
+  function validWebApp(name, url) {
+    return typeof name === "string" && name.trim().length > 0
+      && typeof url === "string" && /^https?:\/\/\S+$/.test(url.trim())
+  }
+
+  // Changes `fields` ({ name, url, on }, any of them) of web app `index`.
+  // Returns false, changing nothing, when that doesn't make a valid web app.
+  function setWebApp(index, fields) {
+    const list = root.webApps.map(app => Object.assign({}, app))
+    if (index < 0 || index >= list.length) return false
+    const app = Object.assign(list[index], fields)
+    if (!root.validWebApp(app.name, app.url)) return false
+    root.set("webApps", list)
+    return true
+  }
+
+  // Adds a web app at the end of the list (on); false if it isn't valid.
+  function addWebApp(name, url) {
+    if (!root.validWebApp(name, url)) return false
+    root.set("webApps", root.webApps.concat([{ name: name.trim(), url: url.trim(), on: true }]))
+    return true
+  }
+
+  function removeWebApp(index) {
+    root.set("webApps", root.webApps.filter((app, other) => other !== index))
+  }
+
+  // Moves web app `index` `steps` places later (negative: earlier).
+  function moveWebApp(index, steps) {
+    const list = root.webApps.slice()
+    const target = Math.max(0, Math.min(list.length - 1, index + steps))
+    if (index < 0 || index >= list.length || target === index) return
+    list.splice(target, 0, list.splice(index, 1)[0])
+    root.set("webApps", list)
   }
 
   // Changes `fields` ({ name, template, output, hook, on }, any of them) of
@@ -674,6 +720,12 @@ Singleton {
       if (!list.some(engine => engine.browser)) list.unshift({ browser: true, on: true })
       return list
     }
+    // The web apps: those with a name and a web address.
+    if (key === "webApps") {
+      return root.asArray(value)
+        .filter(app => app !== null && typeof app === "object" && root.validWebApp(app.name, app.url))
+        .map(app => ({ name: app.name.trim(), url: app.url.trim(), on: typeof app.on === "boolean" ? app.on : true }))
+    }
     // The added apps: those with a name, their other fields as text.
     // The app opacities: those with a class (once each), their opacities
     // within limits.appOpacity, on hundredths.
@@ -733,6 +785,7 @@ Singleton {
     // A provider's id, or "" for the first one that can be asked.
     if (key === "chatAiDefaultProvider") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     // A place's name, or "" for none.
+    if (key === "webAppCommand") return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 500) : root.defaults[key]
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
@@ -1171,6 +1224,8 @@ Singleton {
       property int launcherResults: Defaults.values.launcherResults
       property int launcherHistory: Defaults.values.launcherHistory
       property var launcherEngines: Defaults.values.launcherEngines
+      property var webApps: Defaults.values.webApps
+      property string webAppCommand: Defaults.values.webAppCommand
       property var chatAiProviders: Defaults.values.chatAiProviders
       property bool chatAiListDir: Defaults.values.chatAiListDir
       property bool chatAiFindFiles: Defaults.values.chatAiFindFiles

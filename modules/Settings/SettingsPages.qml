@@ -39,6 +39,7 @@ Singleton {
     { id: "osd", icon: "󰕾", label: I18n.tr("settings.category.osd") },
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
+    { id: "webApps", icon: "󰖟", label: I18n.tr("settings.category.webApps") },
     // Panels: where each opens, then a tab for each panel with settings of
     // its own, named after it.
     { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
@@ -244,6 +245,7 @@ Singleton {
       { key: "clockShowWorld", text: I18n.tr("clock.tab.world") }
     ] },
     { key: "weatherUnit", category: "clockPanel", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
+    { key: "webAppCommand", category: "webApps", kind: "path", label: I18n.tr("settings.webAppCommand") },
     { key: "weatherLocation", category: "clockPanel", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
@@ -290,6 +292,8 @@ Singleton {
     }
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
+    // Nor do the web apps.
+    if (categoryId === "webApps") keys.push("webApps")
     // Nor do the chat AI's providers.
     if (categoryId === "chatAi") keys.push("chatAiProviders", "chatAiDefaultProvider")
     // Nor do the clocks tab's places.

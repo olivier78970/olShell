@@ -47,6 +47,11 @@ Singleton {
   // Gives time zones' UTC offsets now, for the clock panel's clocks tab.
   readonly property string timezonesScript: Quickshell.shellPath("scripts/timezones.py")
 
+  // Finds the web apps' icons (their sites' favicons), and the folder it
+  // keeps them in.
+  readonly property string faviconScript: Quickshell.shellPath("scripts/favicon.py")
+  readonly property string faviconDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/olShell/favicons"
+
   // Reads the default browser's default search engine, for the launcher.
   readonly property string defaultSearchEngineScript: Quickshell.shellPath("scripts/default-search-engine.py")
 

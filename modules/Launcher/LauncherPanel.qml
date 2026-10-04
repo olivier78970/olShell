@@ -12,9 +12,10 @@ import qs.services
 // or from the bar's launcher icon. Its tabs search what's typed: the
 // installed applications, the games among them (the ones in the Game
 // category), the files and folders of the home folder (with
-// fd), and the web (the default browser's default engine, or an address
-// typed in); the all tab gathers them.
-// Tab / Shift+Tab (with or without Ctrl, or Alt+1..5, or a click) switch
+// fd), the web (the default browser's default engine, or an address
+// typed in) and the web apps (see services/WebApps.qml); the all tab gathers
+// them.
+// Tab / Shift+Tab (with or without Ctrl, or Alt+1..6, or a click) switch
 // tabs, keeping the text; Up/Down (or Ctrl+N/P) move, Enter opens, Escape
 // closes.
 ModalPanel {
@@ -24,33 +25,38 @@ ModalPanel {
   // The focused monitor, kept as a property so Hyprland's monitor data is
   // loaded by the time a terminal application's window is sized from it.
   readonly property var monitor: Hyprland.focusedMonitor
-  // The tab shown: 0 all, 1 applications, 2 games, 3 files, 4 web (the
-  // order of Settings.choices.launcherTab).
+  // The tab shown: 0 all, 1 applications, 2 games, 3 files, 4 web, 5 web
+  // apps (the order of Settings.choices.launcherTab).
   property int tab: 0
   readonly property int allTab: 0
   readonly property int appsTab: 1
   readonly property int gamesTab: 2
   readonly property int filesTab: 3
   readonly property int webTab: 4
+  readonly property int webAppsTab: 5
   readonly property var tabs: [
     { label: I18n.tr("launcher.tab.all"), icon: "󰍉" },
     { label: I18n.tr("launcher.tab.apps"), icon: "󰀻" },
     { label: I18n.tr("launcher.tab.games"), icon: "󰊴" },
     { label: I18n.tr("launcher.tab.files"), icon: "󰉋" },
-    { label: I18n.tr("launcher.tab.web"), icon: "󰖟" }
+    { label: I18n.tr("launcher.tab.web"), icon: "󰖟" },
+    { label: I18n.tr("launcher.tab.webApps"), icon: "󰾔" }
   ]
   // What the tab shows: { kind: "app", entry }, { kind: "file", path, name,
-  // dir, isDir }, { kind: "web", url, title, subtitle } - and, in the all
-  // tab, { kind: "heading", title } over each section (never selected).
+  // dir, isDir }, { kind: "web", url, title, subtitle }, { kind: "webApp",
+  // app, title, subtitle, image } - and, in the all tab, { kind: "heading",
+  // title } over each section (never selected).
   readonly property var results: root.tab === root.appsTab ? root.appResults(root.query)
     : root.tab === root.gamesTab ? root.gameResults(root.query)
     : root.tab === root.filesTab ? root.fileResults
     : root.tab === root.webTab ? root.webResults(root.query)
+    : root.tab === root.webAppsTab ? root.webAppResults(root.query)
     : root.allResults(root.query)
   // How many of each the all tab shows.
   readonly property int allAppCount: 5
   readonly property int allGameCount: 5
   readonly property int allFileCount: 5
+  readonly property int allWebAppCount: 5
   // The files tab's results, for `fileResultsQuery` (fd runs in the
   // background, see searchFiles()).
   property var fileResults: []
@@ -310,6 +316,30 @@ ModalPanel {
     return items
   }
 
+  // ---- Web apps ----
+
+  // The web apps the bar widget's menu offers (those switched on) matching
+  // `query`, best first: name (exact, prefix, word prefix, anywhere), then
+  // address; all of them in their order for an empty query.
+  function webAppResults(query) {
+    const q = query.trim().toLowerCase()
+    const score = app => {
+      const name = app.name.toLowerCase()
+      if (q === "") return 1
+      if (name === q) return 100
+      if (name.startsWith(q)) return 90
+      if (name.split(/[\s\-_.]+/).some(word => word.startsWith(q))) return 70
+      if (name.includes(q)) return 60
+      if (app.url.toLowerCase().includes(q)) return 30
+      return 0
+    }
+    return WebApps.shown
+      .map((app, index) => ({ app: app, index: index, score: score(app) }))
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .map(item => ({ kind: "webApp", app: item.app, title: item.app.name, subtitle: item.app.url, icon: "󰾔", image: WebApps.iconOf(item.app) }))
+  }
+
   function switchTab(index) {
     root.tab = (index + root.tabs.length) % root.tabs.length
     // A click sets the tab bar's own index (no longer bound): keep it right.
@@ -331,8 +361,8 @@ ModalPanel {
     return root.search(query, entry => root.isGame(entry) !== (nonGames === true)).map(entry => ({ kind: "app", entry: entry }))
   }
 
-  // The all tab: with a query, the best applications, then games, files and
-  // the web (everything the web tab offers), each under its heading; without
+  // The all tab: with a query, the best applications, then games, web apps,
+  // files and the web (everything the web tab offers), each under its heading; without
   // one, the applications last opened, then all the other applications, then
   // all the other games (there's nothing to look for in files or on the web).
   function allResults(query) {
@@ -355,6 +385,7 @@ ModalPanel {
     }
     section(I18n.tr("launcher.tab.apps"), apps.slice(0, root.allAppCount))
     section(I18n.tr("launcher.tab.games"), games.slice(0, root.allGameCount))
+    section(I18n.tr("launcher.tab.webApps"), root.webAppResults(query).slice(0, root.allWebAppCount))
     section(I18n.tr("launcher.tab.files"), root.fileResultsQuery === q ? root.fileResults.slice(0, root.allFileCount) : [])
     section(I18n.tr("launcher.tab.web"), root.webResults(query))
     return items
@@ -398,7 +429,8 @@ ModalPanel {
 
   // Opens the selected result: runs the application (a terminal one through
   // launchInTerminal()), opens the file or folder with its default
-  // application, or the page in the browser.
+  // application, the page in the browser, or the web app (or switches to
+  // its window).
   function launchCurrent() {
     if (list.currentIndex < 0 || list.currentIndex >= root.results.length) return
     const item = root.results[list.currentIndex]
@@ -406,6 +438,7 @@ ModalPanel {
     if (item.kind === "app") LauncherState.addRecent(item.entry.id)
     if (item.kind === "app" && item.entry.runInTerminal) root.launchInTerminal(item.entry)
     else if (item.kind === "app") item.entry.execute()
+    else if (item.kind === "webApp") WebApps.launch(item.app)
     else Quickshell.execDetached(["xdg-open", item.kind === "file" ? item.path : item.url])
     LauncherState.visible = false
   }
@@ -495,7 +528,7 @@ ModalPanel {
         ThemedText {
           visible: input.text.length === 0
           anchors.verticalCenter: parent.verticalCenter
-          text: I18n.tr(["launcher.searchAll", "launcher.search", "launcher.searchGames", "launcher.searchFiles", "launcher.searchWeb"][root.tab])
+          text: I18n.tr(["launcher.searchAll", "launcher.search", "launcher.searchGames", "launcher.searchFiles", "launcher.searchWeb", "launcher.searchWebApps"][root.tab])
           opacity: 0.5
         }
       }
@@ -544,8 +577,9 @@ ModalPanel {
 
         readonly property var app: entry.modelData.kind === "app" ? entry.modelData.entry : null
         // The application's icon file, or "" when the icon theme doesn't
-        // have it (the generic app glyph is shown instead).
-        readonly property string appIcon: entry.app ? Quickshell.iconPath(entry.app.icon, true) : ""
+        // have it (the generic app glyph is shown instead); a web app's
+        // favicon, "" until it is found.
+        readonly property string appIcon: entry.app ? Quickshell.iconPath(entry.app.icon, true) : (entry.modelData.image ?? "")
 
         // An application's icon; a glyph for a file, folder or web result,
         // and for an application whose icon can't be found.
@@ -652,6 +686,7 @@ ModalPanel {
         text: I18n.tr(root.query.trim() === "" && root.tab === root.gamesTab ? "launcher.gamesHint"
           : root.query.trim() === "" && root.tab === root.filesTab ? "launcher.filesHint"
           : root.query.trim() === "" && root.tab === root.webTab ? "launcher.webHint"
+          : root.query.trim() === "" && root.tab === root.webAppsTab ? "launcher.webAppsHint"
           : root.filesPending ? "launcher.searching" : "launcher.noResults")
         opacity: 0.6
       }

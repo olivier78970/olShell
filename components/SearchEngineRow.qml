@@ -6,6 +6,8 @@ import qs.config
 // and on the right two arrows moving it earlier / later in the list (`moved`
 // with -1 or 1; dimmed when there is nowhere to move, see `canMoveBack` and
 // `canMoveForward`) and a button taking it out of the list (`removed`).
+// With `iconSource`, an image (a web app's favicon) goes between the check
+// box and the fields.
 // With `browser`, it is the default browser's engine instead: `label` in
 // place of the fields, and no remove button (the arrows move right into its
 // place).
@@ -25,6 +27,7 @@ Item {
   property string label: ""
   property string name: ""
   property string url: ""
+  property string iconSource: ""
   property bool on: true
   property bool canMoveBack: false
   property bool canMoveForward: false
@@ -45,7 +48,7 @@ Item {
 
   // The least it needs: the check box, the fields at some width and the
   // buttons.
-  implicitWidth: 12 + 22 + 12 + 160 + 8 + 220 + 12 + buttons.implicitWidth + 12
+  implicitWidth: 12 + 22 + 12 + (siteIcon.visible ? siteIcon.width + 10 : 0) + 160 + 8 + 220 + 12 + buttons.implicitWidth + 12
   implicitHeight: 44
 
   Rectangle {
@@ -77,6 +80,23 @@ Item {
     }
   }
 
+  Image {
+    id: siteIcon
+    visible: root.iconSource !== ""
+    anchors.left: check.right
+    anchors.leftMargin: 12
+    anchors.verticalCenter: parent.verticalCenter
+    width: 20
+    height: 20
+    sourceSize.width: 40
+    sourceSize.height: 40
+    source: root.iconSource
+    fillMode: Image.PreserveAspectFit
+    smooth: true
+    asynchronous: true
+    opacity: root.on ? 1 : 0.5
+  }
+
   // The browser's engine: what it is, instead of fields.
   ThemedText {
     visible: root.browser
@@ -93,8 +113,8 @@ Item {
   EngineField {
     id: nameField
     visible: !root.browser
-    anchors.left: check.right
-    anchors.leftMargin: 12
+    anchors.left: siteIcon.visible ? siteIcon.right : check.right
+    anchors.leftMargin: siteIcon.visible ? 10 : 12
     width: 160
     field: "name"
     value: root.name
