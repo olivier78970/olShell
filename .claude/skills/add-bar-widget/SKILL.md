@@ -34,10 +34,9 @@ A widget is listed by id in several places that don't reference each other. One 
 4. `modules/Settings/BarLayoutEditor.qml`: its glyph in `icons`, the same one the bar draws.
 5. `modules/Settings/SettingsModule.qml`: the id in the widget list of `place()`'s comment.
 6. `config/Translations.qml`: `settings.widget.<id>` (its name in the layout editor and its popup title) and every text it shows, in en, fr and es.
-7. `README.md` (search with `grep -n … | cut -c1-200`; its lines are very long):
-   - the Structure tree's `Widgets/` lines;
-   - the widget names in the **The bar's layout** paragraph;
-   - the **Widgets** line of the From a script section;
+7. Docs (search `docs/*.md` with `grep -n … | cut -c1-200`; its lines are very long):
+   - run `.claude/scripts/structure.py` (it lists the widget from its header comment, which you write);
+   - the widget names in the **The bar's layout** paragraph of `docs/settings.md`;
    - a description of what it does, in its feature's section.
 
 ## Check

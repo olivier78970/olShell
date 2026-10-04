@@ -68,7 +68,6 @@ for text in $texts; do
   fi
 done
 
-check "README 'From a script' section" "\`$key\`" README.md
 
 # Any use outside config/ and modules/Settings/: the feature reading it.
 uses=$(grep -rlE "(Settings|Theme)\.$key\b" --include='*.qml' . | grep -vE '^\./(config|modules/Settings)/' | head -5)
@@ -78,5 +77,5 @@ else
   printf '  --       no feature reads Settings.%s / Theme.%s outside config/ and modules/Settings/\n' "$key" "$key"
 fi
 
-echo "Also check by hand: the README Settings table row, and fr/es label text being real translations."
+echo "Also check by hand: the Settings table row in docs/settings.md, and fr/es label text being real translations."
 [ "$missing" -eq 0 ]

@@ -29,12 +29,11 @@ A panel touches every other panel. Panels grab the keyboard, so exactly one may 
    - `settings.placement.<id>` in en, fr and es.
    - `SettingsModule.qml`: add the key to `choose()`'s comment.
 7. **Translations** for everything the panel shows, via `I18n.tr`, in en, fr and es.
-8. **`README.md`** (search it with `grep -n … | cut -c1-200`; its lines are very long):
-   - the Structure tree: the State, Module and Panel files;
-   - the **IPC** block: `quickshell -p . ipc call <ipc> toggle` and the other calls;
-   - the Settings table: add the panel's name to the **Placement of each panel** row, and a row for any setting of its own;
-   - the **From a script** choices table: add `<id>Placement` to the placement row;
-   - a section of its own describing the panel, its keys and its IPC calls.
+8. **Docs** (search `docs/*.md` with `grep -n … | cut -c1-200`; its lines are very long):
+   - run `.claude/scripts/structure.py`, which lists the new files from their header comments (write them);
+   - `docs/ipc.md`: `quickshell -p . ipc call <ipc> toggle` and the other calls;
+   - `docs/settings.md`'s Settings table: add the panel's name to the **Placement of each panel** row, and a row for any setting of its own;
+   - a section of its own describing the panel, its keys and its IPC calls, in the doc of its kind (`docs/panels-and-apps.md` or `docs/system.md`).
 
 ## Check
 

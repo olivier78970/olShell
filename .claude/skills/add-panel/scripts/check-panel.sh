@@ -67,9 +67,8 @@ else
   missing=$((missing + 1))
 fi
 
-check "README IPC block: ipc call $target toggle" "ipc call $target toggle" README.md
-check "README choices table: ${id}Placement" "\`${id}Placement\`" README.md
-check "README Structure tree: $state.qml" "$state\.qml" README.md
+check "docs/ipc.md: ipc call $target toggle" "ipc call $target toggle" docs/ipc.md
+check "docs/structure.md lists $state.qml (run .claude/scripts/structure.py)" "$state\.qml" docs/structure.md
 
-echo "Also check by hand: the Placement table row in README, and a keybinding suggestion (ask before editing ~/.config/hypr)."
+echo "Also check by hand: the Placement table row in docs/settings.md, and a keybinding suggestion (ask before editing ~/.config/hypr)."
 [ "$missing" -eq 0 ]

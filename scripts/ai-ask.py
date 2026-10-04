@@ -33,7 +33,7 @@ Nothing here writes a file or runs anything but ripgrep, fd, secret-tool and
 the shell's own IPC calls (below).
 
 More tools are about olShell itself, whose folder --shell gives:
-shell_docs_search and shell_docs_read search and read its README.md
+shell_docs_search and shell_docs_read search and read its documentation (README.md and docs/)
 (read-only, a passage or a section at a time, since its paragraphs are long),
 shell_settings reads its current settings, theme and language from its
 config/ files (read-only),
@@ -372,12 +372,18 @@ def read_file(guard, args):
 
 
 def readme_lines(guard):
-    """The lines of the shell's README.md."""
+    """The lines of the shell's documentation: its README.md, then each file of
+    its docs/ folder (by name), as one text, so the section headings and line
+    numbers run on from file to file."""
     path = os.path.join(guard.shell, "README.md")
     if not guard.shell or not os.path.isfile(path):
         raise OSError("The shell's documentation (README.md) isn't there")
-    with open(path, encoding="utf-8", errors="replace") as file:
-        return file.read().splitlines()
+    names = [path] + sorted(glob.glob(os.path.join(guard.shell, "docs", "*.md")))
+    lines = []
+    for name in names:
+        with open(name, encoding="utf-8", errors="replace") as file:
+            lines += file.read().splitlines() + [""]
+    return lines
 
 
 def headings_of(lines):
@@ -465,7 +471,7 @@ def shell_docs_read(guard, args):
     if args.get("offset"):
         offset = max(1, int(args.get("offset")))
         limit = max(1, min(MAX_DOC_LINES, int(args.get("limit") or 20)))
-        return f"README.md ({len(lines)} lines):\n" + numbered(lines[offset - 1:offset - 1 + limit], offset)
+        return f"The documentation ({len(lines)} lines):\n" + numbered(lines[offset - 1:offset - 1 + limit], offset)
     # Neither: the table of contents.
     return "\n".join(f"{number}\t{'  ' * max(0, level - 2)}{text}" for number, level, text in headings)
 
@@ -494,7 +500,7 @@ def shell_state(guard):
 
 def shell_map(guard):
     """The settings panel's map, from the running shell (its `settings map`
-    IPC call): {"pages": [{id, name}], "settings": {key: {page, name}},
+    IPC call): {"pages": [{id, name}], "settings": {key: {page, name, kind, range}},
     "widgets": {id: name}}, names as the panel shows them. Read once."""
     if guard.map is None:
         guard.map = {}
@@ -728,7 +734,7 @@ TOOLS = {
          "limit": {"type": "integer", "description": f"How many lines (at most {MAX_LINES})"}},
         ["path"], read_file),
     "shell_docs_search": (
-        "Search the documentation of olShell, the desktop shell this chat is part of (its README.md: "
+        "Search the documentation of olShell, the desktop shell this chat is part of (its README.md and docs/: "
         "its features, settings, keys, IPC calls and files), case-insensitive. Gives each matching line's "
         "number, its section and the text around the match.",
         {"query": {"type": "string", "description": "The text to find, e.g. a setting's name or a key"},

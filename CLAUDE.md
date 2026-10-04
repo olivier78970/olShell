@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-olShell is a [Quickshell](https://quickshell.org) (QML) desktop shell for Hyprland. README.md is the user documentation and is kept current: its Structure tree, Settings table, From a script lists and IPC list are updated along with the code. README.md is over 100 KB, and many paragraphs are a single line of thousands of characters, so don't read it whole: find lines with `grep -n '<pattern>' README.md | cut -c1-200`, then read only those.
+olShell is a [Quickshell](https://quickshell.org) (QML) desktop shell for Hyprland. README.md is a short overview with an index of `docs/`, the user documentation, which is kept current: the Settings table (`docs/settings.md`) and the IPC list (`docs/ipc.md`) are updated along with the code. Many paragraphs in `docs/` are a single line of thousands of characters, so don't read a file whole: find lines with `grep -n '<pattern>' docs/*.md | cut -c1-200`, then read only those. `docs/structure.md` is generated from the files' header comments (`.claude/scripts/structure.py`, rerun after adding, moving or removing a file, and write a file's header comment so its line says what it is).
 
 ## Skills and checks
 
@@ -17,6 +17,7 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`ship`**: commit, merge, push and deploy, when asked.
 
 There is no build step, linter or test suite. The checks are scripts, run from the repo root:
+- `.claude/scripts/structure.py --check`: `docs/structure.md` lists every file (run without `--check` to regenerate it).
 - `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists.
 - The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`) and `check-widget.sh`.
 
@@ -28,7 +29,7 @@ Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not
 
 ## Architecture
 
-The per-file tree is in README.md's Structure section.
+The per-file tree is `docs/structure.md`.
 
 - **Imports:** Quickshell turns every directory into a module, so files are imported as `qs.<path>` (`import qs.config`, `qs.services`, `qs.components`, `qs.modules.Bar.Widgets`), never by relative path.
 - **`shell.qml`** instantiates every module. Singletons are created lazily, so a service that has to exist from startup (to own an IPC target or a D-Bus name, or to apply a saved state) gets a dummy `readonly property var x: Service.prop` reference in `shell.qml`.
