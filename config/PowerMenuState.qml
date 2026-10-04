@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.config
 
 // Shared state for the power confirmation dialog. PowerPanel sets
 // `pendingAction` when an action is picked; PowerConfirmDialog reads
@@ -14,11 +15,18 @@ Singleton {
   // "" | "logout" | "restart" | "firmware" | "shutdown"
   property string pendingAction: ""
 
+  // The action waiting for the power panel to finish animating away.
+  property string requested: ""
+
+  // Asks to confirm `action`, once the power panel (closed just before) has
+  // animated away, so the two never show together.
   function request(action) {
-    root.pendingAction = action
+    root.requested = action
+    requestTimer.restart()
   }
 
   function cancel() {
+    requestTimer.stop()
     root.pendingAction = ""
   }
 
@@ -39,6 +47,12 @@ Singleton {
   // Suspends at once (it needs no confirmation).
   function suspend() {
     suspendProcess.running = true
+  }
+
+  Timer {
+    id: requestTimer
+    interval: Theme.animationDuration
+    onTriggered: root.pendingAction = root.requested
   }
 
   Process {

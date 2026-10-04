@@ -5,7 +5,7 @@ description: Add a new full-screen panel to olShell (a ModalPanel like the launc
 
 # Adding a full-screen panel to olShell
 
-A panel touches every other panel. Panels grab the keyboard, so exactly one may be open, and each panel's `toggle()` closes all the others by name. Forgetting one leaves two panels fighting for focus. Copy the chat AI panel: it is the most recent one and has every part (`config/ChatAiState.qml`, `modules/ChatAi/ChatAiModule.qml`, `modules/ChatAi/ChatAiPanel.qml`).
+A panel touches every other panel. Panels grab the keyboard, so exactly one may be open, and they all open through `Panels.open()` (`config/Panels.qml`), which closes the others and waits for their closing animation. A panel missing from its `all` list leaves two panels fighting for focus. Copy the chat AI panel: it is the most recent one and has every part (`config/ChatAiState.qml`, `modules/ChatAi/ChatAiModule.qml`, `modules/ChatAi/ChatAiPanel.qml`).
 
 ## Decide first
 
@@ -17,8 +17,8 @@ A panel touches every other panel. Panels grab the keyboard, so exactly one may 
 
 ## The places to edit
 
-1. **`config/<Name>State.qml`**: a `pragma Singleton` with `property bool visible: false` and `toggle()`. `toggle()` sets every other panel State's `visible = false`, then flips its own (copy `ChatAiState.qml`'s list and add the one it's missing: `ChatAiState` itself). Put the state kept between openings here, with comments.
-2. **Every other panel State's `toggle()`**: add `<Name>State.visible = false`. The panel States are the `config/*State.qml` files with a `toggle()`; the checker lists any that miss it.
+1. **`config/<Name>State.qml`**: a `pragma Singleton` with `property bool visible: false` and `toggle()`. `toggle()` closes it when visible, else opens it through `Panels.open(root, () => root.visible = true)` (copy `ChatAiState.qml`).
+2. **`config/Panels.qml`**: add `<Name>State` to its `all` list, so opening any other panel closes this one. The checker lists a panel State missing from it.
 3. **`modules/<Name>/<Name>Panel.qml`**: `ModalPanel { open: <Name>State.visible; onCloseRequested: <Name>State.visible = false; placement: Settings.<id>Placement; focusTarget: … }`. Size it with `maxPanelWidth` / `maxPanelHeight` (or `fitScreen`), reset what should start fresh in `onOpened`, and close on Escape. Start the file with a comment saying what the panel is, its IPC call and its keys, like the others.
 4. **`modules/<Name>/<Name>Module.qml`**: a `Scope` holding the `IpcHandler` (`target: "<ipc>"`, at least `toggle()`, each function with a comment) and the `Linger` + `LazyLoader`. The IPC functions must work while the panel isn't built, so they go through the State or a service, never the panel.
 5. **`shell.qml`**: `import qs.modules.<Name>` and `<Name>Module {}` with the other modules. A service that has to exist from startup gets the dummy reference CLAUDE.md describes.
@@ -44,7 +44,7 @@ A panel touches every other panel. Panels grab the keyboard, so exactly one may 
 .claude/scripts/check-translations.py
 ```
 
-The panel checker also verifies that every panel's `toggle()` closes all the others.
+The panel checker also verifies that every panel State is in `Panels.all` and opens through `Panels.open()`.
 
 ## Test
 

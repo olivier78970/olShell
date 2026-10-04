@@ -53,4 +53,17 @@ Scope {
 
     PowerPanel {}
   }
+
+  // The confirmation asked for before a logout, restart or shutdown, built
+  // only while one is pending (and a moment after, to animate away).
+  Linger {
+    id: confirmLinger
+    when: PowerMenuState.pendingAction !== ""
+  }
+
+  LazyLoader {
+    active: confirmLinger.active
+
+    PowerConfirmDialog {}
+  }
 }

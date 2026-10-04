@@ -55,6 +55,7 @@ For the features that use them:
 │   ├── ClockPanelState.qml   # Shared visibility of the clock panel
 │   ├── NotificationActions.qml, NotificationActionsState.qml   # Commands run when a notification arrives (saved in NotificationActions.json), and their panel's state
 │   ├── PowerMenuState.qml    # Pending power action + the commands that run it
+│   ├── Panels.qml            # Opens the full-screen panels one at a time, waiting for the one open to animate away
 │   ├── PowerPanelState.qml   # Shared visibility of the power panel
 │   ├── WallpaperPanelState.qml   # Shared visibility of the wallpaper panel
 │   └── *.json                # Runtime state, git-ignored: Settings, UserDefaults, ThemeState, LocaleState, LauncherState, GeneratedColors, NotificationActions
@@ -91,7 +92,6 @@ For the features that use them:
 │   ├── ModalPanel.qml        # Base of the full-screen panels: backdrop, frame, keyboard focus
 │   ├── CarouselPanel.qml, CarouselCard.qml   # Base of the two pickers (wallpapers, themes): cards stacked in one of several styles, or side by side
 │   ├── RingGauge.qml, Sparkline.qml   # Gauge and area chart
-│   ├── PowerConfirmDialog.qml   # Confirmation shown after picking a power action
 │   ├── Fillet.qml, BarFillets.qml   # Concave corners where a surface meets the bar
 │   ├── CheckBox.qml          # A check box (drawing only)
 │   └── SettingSlider.qml, ChoiceRow.qml, DropdownRow.qml, ToggleRow.qml, PathRow.qml, SearchEngineRow.qml, DefaultsRow.qml, PositionIcon.qml, DisabledTooltip.qml, ColorPicker.qml, ThemeAppRow.qml, ChatAiProviderRow.qml   # Rows of the settings panel
@@ -120,6 +120,7 @@ For the features that use them:
 │   ├── Notifications/        # NotificationPopups (the pop-ups), NotificationCenter (the history panel), NotificationCard, NotificationActionsPanel (commands run on a notification), NotificationActionsModule (builds it only while it is open, and holds its IPC target)
 │   ├── Lock/LockScreen.qml   # The lock screen (session lock) + the idle timer
 │   ├── Polkit/PolkitDialog.qml    # The password dialog of the polkit agent (ModalPanel)
+│   ├── Power/PowerConfirmDialog.qml # The confirmation after picking a power action, placed like the panel (ModalPanel)
 │   ├── Power/PowerModule.qml # Builds the power panel only while it is open, and holds its IPC target
 │   ├── Power/PowerPanel.qml  # The power panel: log out, restart, shut down (ModalPanel)
 │   ├── Osd/                  # Popups shown for a moment, each where its position setting puts it
