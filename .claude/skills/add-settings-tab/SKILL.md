@@ -14,17 +14,15 @@ A category in `modules/Settings/SettingsPages.qml` (`categories`) is either a si
 2. **`SettingsPages.qml` → `rows`**: change each moved row's `category:` to the new page id. Drop a row's `title:` when its tab is now named the same, since the title only heads a section inside a page.
 3. **Tab label**: reuse an existing `settings.*` key when the name already exists (a section title, a widget name); otherwise add one to en, fr and es in `config/Translations.qml`. Delete a key nothing uses any more (`grep -rn '"<key>"'`).
 4. **`modules/Settings/SettingsModule.qml`**: the `saveDefaults` comment lists the page ids; keep it in step with `pages`.
-5. **`README.md`** (search with `grep -n … | cut -c1-200`; its lines are very long):
-   - the **Categories** line of the `saveDefaults` / `restoreDefaults` description lists every page id with its tab name;
-   - the Settings table's first column says where a setting is (`Bar widgets (Clock tab)`): update the rows of every moved setting.
-6. **Other mentions**: `grep -rn '<old page id>'` across `modules`, `config`, `README.md` and `.claude/skills` (the `add-bar-widget` skill says where a widget's settings go).
+5. **`docs/settings.md`** (search with `grep -n … | cut -c1-200`; its lines are very long). Its **From a script** section lists no page ids (`settings map` gives them), so only the Settings table's first column says where a setting is (`Bar widgets (Clock tab)`): update the rows of every moved setting.
+6. **Other mentions**: `grep -rn '<old page id>'` across `modules`, `config`, `docs`, `README.md` and `.claude/skills` (the `add-bar-widget` skill says where a widget's settings go).
 
 ## Check
 
 ```sh
 .claude/scripts/check-translations.py
 .claude/skills/add-setting/scripts/check-setting.sh <key of a moved row> <slider|toggle|choice|text>
-grep -rn '<old page id>' modules config README.md .claude   # nothing left
+grep -rn '<old page id>' modules config docs README.md .claude   # nothing left
 ```
 
 ## Test

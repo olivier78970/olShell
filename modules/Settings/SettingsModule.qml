@@ -21,9 +21,10 @@ Scope {
     // The panel's map as JSON, for scripts (the chat AI): its pages, in
     // order ({ id, name }, the name as the panel shows it, "Category > Tab"),
     // each setting's page and name there ({ key: { page, name } }, e.g.
-    // "Bar > Position"), and each bar widget's name ({ id: name }), all in the
-    // current language; and the values each setting with a list of choices
-    // takes ({ key: [values] }).
+    // "Bar > Position"; each also has its `kind`, "number", "yes/no", "choice",
+    // "color", "text" or "list", and a number's `range` [min, max]), and each bar
+    // widget's name ({ id: name }), all in the current language; and the values
+    // each setting with a list of choices takes ({ key: [values] }).
     function map(): string {
       const pages = []
       const pageNames = {}
@@ -37,7 +38,15 @@ Scope {
       const settings = {}
       const add = (key, page, name) => {
         if (Settings.defaults[key] === undefined || settings[key] !== undefined) return
-        settings[key] = { page: page, name: name ? pageNames[page] + " > " + name : pageNames[page] }
+        const value = Settings.defaults[key]
+        const kind = Settings.choices[key] ? "choice"
+          : typeof value === "boolean" ? "yes/no"
+          : typeof value === "number" ? "number"
+          : typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value) ? "color"
+          : typeof value === "string" ? "text"
+          : "list"
+        settings[key] = { page: page, name: name ? pageNames[page] + " > " + name : pageNames[page], kind: kind }
+        if (kind === "number" && Settings.limits[key]) settings[key].range = Settings.limits[key]
       }
       for (const row of SettingsPages.rows) {
         add(row.key, row.category, row.label)

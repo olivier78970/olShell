@@ -544,7 +544,7 @@ Singleton {
   readonly property bool chatAiWebSearch: root.valid("chatAiWebSearch", file.adapter.chatAiWebSearch)
   readonly property bool chatAiWebFetch: root.valid("chatAiWebFetch", file.adapter.chatAiWebFetch)
   // What it may do with the shell itself: search and read its documentation
-  // (README.md), and run its IPC calls, all but those that can't be undone
+  // (README.md and docs/), and run its IPC calls, all but those that can't be undone
   // (see IPC_BLOCKED in scripts/ai-ask.py).
   readonly property bool chatAiShellDocs: root.valid("chatAiShellDocs", file.adapter.chatAiShellDocs)
   readonly property bool chatAiShellIpc: root.valid("chatAiShellIpc", file.adapter.chatAiShellIpc)

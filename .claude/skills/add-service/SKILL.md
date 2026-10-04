@@ -21,7 +21,7 @@ Services (`services/*.qml`) are `pragma Singleton`s created on first use. Most o
 3. **`shell.qml`**: the startup reference, when needed (above).
 4. **A setting** it comes with: the `add-setting` skill. **A panel or widget** for it: `add-panel` / `add-bar-widget`.
 5. **Translations** for anything shown to the user (`I18n.tr`, en/fr/es in `config/Translations.qml`).
-6. **`README.md`** (search with `grep -n … | cut -c1-200`): the Structure tree's `services/` lines, the **IPC** block for each call, and a description in the feature's section.
+6. **Docs** (search `docs/*.md` with `grep -n … | cut -c1-200`): run `.claude/scripts/structure.py` (it lists the service from its header comment, which you write), add each IPC call to `docs/ipc.md`, and a description in the feature's section.
 
 ## Check
 

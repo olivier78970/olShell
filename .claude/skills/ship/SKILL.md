@@ -10,7 +10,7 @@ Only when the user asks, and only the steps they named. A request for "commit" i
 ## Commit and merge
 
 1. `git status --short`, and `git diff --stat` for what is in. Remove any debug logging first (`grep -rn 'console.log' --include='*.qml' .` for the lines you added).
-2. Run the checks that apply: `.claude/scripts/check-translations.py`, and the `check-*.sh` of the skill the change followed.
+2. Run the checks that apply: `.claude/scripts/check-translations.py`, `.claude/scripts/structure.py --check` (rerun it without `--check` if files were added, moved or removed), and the `check-*.sh` of the skill the change followed.
 3. Work happens on a feature branch (`git checkout -b <short-name>`; on master, branch before committing).
 4. Commit with a single imperative sentence describing the user-visible change, no type prefix (`Add tabs to the launcher: all, applications, files and the web`), then the attribution line the session's system reminder gives.
 5. Merge into master with `git merge --no-ff <branch> -m "Merge <branch>: <what it does>"` (plus the attribution line), from master.

@@ -27,8 +27,7 @@ check "BarWidgets.qml Component" "Component \{ id: $id; $component \{\} \}" modu
 check "Settings.qml widgetIds" "widgetIds: \[.*\"$id\"" config/Settings.qml
 check "BarLayoutEditor.qml icon" "\b$id: \"" modules/Settings/BarLayoutEditor.qml
 check "SettingsModule.qml place() widget list" "\b$id\b" modules/Settings/SettingsModule.qml
-check "README Structure tree: $component" "\b$component\b" README.md
-check "README From a script Widgets line" "^\*\*Widgets\*\*.*\`$id\`" README.md
+check "docs/structure.md lists $component (run .claude/scripts/structure.py)" "\b$component\b" docs/structure.md
 
 labels=$(grep -cE "^\s*\"settings\.widget\.$id\":" config/Translations.qml)
 if [ "${labels:-0}" -ge 3 ]; then
@@ -49,5 +48,5 @@ for other in $ids; do
   grep -qE "\b$other: \"" modules/Settings/BarLayoutEditor.qml || { printf '  MISSING  %s: no BarLayoutEditor icon\n' "$other"; missing=$((missing + 1)); }
 done
 
-echo "Also check by hand: the README Layout paragraph's widget names, and the widget on a left/right bar (BarStack)."
+echo "Also check by hand: the Layout paragraph's widget names in docs/settings.md, and the widget on a left/right bar (BarStack)."
 [ "$missing" -eq 0 ]
