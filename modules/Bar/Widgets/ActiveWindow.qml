@@ -9,7 +9,10 @@ import qs.config
 // supporting wlr-foreign-toplevel-management, not just Hyprland). A window
 // whose icon can't be found gets a generic application glyph instead. On a
 // side bar (or with the vertical layout, Settings.activeWindowLayout) only the
-// icon shows, and hovering it shows the title.
+// icon shows, and hovering it shows the title. On a bar along the top or
+// bottom the title is shortened (with an ellipsis) so its pill doesn't run
+// into the next one: the bar tells the pill how much room it has
+// (WidgetZone's maxWidth).
 Row {
   id: root
 
@@ -20,6 +23,39 @@ Row {
   readonly property var toplevel: ToplevelManager.activeToplevel
   readonly property var desktopEntry: root.toplevel ? DesktopEntries.byId(root.toplevel.appId) : null
   readonly property int maxTitleWidth: 700
+  // The pill this widget is in, which knows how much room there is.
+  readonly property Item zone: {
+    let item = root.parent
+    while (item && !item.isWidgetZone) item = item.parent
+    return item
+  }
+  // How wide the title may be to keep the pill within its room (a very large
+  // number for no limit). Set by fit() below rather than bound, since the
+  // pill's width depends on the title's.
+  property real titleRoom: 1e6
+
+  // Shortens the title by how far the pill overruns its room, or lets it grow
+  // back by what is left of it; the width changes this causes call it again
+  // until the pill fits.
+  function fit() {
+    if (!root.zone || root.iconOnly) {
+      root.titleRoom = 1e6
+      return
+    }
+    const over = root.zone.width - root.zone.maxWidth
+    if (over > 0.5) root.titleRoom = Math.max(0, Math.floor(titleText.width - over))
+    else if (over < -0.5 && titleText.width < titleText.implicitWidth) root.titleRoom = Math.floor(titleText.width - over)
+  }
+
+  Connections {
+    target: root.zone
+
+    function onWidthChanged() { root.fit() }
+    function onMaxWidthChanged() { root.fit() }
+  }
+
+  onIconOnlyChanged: root.fit()
+  Component.onCompleted: root.fit()
   // The window's icon: its desktop entry's (a theme icon, or a file for an
   // absolute path), or else one named after its app id; "" when the icon
   // theme has neither.
@@ -76,7 +112,13 @@ Row {
     id: titleText
     visible: !root.iconOnly
     anchors.verticalCenter: parent.verticalCenter
-    width: Math.min(implicitWidth, root.maxTitleWidth)
+    width: Math.min(implicitWidth, root.maxTitleWidth, root.titleRoom)
+    // A new title may be longer or shorter than the last: start from its own
+    // width again.
+    onImplicitWidthChanged: {
+      root.titleRoom = 1e6
+      root.fit()
+    }
     text: root.toplevel ? root.toplevel.title : ""
     elide: Text.ElideRight
 

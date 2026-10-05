@@ -430,6 +430,7 @@ Scope {
             x: vertical ? (parent.width - width) / 2 : 0
             y: vertical ? 0 : (parent.height - height) / 2
             widgets: Settings.layout.left
+            maxWidth: vertical ? 1e9 : (centerZone.visible ? centerZone.x : rightZone.visible ? rightZone.x : parent.width) - leftZone.x - Theme.widgetSpacing
             flattenStartPopupCorner: popupLayer.atStartEnd
           }
 
@@ -438,6 +439,7 @@ Scope {
             id: centerZone
             anchors.centerIn: parent
             widgets: Settings.layout.center
+            maxWidth: vertical ? 1e9 : parent.width - 2 * Math.max(leftZone.visible ? leftZone.width : 0, rightZone.visible ? rightZone.width : 0) - 2 * Theme.widgetSpacing
           }
 
           // Right widgets (at the bottom, on a side bar), placed the same way.
@@ -446,6 +448,7 @@ Scope {
             x: vertical ? (parent.width - width) / 2 : parent.width - width
             y: vertical ? parent.height - height : (parent.height - height) / 2
             widgets: Settings.layout.right
+            maxWidth: vertical ? 1e9 : parent.width - (centerZone.visible ? centerZone.x + centerZone.width : leftZone.visible ? leftZone.width : 0) - Theme.widgetSpacing
             flattenEndPopupCorner: popupLayer.atEndEnd
           }
         }
