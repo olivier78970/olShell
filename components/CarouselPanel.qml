@@ -100,6 +100,9 @@ ModalPanel {
         preferredHighlightBegin: 0.5
         preferredHighlightEnd: 0.5
         highlightRangeMode: PathView.StrictlyEnforceRange
+        // The cards slide to the next one (PathView's usual 300 ms), or jump
+        // with animations turned off.
+        highlightMoveDuration: Settings.animations ? 300 : 0
 
         // Single flat plane: all cards share one straight line, one
         // size, one z-level, so raising sideVisibleCount just fits more

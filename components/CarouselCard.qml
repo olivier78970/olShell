@@ -116,7 +116,7 @@ Item {
   ]
 
   Behavior on scale {
-    NumberAnimation { duration: 150 }
+    NumberAnimation { duration: Settings.animations ? 150 : 0 }
   }
 
   // A soft shadow under the stacked cards, setting each apart from the one

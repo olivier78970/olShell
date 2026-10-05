@@ -11,7 +11,7 @@ The settings, with their range:
 | Appearance | Border width | 0 – 6 px | 2 |
 | Appearance | Curve radius (of the curved joins between the bar and what's attached to it, and between a submenu and its menu; only with curved joins on, no gap and no border) | 0 – 60 px | 5 |
 | Appearance | Same as the widget radius (the curves follow the widget radius above, instead of their own) | check box | on |
-| Animations (General tab) | Animate (the auto-hiding bar sliding in and out; the bar widgets' popups and menus, and the panels attached to the bar, slide out from under the bar, or from under their menu, and fade in; the other panels fade in while growing from slightly smaller; all go back the same way as they close; off, they snap) | check box | on |
+| Animations (General tab) | Animate (the auto-hiding bar sliding in and out; the bar widgets' popups and menus, and the panels attached to the bar, slide out from under the bar, or from under their menu, and fade in; the other panels fade in while growing from slightly smaller; all go back the same way as they close; the wallpaper and theme cards slide to the next one and the hovered card grows; off, they snap) | check box | on |
 | Animations (General tab) | Animation duration (only while animating) | 50 – 600 ms | 160 ms |
 | Animations (Hyprland tab) | Animate windows and workspaces (Hyprland's own animations on or off) | check box | on |
 | Animations (Hyprland tab) | Duration: a multiplier on the duration of every animation the Hyprland config sets (×2 makes them last twice as long, ×0.5 half as long; ×1 leaves the config's) | ×0.25 – ×4 | ×1 |
