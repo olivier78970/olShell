@@ -29,8 +29,36 @@ ModalPanel {
   readonly property int columns: 3
   property int current: 0
 
+  // The buttons are 140 pixels wide, or wider when the longest label (the
+  // language and font change it) doesn't fit, all of the same width.
+  property real widestLabel: 0
+
+  // Measures the labels again (when one changes, as with the language).
+  function measure() {
+    let widest = 0
+    for (let i = 0; i < labels.count; i++) widest = Math.max(widest, labels.itemAt(i)?.implicitWidth ?? 0)
+    root.widestLabel = widest
+  }
+  readonly property int cardWidth: Math.max(140, Math.ceil(root.widestLabel) + 32)
+  readonly property int cardSpacing: 16
+
+  // Hidden copies of the labels, only to measure them.
+  Repeater {
+    id: labels
+    model: root.actions
+
+    ThemedText {
+      required property var modelData
+      visible: false
+      text: modelData.label
+      onImplicitWidthChanged: root.measure()
+    }
+
+    onItemAdded: root.measure()
+  }
+
   // The buttons' grid and a margin around it.
-  maxPanelWidth: 452 + 2 * 24
+  maxPanelWidth: root.columns * root.cardWidth + (root.columns - 1) * root.cardSpacing + 2 * 24
   maxPanelHeight: 256 + 2 * 24
   placement: Settings.powerPlacement
   anchorItem: PowerPanelState.anchorItem
@@ -70,7 +98,7 @@ ModalPanel {
   Grid {
     anchors.centerIn: parent
     columns: root.columns
-    spacing: 16
+    spacing: root.cardSpacing
 
     Repeater {
       model: root.actions
@@ -82,7 +110,7 @@ ModalPanel {
         required property int index
         readonly property bool selected: card.index === root.current
 
-        width: 140
+        width: root.cardWidth
         height: 120
         radius: Theme.radiusFor(height)
         color: Theme.fade(Theme.pillColor, Theme.widgetOpacity)
