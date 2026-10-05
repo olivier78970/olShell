@@ -20,7 +20,7 @@ Services (`services/*.qml`) are `pragma Singleton`s created on first use. Most o
 2. **IPC** (if any): an `IpcHandler { target: "<lowercase>" }` in the service, each function commented. It must answer while no panel is built.
 3. **`shell.qml`**: the startup reference, when needed (above).
 4. **A setting** it comes with: the `add-setting` skill. **A panel or widget** for it: `add-panel` / `add-bar-widget`.
-5. **Translations** for anything shown to the user (`I18n.tr`, en/fr/es in `config/Translations.qml`).
+5. **Translations** for anything shown to the user (`I18n.tr`, en/fr/es in `config/Translations.qml`, added with `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>"`).
 6. **Docs** (search `docs/*.md` with `grep -n … | cut -c1-200`): run `.claude/scripts/structure.py` (it lists the service from its header comment, which you write), add each IPC call to `docs/ipc.md`, and a description in the feature's section.
 
 ## Check

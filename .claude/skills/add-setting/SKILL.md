@@ -16,6 +16,7 @@ CLAUDE.md gives the general flow (Defaults → Settings → Theme, translations,
 - **The row goes in `modules/Settings/SettingsPages.qml`** (`rows`), not `SettingsPanel.qml`. Its `category` is a page id from `categories` (a category, or a tab of one). The row is also what puts the key in its category's **Reset** and profiles (`keysOf()`), so every setting needs one.
   - For a check box, use a `toggles` row with `checkBoxes: true`. The row gets its own key (`<key>Row`), and the toggle inside it names the setting.
 - **`modules/Settings/SettingsPanel.qml`**, only for `buttons` / `dropdown` rows: add a `<key>Options` property mapping each choice to `I18n.tr("settings.<key>.<value>")`, and a line in `optionsOf(row)`.
+- **Translations**: add each key to en, fr and es in one go with `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" [--after <related.key>]` (it checks them too; `--rename <old> <new>` renames a key in all three).
 - **Translations for a choice**: besides the `settings.<key>` label, add one `settings.<key>.<value>` for each value, in en, fr and es. Make the French and Spanish words agree in gender and number with their noun.
 - **`modules/Settings/SettingsModule.qml`** (the `settings` IpcHandler):
   - `set()` and `choose()` already accept any key with a default. Their comments, which list the keys, are the IPC documentation, so add the key there: numbers and yes/no settings in `set`'s comment, choices and text in `choose`'s.
@@ -23,6 +24,10 @@ CLAUDE.md gives the general flow (Defaults → Settings → Theme, translations,
 - **`docs/settings.md`**: the Settings table row. The **From a script** section lists no keys: `settings map` gives every setting's page, kind, range and choices, so the key shows there on its own once it has a row. Also update the feature's own section if it describes the behaviour the setting changes.
   - `docs/settings.md` is 36 KB, and many paragraphs are one line of several thousand characters. Don't read it whole, and don't let a search print whole lines. Find what you need with `grep -n '<pattern>' docs/*.md | cut -c1-200`, then `Read` only those lines (`offset`/`limit`) before editing them.
 - **Settings applied once** (a Hyprland keyword, a process, a file): apply at startup and on change, not only through a binding.
+
+## Profiles and page resets
+
+A setting is part of the **profiles** (`services/Profiles.qml`, which snapshots every key of `Defaults.values`) and of its page's **Reset** (which puts the page's keys, from `keysOf()`, back to the current profile's values) with no further work, as long as the key is readable through `Settings.get(key)`: a property of `Settings.qml`, or a key of the file's adapter (what the bar's layout lists are). A key left out of the JsonAdapter is silently not saved by a profile either. `Settings.defaults` supplies the value for a profile saved before the setting existed.
 
 ## Check nothing was missed
 
@@ -42,7 +47,7 @@ With the checkout shell running (the `test-deploy` skill starts it and backs up 
 quickshell -p . ipc call settings set <key> <value>     # numbers, 1/0
 quickshell -p . ipc call settings choose <key> <value>  # choices, text
 quickshell -p . ipc call settings get <key>             # or getChoice
-quickshell -p . ipc call settings resetPage <category>
+quickshell -p . ipc call settings resetPage <category>   # to the current profile (`profiles list` names it)
 ```
 
 - Try an out-of-range or invalid value, and confirm it is clamped or ignored.

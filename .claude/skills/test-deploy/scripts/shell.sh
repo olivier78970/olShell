@@ -10,6 +10,8 @@
 #   shell.sh log [lines]            the checkout shell's log (default 60)
 #   shell.sh deploy                 copy master into the deployed copy
 #   shell.sh deployed               stop the checkout, run the deployed copy
+#   shell.sh ipc <target> <fn> [args]   an IPC call to the shell that is running
+#                                   (the checkout's, else the deployed one's)
 set -u
 
 repo=$(git rev-parse --show-toplevel)
@@ -83,6 +85,15 @@ case ${1:-status} in
     start "$repo"
     ;;
   log) qs log -p "$repo" -t "${2:-60}" ;;
+  ipc)
+    # Whichever shell runs, whatever QS_CONFIG_PATH says (and without a
+    # shell-variable word-splitting trap, which `q="quickshell ipc call"` hits in zsh).
+    shift
+    if running "$repo"; then target="$repo"
+    elif running "$deployed"; then target="$deployed"
+    else echo "no shell is running"; exit 1; fi
+    qs -p "$target" ipc call "$@"
+    ;;
   deploy)
     branch=$(git -C "$repo" branch --show-current)
     [ "$branch" = master ] || echo "note: on branch $branch; deploying master, which doesn't have this branch's commits"
@@ -111,5 +122,5 @@ case ${1:-status} in
     sleep 1
     running "$repo" && { echo "the checkout shell is still running: stopping it"; stop "$repo" || exit 1; }
     ;;
-  *) sed -n '2,12p' "$0"; exit 1 ;;
+  *) sed -n '2,14p' "$0"; exit 1 ;;
 esac
