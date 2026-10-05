@@ -20,8 +20,11 @@ Singleton {
 
   // The adjustable look-and-feel values (git-ignored).
   readonly property string settings: Quickshell.shellPath("config/Settings.json")
-  // The values the user saved as their own defaults (see Settings.qml).
+  // The values the user saved as their own defaults before profiles existed
+  // (see services/Profiles.qml, which turns them into a profile).
   readonly property string userDefaults: Quickshell.shellPath("config/UserDefaults.json")
+  // The saved configurations (see services/Profiles.qml), git-ignored too.
+  readonly property string profiles: Quickshell.shellPath("config/Profiles.json")
   // The notification actions (see NotificationActions.qml); like the two
   // above, only there once something has been saved.
   readonly property string notificationActions: Quickshell.shellPath("config/NotificationActions.json")

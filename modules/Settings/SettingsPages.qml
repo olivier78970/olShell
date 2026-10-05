@@ -5,7 +5,7 @@ import qs.config
 
 // What the settings panel is made of that doesn't need the panel itself:
 // its categories and pages, the rows holding a setting, and the functions
-// putting settings back to their defaults or saving them as defaults. The
+// putting settings back to those of the current profile. The
 // panel is only built while it is open (see SettingsModule.qml), and the
 // `settings` IPC calls use these while it isn't.
 Singleton {
@@ -70,6 +70,8 @@ Singleton {
       { id: "chatAiAccess", label: I18n.tr("settings.tab.chatAiAccess") },
       { id: "chatAiHistory", label: I18n.tr("settings.tab.chatAiHistory") }
     ] },
+    // Profiles: the saved configurations (rows built in SettingsPanel.qml).
+    { id: "profiles", icon: "󰆓", label: I18n.tr("settings.category.profiles") },
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
@@ -104,7 +106,6 @@ Singleton {
     { key: "radius", category: "appearance", kind: "slider", label: I18n.tr("settings.radius"), step: 1, format: v => v + " px" },
     { key: "language", category: "general", kind: "choice", label: I18n.tr("settings.language") },
     { key: "screenshotDir", category: "general", kind: "path", label: I18n.tr("settings.screenshotDir") },
-    { key: "factoryAll", category: "general", kind: "factoryAll", label: I18n.tr("settings.factoryAll") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
     { key: "barAutoHideRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHide"), toggles: [
@@ -359,13 +360,6 @@ Singleton {
     ] }
   ]
 
-  // Puts every setting, and the language, back to the user's own defaults (the
-  // built-in ones for what has none).
-  function resetAll() {
-    Settings.restoreDefaults(Object.keys(Settings.defaults), "mine")
-    I18n.select(Settings.userDefaults.language ?? "auto")
-  }
-
   // The settings a category holds, by key: the ones its rows change (the
   // widgets category has the bar's layout lists). The language, which the
   // general category also holds, is not a setting: see the functions below.
@@ -395,28 +389,22 @@ Singleton {
     return keys
   }
 
-  // Saves the current values of a category as the user's own defaults.
-  function saveDefaults(categoryId) {
-    Settings.saveDefaults(root.keysOf(categoryId), categoryId === "general" ? { language: I18n.setting } : {})
+  // Puts every setting, the language and the theme back to those of the
+  // current profile (see services/Profiles.qml).
+  function resetAll() {
+    Profiles.apply(Profiles.current)
   }
 
-  // Puts a category back to the user's own defaults ("mine"; the built-in
-  // ones for what has none) or to the built-in ones ("factory").
-  function restoreDefaults(categoryId, source) {
-    Settings.restoreDefaults(root.keysOf(categoryId), source)
-    if (categoryId !== "general") return
-    const saved = source === "mine" ? Settings.userDefaults.language : undefined
-    I18n.select(saved ?? "auto")
+  // Puts a page back to the settings of the current profile (the built-in
+  // ones for the Factory profile, or a setting it lacks).
+  function resetPage(categoryId) {
+    Profiles.restore(root.keysOf(categoryId))
+    if (categoryId === "general") I18n.select(Profiles.language(Profiles.current))
   }
 
-  // Puts every setting, and the language, back to the built-in defaults and
-  // saves them as the user's defaults too (as for a category), and forgets
-  // where turned-off widgets were.
+  // Applies the built-in profile, and forgets where turned-off widgets were.
   function factoryResetAll() {
-    const keys = Object.keys(Settings.defaults)
-    Settings.restoreDefaults(keys, "factory")
-    I18n.select("auto")
+    Profiles.apply(Profiles.factory)
     Settings.forgetPlaces()
-    Settings.saveDefaults(keys, { language: "auto" })
   }
 }

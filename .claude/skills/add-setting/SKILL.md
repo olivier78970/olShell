@@ -13,7 +13,7 @@ CLAUDE.md gives the general flow (Defaults → Settings → Theme, translations,
 - **`config/Settings.qml` → `valid()`**, only when the generic checks don't fit:
   - Integers round by default. A fractional value (a 0–1 opacity, a duration in tenths) goes in one of the rounding lists at the end of `valid()`.
   - Free text needs a branch of its own (see `weatherLocation`).
-- **The row goes in `modules/Settings/SettingsPages.qml`** (`rows`), not `SettingsPanel.qml`. Its `category` is a page id from `categories` (a category, or a tab of one). The row is also what puts the key in its category's **save as my defaults / restore** (`keysOf()`), so every setting needs one.
+- **The row goes in `modules/Settings/SettingsPages.qml`** (`rows`), not `SettingsPanel.qml`. Its `category` is a page id from `categories` (a category, or a tab of one). The row is also what puts the key in its category's **Reset** and profiles (`keysOf()`), so every setting needs one.
   - For a check box, use a `toggles` row with `checkBoxes: true`. The row gets its own key (`<key>Row`), and the toggle inside it names the setting.
 - **`modules/Settings/SettingsPanel.qml`**, only for `buttons` / `dropdown` rows: add a `<key>Options` property mapping each choice to `I18n.tr("settings.<key>.<value>")`, and a line in `optionsOf(row)`.
 - **Translations for a choice**: besides the `settings.<key>` label, add one `settings.<key>.<value>` for each value, in en, fr and es. Make the French and Spanish words agree in gender and number with their noun.
@@ -42,7 +42,7 @@ With the checkout shell running (the `test-deploy` skill starts it and backs up 
 quickshell -p . ipc call settings set <key> <value>     # numbers, 1/0
 quickshell -p . ipc call settings choose <key> <value>  # choices, text
 quickshell -p . ipc call settings get <key>             # or getChoice
-quickshell -p . ipc call settings restoreDefaults <category> factory
+quickshell -p . ipc call settings resetPage <category>
 ```
 
 - Try an out-of-range or invalid value, and confirm it is clamped or ignored.

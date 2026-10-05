@@ -1,8 +1,8 @@
 import QtQuick
 import qs.config
 
-// The last row of a settings category: a label and a few action buttons for
-// the category's defaults. `buttons` is an array of { text, enabled }; a
+// A row of a settings page with a label and a few action buttons (a profile's,
+// an added item's). `buttons` is an array of { text, enabled }; a
 // disabled one is dimmed and can't be pressed. `pressed` fires with the index
 // of the button clicked. When the row is selected, `focusIndex` marks the
 // button the keyboard is on.

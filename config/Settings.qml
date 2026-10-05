@@ -1117,52 +1117,10 @@ Singleton {
     saveTimer.restart()
   }
 
-  // The values the user saved as their own defaults, by setting key (in
-  // UserDefaults.json, next to the built-in ones in Defaults.qml, which never
-  // change): what Reset puts back. A setting missing from it has none.
-  readonly property var userDefaults: userFile.adapter.values ?? ({})
-
-  // Saves the current value of each of the settings `keys` as the user's own
-  // default; `extra` ({ key: value }) adds values that aren't settings (the
-  // language).
-  function saveDefaults(keys, extra) {
-    const values = {}
-    for (const key in root.userDefaults) values[key] = root.userDefaults[key]
-    for (const key of keys) {
-      if (root.defaults[key] !== undefined) values[key] = root.valid(key, file.adapter[key])
-    }
-    Object.assign(values, extra ?? {})
-    userFile.adapter.values = values
-    userFile.writeAdapter()
-  }
-
-  // Puts each of the settings `keys` back to the user's own default
-  // (`source` "mine"; the built-in one for a setting that has none) or to the
-  // built-in one ("factory").
-  function restoreDefaults(keys, source) {
-    for (const key of keys) {
-      if (root.defaults[key] === undefined) continue
-      const saved = source === "mine" ? root.userDefaults[key] : undefined
-      root.set(key, saved !== undefined ? saved : root.defaults[key])
-    }
-  }
-
   Timer {
     id: saveTimer
     interval: 400
     onTriggered: file.writeAdapter()
-  }
-
-  FileView {
-    id: userFile
-    path: Paths.userDefaults
-    blockLoading: true
-    // The file only exists once something has been saved.
-    printErrors: false
-
-    JsonAdapter {
-      property var values: ({})
-    }
   }
 
   FileView {

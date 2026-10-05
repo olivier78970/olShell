@@ -7,6 +7,7 @@ config/LauncherState.json
 config/ChatAiState.json
 config/Settings.json
 config/UserDefaults.json
+config/Profiles.json
 config/NotificationActions.json
 .qmlls.ini
 

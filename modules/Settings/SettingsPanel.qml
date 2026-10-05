@@ -31,9 +31,32 @@ ModalPanel {
   readonly property string page: root.tabs.length > 0 ? root.tabs[Math.min(root.tab, root.tabs.length - 1)].id : root.categories[root.category].id
 
   // The rows of every category, top to bottom: the ones holding a setting
-  // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps
-  // and each page's defaults row.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.webAppRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.worldClockRows).concat(root.appOpacityRows).concat(root.defaultRows)
+  // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps,
+  // the profiles, the clocks and the app opacities.
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.webAppRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.profileRows).concat(root.worldClockRows).concat(root.appOpacityRows)
+
+  // The Profiles category: a row typing in a name to save the current
+  // configuration under (Enter saves; an existing name is replaced), then a
+  // row for each saved profile, with buttons applying and deleting it.
+  readonly property var profileRows: [{
+    key: "profileSave",
+    category: "profiles",
+    kind: "path",
+    label: I18n.tr("settings.profiles.save"),
+    placeholder: I18n.tr("settings.profiles.hint", Profiles.maxNameLength)
+  }].concat(Profiles.names.map((name, index) => ({
+    key: "profile:" + name,
+    category: "profiles",
+    kind: "action",
+    profile: name,
+    label: name === Profiles.current ? I18n.tr("settings.profiles.current", root.profileLabel(name)) : root.profileLabel(name),
+    title: index === 0 ? I18n.tr("settings.profiles.saved") : ""
+  })))
+
+  // What a profile is called in the list: the built-in one has a translated name.
+  function profileLabel(name) {
+    return name === Profiles.factory ? I18n.tr("settings.profiles.factory") : name
+  }
 
   // The Clock tab's places for the clocks tab, a row each with a button
   // taking it out, then a row typing in a place to add (Enter searches for
@@ -56,11 +79,6 @@ ModalPanel {
       : WorldClock.status === "network" ? I18n.tr("settings.worldClocks.network")
       : I18n.tr("settings.worldClocks.hint")
   }])
-
-  // The last row of every page: its defaults (see DefaultsRow).
-  readonly property var defaultRows: root.pages.map(page => ({
-    key: "defaults:" + page, category: page, kind: "defaults", label: I18n.tr("settings.defaults")
-  })).concat([{ key: "defaults:widgets", category: "widgets", kind: "defaults", label: I18n.tr("settings.defaults") }])
 
   // The launcher category's search engines, a row each in their order (the
   // first with the list's title above it), then a row adding one. A row's
@@ -503,6 +521,48 @@ ModalPanel {
     return ""
   }
 
+  // The profile whose deletion or saving is waiting for a confirmation ("" for
+  // none), and which of the two ("delete" or "save"): its row then asks, with
+  // Confirm and Cancel instead of its buttons.
+  property string confirmProfile: ""
+  property string confirmProfileAction: "delete"
+
+  // The buttons of a profile's row, each with the `id` of what it does:
+  // apply it; save the current settings into it (the one used last only);
+  // delete it (not the built-in one); or, while asking, confirm and cancel.
+  function profileButtons(row) {
+    if (root.confirmProfile === row.profile) return [
+      { id: "confirm", text: I18n.tr("common.confirm"), enabled: true },
+      { id: "cancel", text: I18n.tr("common.cancel"), enabled: true }
+    ]
+    const buttons = [{ id: "apply", text: I18n.tr("settings.profiles.apply"), enabled: true }]
+    if (row.profile === Profiles.factory) return buttons
+    if (row.profile === Profiles.current) buttons.push({ id: "save", text: I18n.tr("settings.profiles.saveCurrent"), enabled: true })
+    buttons.push({ id: "delete", text: I18n.tr("settings.profiles.delete"), enabled: true })
+    return buttons
+  }
+
+  // Asks to delete or save (`action`) a profile, not the built-in one, with
+  // the focus on Cancel.
+  function askProfile(name, action) {
+    if (name === Profiles.factory) return
+    root.confirmProfileAction = action
+    root.confirmProfile = name
+    root.toggleFocus = 1
+  }
+
+  // Presses button `index` of a profile's row.
+  function pressProfile(row, index) {
+    const id = root.profileButtons(row)[index]?.id
+    if (id === "apply") Profiles.apply(row.profile)
+    else if (id === "save" || id === "delete") root.askProfile(row.profile, id)
+    else if (id === "confirm") {
+      root.confirmProfile = ""
+      if (root.confirmProfileAction === "save") Profiles.save(row.profile)
+      else Profiles.remove(row.profile)
+    } else if (id === "cancel") root.confirmProfile = ""
+  }
+
   function runAction(row) {
     if (row.key === "notificationActions") NotificationActionsState.open(true)
     if (row.key === "addEngine") root.addEngine()
@@ -697,8 +757,8 @@ ModalPanel {
   // The rows of the current page; `selected` indexes into these.
   // (The Widgets tab shows the picked widget's page under the dropdown picking it.)
   readonly property var rows: root.allRows.filter(row => row.category === root.page
-    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage && row.kind !== "defaults"))
-  // The page whose settings the reset and defaults buttons act on: the page
+    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage))
+  // The page whose settings the reset button acts on: the page
   // shown, or the picked widget's on the Widgets tab.
   readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage : root.page
   property int selected: 0
@@ -746,7 +806,8 @@ ModalPanel {
   // margins around them, and the keys hint under them), never shorter than
   // the usual size; the screen still caps it (see ModalPanel), the rows
   // scrolling past that.
-  readonly property real neededHeight: 20 + titleRow.height + 10 + (tabBar.visible ? tabBar.height + 10 : 0) + rowsColumn.height + 10 + hint.height + 20
+  // Nor shorter than the category rail, which has a button for each category.
+  readonly property real neededHeight: Math.max(rail.height + 40, 20 + titleRow.height + 10 + (tabBar.visible ? tabBar.height + 10 : 0) + rowsColumn.height + 10 + hint.height + 20)
   maxPanelHeight: Math.max(780, root.neededHeight)
 
   open: SettingsPanelState.visible
@@ -759,8 +820,7 @@ ModalPanel {
   // Escape closes an open list first, then the panel.
   onCloseRequested: {
     if (root.pendingKey) root.answerPendingKey(1)
-    else if (root.confirmAll) root.confirmAll = false
-    else if (root.confirmKey !== "") root.confirmKey = ""
+    else if (root.confirmProfile !== "") root.confirmProfile = ""
     else if (root.editKey !== "") root.editKey = ""
     else if (root.openKey !== "") root.openKey = ""
     else SettingsPanelState.visible = false
@@ -782,61 +842,17 @@ ModalPanel {
     root.syncSelectedKey()
     root.openKey = ""
     root.editKey = ""
-    root.confirmKey = ""
-    root.confirmAll = false
+    root.confirmProfile = ""
     root.toggleFocus = 0
     // (After clearing editKey, which hides it.)
     root.showSelection = true
-  }
-
-  // Whether the factory reset of everything (the general category's row) waits
-  // for its confirmation.
-  property bool confirmAll: false
-
-  // The button of the "all categories" row: Factory defaults, which asks; or,
-  // while asking, Confirm (0) and Cancel (1).
-  function pressFactoryAll(index) {
-    if (!root.confirmAll) {
-      root.confirmAll = true
-      // On Cancel, the safe answer.
-      root.toggleFocus = 1
-    } else {
-      if (index === 0) SettingsPages.factoryResetAll()
-      root.confirmAll = false
-    }
-  }
-
-  // The category whose factory reset is waiting for a confirmation ("" for none):
-  // its defaults row then asks, with Confirm and Cancel instead of its buttons.
-  property string confirmKey: ""
-
-  // The buttons of the defaults row, in the order of DefaultsRow's `pressed`:
-  // save, factory (which asks first); or, while asking, confirm and cancel.
-  function pressDefaults(categoryId, index) {
-    // The Widgets tab acts on the picked widget's page.
-    const page = categoryId === "widgets" ? SettingsPanelState.widgetPage : categoryId
-    if (root.confirmKey === categoryId) {
-      // Back to the built-in values, which then are the user's defaults too.
-      if (index === 0) {
-        SettingsPages.restoreDefaults(page, "factory")
-        SettingsPages.saveDefaults(page)
-      }
-      root.confirmKey = ""
-    } else if (index === 0) {
-      SettingsPages.saveDefaults(page)
-    } else {
-      root.confirmKey = categoryId
-      // On Cancel, the safe answer.
-      root.toggleFocus = 1
-    }
   }
 
   function selectCategory(index) {
     root.pendingKey = null
     root.openKey = ""
     root.editKey = ""
-    root.confirmKey = ""
-    root.confirmAll = false
+    root.confirmProfile = ""
     root.category = Math.max(0, Math.min(root.categories.length - 1, index))
     root.selectTab(0)
   }
@@ -846,8 +862,7 @@ ModalPanel {
     root.pendingKey = null
     root.openKey = ""
     root.editKey = ""
-    root.confirmKey = ""
-    root.confirmAll = false
+    root.confirmProfile = ""
     root.tab = root.tabs.length > 0 ? (index + root.tabs.length) % root.tabs.length : 0
     // A click sets the tab bar's own index (no longer bound): keep it right.
     tabBar.currentIndex = root.tab
@@ -862,8 +877,7 @@ ModalPanel {
     if (row.kind === "matugenApp") return 6
     if (row.kind === "chatAiProvider") return root.askingOf(row) !== "" ? 2 : row.provider.builtin ? 1 : 4
     if (row.kind === "appOpacity") return row.general ? 4 : 5
-    if (row.kind === "factoryAll") return root.confirmAll ? 2 : 1
-    if (row.kind === "defaults") return 2
+    if (row.profile !== undefined) return root.profileButtons(row).length
     return 1
   }
 
@@ -1009,22 +1023,18 @@ ModalPanel {
       // Delete: takes the app out, whatever the keys are on.
       Settings.removeAppOpacity(root.rows[root.selected].appIndex)
       event.accepted = true
-    } else if (kind === "factoryAll" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
-      // Move between Confirm and Cancel, while asking.
-      root.toggleFocus = Math.max(0, Math.min(root.confirmAll ? 1 : 0, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+    } else if (kind === "action" && root.rows[root.selected].profile !== undefined && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
+      // Move between the row's buttons.
+      root.toggleFocus = Math.max(0, Math.min(root.profileButtons(root.rows[root.selected]).length - 1, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
+      event.accepted = true
+    } else if (kind === "action" && root.rows[root.selected].profile !== undefined && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+      root.pressProfile(root.rows[root.selected], root.toggleFocus)
+      event.accepted = true
+    } else if (kind === "action" && root.rows[root.selected].profile !== undefined && event.key === Qt.Key_Delete) {
+      root.askProfile(root.rows[root.selected].profile, "delete")
       event.accepted = true
     } else if (kind === "action" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
       root.runAction(root.rows[root.selected])
-      event.accepted = true
-    } else if (kind === "factoryAll" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      root.pressFactoryAll(root.toggleFocus)
-      event.accepted = true
-    } else if (kind === "defaults" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
-      // Move between the buttons of the row.
-      root.toggleFocus = Math.max(0, Math.min(1, root.toggleFocus + (event.key === Qt.Key_Left ? -1 : 1)))
-      event.accepted = true
-    } else if (kind === "defaults" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      root.pressDefaults(root.rows[root.selected].category, root.toggleFocus)
       event.accepted = true
     } else if (kind === "toggles" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Move between the buttons of the row.
@@ -1264,8 +1274,8 @@ ModalPanel {
         id: resetButton
         anchors.right: parent.right
         label: I18n.tr("settings.reset")
-        // This page only: to your own defaults, else the built-in ones.
-        onClicked: SettingsPages.restoreDefaults(root.settingsPage, "mine")
+        // This page only: to the current profile's settings.
+        onClicked: SettingsPages.resetPage(root.settingsPage)
       }
     }
 
@@ -1345,15 +1355,15 @@ ModalPanel {
               // engines, the settings' sections).
               readonly property string title: row.modelData.title ?? ""
               readonly property real titleHeight: row.title !== "" ? 34 : 0
-              readonly property real gapHeight: row.modelData.kind === "defaults" || row.modelData.separator === true ? 16 : 0
+              readonly property real gapHeight: row.modelData.separator === true ? 16 : 0
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, chatAiProviderRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown, defaultsRow, factoryRow]
+              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, chatAiProviderRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" || row.modelData.kind === "chatAiProvider" ? 44 + row.above : (row.modelData.kind === "defaults" ? 54 + row.above : (row.modelData.kind === "factoryAll" ? 54 : (row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above))
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" || row.modelData.kind === "chatAiProvider" ? 44 + row.above : ((row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above)
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1400,61 +1410,14 @@ ModalPanel {
                 visible: row.modelData.kind === "action"
                 anchors.fill: parent
                 anchors.topMargin: row.above
-                label: row.modelData.label
-                buttons: row.modelData.kind === "action" ? [{ text: root.actionButtonText(row.modelData), enabled: true }] : []
+                label: row.modelData.profile !== undefined && root.confirmProfile === row.modelData.profile ? I18n.tr(root.confirmProfileAction === "save" ? "settings.profiles.confirmSave" : "settings.profiles.confirm", root.profileLabel(row.modelData.profile)) : row.modelData.label
+                buttons: row.modelData.kind !== "action" ? []
+                  : row.modelData.profile !== undefined ? root.profileButtons(row.modelData)
+                  : [{ text: root.actionButtonText(row.modelData), enabled: true }]
                 selected: root.selected === row.index
-                focusIndex: 0
+                focusIndex: row.modelData.profile !== undefined && root.showSelection ? root.toggleFocus : 0
                 onActivated: root.selected = row.index
-                onPressed: root.runAction(row.modelData)
-              }
-
-              // The factory reset of every category, with its confirmation.
-              DefaultsRow {
-                id: factoryRow
-                visible: row.modelData.kind === "factoryAll"
-                anchors.fill: parent
-                label: root.confirmAll ? I18n.tr("settings.factoryAll.confirm") : row.modelData.label
-                buttons: root.confirmAll ? [
-                  { text: I18n.tr("common.confirm"), enabled: true },
-                  { text: I18n.tr("common.cancel"), enabled: true }
-                ] : [
-                  { text: I18n.tr("settings.defaults.factory"), enabled: true }
-                ]
-                selected: root.selected === row.index
-                focusIndex: root.showSelection ? root.toggleFocus : -1
-                onActivated: root.selected = row.index
-                onPressed: index => root.pressFactoryAll(index)
-              }
-
-              // A line above the defaults row.
-              Rectangle {
-                visible: row.modelData.kind === "defaults"
-                anchors.left: parent.left
-                anchors.right: parent.right
-                y: 6
-                height: 1
-                color: Theme.separatorColor
-                opacity: 0.6
-              }
-
-              DefaultsRow {
-                id: defaultsRow
-                visible: row.modelData.kind === "defaults"
-                anchors.fill: parent
-                anchors.topMargin: row.above
-                readonly property bool asking: root.confirmKey === row.modelData.category
-                label: asking ? I18n.tr("settings.defaults.confirm") : row.modelData.label
-                buttons: asking ? [
-                  { text: I18n.tr("common.confirm"), enabled: true },
-                  { text: I18n.tr("common.cancel"), enabled: true }
-                ] : [
-                  { text: I18n.tr("settings.defaults.save"), enabled: true },
-                  { text: I18n.tr("settings.defaults.factory"), enabled: true }
-                ]
-                selected: root.selected === row.index
-                focusIndex: root.showSelection ? root.toggleFocus : -1
-                onActivated: root.selected = row.index
-                onPressed: index => root.pressDefaults(row.modelData.category, index)
+                onPressed: index => row.modelData.profile !== undefined ? root.pressProfile(row.modelData, index) : root.runAction(row.modelData)
               }
 
               SettingSlider {
@@ -1660,8 +1623,8 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 label: row.modelData.label
-                // The row adding a place holds no setting: always empty.
-                value: row.modelData.kind === "path" && row.modelData.key !== "worldClockAdd" ? String(Settings.get(row.modelData.key)) : ""
+                // The rows adding a place or saving a profile hold no setting: always empty.
+                value: row.modelData.kind === "path" && row.modelData.key !== "worldClockAdd" && row.modelData.key !== "profileSave" ? String(Settings.get(row.modelData.key)) : ""
                 placeholder: row.modelData.placeholder ?? ""
                 swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
@@ -1671,6 +1634,7 @@ ModalPanel {
                 onCommitted: text => {
                   if (root.editKey === row.modelData.key) root.editKey = ""
                   if (row.modelData.key === "worldClockAdd") WorldClock.add(text)
+                  else if (row.modelData.key === "profileSave") Profiles.save(text)
                   else Settings.set(row.modelData.key, text)
                 }
                 onCancelled: root.editKey = ""

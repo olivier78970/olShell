@@ -168,14 +168,9 @@ A category with more rows than fit (the widgets, mostly) scrolls: with the wheel
 Click or drag a slider (the font, the wallpaper transition and the pop-up position each open a list: click an entry to pick it, or scroll for more;
 the fonts are drawn in their own font, the positions with a small screen icon), or use the keys: **↑/↓** select a row, **←/→** adjust it (**Shift** for bigger steps), **Page Up/Page Down** switch category, **Tab/Shift+Tab** go through everything on the page one by one (each button, check box and field of a row, then the next row, around at the ends), **Ctrl+Tab/Ctrl+Shift+Tab** switch tab (in the categories that have tabs), **Enter** opens the list of a font, transition or position row (then **↑/↓**, **Page Up/Page Down**, **Home/End** move in it, **Enter** picks, **Escape** closes just the list);
 on the font style row, **←/→** move between the buttons and **Enter** (or **Space**) switches one, **Escape** closes.
-**Reset** (top right, next to the category's name) puts that category (or that tab) back to your own defaults, or to the built-in ones for any setting you saved none for.
-**Defaults:** the last row of each category (and of each tab) has two buttons: **Save as my defaults** remembers the category's current values as your own defaults (in `config/UserDefaults.json`, git-ignored;
-for the widgets category that is the whole bar layout, and for General the language too), and **Factory defaults** puts the category back to the built-in ones, whatever you saved, and saves them as your defaults too, so Reset then does the same: it first asks for a confirmation in the row itself (**Confirm** or **Cancel**;
-Cancel is the one the keys are on, and Escape cancels).
-The built-in defaults are in [config/Defaults.qml](../config/Defaults.qml), which nothing writes to, so they are always there to go back to.
-On the keys, **←/→** move to a button and **Enter** presses it.
-The General category also has an **All categories** row with a **Factory defaults** button that does the same for every category and the language: it asks first (**Confirm** or **Cancel** in the row; Escape cancels), then puts everything back to the built-in values, saves them as your defaults and forgets where turned-off widgets were.
-(`settings factoryReset` does it from a script, without asking.)
+**Reset** (top right, next to the category's name) puts that category (or that tab) back to the settings of the current profile (see Profiles below; Factory means the built-in values, which are in [config/Defaults.qml](../config/Defaults.qml), which nothing writes to). For the General category that includes the language.
+
+**Profiles:** the Profiles category (above General) saves the whole configuration under a name, to switch between looks later. A profile holds every setting, the language and the theme in use (not the wallpaper). Type a name in the first row and press Enter to save (an existing name is replaced). Each saved profile has an **Apply** button and a **Delete** button (Left / Right to move between them; the Delete key also deletes), which asks first with **Confirm** and **Cancel** in the row (Escape cancels); deleting the current profile applies Factory. The profile saved or applied last (Factory while there is none) is marked "(current)" and has a **Save** button too, which saves the current settings into it (after the same Confirm / Cancel question), although the settings may have changed since it was applied. The first profile, **Factory**, is built in: every setting at its built-in value, the language automatic and the automatic theme. It can only be applied: it has no Delete or Save button, and no saved profile can be named "factory". Profiles are kept in `config/Profiles.json` (git-ignored); what you saved as "my defaults" before profiles existed (`config/UserDefaults.json`) became a profile named "defaults" the first time the shell started with this version; a setting a profile lacks (one added since) takes its built-in value when it is applied. Calls from a script: `profiles list` (JSON), `profiles save "<name>"`, `profiles apply "<name>"`, `profiles remove "<name>"`.
 Neither the font size nor the icons (tray and active window) depend on the bar height, so a large font in a low bar can overflow the pills, and a very tall bar with big margins can make the bar's three groups collide.
 
 Values live in [config/Settings.qml](../config/Settings.qml), which `Theme` reads, so to make another value adjustable add it there (its built-in default in [config/Defaults.qml](../config/Defaults.qml), limits, property), point `Theme` at it, and add a row (with its `category`) in [modules/Settings/SettingsPages.qml](../modules/Settings/SettingsPages.qml) and its label in [config/Translations.qml](../config/Translations.qml).
@@ -187,12 +182,11 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 - `set <key> <value>`: a number setting (out-of-range values are clamped) or a yes/no one (1 or 0), see below.
 - `choose <key> <value>`: a setting with a list of choices (a value not in the list is ignored), a color or a text, see below.
 - `get <key>`, `getChoice <key>` (for the font family and capitalization too).
-- `open <page>`: open the settings panel on a page, named as for `saveDefaults` (their ids are in `map`), or on a category with tabs by its first tab's name.
+- `open <page>`: open the settings panel on a page, named as for `resetPage` (their ids are in `map`), or on a category with tabs by its first tab's name.
 - `map`: the settings panel's map as JSON: its pages (id and name, as `Category > Tab`), each setting's page and name there, and each bar widget's name, in the current language.
-- `reset`: every category, to your defaults.
-- `saveDefaults <category>`: save a category's current values as your defaults.
-- `restoreDefaults <category> <mine|factory>`.
-- `factoryReset`: every category and the language, to the built-in values, without asking.
+- `reset`: every category, the language and the theme, to the current profile.
+- `resetPage <category>`: one page, to the current profile.
+- `factoryReset`: applies the Factory profile (the built-in values for every category, the language and the theme), without asking.
 - The bar's layout:
   - `place <widget> <zone> [position]`: zone `left`, `center`, `right` or `off`; position from 0, or -1 for the end.
   - `widgetShown <widget> <1|0>`: put a widget on the bar, back where it was, or take it off.
@@ -209,7 +203,7 @@ Every call is `quickshell -p . ipc call settings <command> …`.
 ```sh
 quickshell -p . ipc call settings map | jq -r '.settings | to_entries[] | "\(.key)  \(.value.kind)  \(.value.range // "")  \(.value.name)"'
 quickshell -p . ipc call settings map | jq '.choices.barPosition'   # the values of a choice
-quickshell -p . ipc call settings map | jq -r '.pages[].id'         # the pages saveDefaults, restoreDefaults and open take
+quickshell -p . ipc call settings map | jq -r '.pages[].id'         # the pages resetPage and open take
 quickshell -p . ipc call settings map | jq -r '.widgets | keys[]'   # the widgets place and the layout calls take
 ```
 
