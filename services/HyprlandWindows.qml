@@ -36,9 +36,22 @@ Singleton {
   // Hyprland's gaps_out as top, right, bottom, left.
   readonly property var gapsOut: [Settings.windowGapsOut, Settings.windowGapsOut, Settings.windowGapsOut, Settings.windowGapsOut]
 
+  // A color as Hyprland writes it, opaque: rgba(rrggbbff).
+  function hypr(color) {
+    const part = value => Math.round(value * 255).toString(16).padStart(2, "0")
+    return "rgba(" + part(color.r) + part(color.g) + part(color.b) + "ff)"
+  }
+
+  // The borders' colors, when they follow the shell's: the focused window's
+  // the text color, the others' the color of the shell's own outlines
+  // (Theme.outlineColor, which is what is drawn around the bar and the panels,
+  // a little lighter than Theme.borderColor it is derived from).
+  readonly property string borderColors: Settings.windowBorderColors
+    ? `, col = { active_border = "${root.hypr(Theme.textColor)}", inactive_border = "${root.hypr(Theme.outlineColor)}" }` : ""
+
   // As the Lua table hl.config() takes. A rounding_power of 2 makes circular
   // corners, as Qt draws the shell's.
-  readonly property string options: `{ general = { border_size = ${root.borderSize}, gaps_in = ${root.gapsIn}, gaps_out = ${Settings.windowGapsOut} }, decoration = { rounding = ${root.rounding}, rounding_power = 2, active_opacity = ${root.activeOpacity}, inactive_opacity = ${root.inactiveOpacity} } }`
+  readonly property string options: `{ general = { border_size = ${root.borderSize}, gaps_in = ${root.gapsIn}, gaps_out = ${Settings.windowGapsOut}${root.borderColors} }, decoration = { rounding = ${root.rounding}, rounding_power = 2, active_opacity = ${root.activeOpacity}, inactive_opacity = ${root.inactiveOpacity} } }`
 
   // Settings load a moment after this singleton starts (see services/Blur.qml
   // for the same wait): nothing is sent before they have settled.
@@ -76,6 +89,21 @@ Singleton {
     function onInactiveOpacityChanged() {
       if (root.settled && Settings.appOpacities.some(app => app.inactiveSame)) applyTimer.restart()
     }
+  }
+
+  // Turning the colors off gives the Hyprland config's back, which only a
+  // reload does (the colors are then sent again if they are on).
+  Connections {
+    target: Settings
+
+    function onWindowBorderColorsChanged() {
+      if (root.settled && !Settings.windowBorderColors) reloadProcess.running = true
+    }
+  }
+
+  Process {
+    id: reloadProcess
+    command: ["hyprctl", "reload"]
   }
 
   // The classes of the apps given a rule so far, so the rule of one taken out

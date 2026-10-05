@@ -144,6 +144,9 @@ Singleton {
     // The windows' opacity when focused and when not, on one line like an
     // app's own (see SettingsPanel's app opacity rows); `settings` are those
     // it holds.
+    { key: "windowBorderColorsRow", category: "windows", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.windowBorderColors"), toggles: [
+      { key: "windowBorderColors", text: "" }
+    ] },
     { key: "windowOpacity", category: "windows", kind: "appOpacity", general: true, settings: ["windowActiveOpacity", "windowInactiveOpacity", "windowActiveOpacitySame", "windowInactiveOpacitySame"], label: I18n.tr("settings.windowOpacity") },
     { key: "blurXrayRow", category: "blur", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.blurXray"), toggles: [
       { key: "blurXray", text: "" }
