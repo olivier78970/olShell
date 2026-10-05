@@ -96,6 +96,12 @@ Singleton {
   readonly property var choices: ({
     barPosition: ["top", "bottom", "left", "right"],
     barStyle: ["widgets", "full"],
+    cpuLayout: ["auto", "vertical", "horizontal"],
+    ramLayout: ["auto", "vertical", "horizontal"],
+    diskLayout: ["auto", "vertical", "horizontal"],
+    volumeLayout: ["auto", "vertical", "horizontal"],
+    networkLayout: ["auto", "vertical", "horizontal"],
+    activeWindowLayout: ["auto", "vertical", "horizontal"],
     hyprlandWindowStyle: ["config", "popin", "slide", "gnomed"],
     hyprlandWorkspaceStyle: ["config", "slide", "slidevert", "fade", "slidefade", "slidefadevert"],
     launcherTab: ["all", "apps", "games", "files", "web", "webApps"],
@@ -466,16 +472,18 @@ Singleton {
   // the time has seconds (without them the clock only changes once a minute).
   readonly property string clockDate: root.valid("clockDate", file.adapter.clockDate)
   readonly property bool clockSeconds: root.valid("clockSeconds", file.adapter.clockSeconds)
-  // Whether a widget keeps its side-bar look on a top or bottom bar too: the
-  // CPU, RAM, disk, volume and network speed as a ring around their icon
-  // (their figures in their popup), the window title as its icon only (the
-  // title on hover).
-  readonly property bool cpuRing: root.valid("cpuRing", file.adapter.cpuRing)
-  readonly property bool ramRing: root.valid("ramRing", file.adapter.ramRing)
-  readonly property bool diskRing: root.valid("diskRing", file.adapter.diskRing)
-  readonly property bool volumeRing: root.valid("volumeRing", file.adapter.volumeRing)
-  readonly property bool networkRing: root.valid("networkRing", file.adapter.networkRing)
-  readonly property bool activeWindowIconOnly: root.valid("activeWindowIconOnly", file.adapter.activeWindowIconOnly)
+  // How a widget lays itself out: "vertical" (the side-bar look: the CPU, RAM,
+  // disk, volume and network speed as a ring around their icon with their
+  // figures in their popup, the window title as its icon only with the title
+  // on hover), "horizontal" (the top-bar look: figures beside the icon, icon
+  // and title), or "auto" (the look of the bar's side: vertical on a left or
+  // right bar, horizontal on a top or bottom one).
+  readonly property string cpuLayout: root.valid("cpuLayout", file.adapter.cpuLayout)
+  readonly property string ramLayout: root.valid("ramLayout", file.adapter.ramLayout)
+  readonly property string diskLayout: root.valid("diskLayout", file.adapter.diskLayout)
+  readonly property string volumeLayout: root.valid("volumeLayout", file.adapter.volumeLayout)
+  readonly property string networkLayout: root.valid("networkLayout", file.adapter.networkLayout)
+  readonly property string activeWindowLayout: root.valid("activeWindowLayout", file.adapter.activeWindowLayout)
   // The engines the launcher's web search offers, in order: each
   // { name, url, on } (%s in `url` is where the search goes), or
   // { browser: true, on } for the default browser's own default engine (see
@@ -491,6 +499,28 @@ Singleton {
   // for the app's address (added at the end when there is none). Run without
   // a shell (see services/WebApps.qml); empty puts the default back.
   readonly property string webAppCommand: root.valid("webAppCommand", file.adapter.webAppCommand)
+  // What a click on a configurable bar widget runs (a program and its
+  // arguments, empty for nothing), whether it runs in a terminal and whether
+  // its window opens floating in the middle of the screen; see
+  // services/WidgetActions.qml.
+  readonly property string cpuAction: root.valid("cpuAction", file.adapter.cpuAction)
+  readonly property bool cpuActionTerminal: root.valid("cpuActionTerminal", file.adapter.cpuActionTerminal)
+  readonly property bool cpuActionFloating: root.valid("cpuActionFloating", file.adapter.cpuActionFloating)
+  readonly property string ramAction: root.valid("ramAction", file.adapter.ramAction)
+  readonly property bool ramActionTerminal: root.valid("ramActionTerminal", file.adapter.ramActionTerminal)
+  readonly property bool ramActionFloating: root.valid("ramActionFloating", file.adapter.ramActionFloating)
+  readonly property string diskAction: root.valid("diskAction", file.adapter.diskAction)
+  readonly property bool diskActionTerminal: root.valid("diskActionTerminal", file.adapter.diskActionTerminal)
+  readonly property bool diskActionFloating: root.valid("diskActionFloating", file.adapter.diskActionFloating)
+  readonly property string networkAction: root.valid("networkAction", file.adapter.networkAction)
+  readonly property bool networkActionTerminal: root.valid("networkActionTerminal", file.adapter.networkActionTerminal)
+  readonly property bool networkActionFloating: root.valid("networkActionFloating", file.adapter.networkActionFloating)
+  readonly property string connectionAction: root.valid("connectionAction", file.adapter.connectionAction)
+  readonly property bool connectionActionTerminal: root.valid("connectionActionTerminal", file.adapter.connectionActionTerminal)
+  readonly property bool connectionActionFloating: root.valid("connectionActionFloating", file.adapter.connectionActionFloating)
+  readonly property string bluetoothAction: root.valid("bluetoothAction", file.adapter.bluetoothAction)
+  readonly property bool bluetoothActionTerminal: root.valid("bluetoothActionTerminal", file.adapter.bluetoothActionTerminal)
+  readonly property bool bluetoothActionFloating: root.valid("bluetoothActionFloating", file.adapter.bluetoothActionFloating)
   // The AI providers the chat AI panel can ask, in order: the built-in ones,
   // { builtin: "anthropic" | "openai" | "xai" | "google", model } (their address and API are
   // fixed, see services/ChatAi.qml), always in the list once, and those
@@ -812,6 +842,8 @@ Singleton {
     if (key === "chatAiDefaultProvider") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     // A place's name, or "" for none.
     if (key === "webAppCommand") return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 500) : root.defaults[key]
+    // A widget's click action: a command, or "" for nothing.
+    if (key.endsWith("Action") && typeof root.defaults[key] === "string") return typeof value === "string" ? value.trim().slice(0, 500) : root.defaults[key]
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
@@ -1274,17 +1306,35 @@ Singleton {
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
-      property bool cpuRing: Defaults.values.cpuRing
-      property bool ramRing: Defaults.values.ramRing
-      property bool diskRing: Defaults.values.diskRing
-      property bool volumeRing: Defaults.values.volumeRing
-      property bool networkRing: Defaults.values.networkRing
-      property bool activeWindowIconOnly: Defaults.values.activeWindowIconOnly
       property int launcherResults: Defaults.values.launcherResults
       property int launcherHistory: Defaults.values.launcherHistory
       property var launcherEngines: Defaults.values.launcherEngines
+      property string cpuLayout: Defaults.values.cpuLayout
+      property string ramLayout: Defaults.values.ramLayout
+      property string diskLayout: Defaults.values.diskLayout
+      property string volumeLayout: Defaults.values.volumeLayout
+      property string networkLayout: Defaults.values.networkLayout
+      property string activeWindowLayout: Defaults.values.activeWindowLayout
       property var webApps: Defaults.values.webApps
       property string webAppCommand: Defaults.values.webAppCommand
+      property string cpuAction: Defaults.values.cpuAction
+      property bool cpuActionTerminal: Defaults.values.cpuActionTerminal
+      property bool cpuActionFloating: Defaults.values.cpuActionFloating
+      property string ramAction: Defaults.values.ramAction
+      property bool ramActionTerminal: Defaults.values.ramActionTerminal
+      property bool ramActionFloating: Defaults.values.ramActionFloating
+      property string diskAction: Defaults.values.diskAction
+      property bool diskActionTerminal: Defaults.values.diskActionTerminal
+      property bool diskActionFloating: Defaults.values.diskActionFloating
+      property string networkAction: Defaults.values.networkAction
+      property bool networkActionTerminal: Defaults.values.networkActionTerminal
+      property bool networkActionFloating: Defaults.values.networkActionFloating
+      property string connectionAction: Defaults.values.connectionAction
+      property bool connectionActionTerminal: Defaults.values.connectionActionTerminal
+      property bool connectionActionFloating: Defaults.values.connectionActionFloating
+      property string bluetoothAction: Defaults.values.bluetoothAction
+      property bool bluetoothActionTerminal: Defaults.values.bluetoothActionTerminal
+      property bool bluetoothActionFloating: Defaults.values.bluetoothActionFloating
       property var chatAiProviders: Defaults.values.chatAiProviders
       property bool chatAiListDir: Defaults.values.chatAiListDir
       property bool chatAiFindFiles: Defaults.values.chatAiFindFiles

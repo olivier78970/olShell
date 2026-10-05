@@ -3,11 +3,12 @@ import Quickshell
 import Quickshell.Bluetooth
 import qs.components
 import qs.config
+import qs.services
 
 // Bluetooth icon, doing what blueman's tray icon does: crossed out while
 // Bluetooth is off (or there is no adapter), with a link while a device is
 // connected. Hovering it lists the connected devices with their battery; a
-// click opens blueman's device manager and a right click a menu to switch
+// click runs its action (Settings.bluetoothAction) and a right click opens a menu to switch
 // Bluetooth on or off, make it discoverable, disconnect or reconnect a
 // device, send files, and open blueman's other windows.
 Item {
@@ -41,7 +42,10 @@ Item {
     cursorShape: Qt.PointingHandCursor
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton) menu.open = !menu.open
-      else Quickshell.execDetached(["blueman-manager"])
+      else {
+        tooltip.dismiss()
+        WidgetActions.run("bluetooth")
+      }
     }
     onEntered: tooltip.hoverEntered()
     onExited: tooltip.hoverExited()

@@ -7,9 +7,6 @@ quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpape
 quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
 quickshell -p . ipc call wallpapers applyRandom        # apply a random wallpaper other than the current one
 quickshell -p . ipc call wallpapers applyLast          # apply the last applied wallpaper again (e.g. after a new picture of the day was downloaded)
-quickshell -p . ipc call btop toggle                   # open/close the full btop window
-quickshell -p . ipc call btop cpu                      # ... showing only the CPU box (also: memory, network)
-quickshell -p . ipc call gdu toggle                    # open/close the gdu window
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call shortcuts toggle              # open/close the keyboard shortcuts panel
 quickshell -p . ipc call chatai toggle                 # open/close the chat AI panel

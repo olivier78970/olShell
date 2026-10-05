@@ -5,18 +5,77 @@ import qs.config
 // { label, icon? }; the owner shows the page matching `currentIndex`. With
 // `iconsOnly`, a tab shows its icon alone, its label in a tooltip on hover,
 // and the tabs spread over the bar's whole width (give it one), the space
-// between them shared out evenly.
+// between them shared out evenly. With `maxVisible` set below the number of
+// tabs, only that many show (a window that moves to keep the current one in
+// view), between two buttons that switch to the previous / next tab, round
+// to the other end.
 Item {
   id: root
 
   property var model: []
   property int currentIndex: 0
   property bool iconsOnly: false
+  // The most tabs shown at once (0 for all of them).
+  property int maxVisible: 0
+  // The first tab shown, and how many are.
+  property int first: 0
+  readonly property int count: root.maxVisible > 0 ? Math.min(root.maxVisible, root.model.length) : root.model.length
+  readonly property bool paged: root.count < root.model.length
   // An icon-only tab's width: the same for all, room for the widest icon.
   readonly property real iconTabWidth: Math.round(Theme.fontSize() * 1.3 * 1.5) + 16
 
   implicitWidth: row.implicitWidth
   implicitHeight: row.implicitHeight + 1
+
+  // Moves the window of tabs to have the current one in it.
+  function reveal() {
+    const last = Math.max(0, root.model.length - root.count)
+    let start = root.first
+    if (root.currentIndex < start) start = root.currentIndex
+    else if (root.currentIndex >= start + root.count) start = root.currentIndex - root.count + 1
+    root.first = Math.max(0, Math.min(start, last))
+  }
+
+  onCurrentIndexChanged: root.reveal()
+  onCountChanged: root.reveal()
+  Component.onCompleted: root.reveal()
+
+  // Switches to the tab `step` further, round to the other end.
+  function cycle(step) {
+    root.currentIndex = (root.currentIndex + step + root.model.length) % root.model.length
+  }
+
+  // A button of the cycling pair.
+  component CycleButton: Item {
+    id: button
+
+    property string glyph
+    property int step
+
+    visible: root.paged
+    width: root.paged ? content.implicitHeight + 14 : 0
+    height: content.implicitHeight + 14
+
+    Rectangle {
+      anchors.fill: parent
+      radius: Theme.radiusFor(height)
+      color: buttonMouse.containsMouse ? Theme.borderColor : "transparent"
+    }
+
+    ThemedText {
+      id: content
+      anchors.centerIn: parent
+      text: button.glyph
+    }
+
+    MouseArea {
+      id: buttonMouse
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: root.cycle(button.step)
+    }
+  }
 
   Row {
     id: row
@@ -25,15 +84,22 @@ Item {
       ? Math.max(4, (root.width - root.model.length * root.iconTabWidth) / (root.model.length - 1))
       : 4
 
+    CycleButton {
+      glyph: "󰅁"
+      step: -1
+    }
+
     Repeater {
-      model: root.model
+      model: Array.from({ length: root.count }, (_, offset) => root.first + offset)
 
       Item {
         id: tab
 
-        required property var modelData
-        required property int index
-        readonly property bool current: tab.index === root.currentIndex
+        required property int modelData
+        // The tab's place in the whole list, and its entry.
+        readonly property int position: tab.modelData
+        readonly property var entry: root.model[tab.modelData] ?? ({ label: "" })
+        readonly property bool current: tab.position === root.currentIndex
 
         width: root.iconsOnly ? root.iconTabWidth : content.implicitWidth + 24
         height: content.implicitHeight + 14
@@ -52,7 +118,7 @@ Item {
           ThemedText {
             visible: text.length > 0
             anchors.verticalCenter: parent.verticalCenter
-            text: tab.modelData.icon ?? ""
+            text: tab.entry.icon ?? ""
             color: tab.current ? Theme.accentColor : Theme.textColor
             sizeScale: root.iconsOnly ? 1.3 : 1
           }
@@ -60,7 +126,7 @@ Item {
           ThemedText {
             visible: !root.iconsOnly
             anchors.verticalCenter: parent.verticalCenter
-            text: tab.modelData.label
+            text: tab.entry.label
             color: tab.current ? Theme.accentColor : Theme.textColor
           }
         }
@@ -80,16 +146,21 @@ Item {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.currentIndex = tab.index
+          onClicked: root.currentIndex = tab.position
         }
 
         // The label, while it isn't shown on the tab.
         DisabledTooltip {
           anchorItem: tab
-          text: tab.modelData.label
+          text: tab.entry.label
           visible: root.iconsOnly && mouse.containsMouse
         }
       }
+    }
+
+    CycleButton {
+      glyph: "󰅂"
+      step: 1
     }
   }
 

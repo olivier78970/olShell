@@ -16,6 +16,8 @@ Singleton {
   // opens, so it keeps them here to open on them again.
   property int category: 0
   property int tab: 0
+  // The widget picked in the Bar widgets category's Widgets tab: the id of its page.
+  property string widgetPage: "widgetWorkspaces"
 
   function toggle() {
     // Asked again while it is still waiting to open: cancel that.

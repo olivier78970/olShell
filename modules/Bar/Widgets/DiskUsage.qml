@@ -5,14 +5,15 @@ import qs.services
 
 // How full the main disk (the one mounted on "/") is, in percent (on a side
 // bar, a ring filled to it around the icon), in the warning color above 90%;
-// hover to see used/total in a popup, click to open
-// or close gdu on it.
+// hover to see used/total in a popup, click to run its
+// action (Settings.diskAction).
 Item {
   id: root
 
-  // Whether it shows as a ring around its icon (its figures in the popup):
-  // always on a side bar, and on a top or bottom bar too with its setting.
-  readonly property bool ring: Theme.barVertical || Settings.diskRing
+  // Whether it shows as a ring around its icon (its figures in the popup): with
+  // the vertical layout (Settings.diskLayout), and with the automatic one on a
+  // side bar.
+  readonly property bool ring: Settings.diskLayout === "vertical" || (Settings.diskLayout === "auto" && Theme.barVertical)
 
   readonly property bool nearlyFull: SystemStats.rootDiskPercent > 90
 
@@ -52,7 +53,10 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Gdu.toggle()
+    onClicked: {
+      popup.dismiss()
+      WidgetActions.run("disk")
+    }
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }

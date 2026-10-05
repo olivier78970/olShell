@@ -81,7 +81,6 @@ import = ["~/.config/alacritty/theme.toml"]
 Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)).
 Turn alacritty off in the settings' **Theme** category (its Other apps tab) if you don't use it.
 The same goes for Hyprland (writes `~/.config/hypr/colors.lua`) and starship (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template).
-The btop and gdu windows the shell opens set their own colors from the shell's theme and don't use this file.
 
 ## GTK
 

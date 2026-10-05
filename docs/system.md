@@ -10,7 +10,7 @@ The **Performances** tab of the clock popup shows the machine's load at a glance
 
 The right part of the bar also has a disk widget (`DiskUsage`, after the RAM widget) showing how full the main disk, the one mounted on `/`, is, in percent (in the warning color above 90%); hovering it shows the used space over the capacity (e.g.
 "825.8 GiB used / 915.3 GiB").
-It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s), and clicking it opens [gdu](panels-and-apps.md#gdu) on that disk.
+It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s), and clicking it runs its [click action](panels-and-apps.md#widget-click-actions) (gdu on that disk by default).
 It also has an instant download / upload speed widget (`NetworkSpeed`, between the disk and volume widgets), fed by the same network figures, refreshed every second.
 Its numbers have fixed widths so the bar does not shift as they change.
 
@@ -19,7 +19,7 @@ Its numbers have fixed widths so the bar does not shift as they change.
 The network connection widget (`ConnectionButton`, after the network speed widget by default; a layout saved before it existed doesn't have it until you drag it into a lane in the settings' Bar widgets Layout tab, or `settings place connection right`) does what nm-applet's tray icon does, drawn like the rest of the bar.
 Its icon is the wired plug, or the Wi-Fi signal (four levels), while connected, in the warning color when the connection doesn't reach the internet; crossed out and dimmed while disconnected, and a network-off icon while networking is off.
 Hovering it says what it's connected to (the wired connection's name, or the Wi-Fi network and its signal) and the IPv4 address.
-A click (either button) opens a menu with, as in nm-applet: each wired device's connection (a click connects it) and **Disconnect**;
+A click runs its [click action](panels-and-apps.md#widget-click-actions) (`nm-connection-editor` by default) and a right click opens a menu with, as in nm-applet: each wired device's connection (a click connects it) and **Disconnect**;
 the Wi-Fi networks in range, the strongest eight first, with their signal and a padlock for the secured ones (the connected one lit;
 a click connects: straight away to an open or known network, otherwise `nmcli --ask` asks for the password in a terminal) and **Disconnect**;
 **Connect to a hidden Wi-Fi network…** (its name and password asked in a terminal) and **Create a new Wi-Fi network…** (NetworkManager's connection editor);
@@ -36,7 +36,7 @@ The terminal it opens is `networkTerminal` in [config/Apps.qml](../config/Apps.q
 The Bluetooth widget (`BluetoothButton`, between the network connection and volume widgets by default; a layout saved before it existed doesn't have it until you drag it into a lane in the settings' Bar widgets Layout tab, or `settings place bluetooth right`) does what blueman's tray icon does, drawn like the rest of the bar.
 Its icon is crossed out and dimmed while Bluetooth is off or there is no adapter, and shows a link while a device is connected.
 Hovering it says whether Bluetooth is on and lists the connected devices, with their battery when they report it.
-A click opens blueman's device manager; a right click opens a menu to turn Bluetooth on or off, make the adapter discoverable (or stop), disconnect each connected device, send files to a device, reconnect one of the paired devices that aren't connected, and open blueman's **Devices**, **Adapters**, **Local services** and **Plugins** windows.
+A click runs its [click action](panels-and-apps.md#widget-click-actions) (blueman's device manager by default); a right click opens a menu to turn Bluetooth on or off, make the adapter discoverable (or stop), disconnect each connected device, send files to a device, reconnect one of the paired devices that aren't connected, and open blueman's **Devices**, **Adapters**, **Local services** and **Plugins** windows.
 It reads BlueZ through Quickshell's Bluetooth module, so it works without blueman running; the windows it opens are blueman's (the plugins one through `blueman-applet`, over D-Bus).
 
 The figures come from [services/SystemStats.qml](../services/SystemStats.qml), which the CPU and RAM widgets share, so they're polled once however many monitors there are: CPU every 2 s, memory every 3 s, network every second, disks every 20 s.

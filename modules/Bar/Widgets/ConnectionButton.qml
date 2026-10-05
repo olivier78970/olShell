@@ -8,7 +8,8 @@ import qs.services
 // Network connection icon, doing what nm-applet's tray icon does: the
 // wired plug or the Wi-Fi signal while connected (in the warning color when
 // the connection doesn't reach the internet), crossed out otherwise. Hovering
-// it shows what it's connected to, and a click (either button) opens a menu to
+// it shows what it's connected to, a click runs its action
+// (Settings.connectionAction) and a right click opens a menu to
 // connect or disconnect the wired network, pick a Wi-Fi network, reach a
 // hidden one or create one, switch VPN connections, turn networking and Wi-Fi
 // on or off, see the connection's details and edit the connections. Reads
@@ -87,9 +88,14 @@ Item {
     acceptedButtons: Qt.LeftButton | Qt.RightButton
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      if (!menu.open) NetworkManager.refresh()
-      menu.open = !menu.open
+    onClicked: mouse => {
+      if (mouse.button === Qt.RightButton) {
+        if (!menu.open) NetworkManager.refresh()
+        menu.open = !menu.open
+      } else {
+        tooltip.dismiss()
+        WidgetActions.run("connection")
+      }
     }
     onEntered: {
       NetworkManager.refresh()

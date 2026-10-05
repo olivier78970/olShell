@@ -4,7 +4,8 @@ import qs.config
 // Tooltip-style PopupMenu shown while the pointer hovers a widget. Call
 // hoverEntered()/hoverExited() from the widget's MouseArea; set `showWhen`
 // for extra conditions that must also hold (e.g. only when text is cut off),
-// and `keepOpen` for popups the pointer needs to move into.
+// and `keepOpen` for popups the pointer needs to move into. dismiss() closes
+// it at once (a click on the widget), until the pointer enters again.
 PopupMenu {
   id: root
 
@@ -28,6 +29,12 @@ PopupMenu {
   function hoverEntered() {
     hideTimer.stop()
     showTimer.restart()
+  }
+
+  function dismiss() {
+    showTimer.stop()
+    hideTimer.stop()
+    root.hovering = false
   }
 
   function hoverExited() {

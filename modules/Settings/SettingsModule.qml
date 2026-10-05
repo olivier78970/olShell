@@ -35,6 +35,11 @@ Scope {
           pages.push({ id: id, name: pageNames[id] })
         }
       }
+      // Each widget picked in the Widgets tab has a page of its own.
+      for (const page of SettingsPages.widgetPages) {
+        pageNames[page.id] = pageNames.widgets + " > " + page.label
+        pages.push({ id: page.id, name: pageNames[page.id] })
+      }
       const settings = {}
       const add = (key, page, name) => {
         if (Settings.defaults[key] === undefined || settings[key] !== undefined) return
@@ -67,12 +72,17 @@ Scope {
     // Opens the panel on a page: a category without tabs or a tab (the
     // names saveDefaults takes, e.g. "wallpaper", "launcher", "panels" for
     // the Panels category's Placement tab, "blur"), or a category with tabs
-    // by its id, on its first tab. An unknown page opens it where it was.
+    // by its id, on its first tab, or a widget's page (widgetCpu...), on the
+    // Widgets tab picking that widget. An unknown page opens it where it was.
     function open(page: string): void {
-      const category = SettingsPages.categories.findIndex(category => category.id === page || (category.tabs ?? []).some(tab => tab.id === page))
+      // A widget's page opens the Widgets tab on that widget.
+      const widget = SettingsPages.widgetPages.some(candidate => candidate.id === page)
+      if (widget) SettingsPanelState.widgetPage = page
+      const target = widget ? "widgets" : page
+      const category = SettingsPages.categories.findIndex(category => category.id === target || (category.tabs ?? []).some(tab => tab.id === target))
       if (category >= 0) {
         SettingsPanelState.category = category
-        SettingsPanelState.tab = Math.max(0, (SettingsPages.categories[category].tabs ?? []).findIndex(tab => tab.id === page))
+        SettingsPanelState.tab = Math.max(0, (SettingsPages.categories[category].tabs ?? []).findIndex(tab => tab.id === target))
       }
       if (!SettingsPanelState.visible) SettingsPanelState.toggle()
     }
@@ -93,8 +103,11 @@ Scope {
     // The yes/no settings (barAutoHide, animations, hyprlandAnimations,
     // hyprlandAnimationSame,
     // borderOpaque,
-    // workspaceCountFromHyprland, clockSeconds, cpuRing, ramRing, diskRing,
-    // volumeRing, networkRing, activeWindowIconOnly, blur, blurXray,
+    // workspaceCountFromHyprland, clockSeconds, cpuActionTerminal,
+    // ramActionTerminal, diskActionTerminal, networkActionTerminal,
+    // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
+    // ramActionFloating, diskActionFloating, networkActionFloating,
+    // connectionActionFloating, bluetoothActionFloating, blur, blurXray,
     // windowBorderSame, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
     // windowInactiveOpacitySame, volumeOsdSame, lockKeysOsdSame,
     // curvedJoins,
@@ -300,7 +313,8 @@ Scope {
     // wallpaperCarousel, themeCarousel,
     // themeMode, themePill, themeAccent, matugenScheme, matugenSource,
     // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
-    // hyprlandWorkspaceStyle, launcherTab, clockDate,
+    // hyprlandWorkspaceStyle, launcherTab, clockDate, cpuLayout, ramLayout, diskLayout,
+    // volumeLayout, networkLayout, activeWindowLayout (auto, vertical or horizontal),
     // switcherOrientation, switcherScope, weatherUnit,
     // notificationPosition, osdPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
@@ -315,10 +329,13 @@ Scope {
     // first one that can be asked), for the weather's place (weatherLocation: a
     // place's name, or "" to find it from the internet address), and for the
     // command opening a web app (webAppCommand: a program and its arguments,
-    // %s for the address; "" for the default).
+    // %s for the address; "" for the default), and for the command a click on
+    // a bar widget runs (cpuAction, ramAction, diskAction, networkAction,
+    // connectionAction, bluetoothAction: a program and its arguments; "" for
+    // nothing).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "webAppCommand" ? true
+        : key === "weatherLocation" || key === "webAppCommand" || WidgetActions.ids.some(id => key === id + "Action") ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
@@ -342,7 +359,9 @@ Scope {
     }
 
     // Saves the current values of a page (appearance, blur, windows, text, bar,
-    // layout, widgetWorkspaces, widgetSideLook, widgetClock, widgetZoom,
+    // layout, widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
+    // widgetRam, widgetDisk, widgetNetwork, widgetConnection,
+    // widgetBluetooth, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher,
     // panels, switcher, clockPanel or general) as your own defaults.

@@ -1,6 +1,6 @@
 # olShell
 
-olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, a btop window (click the CPU, RAM or network-speed widget to see just that part), pavucontrol for the audio mixer (click the volume widget), a gdu disk usage window (click the disk widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, one of 10 fixed themes with their light versions, or your own colors), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
+olShell is a [Quickshell](https://quickshell.org) shell for Hyprland: a top bar replicated on every monitor, bar widgets whose left click runs a command you choose (btop, gdu... in a terminal window, or any application), pavucontrol for the audio mixer (click the volume widget), an application launcher, a wallpaper picker and a theme picker (automatic from the wallpaper, one of 10 fixed themes with their light versions, or your own colors), a clock popup with an agenda and performance figures, live CPU / RAM / network-speed widgets, a volume OSD, a screenshot button, a notification center with pop-ups, a Caps Lock / Num Lock OSD and a lock screen (by idle timer or a button), a power panel with confirmation, all in English, French or Spanish.
 
 ## Requirements
 
@@ -19,7 +19,7 @@ For the features that use them:
 
 - [matugen](https://github.com/InioX/matugen) 4 or later (its templates use `<* if *>` conditions and data passed with `--import-json-string`) and [awww](https://codeberg.org/LGFae/awww) for the wallpaper picker and the themes (awww is the wallpaper daemon; the shell starts it when it isn't running)
 - [`pavucontrol`](https://freedesktop.org/software/pulseaudio/pavucontrol/) for the audio mixer (volume click)
-- `btop` and [`gdu`](https://github.com/dundee/gdu) for the btop and disk usage windows, and a terminal for them and for the terminal applications started from the launcher (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml))
+- `btop` and [`gdu`](https://github.com/dundee/gdu) for the default click actions of the CPU, RAM, network-speed and storage widgets, and a terminal for them and for the terminal applications started from the launcher (`alacritty` by default, configurable in [config/Apps.qml](config/Apps.qml))
 - `grim` and `slurp` for the screenshot button, and optionally `wl-clipboard` (`wl-copy`, to copy the picture), `libnotify` (`notify-send`, to announce it) and [`satty`](https://github.com/gabm/satty) (to annotate it)
 - [`fd`](https://github.com/sharkdp/fd) for the launcher's files (and the chat AI's file searches, with [`ripgrep`](https://github.com/BurntSushi/ripgrep) for its text searches;
   both fall back to plain Python without them), `xdg-utils` (`xdg-open` to open a file or an address, `xdg-settings` to find the default browser's search engine) and `nautilus` (to show a file in its folder)
@@ -48,6 +48,6 @@ quickshell -c <name>
 - [IPC](docs/ipc.md): the calls to bind to keys.
 - [Chat AI](docs/chat-ai.md): the question-and-answer panel, its providers and what the AI may read or run.
 - [Theming](docs/theming.md): the themes, matugen, and Zen, alacritty, GTK and Qt colored from them.
-- [Panels and apps](docs/panels-and-apps.md): the launcher, app switcher, shortcuts, clock popup, wallpapers, web apps, zoom and the btop, gdu and audio mixer windows.
+- [Panels and apps](docs/panels-and-apps.md): the launcher, app switcher, shortcuts, clock popup, wallpapers, web apps, zoom, the widgets' click actions and the audio mixer.
 - [System](docs/system.md): performance figures, network, Bluetooth, screenshots, notifications, power, the lock screen, polkit and the lock keys OSD.
 - [Structure](docs/structure.md): every file and what it is for (generated from the files' own comments).

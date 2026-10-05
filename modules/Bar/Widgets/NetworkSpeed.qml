@@ -5,16 +5,16 @@ import qs.services
 
 // Instant download and upload speed of the physical network interfaces.
 // Each figure has a fixed width (that of the longest text it can show), so
-// the bar doesn't shift around as the numbers change. On a side bar (or with
-// Settings.networkRing) each arrow has a ring around it instead, filled to its
-// rate, and the figures show in a popup on hover. Click to open or close btop
-// with only its network box.
+// the bar doesn't shift around as the numbers change. On a side bar (or with the
+// vertical layout, Settings.networkLayout) each arrow has a ring around it
+// instead, filled to its rate, and the figures show in a popup on hover. Click to run its action
+// (Settings.networkAction).
 Item {
   id: root
 
   // Whether it shows as rings (its figures in the popup): always on a side
   // bar, and on a top or bottom bar too with its setting.
-  readonly property bool ring: Theme.barVertical || Settings.networkRing
+  readonly property bool ring: Settings.networkLayout === "vertical" || (Settings.networkLayout === "auto" && Theme.barVertical)
   // The rate that fills a ring: the highest of the last minute's (`history`,
   // one reading a second), but at least 1 MiB/s, so a trickle doesn't fill it.
   function scale(history) {
@@ -98,7 +98,10 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle("net")
+    onClicked: {
+      popup.dismiss()
+      WidgetActions.run("network")
+    }
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }
