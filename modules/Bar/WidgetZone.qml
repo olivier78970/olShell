@@ -13,6 +13,10 @@ Pill {
   id: root
 
   property var widgets: []
+  // How long the pill may be along the bar before it runs into the next one
+  // (the bar sets it; the window title shortens itself to keep within it).
+  property real maxWidth: 1e9
+  readonly property bool isWidgetZone: true
   // Whether any widget of the zone is open in a popup that hangs off the
   // pill, which keeps an auto-hiding bar out.
   readonly property bool popupOpen: {
