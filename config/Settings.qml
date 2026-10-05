@@ -315,6 +315,18 @@ Singleton {
   // many on each side of the selected one.
   readonly property string wallpaperCarousel: root.valid("wallpaperCarousel", file.adapter.wallpaperCarousel)
   readonly property int wallpaperSideCount: root.valid("wallpaperSideCount", file.adapter.wallpaperSideCount)
+  // Whether Bing's picture of the day is downloaded into bingWallpaperFolder,
+  // at startup and when this is turned on (see services/BingWallpaper.qml).
+  readonly property bool bingWallpapers: root.valid("bingWallpapers", file.adapter.bingWallpapers)
+  // The folder Bing's picture of the day is downloaded into, which the
+  // wallpaper panel lists too while it is on.
+  readonly property string bingWallpaperFolder: root.valid("bingWallpaperFolder", file.adapter.bingWallpaperFolder)
+  // The folders the wallpaper panel lists pictures from, as typed
+  // (comma-separated), and as a list of absolute paths (~ expanded).
+  readonly property string wallpaperFolders: root.valid("wallpaperFolders", file.adapter.wallpaperFolders)
+  readonly property var wallpaperFolderList: root.folderList(root.wallpaperFolders)
+  // Every folder the wallpaper panel lists: those, and Bing's while it is on.
+  readonly property var wallpaperListedFolders: root.bingWallpapers ? root.folderList(root.wallpaperFolders + "," + root.bingWallpaperFolder) : root.wallpaperFolderList
   // The same for the theme panel.
   readonly property string themeCarousel: root.valid("themeCarousel", file.adapter.themeCarousel)
   readonly property int themeSideCount: root.valid("themeSideCount", file.adapter.themeSideCount)
@@ -830,7 +842,12 @@ Singleton {
       const list = root.asArray(value)
       return list.length > 0 || (value !== null && typeof value === "object") ? list.filter(id => root.widgetIds.includes(id)) : root.defaults[key]
     }
-    if (key === "screenshotDir") {
+    // Folders, comma-separated; a list with no usable folder is the default.
+    if (key === "wallpaperFolders") {
+      const text = typeof value === "string" ? value.trim().slice(0, 1000) : ""
+      return root.folderList(text).length > 0 ? text : root.defaults[key]
+    }
+    if (key === "screenshotDir" || key === "bingWallpaperFolder") {
       // ~ is the home folder, a trailing slash is dropped, and anything that
       // isn't then an absolute path (or is just "/") is the default.
       let path = typeof value === "string" ? value.trim() : ""
@@ -867,6 +884,15 @@ Singleton {
 
   // `list` as a real array: a list read from the saved file is an array-like
   // object that Array.isArray refuses, and anything else gives an empty one.
+  function folderList(text) {
+    const home = Quickshell.env("HOME")
+    const folders = String(text).split(",").map(part => part.trim())
+      .map(path => path === "~" ? home : path.startsWith("~/") ? home + path.slice(1) : path)
+      .map(path => path.replace(/\/+$/, ""))
+      .filter(path => path.startsWith("/"))
+    return folders.filter((path, index) => folders.indexOf(path) === index)
+  }
+
   function asArray(list) {
     return list !== null && typeof list === "object" && typeof list.length === "number" ? Array.from(list) : []
   }
@@ -1198,6 +1224,9 @@ Singleton {
       property real wallpaperDuration: Defaults.values.wallpaperDuration
       property string wallpaperCarousel: Defaults.values.wallpaperCarousel
       property int wallpaperSideCount: Defaults.values.wallpaperSideCount
+      property bool bingWallpapers: Defaults.values.bingWallpapers
+      property string bingWallpaperFolder: Defaults.values.bingWallpaperFolder
+      property string wallpaperFolders: Defaults.values.wallpaperFolders
       property string themeCarousel: Defaults.values.themeCarousel
       property int themeSideCount: Defaults.values.themeSideCount
       property string matugenScheme: Defaults.values.matugenScheme

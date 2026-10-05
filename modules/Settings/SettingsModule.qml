@@ -113,7 +113,7 @@ Scope {
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenQt, matugenStarship, themeExactApps, lockStayAwakeFullscreen,
+    // matugenQt, matugenStarship, themeExactApps, lockStayAwakeFullscreen, bingWallpapers,
     // chatAiListDir, chatAiFindFiles, chatAiSearchText, chatAiReadFile,
     // chatAiWebSearch, chatAiWebFetch, chatAiShellDocs, chatAiShellIpc,
     // chatAiShowUsage, chatAiShowHint, chatAiShowAccess) take
@@ -332,10 +332,11 @@ Scope {
     // %s for the address; "" for the default), and for the command a click on
     // a bar widget runs (cpuAction, ramAction, diskAction, networkAction,
     // connectionAction, bluetoothAction: a program and its arguments; "" for
-    // nothing).
+    // nothing), and for the wallpaper folders (wallpaperFolders: paths separated
+    // by commas, ~ for the home folder; bingWallpaperFolder: one path).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "webAppCommand" || WidgetActions.ids.some(id => key === id + "Action") ? true
+        : key === "weatherLocation" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)

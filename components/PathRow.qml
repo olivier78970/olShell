@@ -8,7 +8,8 @@ import qs.config
 // emits `editRequested`, and the owner sets `editing` (as it does for Enter on
 // the row); Enter in the field emits `committed` with the text, Escape emits
 // `cancelled`, and the owner then clears `editing`. Typing that ends any other
-// way (`editing` cleared) is committed too. Up/Down/Tab are kept from the owner's row
+// way (`editing` cleared) is committed too. While not `interactive` the row is
+// dimmed and can't be edited; `disabledReason` then explains why in a tooltip. Up/Down/Tab are kept from the owner's row
 // navigation while typing.
 Item {
   id: root
@@ -20,6 +21,8 @@ Item {
   property string swatch: ""
   // Shown, dimmed, in place of an empty value (what empty stands for).
   property string placeholder: ""
+  property bool interactive: true
+  property string disabledReason: ""
 
   // Whether Enter or Escape ended the typing: any other end of it (another
   // row or tab, or the panel closing) keeps what was typed.
@@ -79,6 +82,7 @@ Item {
     anchors.leftMargin: 12
     anchors.verticalCenter: parent.verticalCenter
     text: root.label
+    opacity: root.interactive ? 1 : 0.45
   }
 
   // The field: the value in a box, an edit cursor when editing.
@@ -92,6 +96,7 @@ Item {
     height: 32
     radius: Theme.radiusFor(height)
     color: "transparent"
+    opacity: root.interactive ? 1 : 0.45
     border.color: root.editing ? Theme.accentColor : Theme.outlineColor
     border.width: 1
 
@@ -172,7 +177,7 @@ Item {
 
     MouseArea {
       anchors.fill: parent
-      enabled: !root.editing
+      enabled: !root.editing && root.interactive
       cursorShape: Qt.IBeamCursor
       onClicked: {
         root.activated()
@@ -184,13 +189,25 @@ Item {
     MouseArea {
       anchors.fill: swatchDot
       anchors.margins: -4
-      enabled: swatchDot.visible && !root.editing
+      enabled: swatchDot.visible && !root.editing && root.interactive
       cursorShape: Qt.PointingHandCursor
       onClicked: {
         root.activated()
         picker.show()
       }
     }
+  }
+
+  // Hover works even while the row is disabled, so the tooltip explaining why
+  // still shows.
+  HoverHandler {
+    id: hover
+  }
+
+  DisabledTooltip {
+    anchorItem: box
+    text: root.disabledReason
+    visible: hover.hovered && !root.interactive && root.disabledReason.length > 0
   }
 
   ColorPicker {

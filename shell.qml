@@ -36,6 +36,9 @@ ShellRoot {
   // And the blur service, which has to apply Settings.blur's saved value
   // from the start (Hyprland forgets dynamic layer rules on its own restart).
   readonly property var blurActive: Blur.active
+  // And the Bing wallpaper service, which downloads the picture of the day
+  // once at startup when its setting is on.
+  readonly property var bingWallpapers: BingWallpaper.enabled
   // And the zoom service, which answers the `zoom` IPC calls.
   readonly property var zoomFactor: Zoom.factor
   // And the polkit agent, which has to register with polkit from the start.

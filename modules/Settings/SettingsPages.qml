@@ -185,6 +185,11 @@ Singleton {
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
     { key: "wallpaperCarousel", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.carouselStyle") },
     { key: "wallpaperSideCount", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperSideCount"), step: 1, format: v => String(v) },
+    { key: "bingWallpapersRow", category: "wallpaper", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.bingWallpapers"), toggles: [
+      { key: "bingWallpapers", text: "" }
+    ] },
+    { key: "bingWallpaperFolder", category: "wallpaper", kind: "path", label: I18n.tr("settings.bingWallpaperFolder") },
+    { key: "wallpaperFolders", category: "wallpaper", kind: "path", label: I18n.tr("settings.wallpaperFolders"), placeholder: I18n.tr("settings.wallpaperFolders.hint") },
     { key: "themeMode", category: "theme", kind: "buttons", label: I18n.tr("settings.themeMode") },
     { key: "themePill", category: "theme", kind: "dropdown", label: I18n.tr("settings.themePill") },
     { key: "themeCarousel", category: "theme", kind: "dropdown", label: I18n.tr("settings.carouselStyle") },
