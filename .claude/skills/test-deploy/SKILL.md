@@ -38,7 +38,7 @@ Deploy only when the user asks.
 
 1. `deploy` copies **master**, so the change must be committed and merged first. Feature work happens on a branch, merged into master with a `Merge <branch>: <what it does>` commit. Ask before merging if the user hasn't said to.
 2. `$S deploy`. It leaves the deployed copy's settings files alone, and lists files in the deployed copy that a deploy no longer copies (removed from master, or kept out by `.gitattributes`: `.claude/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`); ask before deleting them.
-3. `$S deployed`, which stops the checkout shell and starts the deployed one.
+3. `$S deployed`, which stops the checkout shell and starts the deployed one. It waits a moment first (a merge or branch switch makes a running checkout shell reload, during which `quickshell list` can miss it), ends the checkout by its process if `quickshell kill` didn't, and checks at the end that the checkout isn't running. Still check `$S status` shows only the deployed shell. To stop a shell by hand use its pid from `ps`, never `pkill -f quickshell...`: the pattern also matches the command line running it.
 4. The shell points Hyprland's `QS_CONFIG_PATH` at its own folder about a second after it starts. To confirm the shortcuts reach the deployed copy:
    ```sh
    hyprctl eval "hl.exec_cmd(\"sh -c 'env | grep QS_ > /tmp/qs-env'\")"; cat /tmp/qs-env

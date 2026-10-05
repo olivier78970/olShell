@@ -19,7 +19,13 @@ backups="${XDG_CACHE_HOME:-$HOME/.cache}/olshell-backups"
 # with --all and would point bare calls at the deployed copy.
 qs() { env -u QS_CONFIG_PATH quickshell "$@"; }
 
-running() { qs list --all 2>/dev/null | grep -F "Config path: $1/shell.qml" >/dev/null; }
+# The pids of the shell of folder $1, from the process list: `qs list` can miss
+# a shell for a moment while it reloads after files changed (a branch switch,
+# a merge), so it isn't enough to know whether one is running. The pattern is
+# anchored so it doesn't match a command line merely mentioning the path.
+pids() { pgrep -f "^quickshell -p $1( |\$)"; }
+
+running() { qs list --all 2>/dev/null | grep -F "Config path: $1/shell.qml" >/dev/null || [ -n "$(pids "$1")" ]; }
 
 status() {
   running "$deployed" && echo "deployed shell: running ($deployed)" || echo "deployed shell: not running"
@@ -31,7 +37,10 @@ status() {
 # (notifications, polkit) before another shell starts and wants them.
 stop() {
   running "$1" || return 0
-  qs kill -p "$1" >/dev/null
+  qs kill -p "$1" >/dev/null 2>&1
+  for _ in 1 2 3 4 5 6 7 8 9 10; do running "$1" || return 0; sleep 0.5; done
+  # Still there (not in `qs list` to be killed that way): end its process.
+  pids "$1" | xargs -r kill
   for _ in 1 2 3 4 5 6 7 8 9 10; do running "$1" || return 0; sleep 0.5; done
   echo "failed to stop $1"; return 1
 }
@@ -92,9 +101,15 @@ case ${1:-status} in
     [ -n "$stale" ] && { echo "in the deployed copy but not in master (not deleted):"; echo "$stale" | sed 's/^/  /'; }
     ;;
   deployed)
-    running "$repo" && stop "$repo" && echo "checkout shell stopped"
+    # The files may have just changed (a merge), so a running checkout shell
+    # may be reloading: let that settle before looking for it.
+    sleep 2
+    stop "$repo" || exit 1
     running "$deployed" && { echo "deployed shell already running"; exit 0; }
-    start "$deployed"
+    start "$deployed" || exit 1
+    # Never both: check the checkout didn't come back or survive.
+    sleep 1
+    running "$repo" && { echo "the checkout shell is still running: stopping it"; stop "$repo" || exit 1; }
     ;;
   *) sed -n '2,12p' "$0"; exit 1 ;;
 esac
