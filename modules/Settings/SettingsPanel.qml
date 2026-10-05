@@ -1272,6 +1272,8 @@ ModalPanel {
 
       PowerMenuOption {
         id: resetButton
+        // The profiles page holds no settings to reset.
+        visible: root.page !== "profiles"
         anchors.right: parent.right
         label: I18n.tr("settings.reset")
         // This page only: to the current profile's settings.

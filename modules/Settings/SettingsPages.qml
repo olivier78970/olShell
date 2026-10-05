@@ -2,6 +2,7 @@ pragma Singleton
 
 import Quickshell
 import qs.config
+import qs.services
 
 // What the settings panel is made of that doesn't need the panel itself:
 // its categories and pages, the rows holding a setting, and the functions
