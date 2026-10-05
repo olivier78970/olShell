@@ -41,6 +41,7 @@ Singletons for state and configuration. `*.json` files here are runtime state, g
 Singletons wrapping system state and processes; most also hold an IPC target.
 
 - [`Audio.qml`](../services/Audio.qml): Default output volume/mute state, shared by the bar widget and the OSD.
+- [`BingWallpaper.qml`](../services/BingWallpaper.qml): Downloads Bing's picture of the day (scripts/bing-picture.py) into Settings.bingWallpaperFolder when Settings.bingWallpapers is on: once at…
 - [`Blur.qml`](../services/Blur.qml): Keeps Hyprland's compositor blur in sync with Settings.blur.
 - [`ChatAi.qml`](../services/ChatAi.qml): Asks the chat AI panel's question: one question, one answer, no conversation, of Anthropic, OpenAI or an OpenAI-compatible provider the…
 - [`ConfigPath.qml`](../services/ConfigPath.qml): Points Hyprland's QS_CONFIG_PATH at the folder this shell runs from, so the shortcuts' `qs ipc` calls reach the shell that is running (a…
@@ -225,6 +226,7 @@ Python helpers the QML runs through `Process`.
 - [`ai-ask.py`](../scripts/ai-ask.py): Asks an AI provider one question, letting it search and read the user's files.
 - [`ai-key.py`](../scripts/ai-key.py): Keeps the chat AI providers' API keys in the secret keyring.
 - [`apply-wallpaper.py`](../scripts/apply-wallpaper.py): Show an image as the wallpaper with awww, starting its daemon first if needed.
+- [`bing-picture.py`](../scripts/bing-picture.py): Downloads Bing's picture of the day from bing.biturl.top and prints its path.
 - [`default-search-engine.py`](../scripts/default-search-engine.py): Prints the default browser's default search engine, as JSON.
 - [`favicon.py`](../scripts/favicon.py): Finds the icons of web sites and keeps them in a folder, for the web apps.
 - [`list-shortcuts.py`](../scripts/list-shortcuts.py): Lists the Hyprland config's shortcuts with the Super key, as JSON.

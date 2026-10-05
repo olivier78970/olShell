@@ -602,6 +602,8 @@ ModalPanel {
     if (row.key === "windowGapsIn") return !Settings.windowGapsInSame
     if (row.key === "curvedJoinsRadiusSameRow") return Theme.panelGap <= 0 && Theme.curvedJoins
     if (row.key === "curvedJoinsRadius") return Theme.panelGap <= 0 && Theme.curvedJoins && !Settings.curvedJoinsRadiusSame
+    // The folder only matters while Bing's picture of the day is downloaded.
+    if (row.key === "bingWallpaperFolder") return Settings.bingWallpapers
     if (row.key === "workspaceCount") return !Settings.workspaceCountFromHyprland
     // Only the app switcher's cards have room for a window's picture.
     if (row.key === "switcherPreviewsRow") return Settings.switcherOrientation === "horizontal"
@@ -649,6 +651,7 @@ ModalPanel {
     if (["hyprlandAnimationDuration", "hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key) && !Settings.hyprlandAnimations) return I18n.tr("settings.hyprlandAnimations.disabled")
     if (row.key === "hyprlandAnimationDuration" && Settings.hyprlandAnimationSame) return I18n.tr("settings.hyprlandAnimationSame.disabled", Settings.animationDuration)
     if (row.key === "borderOpaqueRow" && Theme.borderWidth === 0) return I18n.tr("settings.borderOpaque.disabledNone")
+    if (row.key === "bingWallpaperFolder" && !Settings.bingWallpapers) return I18n.tr("settings.bingWallpaperFolder.disabled")
     if (row.key === "workspaceCount" && Settings.workspaceCountFromHyprland) return I18n.tr("settings.workspaceCount.disabledHyprland")
     if (row.key === "curvedJoinsRow" && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
     if ((row.key === "curvedJoinsRadius" || row.key === "curvedJoinsRadiusSameRow") && Theme.panelGap > 0) return I18n.tr("settings.curvedJoins.disabledGap")
@@ -970,8 +973,8 @@ ModalPanel {
     const big = (event.modifiers & Qt.ShiftModifier) !== 0
     const kind = root.rows[root.selected].kind
     if ((kind === "path" || (kind === "slider" && root.rows[root.selected].stepper)) && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
-      // Enter: type in the field (a path's, or a stepper's value).
-      root.editKey = root.rows[root.selected].key
+      // Enter: type in the field (a path's, or a stepper's value), unless the row is disabled.
+      if (root.rowEnabled(root.rows[root.selected])) root.editKey = root.rows[root.selected].key
       event.accepted = true
     } else if (kind === "engine" && (event.key === Qt.Key_Left || event.key === Qt.Key_Right)) {
       // Left / Right: what the keys are on (check box, name, address,
@@ -1628,6 +1631,8 @@ ModalPanel {
                 // The rows adding a place or saving a profile hold no setting: always empty.
                 value: row.modelData.kind === "path" && row.modelData.key !== "worldClockAdd" && row.modelData.key !== "profileSave" ? String(Settings.get(row.modelData.key)) : ""
                 placeholder: row.modelData.placeholder ?? ""
+                interactive: root.rowEnabled(row.modelData)
+                disabledReason: root.disabledReasonOf(row.modelData)
                 swatch: row.modelData.swatch ? String(Settings.get(row.modelData.key)) : ""
                 selected: root.selected === row.index
                 editing: row.modelData.kind === "path" && root.editKey === row.modelData.key

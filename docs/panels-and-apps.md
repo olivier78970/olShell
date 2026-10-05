@@ -105,7 +105,7 @@ To add a feature, append an entry to `tabs` and a page to the `StackLayout` in [
 
 ## Wallpapers
 
-The picker lists images from `~/.config/wallpapers/bing/saved/`, plus `~/.config/wallpapers/bing/pod.jpg` (the Bing picture of the day) as the first entry.
+The picker lists images from the folders of the "Wallpaper folders" setting (by default `~/Pictures/wallpapers/`). Under the carousel it shows the copyright text of the selected picture and a button opening its link when a `<name>.json` description sits next to it (the Bing pictures' `bing-<date>.json`, see "Bing wallpapers" in the Settings table).
 Both locations, and the config directory root (`$XDG_CONFIG_HOME`), are set in [config/Paths.qml](../config/Paths.qml).
 
 The pictures are shown in a carousel: by default the selected one large and in front, three on each side stacked behind it, overlapping, turned slightly toward it, smaller and darker the further they are, sliding into place as you browse.

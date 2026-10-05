@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import qs.components
 import qs.config
@@ -18,7 +19,6 @@ import qs.services
 CarouselPanel {
   id: root
 
-  readonly property string wallpaperDir: Paths.wallpaperDir
   readonly property string podPath: Paths.wallpaperOfTheDay
   property var wallpapers: []
 
@@ -101,6 +101,14 @@ CarouselPanel {
     }
   }
 
+  // Bing's picture of the day is applied as soon as it has been downloaded.
+  Connections {
+    target: BingWallpaper
+    function onDownloaded(path) {
+      root.applyPath(path, true)
+    }
+  }
+
   // Applies a random wallpaper (see randomIndex), moving the carousel to it
   // when the panel is open.
   function applyRandom() {
@@ -123,24 +131,13 @@ CarouselPanel {
 
   Process {
     id: listProcess
-    // Includes podPath as a search root alongside wallpaperDir: find
-    // silently skips it if it doesn't exist, which is how existence is
-    // checked here (no extra process/roundtrip needed).
-    command: ["find", root.podPath, root.wallpaperDir, "-maxdepth", "1", "-type", "f", "-iregex", ".*\\.\\(jpg\\|jpeg\\|png\\|webp\\)"]
+    command: ["find"].concat(Settings.wallpaperListedFolders, ["-maxdepth", "1", "-type", "f", "-iregex", ".*\\.\\(jpg\\|jpeg\\|png\\|webp\\)"])
 
     stdout: StdioCollector {
       onStreamFinished: {
-        const lines = text.split("\n").filter(line => line.length > 0)
-        const podExists = lines.includes(root.podPath)
-        const saved = lines.filter(line => line !== root.podPath).sort()
-        // The Bing "picture of the day" also lands in the saved
-        // directory as its newest file, so drop that duplicate once
-        // it's shown as the dedicated pod entry instead.
-        if (podExists) saved.pop()
-        root.wallpapers = podExists ? [root.podPath].concat(saved) : saved
-        // Open on the wallpaper in use (the first entry, the picture of the
-        // day, when it isn't in the list: it is that one's duplicate). Once the
-        // carousel has taken the new list, which resets its position.
+        root.wallpapers = text.split("\n").filter(line => line.length > 0).sort()
+        // Open on the wallpaper in use, once the carousel has taken the new
+        // list, which resets its position.
         Qt.callLater(root.showIndex, Math.max(0, root.wallpapers.indexOf(ThemeState.wallpaper)))
         if (root.randomPending) {
           root.randomPending = false
@@ -178,27 +175,91 @@ CarouselPanel {
     }
   }
 
+  // The latest picture of the day in the Bing folder: the one whose file name
+  // holds the latest date (bing-<date>.jpg, or <date>.jpg for older ones, the
+  // date as YYYYMMDD), or -1 when none has a date.
+  function podIndex() {
+    const prefix = Settings.bingWallpaperFolder + "/"
+    let found = -1
+    let latest = ""
+    root.wallpapers.forEach((path, index) => {
+      if (!path.startsWith(prefix) || path.indexOf("/", prefix.length) >= 0) return
+      const date = path.slice(prefix.length).match(/^(?:bing-)?(\d{8})\.[^.]+$/)?.[1] ?? ""
+      if (date > latest) {
+        latest = date
+        found = index
+      }
+    })
+    return found
+  }
+
+  // The description scripts/bing-picture.py saved next to the current picture
+  // (bing-<date>.json), or null when it has none: its copyright text and link.
+  property var info: null
+  readonly property string currentPath: root.currentIndex >= 0 ? (root.wallpapers[root.currentIndex] ?? "") : ""
+
+  FileView {
+    path: root.currentPath.replace(/\.[^./]+$/, "") + ".json"
+    printErrors: false
+    onLoaded: {
+      try {
+        root.info = JSON.parse(text())
+      } catch (error) {
+        root.info = null
+      }
+    }
+    onLoadFailed: root.info = null
+  }
+
+  // Under the carousel: the current picture's copyright text, and a button
+  // opening its link, when it has a description.
+  Row {
+    visible: root.info !== null && typeof root.info.copyright === "string" && root.info.copyright.length > 0
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.bottom: parent.bottom
+    anchors.bottomMargin: 20
+    spacing: 16
+
+    ThemedText {
+      anchors.verticalCenter: parent.verticalCenter
+      width: Math.min(implicitWidth, root.panel.width * 0.6)
+      text: root.info?.copyright ?? ""
+      elide: Text.ElideRight
+    }
+
+    PowerMenuOption {
+      visible: typeof root.info?.copyright_link === "string" && root.info.copyright_link.length > 0
+      anchors.verticalCenter: parent.verticalCenter
+      label: I18n.tr("bingWallpapers.link")
+      onClicked: Quickshell.execDetached(["xdg-open", root.info.copyright_link])
+    }
+  }
+
+  // Only while Bing's picture of the day is downloaded.
   PowerMenuOption {
     id: podButton
 
+    visible: Settings.bingWallpapers
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 20
     label: I18n.tr("wallpaper.pod")
     onClicked: {
-      // POD is always the first entry (see listProcess above), so
-      // selecting it moves the carousel to it instead of just
+      // Moves the carousel to the picture of the day instead of just
       // applying it without visually reflecting the change.
-      root.currentIndex = 0
+      const index = root.podIndex()
+      if (index < 0) return
+      root.currentIndex = index
       root.accept()
     }
   }
 
-  // Left of the picture-of-the-day button.
+  // Left of the picture-of-the-day button, or in its place while it is hidden.
   PowerMenuOption {
-    anchors.top: podButton.top
-    anchors.right: podButton.left
-    anchors.rightMargin: 8
+    anchors.top: parent.top
+    anchors.topMargin: 20
+    anchors.right: podButton.visible ? podButton.left : parent.right
+    anchors.rightMargin: podButton.visible ? 8 : 20
     icon: "\uDB81\uDC9F"
     label: I18n.tr("wallpaper.random")
     onClicked: root.applyRandom()
