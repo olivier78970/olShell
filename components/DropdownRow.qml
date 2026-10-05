@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import qs.config
 
 // A label with the current value on the right; clicking it opens a list of
@@ -13,7 +12,7 @@ import qs.config
 // row: while it's open the row's implicitHeight grows to hold it (items
 // outside their parent's bounds get no mouse events), so the owner should
 // size the row from that. With `overlay` on, the list instead floats above
-// the rest of the panel in its own window, so the row's height never changes
+// the rest of the panel, in `overlayHost`, so the row's height never changes
 // and nothing else moves when it opens.
 Item {
   id: root
@@ -31,6 +30,9 @@ Item {
   property bool positionIcon: false
   // Float the list instead of growing the row to hold it.
   property bool overlay: false
+  // The item the floating list is shown in: one covering the panel, above its
+  // other items (the row itself when null, which clips the list to the row).
+  property Item overlayHost: null
   // False for a row that can't be adjusted right now (some other setting
   // makes it have no effect); dims the row and blocks its button, and
   // `disabledReason`, if set, explains why in a tooltip on hover.
@@ -41,12 +43,6 @@ Item {
   signal activated()
   signal toggled()
   signal highlightRequested(int index)
-  // The overlay popup is a separate window, and Wayland gives a newly shown
-  // one keyboard focus (unlike the inline list, still part of the panel's own
-  // window): keys landing there are forwarded here instead of being handled
-  // locally, so the owner's existing key handling for the list (the same one
-  // driving the inline case) covers it too.
-  signal overlayKeyPressed(var event)
 
   readonly property int currentIndex: root.options.findIndex(option => option.value === root.current)
   readonly property int entryHeight: root.positionIcon ? 38 : 30
@@ -78,13 +74,7 @@ Item {
 
   // Keeps the entry the keys are on in view.
   onHighlightedChanged: if (root.open) root.activeList?.positionViewAtIndex(root.highlighted, ListView.Contain)
-  onOpenChanged: {
-    // The overlay is a real popup window, not part of the row, so it needs
-    // telling explicitly (a plain binding would fight the popup's own grab
-    // dismissing it, see overlayPopup.onVisibleChanged below).
-    if (root.overlay) overlayPopup.visible = root.open
-    if (root.open) root.activeList?.positionViewAtIndex(root.highlighted, ListView.Center)
-  }
+  onOpenChanged: if (root.open) root.activeList?.positionViewAtIndex(root.highlighted, ListView.Center)
 
   // The row's background, without the list.
   Rectangle {
@@ -289,51 +279,56 @@ Item {
     }
   }
 
-  // The list, floating in its own window below the button: never resizes
-  // the row, so nothing else in the panel moves when it opens.
-  PopupWindow {
-    id: overlayPopup
-    visible: false
-    anchor.item: button
-    anchor.edges: Edges.Bottom | Edges.Right
-    anchor.gravity: Edges.Bottom | Edges.Left
-    anchor.margins.bottom: 0
-    // Matches every other popup in the shell (the bar's menus, tooltips):
-    // grabbing focus is what makes a click outside it dismiss it.
-    grabFocus: true
-    implicitWidth: root.listWidth
-    implicitHeight: root.listHeight
-    color: "transparent"
+  // The list, floating above the rest of the panel just under the button (or
+  // above it when there is no room below): never resizes the row, so nothing
+  // else in the panel moves when it opens. It lives in `overlayHost` (an item
+  // covering the panel, above its other items), not in a window of its own:
+  // a popup window opened under a still pointer got no mouse events until the
+  // pointer had left and come back.
+  Rectangle {
+    id: floatingList
+    visible: root.overlay && root.open
+    z: 1
+    width: root.listWidth
+    height: root.listHeight
+    radius: Theme.radiusFor(height)
+    color: Theme.pillColor
+    border.color: Theme.accentColor
+    border.width: 1
 
-    // The compositor can dismiss this itself (a click outside it, since it
-    // grabs focus); tell the owner so root.openKey and this row's arrow
-    // don't get stuck thinking it's still open.
-    onVisibleChanged: {
-      if (!overlayPopup.visible && root.open) root.toggled()
-      // Being shown is what actually gives this window keyboard focus.
-      if (overlayPopup.visible) overlayContent.forceActiveFocus()
+    // Moved to the host once, not bound to it: a binding moves the list back
+    // into the row as the panel is torn down, which crashes the shell.
+    Component.onCompleted: if (root.overlayHost) floatingList.parent = root.overlayHost
+
+    // Puts the list under the button, right-aligned with it, or above it when
+    // it would go past the bottom of the host.
+    function place() {
+      const host = floatingList.parent
+      const below = button.mapToItem(host, button.width, button.height)
+      floatingList.x = below.x - floatingList.width
+      const above = button.mapToItem(host, 0, 0).y - floatingList.height
+      floatingList.y = below.y + floatingList.height > host.height && above >= 0 ? above : below.y
     }
 
-    Rectangle {
-      id: overlayContent
+    // Follows the button while the list is open (the rows can scroll under it).
+    Timer {
+      interval: 16
+      repeat: true
+      running: floatingList.visible
+      triggeredOnStart: true
+      onTriggered: floatingList.place()
+    }
+
+    // Keeps clicks between the entries from reaching what's under the list.
+    MouseArea {
       anchors.fill: parent
-      radius: Theme.radiusFor(height)
-      color: Theme.pillColor
-      border.color: Theme.accentColor
-      border.width: 1
-      focus: true
+    }
 
-      // Arrow keys, Enter, Escape... land here, not on the panel behind it:
-      // forward them to the owner, which already knows how to handle them
-      // (the same code the inline list's keys go through).
-      Keys.onPressed: event => root.overlayKeyPressed(event)
-
-      Loader {
-        id: overlayLoader
-        anchors.fill: parent
-        active: root.overlay
-        sourceComponent: listContent
-      }
+    Loader {
+      id: overlayLoader
+      anchors.fill: parent
+      active: root.overlay
+      sourceComponent: listContent
     }
   }
 }

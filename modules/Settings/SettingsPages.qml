@@ -29,14 +29,12 @@ Singleton {
     ] },
     { id: "text", icon: "󰛖", label: I18n.tr("settings.category.text") },
     { id: "bar", icon: "󰍜", label: I18n.tr("settings.category.bar") },
-    // Bar widgets: the layout, then a tab for each widget with settings of
-    // its own.
+    // Bar widgets: the layout, then one tab for the widgets with settings of
+    // their own: a dropdown picks the widget (widgetPages), and the rows of
+    // its page are listed under it.
     { id: "barWidgets", icon: "󰀻", label: I18n.tr("settings.category.barWidgets"), tabs: [
       { id: "layout", label: I18n.tr("settings.tab.layout") },
-      { id: "widgetWorkspaces", label: I18n.tr("settings.category.workspaces") },
-      { id: "widgetSideLook", label: I18n.tr("settings.sideLook") },
-      { id: "widgetClock", label: I18n.tr("settings.category.clock") },
-      { id: "widgetZoom", label: I18n.tr("settings.category.zoom") }
+      { id: "widgets", label: I18n.tr("settings.tab.widgets") }
     ] },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     // Theme: what goes for every theme, then a tab for each kind of theme
@@ -75,8 +73,29 @@ Singleton {
     { id: "general", icon: "󰒓", label: I18n.tr("settings.category.general") }
   ]
 
-  // Every page of rows, by id, in the order of the rail and of the tabs.
-  readonly property var pages: root.categories.reduce((pages, category) => pages.concat(category.tabs ? category.tabs.map(tab => tab.id) : [category.id]), [])
+  // The widgets with settings of their own: a page of rows each, picked in the
+  // Bar widgets category's Widgets tab (which is not a page of rows itself:
+  // it shows the picked widget's).
+  readonly property var widgetPages: [
+    { id: "widgetWorkspaces", label: I18n.tr("settings.category.workspaces") },
+    { id: "widgetActiveWindow", label: I18n.tr("settings.widget.activeWindow") },
+    { id: "widgetClock", label: I18n.tr("settings.category.clock") },
+    { id: "widgetCpu", label: I18n.tr("settings.widget.cpu") },
+    { id: "widgetRam", label: I18n.tr("settings.widget.ram") },
+    { id: "widgetDisk", label: I18n.tr("settings.widget.disk") },
+    { id: "widgetNetwork", label: I18n.tr("settings.widget.network") },
+    { id: "widgetConnection", label: I18n.tr("settings.widget.connection") },
+    { id: "widgetBluetooth", label: I18n.tr("settings.widget.bluetooth") },
+    { id: "widgetVolume", label: I18n.tr("settings.widget.volume") },
+    { id: "widgetZoom", label: I18n.tr("settings.category.zoom") }
+  ]
+
+  // Every page of rows, by id, in the order of the rail and of the tabs, the
+  // widgets' pages in place of the Widgets tab.
+  readonly property var pages: root.categories
+    .reduce((pages, category) => pages.concat(category.tabs ? category.tabs.map(tab => tab.id) : [category.id]), [])
+    .filter(id => id !== "widgets")
+    .concat(root.widgetPages.map(page => page.id))
 
   // The rows of every category that hold a setting of their own, top to
   // bottom (the panel adds its engine, added-app and defaults rows). Sliders
@@ -98,6 +117,7 @@ Singleton {
     { key: "barMarginBottom", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginBottom"), step: 1, format: v => v + " px" },
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
+    { key: "widgetPick", category: "widgets", kind: "dropdown", label: I18n.tr("settings.widgetPick") },
     { key: "workspaceCount", category: "widgetWorkspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
     { key: "workspaceCountFromHyprlandRow", category: "widgetWorkspaces", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspaceCountFromHyprland"), toggles: [
       { key: "workspaceCountFromHyprland", text: "" }
@@ -280,17 +300,57 @@ Singleton {
     { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
-    { key: "sideLookRow", category: "widgetSideLook", kind: "toggles", label: I18n.tr("settings.sideLook.label"), toggles: [
-      { key: "cpuRing", text: I18n.tr("settings.widget.cpu") },
-      { key: "ramRing", text: I18n.tr("settings.widget.ram") },
-      { key: "diskRing", text: I18n.tr("settings.widget.disk") },
-      { key: "volumeRing", text: I18n.tr("settings.widget.volume") },
-      { key: "networkRing", text: I18n.tr("settings.widget.network") },
-      { key: "activeWindowIconOnly", text: I18n.tr("settings.widget.activeWindow") }
-    ] },
+    { key: "cpuLayout", category: "widgetCpu", kind: "dropdown", label: I18n.tr("settings.layout.label") },
+    { key: "ramLayout", category: "widgetRam", kind: "dropdown", label: I18n.tr("settings.layout.label") },
+    { key: "diskLayout", category: "widgetDisk", kind: "dropdown", label: I18n.tr("settings.layout.label") },
+    { key: "networkLayout", category: "widgetNetwork", kind: "dropdown", label: I18n.tr("settings.layout.label") },
+    { key: "volumeLayout", category: "widgetVolume", kind: "dropdown", label: I18n.tr("settings.layout.label") },
+    { key: "activeWindowLayout", category: "widgetActiveWindow", kind: "dropdown", label: I18n.tr("settings.layout.label") },
     { key: "clockDate", category: "widgetClock", kind: "dropdown", label: I18n.tr("settings.clockDate") },
     { key: "clockSecondsRow", category: "widgetClock", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.clockSeconds"), toggles: [
       { key: "clockSeconds", text: "" }
+    ] },
+    { key: "cpuAction", category: "widgetCpu", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "cpuActionTerminalRow", category: "widgetCpu", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "cpuActionTerminal", text: "" }
+    ] },
+    { key: "cpuActionFloatingRow", category: "widgetCpu", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "cpuActionFloating", text: "" }
+    ] },
+    { key: "ramAction", category: "widgetRam", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "ramActionTerminalRow", category: "widgetRam", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "ramActionTerminal", text: "" }
+    ] },
+    { key: "ramActionFloatingRow", category: "widgetRam", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "ramActionFloating", text: "" }
+    ] },
+    { key: "diskAction", category: "widgetDisk", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "diskActionTerminalRow", category: "widgetDisk", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "diskActionTerminal", text: "" }
+    ] },
+    { key: "diskActionFloatingRow", category: "widgetDisk", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "diskActionFloating", text: "" }
+    ] },
+    { key: "networkAction", category: "widgetNetwork", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "networkActionTerminalRow", category: "widgetNetwork", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "networkActionTerminal", text: "" }
+    ] },
+    { key: "networkActionFloatingRow", category: "widgetNetwork", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "networkActionFloating", text: "" }
+    ] },
+    { key: "connectionAction", category: "widgetConnection", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "connectionActionTerminalRow", category: "widgetConnection", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "connectionActionTerminal", text: "" }
+    ] },
+    { key: "connectionActionFloatingRow", category: "widgetConnection", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "connectionActionFloating", text: "" }
+    ] },
+    { key: "bluetoothAction", category: "widgetBluetooth", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "bluetoothActionTerminalRow", category: "widgetBluetooth", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "bluetoothActionTerminal", text: "" }
+    ] },
+    { key: "bluetoothActionFloatingRow", category: "widgetBluetooth", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "bluetoothActionFloating", text: "" }
     ] },
     { key: "zoomMax", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },

@@ -28,7 +28,7 @@ The settings, with their range:
 | Text | Font | the installed Nerd Font families | 0xProto Nerd Font |
 | Top bar | Auto-hide the bar | on / off (check box); tucks the bar away until the pointer reaches the edge of the screen it's anchored to | off |
 | Top bar | Hide delay | 0 – 3000 ms; how long the pointer has to be away before it tucks away again | 500 ms |
-| Top bar | Bar position (on the left or right edge the widgets stack in a column: the left zone at the top, the right one at the bottom; CPU, RAM, disk, volume and network speed show as rings around their icon filled to their value (the figures in their popup), the other widgets their figure under their icon, the clock its hours over its minutes, the window title only its icon (the title on hover); see Side-bar look in the Bar widgets settings to keep this on a top or bottom bar; popups and attached panels open beside the bar) | Top / Bottom / Left / Right | Top |
+| Top bar | Bar position (on the left or right edge the widgets stack in a column: the left zone at the top, the right one at the bottom; CPU, RAM, disk, volume and network speed show as rings around their icon filled to their value (the figures in their popup), the other widgets their figure under their icon, the clock its hours over its minutes, the window title only its icon (the title on hover); each widget's **Layout** in the Bar widgets settings keeps this look on a top or bottom bar, or the top-bar look on a side bar; popups and attached panels open beside the bar) | Top / Bottom / Left / Right | Top |
 | Top bar | Bar thickness (its width on the left or right edge) | 28 – 72 px | 40 |
 | Top bar | Top bar top margin | 0 – 100 px | 5 |
 | Top bar | Top bar bottom margin | 0 – 100 px | 0 |
@@ -37,9 +37,32 @@ The settings, with their range:
 | Top bar | Bar style | Individual widgets (each pill has its own background) / Full bar (one background behind every widget, the pills' own go transparent) | Individual widgets |
 | Top bar | Top bar opacity | 0 – 100 % (only in the Full bar style) | 60 % |
 | Bar widgets (Layout tab) | The bar's layout, arranged by dragging (see below): a lane per zone of the bar (left, center, right) with its groups in bar order, each group one cell holding its widgets, a lane of the widgets that are off and a lane of the ones that are disabled. Drag a widget into a group to join it, between groups (or into an empty lane) to start a group of its own, or to Off to turn it off; drag a group by its handle (󰇛) to move it with its widgets and mode, or to Off; a line shows where the drop goes. Each group's button switches it between shown (󰈈), shown on hover (󰍽) and hidden (󰈉). The settings button can't be turned off | — | the original layout |
-| Bar widgets (Side-bar look tab) | Side-bar look, also on a top or bottom bar: CPU, RAM, Disk and Volume as a ring around their icon filled to their value, Network as a ring around each arrow filled to its speed against the last minute's highest (at least 1 MiB/s) (the figures move to their popup), Window title as its icon only (the title on hover); on a left or right bar they always look this way | on / off button for each | all off |
-| Bar widgets (Clock tab) | Clock: date (each choice shown as today's date written that way, in the current language) | Long (Sunday, September 27, 2026) / Short (Sun, Sep 27) / Numeric (09/27/2026) / No date | Long |
-| Bar widgets (Clock tab) | Clock: show seconds (without them the clock, and the bar, only update once a minute) | check box | on |
+| Bar widgets (Widgets tab, CPU) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (a ring around the icon filled to the usage, the figures in the popup) / Horizontal (the figures beside the icon) | Vertical |
+| Bar widgets (Widgets tab, RAM) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (a ring around the icon filled to the usage, the figures in the popup) / Horizontal (the figures beside the icon) | Vertical |
+| Bar widgets (Widgets tab, Disk) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (a ring around the icon filled to how full the disk is, the figures in the popup) / Horizontal (the figures beside the icon) | Vertical |
+| Bar widgets (Widgets tab, Network) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (a ring around each arrow filled to its speed against the last minute's highest (at least 1 MiB/s), the figures in the popup) / Horizontal (the figures beside the arrows) | Vertical |
+| Bar widgets (Widgets tab, Volume) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (a ring around the icon filled to the volume) / Horizontal (the figure beside the icon) | Vertical |
+| Bar widgets (Widgets tab, Window title) | Widget icon | Automatic (by the bar's side: vertical on a left or right bar, horizontal on a top or bottom one) / Vertical (only the icon, the title on hover) / Horizontal (the icon and the title) | Automatic |
+| Bar widgets (Widgets tab, Clock) | Clock: date (each choice shown as today's date written that way, in the current language) | Long (Sunday, September 27, 2026) / Short (Sun, Sep 27) / Numeric (09/27/2026) / No date | Long |
+| Bar widgets (Widgets tab, Clock) | Clock: show seconds (without them the clock, and the bar, only update once a minute) | check box | on |
+| Bar widgets (Widgets tab, CPU) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `btop` |
+| Bar widgets (Widgets tab, CPU) | Click action: run it in a terminal | check box | on |
+| Bar widgets (Widgets tab, CPU) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | on |
+| Bar widgets (Widgets tab, RAM) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `btop` |
+| Bar widgets (Widgets tab, RAM) | Click action: run it in a terminal | check box | on |
+| Bar widgets (Widgets tab, RAM) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | on |
+| Bar widgets (Widgets tab, Disk) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `gdu --no-cross /` |
+| Bar widgets (Widgets tab, Disk) | Click action: run it in a terminal | check box | on |
+| Bar widgets (Widgets tab, Disk) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | on |
+| Bar widgets (Widgets tab, Network) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `btop` |
+| Bar widgets (Widgets tab, Network) | Click action: run it in a terminal | check box | on |
+| Bar widgets (Widgets tab, Network) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | on |
+| Bar widgets (Widgets tab, Network connection) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `nm-connection-editor` |
+| Bar widgets (Widgets tab, Network connection) | Click action: run it in a terminal | check box | off |
+| Bar widgets (Widgets tab, Network connection) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
+| Bar widgets (Widgets tab, Bluetooth) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `blueman-manager` |
+| Bar widgets (Widgets tab, Bluetooth) | Click action: run it in a terminal | check box | off |
+| Bar widgets (Widgets tab, Bluetooth) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
 | Wallpaper | Wallpaper transition | Fade / None / From left / From right / From top / From bottom / Wipe / Wave / Grow / From center / To center / From anywhere / Random | Fade |
 | Wallpaper | Transition duration | 0.5 – 10 s | 2 s |
 | Wallpaper | Carousel style (how the wallpaper panel lays out the wallpapers: the selected one large and in front, the others overlapping behind it, smaller and darker the further they are, turned toward it in 3D (Cover flow, or a little: Gentle tilt), facing you (Flat fan) or fanned out and dropping like a hand of cards (Deck of cards); or all side by side, the selected one grown (Side by side)) | Cover flow / Gentle tilt / Flat fan / Deck of cards / Side by side | Gentle tilt |
@@ -120,9 +143,8 @@ What each widget takes with it:
 - `notifications`: the notification pop-ups, the center and the rules panel, and the notification server itself, which gives up the D-Bus name.
 - `volume`: the volume OSD and the `volume` calls.
 - `zoom`: the zoom OSD, its look-only shield and the `zoom` calls, and the screen goes back to no zoom.
-- `screenshot`, `disk` (`gdu`), `webApps`, `lock` (the lock screen and idle timer, and `lock` calls): their `screenshot`, `gdu`, `webApps` and `lock` calls.
-- `cpu`, `ram`, `network`: the `btop` calls, once all three are disabled.
-- `workspaces`, `activeWindow`, `tray`, `connection`, `bluetooth`: only the widget itself.
+- `screenshot`, `webApps`, `lock` (the lock screen and idle timer, and `lock` calls): their `screenshot`, `webApps` and `lock` calls.
+- `workspaces`, `activeWindow`, `tray`, `cpu`, `ram`, `disk`, `network`, `connection`, `bluetooth`: only the widget itself.
 Each group's button switches its mode: shown (󰈈), off and never shown (󰈉, its widgets stay in the group so it can be turned on again), or shown only on hover (󰍽): while the pointer is over its pill its widgets slide open, and shut again half a second after you leave it (the group of a widget whose popup is showing, such as the clock, stays open until the popup closes, so the popup keeps its anchor).
 A divider only shows when its widget does and something shown comes before it in the pill, so there is none at the start of a pill or for a widget with nothing to show (the window title when no window is open);
 a pill with nothing left in it disappears, a pill whose groups are all on hover keeps a small dots icon to hover, and a pill whose groups are all off is not drawn.
@@ -137,7 +159,7 @@ Popups that open from the bar's own widgets (the clock, the tray, a widget's too
 The text settings apply to all text and icons in the shell: the weight is what the font offers (a font without that weight uses the nearest it has), the outline is drawn in the accent color, and letter spacing and capitalization change the width of the text (so the bar's contents move).
 The settings are grouped in categories, shown as a column of buttons on the left of the panel, each an icon with its name (appearance, text, top bar, bar widgets, wallpaper, notifications, OSD, lock screen, launcher, panels, chat AI, general); click one to show its settings, whose name is the panel's heading.
 **Appearance** has three tabs under its name: **General** (the widgets' look, the gap and the curved joins), **Blur** (the blur and Hyprland's blur options) and **Windows** (Hyprland's window look, synced with the shell's on request).
-**Bar widgets** has a **Layout** tab (the bar's layout, below) and a tab for each widget with settings of its own, named after it (**Workspaces**, **Side-bar look**, **Clock**, **Zoom**);
+**Bar widgets** has a **Layout** tab (the bar's layout, below) and a **Widgets** tab for the widgets with settings of their own: a dropdown lists them (**Workspaces**, **Window title**, **Clock**, **CPU**, **RAM**, **Disk**, **Network**, **Network connection**, **Bluetooth**, **Volume**, **Zoom**) and the picked widget's settings show under it, with a **Reset** button and **defaults** row for that widget only;
 so does **Panels**: **Placement** (where each panel opens) and a tab for each panel with settings of its own, named after it (**App switcher**, **Clock**);
 click one, or press **Tab / Shift+Tab**, to switch.
 
@@ -201,6 +223,7 @@ Each setting has a `kind`:
 - `text` (`choose`):
   - `weatherLocation`: a place's name (`""` for automatic).
   - `webAppCommand`: the command opening a web app, `%s` for its address (`""` for the default).
+  - `cpuAction`, `ramAction`, `diskAction`, `networkAction`, `connectionAction`, `bluetoothAction`: the command a click on the widget runs (`""` for nothing); `<widget>ActionTerminal` (yes/no) runs it in a terminal.
   - `chatAiDefaultProvider`: a chat AI provider's id (`anthropic`, `openai`, or an added one's), `""` for the first one that can be asked.
   - `fontFamily`: any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`.
     The panel's list only has the Nerd Font families, since the icons are Nerd Font glyphs.

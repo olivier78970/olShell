@@ -4,14 +4,15 @@ import qs.config
 import qs.services
 
 // RAM usage percentage (on a side bar, a ring filled to it around the icon);
-// hover to see used/total in a popup, click to open or close btop with only
-// its memory box.
+// hover to see used/total in a popup, click to run its action
+// (Settings.ramAction).
 Item {
   id: root
 
-  // Whether it shows as a ring around its icon (its figures in the popup):
-  // always on a side bar, and on a top or bottom bar too with its setting.
-  readonly property bool ring: Theme.barVertical || Settings.ramRing
+  // Whether it shows as a ring around its icon (its figures in the popup): with
+  // the vertical layout (Settings.ramLayout), and with the automatic one on a
+  // side bar.
+  readonly property bool ring: Settings.ramLayout === "vertical" || (Settings.ramLayout === "auto" && Theme.barVertical)
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: root.ring ? ring.implicitWidth : content.implicitWidth
@@ -45,7 +46,10 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle("mem")
+    onClicked: {
+      popup.dismiss()
+      WidgetActions.run("ram")
+    }
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }

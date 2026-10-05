@@ -60,7 +60,7 @@ ModalPanel {
   // The last row of every page: its defaults (see DefaultsRow).
   readonly property var defaultRows: root.pages.map(page => ({
     key: "defaults:" + page, category: page, kind: "defaults", label: I18n.tr("settings.defaults")
-  }))
+  })).concat([{ key: "defaults:widgets", category: "widgets", kind: "defaults", label: I18n.tr("settings.defaults") }])
 
   // The launcher category's search engines, a row each in their order (the
   // first with the list's title above it), then a row adding one. A row's
@@ -450,6 +450,7 @@ ModalPanel {
   // The value a buttons or dropdown row shows as current.
   function currentOf(row) {
     if (row.key === "themeAccent") return root.themeAccentCurrent
+    if (row.key === "widgetPick") return SettingsPanelState.widgetPage
     // Adding an app holds no value of its own.
     if (row.key === "appOpacityAdd") return ""
     if (row.key.startsWith("chatAiModel:")) return ChatAi.providerOf(row.providerId)?.model ?? ""
@@ -608,9 +609,13 @@ ModalPanel {
     return ""
   }
 
+  // The choices of a widget's layout: automatic, vertical, horizontal.
+  readonly property var layoutOptions: Settings.choices.cpuLayout.map(name => ({ value: name, text: I18n.tr("settings.layout." + name) }))
+
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
+    if (row.key === "widgetPick") return SettingsPages.widgetPages.map(page => ({ value: page.id, text: page.label }))
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelOptions(row.providerId)
     if (row.key === "chatAiDefaultProvider") return ChatAi.known.map(provider => ({ value: provider.id, text: provider.name }))
     if (row.key === "appOpacityAdd") return root.appOpacityOptions
@@ -627,6 +632,7 @@ ModalPanel {
     if (row.key === "barPosition") return root.barPositionOptions
     if (row.key === "launcherTab") return root.launcherTabOptions
     if (row.key === "clockDate") return root.clockDateOptions
+    if (row.key.endsWith("Layout") && Settings.choices[row.key]) return root.layoutOptions
     if (row.key === "switcherOrientation") return root.switcherOrientationOptions
     if (row.key === "switcherScope") return root.switcherScopeOptions
     if (row.key === "weatherUnit") return root.weatherUnitOptions
@@ -689,7 +695,12 @@ ModalPanel {
   property int category: SettingsPanelState.category
   onCategoryChanged: SettingsPanelState.category = root.category
   // The rows of the current page; `selected` indexes into these.
-  readonly property var rows: root.allRows.filter(row => row.category === root.page)
+  // (The Widgets tab shows the picked widget's page under the dropdown picking it.)
+  readonly property var rows: root.allRows.filter(row => row.category === root.page
+    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage && row.kind !== "defaults"))
+  // The page whose settings the reset and defaults buttons act on: the page
+  // shown, or the picked widget's on the Widgets tab.
+  readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage : root.page
   property int selected: 0
   // The width the panel needs for the current category: its widest row, or
   // its tabs if they are wider, and what surrounds them (the category rail,
@@ -802,15 +813,17 @@ ModalPanel {
   // The buttons of the defaults row, in the order of DefaultsRow's `pressed`:
   // save, factory (which asks first); or, while asking, confirm and cancel.
   function pressDefaults(categoryId, index) {
+    // The Widgets tab acts on the picked widget's page.
+    const page = categoryId === "widgets" ? SettingsPanelState.widgetPage : categoryId
     if (root.confirmKey === categoryId) {
       // Back to the built-in values, which then are the user's defaults too.
       if (index === 0) {
-        SettingsPages.restoreDefaults(categoryId, "factory")
-        SettingsPages.saveDefaults(categoryId)
+        SettingsPages.restoreDefaults(page, "factory")
+        SettingsPages.saveDefaults(page)
       }
       root.confirmKey = ""
     } else if (index === 0) {
-      SettingsPages.saveDefaults(categoryId)
+      SettingsPages.saveDefaults(page)
     } else {
       root.confirmKey = categoryId
       // On Cancel, the safe answer.
@@ -869,6 +882,13 @@ ModalPanel {
     root.toggleFocus = direction > 0 ? 0 : root.stopsOf(root.rows[next]) - 1
   }
 
+  // Sets a buttons or dropdown row's value: the widget pick is the panel's
+  // own, not a setting.
+  function setValue(row, value) {
+    if (row.key === "widgetPick") SettingsPanelState.widgetPage = value
+    else Settings.set(row.key, value)
+  }
+
   // Moves the selected row's value one step (or `steps` of them) up or down.
   function adjust(direction, steps) {
     const row = root.rows[root.selected]
@@ -879,7 +899,7 @@ ModalPanel {
       // (Stepping through the apps to add would add each of them.)
       const values = root.optionsOf(row).map(option => option.value)
       const next = ((values.indexOf(root.currentOf(row)) + direction * steps) % values.length + values.length) % values.length
-      Settings.set(row.key, values[next])
+      root.setValue(row, values[next])
     } else if (row.kind === "choice") {
       const values = root.languageOptions.map(option => option.value)
       const next = (values.indexOf(I18n.setting) + direction + values.length) % values.length
@@ -913,7 +933,7 @@ ModalPanel {
     else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
       // Close first: applying it may rebuild what the list belongs to.
       root.openKey = ""
-      Settings.set(row.key, options[root.highlight].value)
+      root.setValue(row, options[root.highlight].value)
     } else if (event.key === Qt.Key_Escape) {
       root.openKey = ""
     }
@@ -1200,10 +1220,19 @@ ModalPanel {
     color: Theme.separatorColor
   }
 
-  // Clicking anywhere else closes an open list.
+  // Where the open list of a dropdown row floats: over everything, the click
+  // catcher below included.
+  Item {
+    id: listLayer
+    anchors.fill: parent
+    z: 30
+  }
+
+  // Clicking anywhere else closes an open list (the click goes no further).
+  // Above the rows, whose scrolling area would otherwise take the click.
   MouseArea {
     anchors.fill: parent
-    z: 5
+    z: 20
     enabled: root.openKey !== ""
     onClicked: root.openKey = ""
   }
@@ -1236,7 +1265,7 @@ ModalPanel {
         anchors.right: parent.right
         label: I18n.tr("settings.reset")
         // This page only: to your own defaults, else the built-in ones.
-        onClicked: SettingsPages.restoreDefaults(root.page, "mine")
+        onClicked: SettingsPages.restoreDefaults(root.settingsPage, "mine")
       }
     }
 
@@ -1246,6 +1275,7 @@ ModalPanel {
       visible: root.tabs.length > 0
       width: parent.width
       model: root.tabs
+      maxVisible: 6
       // The panel is built anew each time it opens, on the tab last shown.
       currentIndex: root.tab
       onCurrentIndexChanged: if (currentIndex !== root.tab) root.selectTab(currentIndex)
@@ -1672,6 +1702,7 @@ ModalPanel {
                 positionIcon: row.modelData.positionIcon ?? false
                 // Every list floats over the panel, so nothing moves when one opens.
                 overlay: true
+                overlayHost: listLayer
                 interactive: root.rowEnabled(row.modelData)
                 disabledReason: root.disabledReasonOf(row.modelData)
                 onActivated: root.selected = row.index
@@ -1680,9 +1711,8 @@ ModalPanel {
                 onChosen: value => {
                   // Close first: applying it may rebuild what the list belongs to.
                   root.openKey = ""
-                  Settings.set(row.modelData.key, value)
+                  root.setValue(row.modelData, value)
                 }
-                onOverlayKeyPressed: event => root.listKeyPressed(event)
               }
 
               ChoiceRow {

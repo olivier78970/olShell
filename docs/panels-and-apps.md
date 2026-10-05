@@ -1,38 +1,15 @@
-## btop
+## Widget click actions
 
-Clicking the CPU, RAM or network-speed widget opens btop in a terminal window showing only that widget's box (its **cpu**, **mem** or **net** box), and clicking again closes it.
-The same from a key binding: `quickshell -p . ipc call btop cpu` (or `memory`, `network`); `quickshell -p . ipc call btop toggle` opens the full btop, with the boxes of your own configuration, which no widget does.
-A single-box window is smaller (50% × 50% of the monitor; `btopBoxWidth` and `btopBoxHeight` in [config/Apps.qml](../config/Apps.qml)); the full one is 85% × 90%.
-The box is chosen by setting `shown_boxes` in the copy of your `btop.conf` described below (for the memory box, `show_disks` is turned off too, since btop would draw the disks inside it; see `boxSettings` in [services/Btop.qml](../services/Btop.qml)), so your own configuration and its layout are not touched.
-There is one btop window, so a click on another widget while it is open closes it instead of switching to that widget's box.
-[services/TuiWindow.qml](../services/TuiWindow.qml) (shared with the gdu window, below) launches the terminal through Hyprland with launch-time window rules (floating, centered, sized to a fraction of the focused monitor), so nothing needs adding to your Hyprland config.
-The window has its own class (`quickshell-btop`), which is how the toggle finds it to close it, even after a shell reload.
-
-The window is themed with the shell's current colors: [scripts/tui-launch.py](../scripts/tui-launch.py) generates a btop theme from the palette (background, text, accent, outline) each time it opens, plus a copy of your `btop.conf` that selects it, in `$XDG_RUNTIME_DIR/quickshell-btop/`, and starts the terminal with matching colors (for alacritty).
-Your own `~/.config/btop/btop.conf` is never modified; settings you change inside this btop are saved to the copy, and it picks up the theme that's active when it's opened.
-
-It is a real terminal window, so btop works completely (mouse, copy/paste, resizing) but it's an ordinary window: no dimmed backdrop, and clicking elsewhere or pressing Escape doesn't close it.
-The terminal and size (as fractions of the monitor, 85% × 90% by default) are in [config/Apps.qml](../config/Apps.qml) (`btopTerminal`, `btopWidth`, `btopHeight`); another terminal works too, but only alacritty gets the colors applied (btop itself is themed either way).
+The CPU, RAM, storage, network-speed, network connection and Bluetooth widgets are *configurable*: a left click runs a command you choose, and a right click opens a dropdown menu where the widget has one (the connection and Bluetooth widgets). The other widgets (the panel buttons, the clock, the volume, the tray...) have a fixed action.
+In the settings' **Bar widgets** category, the **Widgets** tab lists each of them (**CPU**, **RAM**, **Disk**, **Network**, **Network connection**, **Bluetooth**) and shows the click action under the picked one: the command (a program and its arguments, run without a shell; empty does nothing) a **run it in a terminal** check box and an **open its window floating, in the middle of the screen** check box (on for the terminal commands, off for the other two; Hyprland sizes that window like the terminal ones, 60% × 70% of the monitor). The defaults are `btop` (CPU, RAM, network speed, in a terminal), `gdu --no-cross /` (storage, in a terminal: it stays on the filesystem of `/`), `nm-connection-editor` (network connection) and `blueman-manager` (Bluetooth).
+A command that runs in a terminal runs in `appTerminal` from [config/Apps.qml](../config/Apps.qml), a plain terminal with its own colors. With the floating option on, its window (or the application's own window) opens the way the launcher opens a terminal application, through [services/TerminalApps.qml](../services/TerminalApps.qml): floating and centered on the focused monitor (60% × 70% of it by default). With it off, the command is started as it is, by [services/WidgetActions.qml](../services/WidgetActions.qml), and Hyprland places the window as it would any other.
+While the application is open, a click switches to its window instead of starting another one: a terminal one has a window class of its own (`quickshell-cpu`, `quickshell-disk`...), and for the others the program's name must be the window's class (it is for `blueman-manager` and `nm-connection-editor`); an application with another class is started again on each click.
 
 ## Audio mixer
 
 Clicking the volume widget opens [pavucontrol](https://freedesktop.org/software/pulseaudio/pavucontrol/), and clicking again closes it (whichever way it was opened); a middle click mutes or unmutes the output (the OSD shows it).
 It's an ordinary window of its own, in the shell's colors through the olShell GTK theme (see [GTK](theming.md#gtk)).
 Scrolling over the volume widget adjusts the volume.
-
-The btop window is as translucent as the widgets (the **Widget opacity** setting, read each time a window opens), so Hyprland blurs what's behind them if its blur is enabled.
-To make that possible the applications don't paint a background of their own (btop's `theme_background` is turned off in the copy of its config) and the terminal window's opacity is set to the widget opacity, overriding your terminal's own setting (only alacritty is handled, as for the colors).
-
-## gdu
-
-Clicking the disk widget (or `quickshell -p . ipc call gdu toggle`) opens [gdu](https://github.com/dundee/gdu), an interactive disk usage analyzer, on the disk mounted on `/`, and clicking again (or the same call) closes it.
-It shows which folders take the room, largest first: **Enter** goes into a folder, **←** back out, **d** deletes the selected item (with confirmation), **?** lists the other keys.
-(btop can't be used for this: it draws the disks inside its memory box, and nothing hides the memory part.)
-The window works like the others: [services/TuiWindow.qml](../services/TuiWindow.qml) opens it floating and centered (60% × 70% of the monitor by default) with its own window class (`quickshell-gdu`), as translucent as the widgets.
-
-gdu is started with `--no-cross`, so it stays on the filesystem of `/` (other disks and mounts such as `/boot/efi` aren't counted, as the widget doesn't count them; note that on btrfs, subvolumes such as `/home` count as other filesystems, so remove `--no-cross` in [scripts/tui-launch.py](../scripts/tui-launch.py) there).
-It reads its styles from a file the launcher writes, `$XDG_RUNTIME_DIR/quickshell-gdu/gdu.yaml`, with the shell's colors for the header, footer, selected row and directories; that replaces gdu's default `~/.gdu.yaml` for this window only, so a configuration of yours is not used here (and never modified).
-The terminal and size are in [config/Apps.qml](../config/Apps.qml) (`gduTerminal`, `gduWidth`, `gduHeight`).
 
 ## Launcher
 

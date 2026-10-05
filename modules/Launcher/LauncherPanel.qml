@@ -409,25 +409,8 @@ ModalPanel {
     list.currentIndex = index
   }
 
-  // Runs a terminal application (a desktop entry with Terminal=true, which
-  // DesktopEntry.execute() doesn't open in a terminal) in Apps.appTerminal,
-  // in a floating window centered on the focused monitor. Hyprland starts it
-  // as a shell command, so each argument is quoted, and the entry's working
-  // directory, if it has one, is changed to first.
-  function launchInTerminal(entry) {
-    // Window sizes are in logical pixels, monitor sizes in physical ones.
-    const scale = root.monitor ? root.monitor.scale : 1
-    const width = root.monitor ? Math.round(root.monitor.width / scale * Apps.appTerminalWidth) : 1200
-    const height = root.monitor ? Math.round(root.monitor.height / scale * Apps.appTerminalHeight) : 800
-    const quote = arg => "'" + String(arg).replace(/'/g, "'\\''") + "'"
-    let command = Apps.appTerminal.concat(entry.command).map(quote).join(" ")
-    if (entry.workingDirectory) command = "cd " + quote(entry.workingDirectory) + " && " + command
-    Hyprland.dispatch("hl.dsp.exec_cmd(" + JSON.stringify(command) + ", { float = true, center = true, size = "
-      + JSON.stringify(width + " " + height) + " })")
-  }
-
   // Opens the selected result: runs the application (a terminal one through
-  // launchInTerminal()), opens the file or folder with its default
+  // TerminalApps.launch()), opens the file or folder with its default
   // application, the page in the browser, or the web app (or switches to
   // its window).
   function launchCurrent() {
@@ -435,7 +418,7 @@ ModalPanel {
     const item = root.results[list.currentIndex]
     if (item.kind === "heading") return
     if (item.kind === "app") LauncherState.addRecent(item.entry.id)
-    if (item.kind === "app" && item.entry.runInTerminal) root.launchInTerminal(item.entry)
+    if (item.kind === "app" && item.entry.runInTerminal) TerminalApps.launch(item.entry.command, item.entry.workingDirectory)
     else if (item.kind === "app") item.entry.execute()
     else if (item.kind === "webApp") WebApps.launch(item.app)
     else Quickshell.execDetached(["xdg-open", item.kind === "file" ? item.path : item.url])

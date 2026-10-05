@@ -2,33 +2,11 @@ pragma Singleton
 
 import Quickshell
 
-// The applications the shell opens in a terminal (btop, gdu, nmcli, and the
-// launcher's terminal applications).
+// The applications the shell opens in a terminal (nmcli, and the launcher's
+// and the bar widgets' terminal applications).
 // (The volume widget opens pavucontrol, a window of its own.)
 // Edit here to swap the terminal or the window size.
 Singleton {
-  // The btop window (see services/Btop.qml): a terminal, without the
-  // `-e btop` part which is added by scripts/tui-launch.py, started with a
-  // dedicated window class so the shell can find it again to close it.
-  // Colors are applied automatically for alacritty; another terminal opens
-  // with its own colors (btop itself is themed either way).
-  readonly property string btopClass: "quickshell-btop"
-  readonly property var btopTerminal: ["alacritty", "--class", btopClass, "-T", "btop"]
-  // Its size, as fractions of the focused monitor.
-  readonly property real btopWidth: 0.85
-  readonly property real btopHeight: 0.9
-  // The size of a window showing only some of btop's boxes, as the CPU, RAM and
-  // network widgets open it: it needs less room.
-  readonly property real btopBoxWidth: 0.5
-  readonly property real btopBoxHeight: 0.5
-
-  // The gdu window (see services/Gdu.qml), opened by clicking the disk widget:
-  // a disk usage analyzer for the disk mounted on /.
-  readonly property string gduClass: "quickshell-gdu"
-  readonly property var gduTerminal: ["alacritty", "--class", gduClass, "-T", "gdu"]
-  readonly property real gduWidth: 0.6
-  readonly property real gduHeight: 0.7
-
   // The terminal the connection widget opens to ask for a Wi-Fi password, or
   // a hidden network's name (see services/NetworkManager.qml), without the
   // `-e ...` part.
@@ -45,7 +23,8 @@ Singleton {
   readonly property var notGames: ["steam", "com.heroicgameslauncher.hgl", "io.github.Faugus.faugus-launcher", "io.github.benjamimgois.goverlay"]
 
   // The terminal the launcher runs a terminal application in (a desktop
-  // entry with Terminal=true, such as yazi or htop), followed by its command,
+  // entry with Terminal=true, such as yazi or htop), and the bar widgets a
+  // click action that runs in a terminal, followed by its command,
   // and the size of its floating, centered window, as fractions of the
   // focused monitor.
   readonly property var appTerminal: ["alacritty", "-e"]

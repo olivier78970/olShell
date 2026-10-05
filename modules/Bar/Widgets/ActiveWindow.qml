@@ -8,14 +8,14 @@ import qs.config
 // Icon and title of the currently focused window (any compositor
 // supporting wlr-foreign-toplevel-management, not just Hyprland). A window
 // whose icon can't be found gets a generic application glyph instead. On a
-// side bar (or with Settings.activeWindowIconOnly) only the icon shows, and
-// hovering it shows the title.
+// side bar (or with the vertical layout, Settings.activeWindowLayout) only the
+// icon shows, and hovering it shows the title.
 Row {
   id: root
 
-  // Whether only the icon shows (the title on hover): always on a side bar,
-  // and on a top or bottom bar too with its setting.
-  readonly property bool iconOnly: Theme.barVertical || Settings.activeWindowIconOnly
+  // Whether only the icon shows (the title on hover): with the vertical layout,
+  // and with the automatic one on a side bar.
+  readonly property bool iconOnly: Settings.activeWindowLayout === "vertical" || (Settings.activeWindowLayout === "auto" && Theme.barVertical)
 
   readonly property var toplevel: ToplevelManager.activeToplevel
   readonly property var desktopEntry: root.toplevel ? DesktopEntries.byId(root.toplevel.appId) : null

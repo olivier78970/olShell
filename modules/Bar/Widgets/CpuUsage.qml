@@ -5,13 +5,14 @@ import qs.services
 
 // Global CPU usage percentage and frequency (on a side bar, a ring filled to
 // the usage around the icon, the figures moving to the popup); hover to see
-// per-core usage in a popup, click to open or close btop with only its CPU box.
+// per-core usage in a popup, click to run its action (Settings.cpuAction).
 Item {
   id: root
 
-  // Whether it shows as a ring around its icon (its figures in the popup):
-  // always on a side bar, and on a top or bottom bar too with its setting.
-  readonly property bool ring: Theme.barVertical || Settings.cpuRing
+  // Whether it shows as a ring around its icon (its figures in the popup): with
+  // the vertical layout (Settings.cpuLayout), and with the automatic one on a
+  // side bar.
+  readonly property bool ring: Settings.cpuLayout === "vertical" || (Settings.cpuLayout === "auto" && Theme.barVertical)
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: root.ring ? ring.implicitWidth : content.implicitWidth
@@ -48,7 +49,10 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: Btop.toggle("cpu")
+    onClicked: {
+      popup.dismiss()
+      WidgetActions.run("cpu")
+    }
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
   }

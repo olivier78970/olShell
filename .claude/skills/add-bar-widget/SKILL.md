@@ -24,7 +24,7 @@ A widget is listed by id in several places that don't reference each other. One 
 - **Left and right bars**: the bar can stand on a side edge, with the widgets stacked. Put an icon and a figure in a `BarStack` (side by side on a top bar, stacked on a side one), and give figures `sizeScale: Theme.barFigureScale`. Check `Theme.barVertical` for anything else that has to change.
 - Draw text and icons with `BarText` (Nerd Font glyphs), so the font settings apply.
 - A tooltip is a `HoverPopup` (call `hoverEntered()` / `hoverExited()` from the `MouseArea`) that starts with `PopupTitle { text: I18n.tr("settings.widget.<id>") }`, as every widget popup has a title. A menu is a `PopupMenu`.
-- A figure that suits a gauge can offer a `<id>Ring` yes/no setting like `cpuRing` (`RingGauge` / `BarGauge`). Settings of the widget itself go on a tab of their own in **Bar widgets** (a `widget<Name>` page in `SettingsPages.categories`, its rows `category: "widget<Name>"`) through the `add-setting` skill.
+- A figure that suits a gauge can offer a `<id>Layout` choice (auto / vertical / horizontal) like `cpuLayout` (`RingGauge` / `BarGauge`; the widget is a ring when it is `vertical`, or `auto` on a side bar). Settings of the widget itself go on a page of their own in **Bar widgets**' Widgets tab, where a dropdown picks the widget (a `widget<Name>` entry in `SettingsPages.widgetPages`, its rows `category: "widget<Name>"`) through the `add-setting` skill.
 
 ## A widget that fronts a feature can be disabled
 

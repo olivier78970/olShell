@@ -10,9 +10,10 @@ import qs.services
 Item {
   id: root
 
-  // Whether it shows as a ring around its icon (its figures in the popup):
-  // always on a side bar, and on a top or bottom bar too with its setting.
-  readonly property bool ring: Theme.barVertical || Settings.volumeRing
+  // Whether it shows as a ring around its icon (its figures in the popup): with
+  // the vertical layout (Settings.volumeLayout), and with the automatic one on a
+  // side bar.
+  readonly property bool ring: Settings.volumeLayout === "vertical" || (Settings.volumeLayout === "auto" && Theme.barVertical)
 
   // Fraction of full volume to change per standard wheel notch (120 units
   // of angleDelta). Scaled by actual delta so touchpads/high-res mice,
