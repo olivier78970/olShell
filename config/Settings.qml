@@ -1085,7 +1085,9 @@ Singleton {
 
   // The current value of setting `key`.
   function get(key) {
-    return root[key]
+    // A setting with no property of its own (the bar's layout lists) is read
+    // from the file's adapter.
+    return root[key] !== undefined ? root[key] : file.adapter[key]
   }
 
   // Changes a setting and saves it (shortly after the last change, so
