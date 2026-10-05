@@ -44,7 +44,7 @@ A widget with no feature of its own (the tray, workspaces) needs none of this. T
 3. `config/Defaults.qml`: the id in its default zone and in `barDividers` if it gets a divider, or nowhere to start off.
 4. `modules/Settings/BarLayoutEditor.qml`: its glyph in `icons`, the same one the bar draws.
 5. `modules/Settings/SettingsModule.qml`: the id in the widget list of `place()`'s comment.
-6. `config/Translations.qml`: `settings.widget.<id>` (its name in the layout editor and its popup title) and every text it shows, in en, fr and es.
+6. `config/Translations.qml` (add keys with `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" [--after <key>]`): `settings.widget.<id>` (its name in the layout editor and its popup title) and every text it shows, in en, fr and es.
 7. Docs (search `docs/*.md` with `grep -n … | cut -c1-200`; its lines are very long):
    - run `.claude/scripts/structure.py` (it lists the widget from its header comment, which you write);
    - the widget names in the **The bar's layout** paragraph of `docs/settings.md`;

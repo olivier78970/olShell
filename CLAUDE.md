@@ -14,18 +14,18 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`add-settings-tab`**: a new settings tab, or regrouping rows into tabs.
 - **`add-service`**: a new service in `services/`, with or without IPC.
 - **`test-deploy`**: running the checkout, reading its log, deploying.
-- **`ship`**: commit, merge, push and deploy, when asked.
+- **`ship`**: commit, merge, push and deploy, when asked (`.claude/skills/ship/scripts/ship.sh` does the sequence).
 
 There is no build step, linter or test suite. The checks are scripts, run from the repo root:
 - `.claude/scripts/structure.py --check`: `docs/structure.md` lists every file (run without `--check` to regenerate it).
-- `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists.
+- `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists. `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" [--after <key>]` adds a text to all three dictionaries and runs it.
 - The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`) and `check-widget.sh`.
 
 ## Running
 
 The shell the user runs day to day is a **deployed copy** of master in `~/.config/olShell`, not this checkout, and only one shell may run at a time. Before testing, ask the user before stopping the deployed shell. Deploy only when asked. `.claude/skills/test-deploy/scripts/shell.sh` does the switching, the log and the deploy, and backs up the settings first.
 
-Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards. Test through IPC (`quickshell -p . ipc call <target> <function> [args]`) and the log, not screenshots: the user looks at the shell themselves.
+Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards. Test through IPC (`.claude/skills/test-deploy/scripts/shell.sh ipc <target> <function> [args]`, which reaches the running shell whatever `QS_CONFIG_PATH` says) and the log, not screenshots: the user looks at the shell themselves.
 
 ## Architecture
 

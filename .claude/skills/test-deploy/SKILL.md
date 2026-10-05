@@ -18,6 +18,7 @@ $S restart                 # stop the checkout shell and run it again (a fresh s
 $S log [lines]             # the checkout shell's log
 $S deploy                  # copy master into ~/.config/olShell
 $S deployed                # stop the checkout, run the deployed copy again
+$S ipc <target> <fn> [args]   # an IPC call to whichever shell runs (the checkout's, else the deployed one's)
 $S backup                  # copy both shells' config/*.json to ~/.cache/olshell-backups/
 ```
 
@@ -28,13 +29,15 @@ $S backup                  # copy both shells' config/*.json to ~/.cache/olshell
 1. `$S status`. If the checkout is already running, use it.
 2. If the deployed shell is running, **ask the user** before stopping it, then run `$S dev --stop-deployed`.
 3. Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards, and check the log shows a reload.
-4. Drive the change with IPC (`quickshell -p . ipc call <target> <function> …`), then read `$S log` for `ReferenceError`, `TypeError`, `Unable to assign`, `Cannot` and warnings from the files you changed.
+4. Drive the change with IPC (`$S ipc <target> <function> …`: it picks the running shell and unsets `QS_CONFIG_PATH`, which the harness's own shell has set to the deployed copy, so a bare `quickshell -p . ipc call` can reach the wrong shell or none; and don't keep `quickshell -p . ipc call` in a zsh variable, which doesn't word-split), then read `$S log` for `ReferenceError`, `TypeError`, `Unable to assign`, `Cannot` and warnings from the files you changed.
 5. Don't take screenshots or send synthetic input. The user looks at the shell themselves, so tell them what to check and where.
 6. When done, and unless the user wants to keep testing, `$S deployed` gives them their everyday shell back.
 
+Take care of the runtime state while testing: `config/*.json` is the user's (a profile they saved lives in `Profiles.json`), so never `rm` or overwrite one to clean up after a test. Remove only what the test created, through the feature's own IPC calls (mind that removing the current profile applies Factory, which resets the settings), and run `$S backup` before anything bulk. Don't edit files while a `restart` is in progress (a reload in the middle of a restart crashed the shell once).
+
 ## Deploying
 
-Deploy only when the user asks.
+Deploy only when the user asks. The `ship` skill's `ship.sh --deploy` does the whole sequence below (commit, merge, deploy, switch, check); the steps are here for doing it by hand.
 
 1. `deploy` copies **master**, so the change must be committed and merged first. Feature work happens on a branch, merged into master with a `Merge <branch>: <what it does>` commit. Ask before merging if the user hasn't said to.
 2. `$S deploy`. It leaves the deployed copy's settings files alone, and lists files in the deployed copy that a deploy no longer copies (removed from master, or kept out by `.gitattributes`: `.claude/`, `CLAUDE.md`, `.gitignore`, `.gitattributes`); ask before deleting them.

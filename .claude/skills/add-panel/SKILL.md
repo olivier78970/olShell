@@ -28,7 +28,7 @@ A panel touches every other panel. Panels grab the keyboard, so exactly one may 
    - `SettingsPages.qml`: a `dropdown` row with `positionIcon: true` on the `panels` page, after the other placements. Its options come from `optionsOf` automatically, because its choices are `Settings.panelPlacements`.
    - `settings.placement.<id>` in en, fr and es.
    - `SettingsModule.qml`: add the key to `choose()`'s comment.
-7. **Translations** for everything the panel shows, via `I18n.tr`, in en, fr and es.
+7. **Translations** for everything the panel shows, via `I18n.tr`, in en, fr and es (`.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" --after <related.key>` adds one to all three).
 8. **Docs** (search `docs/*.md` with `grep -n … | cut -c1-200`; its lines are very long):
    - run `.claude/scripts/structure.py`, which lists the new files from their header comments (write them);
    - `docs/ipc.md`: `quickshell -p . ipc call <ipc> toggle` and the other calls;

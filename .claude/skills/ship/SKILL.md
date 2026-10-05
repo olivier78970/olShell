@@ -7,6 +7,17 @@ description: Commit olShell's work the project's way - a branch, a one-sentence 
 
 Only when the user asks, and only the steps they named. A request for "commit" is not one for "push" or "deploy".
 
+## The script
+
+`.claude/skills/ship/scripts/ship.sh` does the steps below in order, stopping at the first problem, and only the ones its flags name:
+
+```sh
+.claude/skills/ship/scripts/ship.sh --check        # only the checks
+.claude/skills/ship/scripts/ship.sh -c "<commit sentence>" -m "<what it does>" -t "<attribution line>" [--push] [--deploy]
+```
+
+`-c` is the commit's one imperative sentence, `-m` finishes `Merge <branch>: `, `-t` is the attribution line the session's system reminder gives (it goes on both messages). It must be run on the feature branch, and refuses on master, with `console.log` in the changes, with translations out of step, or with `docs/structure.md` out of date. Only add `--push` or `--deploy` when the user said so. After `--deploy`, tell the user which shell runs (the script fails if both do) and what was backed up. Stop a stray shell by its pid, never with `pkill -f`.
+
 ## Commit and merge
 
 1. `git status --short`, and `git diff --stat` for what is in. Remove any debug logging first (`grep -rn 'console.log' --include='*.qml' .` for the lines you added).
