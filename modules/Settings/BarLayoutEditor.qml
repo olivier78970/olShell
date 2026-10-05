@@ -26,7 +26,7 @@ Item {
 
   // The icon of each widget, as the bar draws it.
   readonly property var icons: ({
-    launcher: "", settings: "󰒓", workspaces: "󰕰", activeWindow: "󰖯", clock: "󰥔",
+    launcher: "", settings: "󰒓", workspaces: "󰕰", activeWindow: "󰖯", clock: "󰥔",
     wallpaper: "󰋩", theme: "󰏘", screenshot: "󰄀", zoom: "󱡴", shortcuts: "󰌌",
     tray: "󰀻", cpu: "󰻠", ram: "󰍛", disk: "󰋊", network: "󰛳", connection: "󰖩",
     bluetooth: "󰂯", volume: "󰕾", notifications: "󰂚", lock: "󰌾", power: "󰐥", chatAi: "󰭹", webApps: "󰖟"
