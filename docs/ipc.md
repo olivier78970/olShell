@@ -13,6 +13,7 @@ quickshell -p . ipc call chatai toggle                 # open/close the chat AI 
 quickshell -p . ipc call chatai ask "<question>"       # open it and ask (also: cancel, clear, answer, providers, select <id>, selectModel <id> <model>, selectDefault)
 quickshell -p . ipc call switcher toggle               # open the app switcher, or move on while open (also: next, prev, confirm, close)
 quickshell -p . ipc call settings toggle               # open/close the settings panel
+quickshell -p . ipc call profiles apply "<name>"       # switch to a saved configuration (also: list, save "<name>", remove "<name>")
 quickshell -p . ipc call webApps open "<name>"         # open a web app (also: list)
 quickshell -p . ipc call notifications toggle          # open/close the notification center
 quickshell -p . ipc call clock toggle                  # open/close the clock panel (on the focused screen)

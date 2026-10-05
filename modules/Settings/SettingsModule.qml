@@ -70,7 +70,7 @@ Scope {
     }
 
     // Opens the panel on a page: a category without tabs or a tab (the
-    // names saveDefaults takes, e.g. "wallpaper", "launcher", "panels" for
+    // names resetPage takes, e.g. "wallpaper", "launcher", "panels" for
     // the Panels category's Placement tab, "blur"), or a category with tabs
     // by its id, on its first tab, or a widget's page (widgetCpu...), on the
     // Widgets tab picking that widget. An unknown page opens it where it was.
@@ -345,36 +345,28 @@ Scope {
       return String(Settings.get(key))
     }
 
-    // Puts every setting, and the language, back to the built-in defaults and
-    // saves them as your defaults too, without asking (the panel's button
-    // asks first).
+    // Puts every setting, the language and the theme to the built-in ones
+    // (the Factory profile), without asking.
     function factoryReset(): void {
       SettingsPages.factoryResetAll()
     }
 
-    // Puts every setting, and the language, back to your own defaults (the
-    // built-in ones for what you have saved none for).
+    // Puts every setting, the language and the theme back to those of the
+    // current profile (`profiles list` names it).
     function reset(): void {
       SettingsPages.resetAll()
     }
 
-    // Saves the current values of a page (appearance, blur, windows, text, bar,
-    // layout, widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
+    // Puts a page (appearance, blur, windows, text, bar, layout,
+    // widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
     // widgetRam, widgetDisk, widgetNetwork, widgetConnection,
     // widgetBluetooth, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher,
-    // panels, switcher, clockPanel or general) as your own defaults.
-    function saveDefaults(category: string): void {
-      if (SettingsPages.pages.includes(category)) SettingsPages.saveDefaults(category)
-    }
-
-    // Puts a category back to your own defaults (source "mine") or to the
-    // built-in ones ("factory").
-    function restoreDefaults(category: string, source: string): void {
-      if (SettingsPages.pages.includes(category) && (source === "mine" || source === "factory")) {
-        SettingsPages.restoreDefaults(category, source)
-      }
+    // panels, switcher, clockPanel or general) back to the settings of the
+    // current profile.
+    function resetPage(category: string): void {
+      if (SettingsPages.pages.includes(category)) SettingsPages.resetPage(category)
     }
   }
 

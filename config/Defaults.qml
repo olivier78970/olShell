@@ -3,9 +3,8 @@ pragma Singleton
 import Quickshell
 
 // The built-in ("factory") value of every setting: what Settings.qml uses when
-// nothing has been saved, and what the settings panel's Factory buttons put
-// back. Nothing writes to this file; the user's own defaults, saved from the
-// panel, are in UserDefaults.json (see Settings.qml).
+// nothing has been saved, and what the Factory profile (see
+// services/Profiles.qml) puts back. Nothing writes to this file.
 Singleton {
   readonly property var values: ({
     radius: 10,

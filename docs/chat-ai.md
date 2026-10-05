@@ -44,7 +44,7 @@ It reads the documentation and settings of the shell that is running (this check
 When the question only asks about something (how to change the theme, where a panel opens), it answers, then offers up to three buttons under the answer for the next step: open the panel it's about, open the settings on the page with its setting, or set the setting to what you seem to want.
 Each button shows its label and, beside it, the call it runs; a click runs it, and the button then shows ✓ with what the call gave, or ✗ with why it failed.
 The buttons are saved with the answer, and can't be clicked while **Run its commands** is off.
-Some calls are kept for you, refused even if the model asks: logging out, restarting, shutting down, suspending and the firmware restart (`power`, all but `toggle`), locking the screen (`lock lock`), putting settings back or saving them as defaults (`settings factoryReset`, `reset`, `restoreDefaults`, `saveDefaults`), and the chat's own `chatai` calls;
+Some calls are kept for you, refused even if the model asks: logging out, restarting, shutting down, suspending and the firmware restart (`power`, all but `toggle`), locking the screen (`lock lock`), putting settings back or switching profiles (`settings factoryReset`, `reset`, `resetPage`, and `profiles` `apply`, `remove` and `save`), and the chat's own `chatai` calls;
 the list is `IPC_BLOCKED` in the script.
 A call that opens another panel closes this one, as any panel does; the answer is there when it opens again.
 

@@ -137,7 +137,8 @@ IPC_BLOCKED = {
     "chatai": {"*"},
     "power": {"restart", "shutdown", "suspend", "logout", "firmware"},
     "lock": {"lock"},
-    "settings": {"factoryReset", "reset", "restoreDefaults", "saveDefaults"},
+    "settings": {"factoryReset", "reset", "resetPage"},
+    "profiles": {"apply", "remove", "save"},
 }
 
 # How long an IPC call may take, in seconds.

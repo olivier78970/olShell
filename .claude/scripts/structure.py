@@ -17,7 +17,7 @@ SKIP = (".claude/", "docs/", "README.md", "CLAUDE.md", ".gitignore", ".gitattrib
 # What the folders hold, in the order shown.
 ORDER = ["shell.qml", "config", "services", "components", "modules", "scripts", "matugen"]
 INTRO = {
-    "config": "Singletons for state and configuration. `*.json` files here are runtime state, git-ignored (Settings, UserDefaults, ThemeState, LocaleState, LauncherState, ChatAiState, GeneratedColors, NotificationActions).",
+    "config": "Singletons for state and configuration. `*.json` files here are runtime state, git-ignored (Settings, Profiles, ThemeState, LocaleState, LauncherState, ChatAiState, GeneratedColors, NotificationActions).",
     "services": "Singletons wrapping system state and processes; most also hold an IPC target.",
     "components": "Generic building blocks shared by the widgets and panels (`import qs.components`).",
     "modules": "One directory per feature (`import qs.modules.<Name>`).",

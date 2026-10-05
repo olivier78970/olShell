@@ -49,6 +49,8 @@ ShellRoot {
   // And the one making way for the keyring's password prompt, which has to
   // be listening before the prompt opens.
   readonly property var keyringPrompt: KeyringPrompt.active
+  // And the profiles service, which answers the `profiles` IPC calls.
+  readonly property var profileNames: Profiles.names
   // And the web apps service, which answers the `webApps` IPC calls.
   readonly property var webApps: WebApps.shown
 
