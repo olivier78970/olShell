@@ -239,6 +239,9 @@ Singleton {
   // them, and the opacity of the focused window and of the others.
   readonly property int windowBorderWidth: root.valid("windowBorderWidth", file.adapter.windowBorderWidth)
   readonly property bool windowBorderSame: root.valid("windowBorderSame", file.adapter.windowBorderSame)
+  // Whether the windows' borders take the shell's colors (the focused one the
+  // text color, the others the color of the shell's outlines), replacing the Hyprland config's.
+  readonly property bool windowBorderColors: root.valid("windowBorderColors", file.adapter.windowBorderColors)
   readonly property int windowRounding: root.valid("windowRounding", file.adapter.windowRounding)
   readonly property bool windowRoundingSame: root.valid("windowRoundingSame", file.adapter.windowRoundingSame)
   readonly property int windowGapsIn: root.valid("windowGapsIn", file.adapter.windowGapsIn)
@@ -1169,6 +1172,7 @@ Singleton {
       property bool blurXray: Defaults.values.blurXray
       property int windowBorderWidth: Defaults.values.windowBorderWidth
       property bool windowBorderSame: Defaults.values.windowBorderSame
+      property bool windowBorderColors: Defaults.values.windowBorderColors
       property int windowRounding: Defaults.values.windowRounding
       property bool windowRoundingSame: Defaults.values.windowRoundingSame
       property bool windowActiveOpacitySame: Defaults.values.windowActiveOpacitySame

@@ -108,7 +108,7 @@ Scope {
     // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
     // ramActionFloating, diskActionFloating, networkActionFloating,
     // connectionActionFloating, bluetoothActionFloating, blur, blurXray,
-    // windowBorderSame, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
+    // windowBorderSame, windowBorderColors, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
     // windowInactiveOpacitySame, volumeOsdSame, lockKeysOsdSame,
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,

@@ -44,6 +44,7 @@ Singleton {
     blurXray: false,
     windowBorderWidth: 2,
     windowBorderSame: false,
+    windowBorderColors: true,
     windowRounding: 8,
     windowRoundingSame: true,
     windowActiveOpacitySame: true,
