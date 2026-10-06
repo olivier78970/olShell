@@ -320,7 +320,10 @@ ModalPanel {
     if (root.page === "appOpacity") clientsProcess.running = true
     if (root.page === "chatAi") ChatAi.refreshKeys()
   }
-  Component.onCompleted: if (root.page === "appOpacity") clientsProcess.running = true
+  Component.onCompleted: {
+    if (root.page === "appOpacity") clientsProcess.running = true
+    if (root.page === "chatAi") ChatAi.refreshKeys()
+  }
 
   Process {
     id: clientsProcess
