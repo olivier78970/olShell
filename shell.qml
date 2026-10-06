@@ -56,6 +56,10 @@ ShellRoot {
   readonly property var profileNames: Profiles.names
   // And the web apps service, which answers the `webApps` IPC calls.
   readonly property var webApps: WebApps.shown
+  // And the notification rules, which have to be read before the first
+  // notification arrives (created by that notification, they were still empty
+  // when it was matched, so its command didn't run).
+  readonly property var notificationRules: NotificationActions.rules
 
   Bar {}
   LazyLoader {
