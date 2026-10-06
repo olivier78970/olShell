@@ -419,6 +419,4 @@ Singleton {
       root.setActionResult(actionRunner.index, failed ? "failed" : "done", output)
     }
   }
-
-  Component.onCompleted: root.refreshKeys()
 }
