@@ -157,8 +157,12 @@ Scope {
       implicitWidth: vertical ? root.barBlock + Math.max(root.grownBy, root.neededPast) : 0
       // How far past the bar the open panel and popups reach right now.
       readonly property real neededPast: Math.max(root.hosting ? (vertical ? panelSlot.width : panelSlot.height) + Theme.panelOffset() : 0, popupLayer.extent)
-      property real grownBy: 0
-      onNeededPastChanged: root.grownBy = Math.max(root.grownBy, root.neededPast)
+      // Room for the largest panel or popup past the bar: the rest of the
+      // screen across the bar's edge. The window grows to it once settled,
+      // while nothing is open, so opening the first panel doesn't resize it
+      // (the bar visibly jumped as Hyprland applied that resize).
+      readonly property real roomPast: Math.max(0, (vertical ? root.screen.width : root.screen.height) - root.barBlock)
+      property real grownBy: root.settled ? root.roomPast : 0
 
       // Moved to another edge, what it grew by for the old one (heights, for
       // a side bar's width, say) no longer means anything.
@@ -166,7 +170,7 @@ Scope {
         target: Theme
 
         function onBarPositionChanged() {
-          root.grownBy = root.neededPast
+          root.grownBy = root.settled ? root.roomPast : root.neededPast
         }
       }
       // The room the bar keeps free for itself: its height plus the margin
