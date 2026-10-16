@@ -25,7 +25,11 @@ The settings, with their range:
 | Text | Letter spacing | -2 – 6 px | 0 |
 | Text | Capitalization | As typed / UPPERCASE / lowercase / Small caps | As typed |
 | Text | Font style | Italic, underline, outline (each on / off) | all off |
-| Text | Font | the installed Nerd Font families | 0xProto Nerd Font |
+| Text | Interface font | the installed Nerd Font families | 0xProto Nerd Font |
+| Text | GTK and Qt apps use the interface font: the shell's font family is applied to GTK (gsettings) and to qt5ct / qt6ct, with the **Terminal font** for their monospace font; turning it off restores the default font (see [GTK](theming.md#gtk) and [Qt](theming.md#qt)) | on or off | off |
+| Text | Font size of GTK and Qt apps (greyed out while the sync is off) | 8 to 24 pt | 11 pt |
+| Text | Terminal font | the installed Nerd Font families; used for the monospace font of GTK and Qt apps and for alacritty, see [Font of GTK and Qt apps](theming.md#font-of-gtk-and-qt-apps) | 0xProto Nerd Font |
+| Text | Font size of the terminal (alacritty), always applied to `~/.config/alacritty/font.toml` (see [Alacritty](theming.md#alacritty)) | 6 to 32 pt | 11 pt |
 | Top bar | Auto-hide the bar | on / off (check box); tucks the bar away until the pointer reaches the edge of the screen it's anchored to | off |
 | Top bar | Hide delay | 0 – 3000 ms; how long the pointer has to be away before it tucks away again | 500 ms |
 | Top bar | Bar position (on the left or right edge the widgets stack in a column: the left zone at the top, the right one at the bottom; CPU, RAM, disk, volume and network speed show as rings around their icon filled to their value (the figures in their popup), the other widgets their figure under their icon, the clock its hours over its minutes, the window title only its icon (the title on hover); each widget's **Layout** in the Bar widgets settings keeps this look on a top or bottom bar, or the top-bar look on a side bar; popups and attached panels open beside the bar) | Top / Bottom / Left / Right | Top |
@@ -222,7 +226,7 @@ Each setting has a `kind`:
   - `webAppCommand`: the command opening a web app, `%s` for its address (`""` for the default).
   - `cpuAction`, `ramAction`, `diskAction`, `networkAction`, `connectionAction`, `bluetoothAction`: the command a click on the widget runs (`""` for nothing); `<widget>ActionTerminal` (yes/no) runs it in a terminal.
   - `chatAiDefaultProvider`: a chat AI provider's id (`anthropic`, `openai`, or an added one's), `""` for the first one that can be asked.
-  - `fontFamily`: any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`.
+  - `fontFamily` and `monoFontFamily`: any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`.
     The panel's list only has the Nerd Font families, since the icons are Nerd Font glyphs.
     Qt only reads the installed fonts when the shell starts, so restart the shell after installing or removing one.
 

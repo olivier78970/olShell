@@ -72,4 +72,7 @@ Singleton {
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")
   // Runs matugen with only the templates of the apps turned on in the settings.
   readonly property string matugenScript: Quickshell.shellPath("scripts/matugen-run.py")
+
+  // Sets the GTK and Qt apps' font from the shell's.
+  readonly property string appFontsScript: Quickshell.shellPath("scripts/app-fonts.py")
 }

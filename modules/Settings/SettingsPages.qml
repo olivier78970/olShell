@@ -180,6 +180,12 @@ Singleton {
       { key: "fontOutline", text: I18n.tr("settings.fontOutline") }
     ] },
     { key: "fontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.fontFamily") },
+    { key: "appFontSyncRow", category: "text", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.appFontSync"), toggles: [
+      { key: "appFontSync", text: "" }
+    ] },
+    { key: "appFontSize", category: "text", kind: "slider", label: I18n.tr("settings.appFontSize"), step: 1, format: v => v + " pt" },
+    { key: "monoFontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.monoFontFamily") },
+    { key: "alacrittyFontSize", category: "text", kind: "slider", label: I18n.tr("settings.alacrittyFontSize"), step: 1, format: v => v + " pt" },
     { key: "barLayout", category: "layout", kind: "layoutEditor", label: "" },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
