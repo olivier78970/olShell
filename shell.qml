@@ -52,6 +52,9 @@ ShellRoot {
   // And the one making way for the keyring's password prompt, which has to
   // be listening before the prompt opens.
   readonly property var keyringPrompt: KeyringPrompt.active
+  // And the one giving GTK and Qt apps the shell's font, which has to apply
+  // it from the start.
+  readonly property var appFonts: AppFonts.wanted
   // And the profiles service, which answers the `profiles` IPC calls.
   readonly property var profileNames: Profiles.names
   // And the web apps service, which answers the `webApps` IPC calls.

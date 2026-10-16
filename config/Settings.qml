@@ -47,6 +47,8 @@ Singleton {
     workspaceCount: [1, 20],
     borderWidth: [0, 6],
     fontSize: [10, 32],
+    appFontSize: [8, 24],
+    alacrittyFontSize: [6, 32],
     fontWeight: [100, 900],
     fontLetterSpacing: [-2, 6],
     wallpaperDuration: [0.5, 10],
@@ -269,6 +271,10 @@ Singleton {
   // name; the icons are Nerd Font glyphs, so a Nerd Font is the safe choice).
   readonly property int fontSize: root.valid("fontSize", file.adapter.fontSize)
   readonly property string fontFamily: root.valid("fontFamily", file.adapter.fontFamily)
+  readonly property string monoFontFamily: root.valid("monoFontFamily", file.adapter.monoFontFamily)
+  readonly property bool appFontSync: root.valid("appFontSync", file.adapter.appFontSync)
+  readonly property int appFontSize: root.valid("appFontSize", file.adapter.appFontSize)
+  readonly property int alacrittyFontSize: root.valid("alacrittyFontSize", file.adapter.alacrittyFontSize)
   // Text style, applied to all text (and the icons, which are text too): the
   // weight (100 thin to 900 black, 400 normal, 700 bold; a font without that
   // weight uses the nearest it has), the space added between letters in
@@ -857,7 +863,7 @@ Singleton {
       path = path.replace(/\/+$/, "")
       return path.startsWith("/") ? path : root.defaults[key]
     }
-    if (key === "fontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
+    if (key === "fontFamily" || key === "monoFontFamily") return typeof value === "string" && value.length > 0 ? value : root.defaults[key]
     // A provider's id, or "" for the first one that can be asked.
     if (key === "chatAiDefaultProvider") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     // A place's name, or "" for none.
@@ -1214,6 +1220,10 @@ Singleton {
       property real zoomStep: Defaults.values.zoomStep
       property int fontSize: Defaults.values.fontSize
       property string fontFamily: Defaults.values.fontFamily
+      property string monoFontFamily: Defaults.values.monoFontFamily
+      property bool appFontSync: Defaults.values.appFontSync
+      property int appFontSize: Defaults.values.appFontSize
+      property int alacrittyFontSize: Defaults.values.alacrittyFontSize
       property int fontWeight: Defaults.values.fontWeight
       property real fontLetterSpacing: Defaults.values.fontLetterSpacing
       property string fontCaps: Defaults.values.fontCaps

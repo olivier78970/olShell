@@ -79,6 +79,12 @@ import = ["~/.config/alacritty/theme.toml"]
 ```
 
 Alacritty reloads imported files while it runs, so open terminals recolor as soon as the wallpaper or theme changes, with no restart (unlike [Zen](#zen-browser)).
+`~/.config/alacritty/font.toml` is always written, with the **Terminal font** family (Text category) and the **Terminal font size** under it (11 pt by default), independently of the colors. The font is also sent to the alacritty windows already open (`alacritty msg config`), so they change at once even before the file is imported; a terminal started later reads the config file, so import it as well, **after** the theme, and remove the `[font]` family and size from `alacritty.toml` itself: the main file's own keys win over imported ones.
+
+```toml
+import = ["~/.config/alacritty/theme.toml", "~/.config/alacritty/font.toml"]
+```
+
 Turn alacritty off in the settings' **Theme** category (its Other apps tab) if you don't use it.
 The same goes for Hyprland (writes `~/.config/hypr/colors.lua`) and starship (writes `~/.config/starship/starship.toml`, **replacing** that file: keep your prompt's layout in the template).
 
@@ -102,6 +108,10 @@ To set it up:
 - Set the `org.gnome.desktop.interface color-scheme` to `prefer-dark` so the apps use the dark variant the palette is generated for (`gsettings set org.gnome.desktop.interface color-scheme prefer-dark`), or to `prefer-light` if you set the Automatic theme's mode to Light.
   The shell doesn't change it.
 - Turn GTK off in the settings' **Theme** category (its Other apps tab) if you don't want GTK apps themed.
+
+## Font of GTK and Qt apps
+
+Turn on **GTK and Qt apps use the interface font** in the settings' **Text** category to give GTK and Qt apps the shell's font family, at the size set under it (11 pt by default). [scripts/app-fonts.py](../scripts/app-fonts.py) sets it for GTK through gsettings (`font-name`, `document-font-name` and `monospace-font-name` of `org.gnome.desktop.interface`, applied live; the monospace one gets the **Terminal font** of the Text category, the others the shell's font) and for Qt in the `[Fonts]` section of `~/.config/qt5ct/qt5ct.conf` and `~/.config/qt6ct/qt6ct.conf` (`general`; `fixed` is the monospace font; the rest of the files is kept; running apps re-read them within a few seconds). Turning it off gives GTK and Qt apps their default font back (`gsettings reset` for the three keys, and `general` and `fixed` removed from the `[Fonts]` section of the two Qt files); the alacritty font is left as last set. Qt apps need qt5ct / qt6ct, as for the colors (see below).
 
 ## Qt
 

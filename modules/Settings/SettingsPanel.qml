@@ -481,17 +481,43 @@ ModalPanel {
 
   // The Nerd Font families installed (the shell's icons are Nerd Font glyphs),
   // plus the current one if it isn't among them, e.g. set by hand. Any other
-  // installed family can be set with `ipc call settings choose fontFamily`.
+  // installed family can be set with `ipc call settings choose fontFamily` (or monoFontFamily).
   // Qt only looks at the installed fonts when the shell starts, so a font
   // installed or removed since needs a restart. Made when the panel opens
   // rather than bound to the current font: picking a font must not change the
   // list under the pointer.
   property var fontOptions: []
 
+  // The same list for the terminal font, kept to the families fontconfig
+  // flags as monospace (a "Propo" Nerd Font or a proportional one patched
+  // with icons is left out).
+  property var monoFontOptions: []
+  property var monoFamilies: []
+
   function refreshFontOptions() {
     const names = Qt.fontFamilies().filter(name => name.includes("Nerd Font"))
-    if (!names.includes(Settings.fontFamily)) names.push(Settings.fontFamily)
-    root.fontOptions = names.sort().map(name => ({ value: name, text: name }))
+    const interfaceNames = names.slice()
+    if (!interfaceNames.includes(Settings.fontFamily)) interfaceNames.push(Settings.fontFamily)
+    root.fontOptions = interfaceNames.sort().map(name => ({ value: name, text: name }))
+    const monoNames = names.filter(name => root.monoFamilies.includes(name))
+    if (!monoNames.includes(Settings.monoFontFamily)) monoNames.push(Settings.monoFontFamily)
+    root.monoFontOptions = monoNames.sort().map(name => ({ value: name, text: name }))
+    monoFamiliesProcess.running = true
+  }
+
+  // The monospace families fontconfig knows (a line can list several names
+  // of one font, separated by commas).
+  Process {
+    id: monoFamiliesProcess
+    command: ["fc-list", ":spacing=mono", "family"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const families = Array.from(new Set(text.split(/[\n,]/).map(name => name.trim()).filter(name => name.length > 0)))
+        const changed = families.join("|") !== root.monoFamilies.join("|")
+        root.monoFamilies = families
+        if (changed) root.refreshFontOptions()
+      }
+    }
   }
 
   // Which buttons of a toggle row are on, by setting key.
@@ -592,6 +618,8 @@ ModalPanel {
     // A provider's model is picked from its list, once there is one.
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId) === ""
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
+    // A font size only matters while its sync is on.
+    if (row.key === "appFontSize") return Settings.appFontSync
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
     if (row.key === "animationDuration") return Settings.animations
     if (row.key === "hyprlandAnimationDuration") return Settings.hyprlandAnimations && !Settings.hyprlandAnimationSame
@@ -649,6 +677,7 @@ ModalPanel {
     if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
     if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
+    if (row.key === "appFontSize" && !Settings.appFontSync) return I18n.tr("settings.fontSize.disabled")
     if (row.key === "barAutoHideDelay" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "animationDuration" && !Settings.animations) return I18n.tr("settings.animationDuration.disabled")
     if (["hyprlandAnimationDuration", "hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key) && !Settings.hyprlandAnimations) return I18n.tr("settings.hyprlandAnimations.disabled")
@@ -681,6 +710,7 @@ ModalPanel {
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "fontFamily") return root.fontOptions
+    if (row.key === "monoFontFamily") return root.monoFontOptions
     if (row.key === "widgetPick") return SettingsPages.widgetPages.map(page => ({ value: page.id, text: page.label }))
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelOptions(row.providerId)
     if (row.key === "chatAiDefaultProvider") return ChatAi.known.map(provider => ({ value: provider.id, text: provider.name }))
@@ -1672,7 +1702,7 @@ ModalPanel {
                 headerHeight: 64
                 open: root.openKey === row.modelData.key
                 highlighted: root.highlight
-                previewFonts: row.modelData.key === "fontFamily"
+                previewFonts: row.modelData.key === "fontFamily" || row.modelData.key === "monoFontFamily"
                 positionIcon: row.modelData.positionIcon ?? false
                 // Every list floats over the panel, so nothing moves when one opens.
                 overlay: true
