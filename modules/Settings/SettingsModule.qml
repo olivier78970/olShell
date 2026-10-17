@@ -40,6 +40,11 @@ Scope {
         pageNames[page.id] = pageNames.widgets + " > " + page.label
         pages.push({ id: page.id, name: pageNames[page.id] })
       }
+      // Likewise each panel picked in the Panels tab.
+      for (const page of SettingsPages.panelPages) {
+        pageNames[page.id] = pageNames.panelOptions + " > " + page.label
+        pages.push({ id: page.id, name: pageNames[page.id] })
+      }
       const settings = {}
       const add = (key, page, name) => {
         if (Settings.defaults[key] === undefined || settings[key] !== undefined) return
@@ -73,12 +78,14 @@ Scope {
     // names resetPage takes, e.g. "wallpaper", "monitors", "launcher", "panels" for
     // the Panels category's Placement tab, "blur"), or a category with tabs
     // by its id, on its first tab, or a widget's page (widgetCpu...), on the
-    // Widgets tab picking that widget. An unknown page opens it where it was.
+    // Widgets tab picking that widget, or a panel's page (panelPower, panelSwitcher, panelClock), on the Panels tab. An unknown page opens it where it was.
     function open(page: string): void {
-      // A widget's page opens the Widgets tab on that widget.
+      // A widget's or panel's page opens its tab on that widget or panel.
       const widget = SettingsPages.widgetPages.some(candidate => candidate.id === page)
       if (widget) SettingsPanelState.widgetPage = page
-      const target = widget ? "widgets" : page
+      const panel = SettingsPages.panelPages.some(candidate => candidate.id === page)
+      if (panel) SettingsPanelState.panelPage = page
+      const target = widget ? "widgets" : panel ? "panelOptions" : page
       const category = SettingsPages.categories.findIndex(category => category.id === target || (category.tabs ?? []).some(tab => tab.id === target))
       if (category >= 0) {
         SettingsPanelState.category = category
@@ -113,7 +120,7 @@ Scope {
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
     // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
-    // matugenQt, matugenStarship, appFontSync, themeExactApps, lockStayAwakeFullscreen, bingWallpapers,
+    // matugenQt, matugenStarship, appFontSync, themeExactApps, lockStayAwakeFullscreen, powerConfirm, bingWallpapers,
     // chatAiListDir, chatAiFindFiles, chatAiSearchText, chatAiReadFile,
     // chatAiWebSearch, chatAiWebFetch, chatAiShellDocs, chatAiShellIpc,
     // chatAiShowUsage, chatAiShowHint, chatAiShowAccess) take
@@ -365,7 +372,7 @@ Scope {
     // widgetBluetooth, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher,
-    // panels, switcher, clockPanel or general) back to the settings of the
+    // panels, panelPower, panelSwitcher, panelClock or general) back to the settings of the
     // current profile.
     function resetPage(category: string): void {
       if (SettingsPages.pages.includes(category)) SettingsPages.resetPage(category)

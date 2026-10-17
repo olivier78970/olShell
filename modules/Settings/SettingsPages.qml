@@ -59,12 +59,12 @@ Singleton {
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "webApps", icon: "󰖟", label: I18n.tr("settings.category.webApps") },
-    // Panels: where each opens, then a tab for each panel with settings of
-    // its own, named after it.
+    // Panels: where each opens, then one tab for the panels with settings of
+    // their own: a dropdown picks the panel (panelPages), and the rows of its
+    // page are listed under it.
     { id: "panelsCategory", icon: "󰖲", label: I18n.tr("settings.category.panels"), tabs: [
       { id: "panels", label: I18n.tr("settings.tab.placement") },
-      { id: "switcher", label: I18n.tr("settings.placement.switcher") },
-      { id: "clockPanel", label: I18n.tr("settings.category.clock") }
+      { id: "panelOptions", label: I18n.tr("settings.category.panels") }
     ] },
     // Chat AI: the providers, what the AI may reach, then the question history
     // and the status lines.
@@ -95,12 +95,22 @@ Singleton {
     { id: "widgetZoom", label: I18n.tr("settings.category.zoom") }
   ]
 
+  // The panels with settings of their own: a page of rows each, picked in the
+  // Panels category's Panels tab (which is not a page of rows itself: it
+  // shows the picked panel's).
+  readonly property var panelPages: [
+    { id: "panelPower", label: I18n.tr("settings.placement.power") },
+    { id: "panelSwitcher", label: I18n.tr("settings.placement.switcher") },
+    { id: "panelClock", label: I18n.tr("settings.category.clock") }
+  ]
+
   // Every page of rows, by id, in the order of the rail and of the tabs, the
-  // widgets' pages in place of the Widgets tab.
+  // widgets' and panels' pages in place of the Widgets and Panels tabs.
   readonly property var pages: root.categories
     .reduce((pages, category) => pages.concat(category.tabs ? category.tabs.map(tab => tab.id) : [category.id]), [])
-    .filter(id => id !== "widgets")
+    .filter(id => id !== "widgets" && id !== "panelOptions")
     .concat(root.widgetPages.map(page => page.id))
+    .concat(root.panelPages.map(page => page.id))
 
   // The rows of every category that hold a setting of their own, top to
   // bottom (the panel adds its engine, added-app and defaults rows). Sliders
@@ -264,6 +274,7 @@ Singleton {
     { key: "launcherTab", category: "launcher", kind: "buttons", label: I18n.tr("settings.launcherTab") },
     { key: "launcherResults", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherResults"), step: 1, format: v => String(v) },
     { key: "launcherHistory", category: "launcher", kind: "slider", label: I18n.tr("settings.launcherHistory"), step: 1, format: v => String(v) },
+    { key: "panelPick", category: "panelOptions", kind: "dropdown", label: I18n.tr("settings.panelPick") },
     { key: "panelPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.all") },
     { key: "launcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.launcher") },
     { key: "settingsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.settings") },
@@ -271,6 +282,9 @@ Singleton {
     { key: "wallpaperPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.wallpaper") },
     { key: "themePlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.theme") },
     { key: "powerPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.power") },
+    { key: "powerConfirmRow", category: "panelPower", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.powerConfirm"), toggles: [
+      { key: "powerConfirm", text: "" }
+    ] },
     { key: "notificationActionsPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationActions") },
     { key: "switcherPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.switcher") },
     { key: "clockPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.clock") },
@@ -303,32 +317,32 @@ Singleton {
     { key: "chatAiShowAccessRow", category: "chatAiHistory", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.chatAiShowAccess"), toggles: [
       { key: "chatAiShowAccess", text: "" }
     ] },
-    { key: "switcherOrientation", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
-    { key: "switcherScope", category: "switcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
-    { key: "switcherGroupAppsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
+    { key: "switcherOrientation", category: "panelSwitcher", kind: "buttons", label: I18n.tr("settings.switcherOrientation") },
+    { key: "switcherScope", category: "panelSwitcher", kind: "buttons", label: I18n.tr("settings.switcherScope") },
+    { key: "switcherGroupAppsRow", category: "panelSwitcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherGroupApps"), toggles: [
       { key: "switcherGroupApps", text: "" }
     ] },
-    { key: "switcherTextRow", category: "switcher", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
+    { key: "switcherTextRow", category: "panelSwitcher", kind: "toggles", label: I18n.tr("settings.switcherText"), toggles: [
       { key: "switcherShowTitle", text: I18n.tr("settings.switcherText.title") },
       { key: "switcherShowApp", text: I18n.tr("settings.switcherText.app") },
       { key: "switcherShowWorkspace", text: I18n.tr("settings.switcherText.workspace") }
     ] },
-    { key: "switcherIconSize", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
-    { key: "switcherMaxShown", category: "switcher", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
-    { key: "switcherReleaseSwitchRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
+    { key: "switcherIconSize", category: "panelSwitcher", kind: "slider", label: I18n.tr("settings.switcherIconSize"), step: 4, format: v => v + " px" },
+    { key: "switcherMaxShown", category: "panelSwitcher", kind: "slider", label: I18n.tr("settings.switcherMaxShown"), step: 1, format: v => String(v) },
+    { key: "switcherReleaseSwitchRow", category: "panelSwitcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherReleaseSwitch"), toggles: [
       { key: "switcherReleaseSwitch", text: "" }
     ] },
-    { key: "clockTabsRow", category: "clockPanel", kind: "toggles", label: I18n.tr("settings.clockTabs"), toggles: [
+    { key: "clockTabsRow", category: "panelClock", kind: "toggles", label: I18n.tr("settings.clockTabs"), toggles: [
       { key: "clockShowAgenda", text: I18n.tr("clock.tab.agenda") },
       { key: "clockShowPerformance", text: I18n.tr("clock.tab.performance") },
       { key: "clockShowMedia", text: I18n.tr("clock.tab.media") },
       { key: "clockShowWeather", text: I18n.tr("clock.tab.weather") },
       { key: "clockShowWorld", text: I18n.tr("clock.tab.world") }
     ] },
-    { key: "weatherUnit", category: "clockPanel", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
+    { key: "weatherUnit", category: "panelClock", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
     { key: "webAppCommand", category: "webApps", kind: "path", label: I18n.tr("settings.webAppCommand") },
-    { key: "weatherLocation", category: "clockPanel", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
-    { key: "switcherPreviewsRow", category: "switcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
+    { key: "weatherLocation", category: "panelClock", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
+    { key: "switcherPreviewsRow", category: "panelSwitcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }
     ] },
     { key: "cpuLayout", category: "widgetCpu", kind: "dropdown", label: I18n.tr("settings.layout.label") },
@@ -411,7 +425,7 @@ Singleton {
     // Nor do the chat AI's providers.
     if (categoryId === "chatAi") keys.push("chatAiProviders", "chatAiDefaultProvider")
     // Nor do the clocks tab's places.
-    if (categoryId === "clockPanel") keys.push("worldClocks")
+    if (categoryId === "panelClock") keys.push("worldClocks")
     // Nor do the Other apps tab's added apps.
     if (categoryId === "themeApps") keys.push("matugenApps")
     // Nor do the App opacity tab's app opacities.

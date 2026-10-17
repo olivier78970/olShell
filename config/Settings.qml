@@ -503,6 +503,7 @@ Singleton {
   // Whether a fullscreen focused window (a game, a film) keeps the screen from
   // locking or blanking by itself.
   readonly property bool lockStayAwakeFullscreen: root.valid("lockStayAwakeFullscreen", file.adapter.lockStayAwakeFullscreen)
+  readonly property bool powerConfirm: root.valid("powerConfirm", file.adapter.powerConfirm)
   // The launcher: the tab it opens on (one of choices.launcherTab), and how
   // many results its list is tall enough to show at once (more scroll).
   readonly property string launcherTab: root.valid("launcherTab", file.adapter.launcherTab)
@@ -1347,6 +1348,7 @@ Singleton {
       property bool lockKeysOsdSame: Defaults.values.lockKeysOsdSame
       property int lockTimeout: Defaults.values.lockTimeout
       property bool lockStayAwakeFullscreen: Defaults.values.lockStayAwakeFullscreen
+      property bool powerConfirm: Defaults.values.powerConfirm
       property string launcherPlacement: Defaults.values.launcherPlacement
       property string settingsPlacement: Defaults.values.settingsPlacement
       property string shortcutsPlacement: Defaults.values.shortcutsPlacement

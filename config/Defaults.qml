@@ -122,6 +122,7 @@ Singleton {
     lockKeysOsdSame: false,
     lockTimeout: 8,
     lockStayAwakeFullscreen: true,
+    powerConfirm: true,
     launcherTab: "all",
     launcherPlacement: "bar-center",
     settingsPlacement: "bar-center",

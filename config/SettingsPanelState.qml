@@ -18,6 +18,8 @@ Singleton {
   property int tab: 0
   // The widget picked in the Bar widgets category's Widgets tab: the id of its page.
   property string widgetPage: "widgetWorkspaces"
+  // The panel picked in the Panels category's Panels tab: the id of its page.
+  property string panelPage: "panelPower"
 
   function toggle() {
     // Asked again while it is still waiting to open: cancel that.
