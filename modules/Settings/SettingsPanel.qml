@@ -479,6 +479,11 @@ ModalPanel {
     if (row.key === "chatAiDefaultProvider") return ChatAi.defaultProviderId
     // Unset, the main monitor is the first one.
     if (row.key === "mainMonitor") return Matugen.mainMonitor
+    if (row.key === "monitorMode") return MonitorLayout.focused?.mode ?? ""
+    if (row.key === "monitorScale") return MonitorLayout.focused?.scale ?? 1
+    if (row.key === "monitorMirror") return MonitorLayout.focusedMirror
+    if (row.key === "monitorDepth") return MonitorLayout.focused?.bitdepth ?? 8
+    if (row.key === "monitorHdr") return MonitorLayout.focused?.hdr ?? false
     return Settings.get(row.key)
   }
 
@@ -547,6 +552,7 @@ ModalPanel {
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "addWebApp") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "customCopy") return I18n.tr("settings.custom.copyButton")
+    if (row.key === "monitorIdentify") return I18n.tr("settings.monitors.identifyButton")
     if (row.key === "addMatugenApp") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "addChatAiProvider") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key.startsWith("worldClock:")) return I18n.tr("settings.worldClocks.remove")
@@ -600,6 +606,7 @@ ModalPanel {
     if (row.key === "addEngine") root.addEngine()
     if (row.key === "addWebApp") root.addWebApp()
     if (row.key === "customCopy") root.copyToCustom()
+    if (row.key === "monitorIdentify") MonitorLayout.identify()
     if (row.key === "addMatugenApp") root.addMatugenApp()
     if (row.key === "addChatAiProvider") root.addChatAiProvider()
     if (row.key.startsWith("worldClock:")) Settings.removeWorldClock(row.clockIndex)
@@ -621,6 +628,8 @@ ModalPanel {
     // A provider's model is picked from its list, once there is one.
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId) === ""
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
+    if (row.key === "monitorBrightness") return MonitorLayout.focused?.hdr || !MonitorLayout.brightnessIgnored[MonitorLayout.focused?.name]
+    if (row.key.startsWith("monitor") && row.kind !== "action") return MonitorLayout.focused !== null
     // A font size only matters while its sync is on.
     if (row.key === "appFontSize") return Settings.appFontSync
     if (row.key === "borderOpaqueRow") return Theme.borderWidth > 0
@@ -668,9 +677,21 @@ ModalPanel {
     return names.map(name => ({ value: name, text: name }))
   }
 
+  // The range of a slider: its own (a monitor's brightness), else the setting's.
+  function rangeOf(row) {
+    return row.range ?? Settings.limits[row.key]
+  }
+
+  // Sets what a slider row controls: the monitor's brightness, or its setting.
+  function setSlider(row, value) {
+    if (row.key === "monitorBrightness") MonitorLayout.setBrightness(value)
+    else Settings.set(row.key, value)
+  }
+
   function sliderLabelOf(row) {
     if (row.key === "workspaceCount" && Settings.workspacesPerMonitor && Hyprland.focusedMonitor)
       return I18n.tr("settings.workspaceCount.monitor", Hyprland.focusedMonitor.name)
+    if (row.key === "monitorBrightness" && MonitorLayout.focused?.hdr) return I18n.tr("settings.monitors.brightnessHdr", MonitorLayout.focused.name)
     return row.label
   }
 
@@ -678,6 +699,7 @@ ModalPanel {
   // count while it follows the Hyprland config, the count the bar shows, and
   // for the curves' radius while it follows the widgets', theirs.
   function sliderValueOf(row) {
+    if (row.key === "monitorBrightness") return MonitorLayout.focusedBrightness ?? 0
     if (row.key === "workspaceCount" && Settings.workspacesPerMonitor) return Hyprland.focusedMonitor ? Settings.workspaceCountFor(Hyprland.focusedMonitor.name) : Settings.workspaceCount
     if (row.key === "workspaceCount") return WorkspaceRules.shownCount
     if (row.key === "curvedJoinsRadius") return Theme.joinRadius
@@ -692,6 +714,7 @@ ModalPanel {
 
   // Why `row` is disabled right now, for its tooltip; "" when it isn't.
   function disabledReasonOf(row) {
+    if (row.key === "monitorBrightness" && !root.rowEnabled(row)) return I18n.tr("settings.monitors.brightnessIgnored")
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId)
     if (root.blurRows.includes(row.key) && !Settings.blur) return I18n.tr("settings.blur.disabledOff")
     if (row.key === "windowBorderWidth" && Settings.windowBorderSame) return I18n.tr("settings.windowBorderSame.disabled")
@@ -730,6 +753,11 @@ ModalPanel {
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "mainMonitor") return root.mainMonitorOptions
+    if (row.key === "monitorMode") return MonitorLayout.focusedModeOptions
+    if (row.key === "monitorScale") return MonitorLayout.focusedScaleOptions
+    if (row.key === "monitorMirror") return MonitorLayout.focusedMirrorOptions
+    if (row.key === "monitorDepth") return MonitorLayout.depthOptions
+    if (row.key === "monitorHdr") return MonitorLayout.hdrOptions
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "monoFontFamily") return root.monoFontOptions
     if (row.key === "widgetPick") return SettingsPages.widgetPages.map(page => ({ value: page.id, text: page.label }))
@@ -813,8 +841,9 @@ ModalPanel {
   onCategoryChanged: SettingsPanelState.category = root.category
   // The rows of the current page; `selected` indexes into these.
   // (The Widgets tab shows the picked widget's page under the dropdown picking it.)
-  readonly property var rows: root.allRows.filter(row => row.category === root.page
-    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage))
+  // (A row with an `available` function is left out while it returns false.)
+  readonly property var rows: root.allRows.filter(row => (row.category === root.page
+    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage)) && (row.available?.() ?? true))
   // The page whose settings the reset button acts on: the page
   // shown, or the picked widget's on the Widgets tab.
   readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage : root.page
@@ -957,6 +986,11 @@ ModalPanel {
   // own, not a setting.
   function setValue(row, value) {
     if (row.key === "widgetPick") SettingsPanelState.widgetPage = value
+    else if (row.key === "monitorMode") MonitorLayout.setMode(value)
+    else if (row.key === "monitorScale") MonitorLayout.setScale(value)
+    else if (row.key === "monitorMirror") MonitorLayout.setMirror(value)
+    else if (row.key === "monitorDepth") MonitorLayout.setDepth(value)
+    else if (row.key === "monitorHdr") MonitorLayout.setHdr(value)
     else Settings.set(row.key, value)
   }
 
@@ -965,9 +999,10 @@ ModalPanel {
     const row = root.rows[root.selected]
     if (!root.rowEnabled(row)) return
     if (row.kind === "slider") {
-      Settings.set(row.key, (row.key === "workspaceCount" && Settings.workspacesPerMonitor ? root.sliderValueOf(row) : Settings.get(row.key)) + direction * row.step * steps)
-    } else if ((row.kind === "dropdown" && row.key !== "appOpacityAdd") || row.kind === "buttons") {
-      // (Stepping through the apps to add would add each of them.)
+      root.setSlider(row, (row.key === "monitorBrightness" || (row.key === "workspaceCount" && Settings.workspacesPerMonitor) ? root.sliderValueOf(row) : Settings.get(row.key)) + direction * row.step * steps)
+    } else if ((row.kind === "dropdown" && row.key !== "appOpacityAdd" && !row.key.startsWith("monitor")) || row.kind === "buttons") {
+      // (Stepping through the apps to add would add each of them, and through
+      // the modes would change them one flicker at a time.)
       const values = root.optionsOf(row).map(option => option.value)
       const next = ((values.indexOf(root.currentOf(row)) + direction * steps) % values.length + values.length) % values.length
       root.setValue(row, values[next])
@@ -1189,7 +1224,7 @@ ModalPanel {
     const texts = new Set()
     for (const row of root.allRows) {
       if (row.kind !== "slider" || row.stepper) continue
-      const [from, to] = Settings.limits[row.key]
+      const [from, to] = root.rangeOf(row)
       const count = Math.round((to - from) / row.step)
       const every = Math.max(1, Math.ceil(count / 100))
       for (let i = 0; i <= count; i += every) texts.add(row.format(Math.round((from + i * row.step) * 1000) / 1000))
@@ -1418,11 +1453,11 @@ ModalPanel {
               readonly property real above: row.titleHeight + row.gapHeight
               // The least width this row needs: that of the row shown in it
               // (a dropdown's list has its own width, and does not count).
-              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, chatAiProviderRow, layoutLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown]
+              readonly property real need: [sliderRow, engineRow, appOpacityRow, matugenAppRow, chatAiProviderRow, layoutLoader, monitorLoader, toggleRow, pathRow, buttonsRow, choiceRow, dropdown]
                 .reduce((most, item) => item.visible ? Math.max(most, item.implicitWidth + item.anchors.leftMargin) : most, 0)
 
               width: parent.width
-              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" || row.modelData.kind === "chatAiProvider" ? 44 + row.above : ((row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above)
+              height: row.modelData.kind === "layoutEditor" ? layoutLoader.implicitHeight + row.above : row.modelData.kind === "monitorEditor" ? monitorLoader.implicitHeight + row.above : row.modelData.kind === "matugenApp" ? 84 + row.above : row.modelData.kind === "engine" || row.modelData.kind === "appOpacity" || row.modelData.kind === "chatAiProvider" ? 44 + row.above : ((row.modelData.kind === "slider" ? sliderRow.implicitHeight + 10 : 64) + row.above)
 
               // The name of the section, with a line after it.
               ThemedText {
@@ -1486,8 +1521,8 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 label: root.sliderLabelOf(row.modelData)
-                from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
-                to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
+                from: row.modelData.kind === "slider" ? root.rangeOf(row.modelData)[0] : 0
+                to: row.modelData.kind === "slider" ? root.rangeOf(row.modelData)[1] : 1
                 stepSize: row.modelData.step ?? 1
                 valueWidth: sliderValues.implicitWidth
                 value: row.modelData.kind === "slider" ? root.sliderValueOf(row.modelData) : 0
@@ -1504,7 +1539,7 @@ ModalPanel {
                 // (Typing left for another field has moved editKey on already.)
                 onCommitted: value => {
                   if (root.editKey === row.modelData.key) root.editKey = ""
-                  Settings.set(row.modelData.key, value)
+                  root.setSlider(row.modelData, value)
                 }
                 onCancelled: root.editKey = ""
                 onReleased: root.focusTarget.forceActiveFocus()
@@ -1513,7 +1548,7 @@ ModalPanel {
                 onSameToggled: Settings.set(row.modelData.same, !Settings.get(row.modelData.same))
                 note: row.modelData.key === "workspaceCount" ? I18n.tr("settings.workspaceCount.note", WorkspaceRules.configured.length) : ""
                 onActivated: root.selected = row.index
-                onMoved: value => Settings.set(row.modelData.key, value)
+                onMoved: value => root.setSlider(row.modelData, value)
               }
 
               SearchEngineRow {
@@ -1561,6 +1596,16 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 sourceComponent: BarLayoutEditor {}
+              }
+
+              // The monitor layout editor, made only for its own row.
+              Loader {
+                id: monitorLoader
+                visible: row.modelData.kind === "monitorEditor"
+                active: visible
+                anchors.fill: parent
+                anchors.topMargin: row.above
+                sourceComponent: MonitorLayoutEditor {}
               }
 
               AppOpacityRow {

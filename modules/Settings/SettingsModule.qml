@@ -70,7 +70,7 @@ Scope {
     }
 
     // Opens the panel on a page: a category without tabs or a tab (the
-    // names resetPage takes, e.g. "wallpaper", "launcher", "panels" for
+    // names resetPage takes, e.g. "wallpaper", "monitors", "launcher", "panels" for
     // the Panels category's Placement tab, "blur"), or a category with tabs
     // by its id, on its first tab, or a widget's page (widgetCpu...), on the
     // Widgets tab picking that widget. An unknown page opens it where it was.

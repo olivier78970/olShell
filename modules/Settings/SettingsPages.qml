@@ -37,6 +37,8 @@ Singleton {
       { id: "layout", label: I18n.tr("settings.tab.layout") },
       { id: "widgets", label: I18n.tr("settings.tab.widgets") }
     ] },
+    // Monitors: where they sit on the desktop, arranged by dragging.
+    { id: "monitors", icon: "󰍹", label: I18n.tr("settings.category.monitors") },
     { id: "wallpaper", icon: "󰋩", label: I18n.tr("settings.category.wallpaper") },
     // Theme: what goes for every theme, then a tab for each kind of theme
     // with settings of its own, then the other apps it colors.
@@ -190,6 +192,15 @@ Singleton {
     { key: "monoFontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.monoFontFamily") },
     { key: "alacrittyFontSize", category: "text", kind: "slider", label: I18n.tr("settings.alacrittyFontSize"), step: 1, format: v => v + " pt" },
     { key: "barLayout", category: "layout", kind: "layoutEditor", label: "" },
+    { key: "monitorPositions", category: "monitors", kind: "monitorEditor", label: "" },
+    // The focused monitor's settings, not settings of their own: they go through MonitorLayout. A row whose `available` function returns false (the monitor can't do it) is left out.
+    { key: "monitorMode", category: "monitors", kind: "dropdown", label: I18n.tr("settings.monitors.resolution", MonitorLayout.focused?.name ?? "") },
+    { key: "monitorScale", category: "monitors", kind: "dropdown", label: I18n.tr("settings.monitors.scale", MonitorLayout.focused?.name ?? ""), available: () => MonitorLayout.focusedScaleOptions.length > 1 },
+    { key: "monitorMirror", category: "monitors", kind: "dropdown", label: I18n.tr("settings.monitors.mirror", MonitorLayout.focused?.name ?? ""), available: () => MonitorLayout.focusedMirrorOptions.length > 1 },
+    { key: "monitorDepth", category: "monitors", kind: "dropdown", label: I18n.tr("settings.monitors.depth", MonitorLayout.focused?.name ?? ""), available: () => MonitorLayout.depthOptions.length > 0 },
+    { key: "monitorBrightness", category: "monitors", kind: "slider", range: [0, 100], step: 1, format: v => v + " %", label: I18n.tr("settings.monitors.brightness", MonitorLayout.focused?.name ?? ""), available: () => MonitorLayout.focusedBrightness !== null },
+    { key: "monitorHdr", category: "monitors", kind: "dropdown", label: I18n.tr("settings.monitors.hdr", MonitorLayout.focused?.name ?? ""), available: () => MonitorLayout.hdrOptions.length > 0 },
+    { key: "monitorIdentify", category: "monitors", kind: "action", label: I18n.tr("settings.monitors.identify"), available: () => MonitorLayout.monitors.length > 1 },
     { key: "mainMonitor", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.mainMonitor") },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
