@@ -575,7 +575,7 @@ ModalPanel {
     ]
     const buttons = [{ id: "apply", text: I18n.tr("settings.profiles.apply"), enabled: true }]
     if (row.profile === Profiles.factory) return buttons
-    if (row.profile === Profiles.current) buttons.push({ id: "save", text: I18n.tr("settings.profiles.saveCurrent"), enabled: true })
+    if (row.profile === Profiles.current) buttons.push({ id: "save", text: I18n.tr("settings.profiles.saveCurrent"), enabled: true, highlight: Profiles.modified })
     buttons.push({ id: "delete", text: I18n.tr("settings.profiles.delete"), enabled: true })
     return buttons
   }
@@ -1267,6 +1267,8 @@ ModalPanel {
         required property var modelData
         required property int index
         readonly property bool current: categoryButton.index === root.category
+        // The Profiles button stands out while the settings differ from the current profile.
+        readonly property bool unsaved: categoryButton.modelData.id === "profiles" && Profiles.modified
 
         width: 44 + railLabels.implicitWidth + 14
         height: 44
@@ -1288,7 +1290,8 @@ ModalPanel {
           anchors.verticalCenter: parent.verticalCenter
           text: categoryButton.modelData.icon
           sizeScale: 1.4
-          color: categoryButton.current || categoryMouse.containsMouse ? Theme.accentColor : Theme.textColor
+          font.weight: categoryButton.unsaved ? Font.Bold : Theme.fontWeight
+          color: categoryButton.current || categoryMouse.containsMouse || categoryButton.unsaved ? Theme.accentColor : Theme.textColor
         }
 
         ThemedText {
@@ -1296,7 +1299,8 @@ ModalPanel {
           anchors.leftMargin: 44
           anchors.verticalCenter: parent.verticalCenter
           text: categoryButton.modelData.label
-          color: categoryButton.current || categoryMouse.containsMouse ? Theme.accentColor : Theme.textColor
+          font.weight: categoryButton.unsaved ? Font.Bold : Theme.fontWeight
+          color: categoryButton.current || categoryMouse.containsMouse || categoryButton.unsaved ? Theme.accentColor : Theme.textColor
         }
 
         MouseArea {
@@ -1508,6 +1512,7 @@ ModalPanel {
                 buttons: row.modelData.kind !== "action" ? []
                   : row.modelData.profile !== undefined ? root.profileButtons(row.modelData)
                   : [{ text: root.actionButtonText(row.modelData), enabled: true }]
+                highlightLabel: row.modelData.profile !== undefined && row.modelData.profile === Profiles.current && Profiles.modified
                 selected: root.selected === row.index
                 focusIndex: row.modelData.profile !== undefined && root.showSelection ? root.toggleFocus : 0
                 onActivated: root.selected = row.index
