@@ -32,14 +32,17 @@ done
 
 fail() { echo "ship: $*" >&2; exit 1; }
 
-# The checks: debug logging in what is added, the translations, the file list.
+# The checks: debug logging in what is added, the translations, the file list
+# (and a setting check and the shell's errors, shown but not failing).
 checks() {
-  local added
-  added=$(git diff HEAD --unified=0 -- '*.qml' 2>/dev/null | grep -E '^\+.*console\.log' || true)
-  [ -z "$added" ] || { echo "$added"; fail "console.log in the changes: remove it first"; }
-  .claude/scripts/check-translations.py || fail "translations"
-  .claude/scripts/structure.py --check || fail "docs/structure.md is out of date: run .claude/scripts/structure.py"
+  .claude/scripts/check-all.sh || fail "the checks above failed"
 }
+
+# Work of three files or more belongs on a branch (CLAUDE.md, Branches): say so
+# when it is sitting on master, uncommitted.
+if [ "$branch" = master ] && [ "$(git status --porcelain | wc -l)" -ge 3 ]; then
+  echo "ship: note: $(git status --porcelain | wc -l) files changed on master: a medium change gets a branch (git switch -c <name>)"
+fi
 
 checks
 [ "$only_check" = 1 ] && { echo "ship: checks pass"; exit 0; }
