@@ -107,7 +107,11 @@ ShellRoot {
   LazyLoader {
     active: Settings.widgetEnabled("notifications")
 
-    NotificationPopups {}
+    Variants {
+      model: Quickshell.screens
+
+      NotificationPopups {}
+    }
   }
   LazyLoader {
     active: Settings.widgetEnabled("notifications")

@@ -78,7 +78,7 @@ The clipboard copy and the notification are skipped if `wl-copy` or `notify-send
 olShell is a desktop notification server (the `org.freedesktop.Notifications` D-Bus service that `notify-send` and applications talk to), so it takes the place of mako, dunst or swaync: **only one of them can run**.
 Stop the other one and keep it from starting again (for swaync: `systemctl --user mask swaync`, since it is started by D-Bus on the first notification, and remove any autostart line for it), otherwise whichever starts first keeps the name and olShell logs "Could not register notification server".
 
-- **Pop-ups** appear on the focused screen, at the top right by default (the *Notification position* setting puts them in another corner, at the middle of the top or bottom edge or halfway down the left or right one;
+- **Pop-ups** appear on every screen, at the top right by default (the *Notification position* setting puts them in another corner, at the middle of the top or bottom edge or halfway down the left or right one;
   at the top they are under the bar, and the newest is always the one nearest the edge):  the icon (the notification's image, else its application icon), summary, body (basic markup and links work) and one button per action.
   They stay for the *Pop-up duration* setting, or the time the sender asked for; urgent ones stay until closed; a line along the bottom shows the time left, and the timer stops while the pointer is over the pop-up.
   At most *Pop-ups at once* are shown, the others wait their turn.
