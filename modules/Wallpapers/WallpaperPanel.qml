@@ -25,7 +25,7 @@ CarouselPanel {
   property var wallpapers: []
   // The monitor wallpapers are applied to: the focused one. Its wallpaper is
   // the one in use, for the carousel and the random pick.
-  readonly property string monitorName: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""
+  readonly property string monitorName: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : Matugen.mainMonitor
   readonly property string current: ThemeState.wallpaperOf(root.monitorName)
 
   title: I18n.tr("wallpaper.title")
@@ -117,11 +117,12 @@ CarouselPanel {
     }
   }
 
-  // Bing's picture of the day is applied as soon as it has been downloaded.
+  // Bing's picture of the day is applied as soon as it has been downloaded, to
+  // the main monitor only: the other monitors keep their own wallpaper.
   Connections {
     target: BingWallpaper
     function onDownloaded(path) {
-      root.applyPath(path, true)
+      root.applyPath(path, true, Matugen.mainMonitor)
     }
   }
 

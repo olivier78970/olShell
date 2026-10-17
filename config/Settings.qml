@@ -219,6 +219,11 @@ Singleton {
   // count slider sets the focused monitor's (see set()).
   readonly property var workspaceCountByMonitor: root.valid("workspaceCountByMonitor", file.adapter.workspaceCountByMonitor)
 
+  // Where the monitors sit on the desktop and their mode, by monitor name
+  // ({ x, y, mode, scale, mirror, bitdepth, hdr, sdr }, each optional), put back by services/MonitorLayout.qml;
+  // what is missing here stays as the Hyprland config has it.
+  readonly property var monitorPositions: root.valid("monitorPositions", file.adapter.monitorPositions)
+
   // The workspace count of the monitor `name`.
   function workspaceCountFor(name) {
     return root.workspaceCountByMonitor[name] ?? root.workspaceCount
@@ -802,6 +807,30 @@ Singleton {
       }
       return counts
     }
+    // The monitors' places and modes: whole-number x and y within +-100000,
+    // a mode like "2560x1440@299.99", and a scale from 0.25 to 4 in hundredths, the name of the
+    // monitor shown ("" for none), a bit depth of 8 or 10, HDR, and the brightness
+    // of ordinary content in HDR (0.1 to 10).
+    if (key === "monitorPositions") {
+      const places = {}
+      if (value === null || typeof value !== "object") return places
+      for (const name of Object.keys(value)) {
+        const entry = {}
+        const x = Math.round(Number(value[name]?.x))
+        const y = Math.round(Number(value[name]?.y))
+        if (Number.isFinite(x) && Number.isFinite(y) && Math.abs(x) <= 100000 && Math.abs(y) <= 100000) Object.assign(entry, { x: x, y: y })
+        if (/^\d{3,5}x\d{3,5}@\d{1,3}(\.\d{1,3})?$/.test(value[name]?.mode)) entry.mode = value[name].mode
+        const scale = Math.round(Number(value[name]?.scale) * 100) / 100
+        if (scale >= 0.25 && scale <= 4) entry.scale = scale
+        if (typeof value[name]?.mirror === "string" && value[name].mirror.length <= 100) entry.mirror = value[name].mirror
+        if (value[name]?.bitdepth === 8 || value[name]?.bitdepth === 10) entry.bitdepth = value[name].bitdepth
+        if (typeof value[name]?.hdr === "boolean") entry.hdr = value[name].hdr
+        const sdr = Math.round(Number(value[name]?.sdr) * 100) / 100
+        if (sdr >= 0.1 && sdr <= 10) entry.sdr = sdr
+        if (name.length > 0 && Object.keys(entry).length > 0) places[name] = entry
+      }
+      return places
+    }
     // The search engines: the valid ones, with the browser's once (put first
     // if it went missing).
     // The clocks tab's places: those with a name and a time zone's name.
@@ -1231,6 +1260,7 @@ Singleton {
       property bool workspaceCountFromHyprland: Defaults.values.workspaceCountFromHyprland
       property bool workspacesPerMonitor: Defaults.values.workspacesPerMonitor
       property var workspaceCountByMonitor: Defaults.values.workspaceCountByMonitor
+      property var monitorPositions: Defaults.values.monitorPositions
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque

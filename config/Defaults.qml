@@ -33,6 +33,7 @@ Singleton {
     workspaceCountFromHyprland: true,
     workspacesPerMonitor: false,
     workspaceCountByMonitor: ({}),
+    monitorPositions: ({}),
     barStyle: "full",
     borderWidth: 0,
     borderOpaque: false,

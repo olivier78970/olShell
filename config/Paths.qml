@@ -41,6 +41,11 @@ Singleton {
   // The script that takes screenshots (the folder they go to is a setting).
   readonly property string screenshotScript: Quickshell.shellPath("scripts/screenshot.py")
 
+  // Reads and sets the monitors' brightness (DDC/CI, or a laptop's backlight).
+  readonly property string monitorBrightnessScript: Quickshell.shellPath("scripts/monitor-brightness.py")
+  // Reads what the monitors can do from their EDID.
+  readonly property string monitorCapsScript: Quickshell.shellPath("scripts/monitor-caps.py")
+
   // Applies a wallpaper with awww, starting its daemon if needed.
   readonly property string bingPictureScript: Quickshell.shellPath("scripts/bing-picture.py")
   readonly property string applyWallpaperScript: Quickshell.shellPath("scripts/apply-wallpaper.py")

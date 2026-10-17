@@ -41,6 +41,8 @@ ShellRoot {
   readonly property var bingWallpapers: BingWallpaper.enabled
   // And the zoom service, which answers the `zoom` IPC calls.
   readonly property var zoomFactor: Zoom.factor
+  // Puts the monitors where the settings say at startup.
+  readonly property var monitorList: MonitorLayout.monitors
   // And the polkit agent, which has to register with polkit from the start.
   readonly property var polkitRegistered: Polkit.registered
   // And the service pointing Hyprland's QS_CONFIG_PATH at this shell.
@@ -86,6 +88,11 @@ ShellRoot {
     ZoomShield {}
   }
   LockKeysOsd {}
+  LazyLoader {
+    active: MonitorLayout.identifying
+
+    MonitorIdentify {}
+  }
   LazyLoader {
     active: Settings.widgetEnabled("wallpaper")
 
