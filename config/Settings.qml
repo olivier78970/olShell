@@ -238,6 +238,10 @@ Singleton {
   // what is missing here stays as the Hyprland config has it.
   readonly property var monitorPositions: root.valid("monitorPositions", file.adapter.monitorPositions)
 
+  // The names of the monitors turned off, which Hyprland stops using (see
+  // services/MonitorLayout.qml). The last monitor left on is never turned off.
+  readonly property var disabledMonitors: root.valid("disabledMonitors", file.adapter.disabledMonitors)
+
   // The workspace count of the monitor `name`.
   function workspaceCountFor(name) {
     return root.workspaceCountByMonitor[name] ?? root.workspaceCount
@@ -850,6 +854,10 @@ Singleton {
       }
       return places
     }
+    // The monitors turned off: distinct names, each of 100 characters at most.
+    if (key === "disabledMonitors") {
+      return Array.from(new Set(root.asArray(value).filter(name => typeof name === "string" && name.length > 0 && name.length <= 100)))
+    }
     // The search engines: the valid ones, with the browser's once (put first
     // if it went missing).
     // The clocks tab's places: those with a name and a time zone's name.
@@ -1282,6 +1290,7 @@ Singleton {
       property bool workspacesPerMonitor: Defaults.values.workspacesPerMonitor
       property var workspaceCountByMonitor: Defaults.values.workspaceCountByMonitor
       property var monitorPositions: Defaults.values.monitorPositions
+      property var disabledMonitors: Defaults.values.disabledMonitors
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque

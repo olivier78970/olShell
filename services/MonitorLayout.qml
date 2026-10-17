@@ -25,6 +25,10 @@ Singleton {
   // `modes` it offers, its `scale`, `transform`, `mirror` (the name of the
   // monitor it shows, "" for none), `bitdepth` and `hdr`.
   property var monitors: []
+  // Every monitor Hyprland lists, turned off or not: { name, description,
+  // disabled }. A turned-off monitor is left out of `monitors`, so this is
+  // what lets the settings offer to turn it back on.
+  property var known: []
   // The monitors that take a place of their own on the desktop: those not
   // mirroring another (which Hyprland draws over it and leaves out of the
   // layout).
@@ -65,6 +69,44 @@ Singleton {
     if (Math.abs(start + size - targetStart - targetSize) <= 1) return targetStart + newSize - size
     if (Math.abs(start + size / 2 - targetStart - targetSize / 2) <= 1) return Math.round(targetStart + (newSize - size) / 2)
     return start
+  }
+
+  // The names of the monitors that are turned off in the settings and can
+  // be: at least one monitor always stays on, the first of those asked off
+  // (in Hyprland's order).
+  readonly property var turnedOff: {
+    const asked = root.known.filter(monitor => Settings.disabledMonitors.includes(monitor.name)).map(monitor => monitor.name)
+    return asked.length < root.known.length ? asked : asked.slice(1)
+  }
+
+  // True while a monitor is being turned off or on, and for a moment after:
+  // Hyprland then moves its workspaces to another monitor, which the bar
+  // must not take for the user switching workspace (it would close the
+  // open panel).
+  property bool changing: false
+
+  Timer {
+    id: changingTimer
+    interval: 2000
+    onTriggered: root.changing = false
+  }
+
+  // Turns the monitor `name` off or on. Turning off the last one on does
+  // nothing. A monitor turned off first has its place, mode and scale saved
+  // (those not already), so it comes back as it was.
+  function setEnabled(name, on) {
+    const others = Settings.disabledMonitors.filter(other => other !== name)
+    root.changing = true
+    changingTimer.restart()
+    if (!on && !root.known.some(monitor => monitor.name !== name && !others.includes(monitor.name))) return
+    const current = root.monitors.find(monitor => monitor.name === name)
+    if (!on && current) {
+      const saved = Settings.monitorPositions[name] ?? {}
+      const keep = {}
+      for (const field of ["x", "y", "mode", "scale"]) if (saved[field] === undefined) keep[field] = current[field]
+      if (Object.keys(keep).length > 0) root.place({ [name]: keep })
+    }
+    Settings.set("disabledMonitors", on ? others : others.concat([name]))
   }
 
   // Sets the focused monitor's mode. Its size on the desktop changes with it
@@ -307,7 +349,19 @@ Singleton {
   // the fields a call leaves out.
   function apply() {
     const commands = []
+    // The monitors to turn off, and those turned off to turn back on, with
+    // the place and mode saved for them or else Hyprland's own choice.
+    for (const name of root.turnedOff) {
+      if (root.monitors.some(monitor => monitor.name === name)) commands.push(`hl.monitor({ output = "${name}", disabled = true })`)
+    }
+    for (const monitor of root.known) {
+      if (!monitor.disabled || root.turnedOff.includes(monitor.name)) continue
+      const saved = Settings.monitorPositions[monitor.name] ?? {}
+      const position = saved.x !== undefined ? `${saved.x}x${saved.y}` : "auto"
+      commands.push(`hl.monitor({ output = "${monitor.name}", disabled = false, mode = "${saved.mode ?? "preferred"}", position = "${position}", scale = ${saved.scale ?? '"auto"'} })`)
+    }
     for (const monitor of root.monitors) {
+      if (root.turnedOff.includes(monitor.name)) continue
       const saved = Settings.monitorPositions[monitor.name] ?? {}
       const wanted = Object.assign({ x: monitor.x, y: monitor.y, mode: monitor.mode, scale: monitor.scale, mirror: monitor.mirror, bitdepth: monitor.bitdepth, hdr: monitor.hdr, sdr: monitor.sdr }, saved)
       if (wanted.x === monitor.x && wanted.y === monitor.y && wanted.mode === monitor.mode && wanted.scale === monitor.scale
@@ -364,7 +418,9 @@ Singleton {
       onStreamFinished: {
         try {
           // (Hyprland gives the monitor mirrored as its id.)
-          const listed = JSON.parse(this.text).filter(monitor => !monitor.disabled)
+          const everything = JSON.parse(this.text)
+          root.known = everything.map(monitor => ({ name: monitor.name, description: monitor.description, disabled: monitor.disabled }))
+          const listed = everything.filter(monitor => !monitor.disabled)
           const names = {}
           for (const monitor of listed) names[String(monitor.id)] = monitor.name
           root.monitors = listed.map(monitor => {
@@ -423,6 +479,12 @@ Singleton {
 
     function onMonitorPositionsChanged() {
       root.apply()
+    }
+
+    // A tick later, once turnedOff has followed the setting (it is read by
+    // apply() and may not be updated yet when this signal is handled).
+    function onDisabledMonitorsChanged() {
+      Qt.callLater(root.apply)
     }
   }
 

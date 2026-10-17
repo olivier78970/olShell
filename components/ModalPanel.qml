@@ -20,8 +20,7 @@ import qs.config
 // With a `placement` on the bar ("bar-left", "bar-center" or "bar-right";
 // `attached` is then true), the panel opens against the bar instead, like
 // the clock panel, at that end or in the middle of it (the left end is the
-// top one of a side bar): on `anchorItem`'s screen - or, without an anchorItem (when opened
-// by IPC), the focused one - with nothing dimmed. Neither of these windows
+// top one of a side bar): on the focused monitor's bar, following it - with nothing dimmed. Neither of these windows
 // shows then: the frame is drawn inside that screen's bar (see
 // config/BarSlots.qml), which also takes care of the click outside.
 PanelWindow {
@@ -73,7 +72,8 @@ PanelWindow {
   readonly property string barAlign: root.attached ? root.placement.slice(4) : "center"
   // Whether it opens against the edge opposite the bar.
   readonly property bool opposite: root.placement.startsWith("opposite-")
-  // The bar widget an attached panel opens from, if any.
+  // The bar widget that opened the panel, if any (it no longer decides the
+  // screen: see targetScreen).
   property Item anchorItem: null
 
   // The frame, e.g. to size content from it.
@@ -86,6 +86,10 @@ PanelWindow {
   // A key that neither Escape nor the focused item used; set
   // `event.accepted = true` to consume it.
   signal keyPressed(var event)
+
+  // Follows the focused monitor (or the anchor's screen) while open, so a
+  // panel that isn't attached to a bar moves with the mouse to another monitor.
+  screen: root.targetScreen
 
   WlrLayershell.layer: WlrLayer.Overlay
   // A distinct namespace from frameWindow's default one (shared with the
@@ -164,14 +168,10 @@ PanelWindow {
   // What the bar takes up across its edge of the screen, margins included.
   readonly property real barZone: Theme.barZone()
 
-  // An attached panel's screen: anchorItem's own (asked of the window it
-  // belongs to, the only thing a Wayland client can know about where an
-  // item is), or else the focused one.
-  readonly property var targetScreen: {
-    const win = root.anchorItem ? root.anchorItem.QsWindow.window : null
-    if (win) return win.screen
-    return Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0] ?? null
-  }
+  // The panel's screen: the focused monitor, so it follows the mouse to
+  // another monitor, attached to that screen's bar or not. (A bar button
+  // that opened it is on the focused monitor when clicked.)
+  readonly property var targetScreen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0] ?? null
 
   // The bar slot an open attached panel's frame is drawn in, if any.
   readonly property Item hostSlot: root.shown && root.attached ? BarSlots.slotFor(root.targetScreen) : null

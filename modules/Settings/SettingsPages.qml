@@ -424,6 +424,8 @@ Singleton {
     }
     // The launcher's engines have a row each, none named after the setting.
     if (categoryId === "launcher") keys.push("launcherEngines")
+    // The monitor editor's buttons turn monitors off and on.
+    if (categoryId === "monitors") keys.push("disabledMonitors")
     // Nor do the web apps.
     if (categoryId === "webApps") keys.push("webApps")
     // Nor do the chat AI's providers.

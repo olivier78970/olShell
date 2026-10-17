@@ -122,7 +122,9 @@ Scope {
         target: Hyprland
 
         function onRawEvent(event) {
-          if (root.anyOpen && event.name === "workspace") root.dismissAll()
+          // (Not while a monitor is turned off or on: its workspace moves to
+          // another monitor, which isn't the user switching.)
+          if (root.anyOpen && event.name === "workspace" && !MonitorLayout.changing) root.dismissAll()
         }
       }
 
