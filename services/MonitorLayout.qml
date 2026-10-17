@@ -96,8 +96,7 @@ Singleton {
   // (those not already), so it comes back as it was.
   function setEnabled(name, on) {
     const others = Settings.disabledMonitors.filter(other => other !== name)
-    root.changing = true
-    changingTimer.restart()
+    root.hold()
     if (!on && !root.known.some(monitor => monitor.name !== name && !others.includes(monitor.name))) return
     const current = root.monitors.find(monitor => monitor.name === name)
     if (!on && current) {
@@ -492,11 +491,46 @@ Singleton {
     target: Hyprland
 
     function onRawEvent(event) {
-      if (event.name === "configreloaded" || event.name === "monitoraddedv2" || event.name === "monitorremoved") {
-        root.refresh()
-        capsProcess.running = true
-        brightnessListProcess.running = true
+      if (event.name.startsWith("monitor")) root.hold()
+      if (event.name === "configreloaded" || event.name.startsWith("monitor")) root.reload()
+    }
+  }
+
+  // Marks a monitor change under way (see `changing`), for a monitor
+  // plugged or unplugged: its workspaces move to another monitor, which must
+  // not close the open panel either.
+  function hold() {
+    root.changing = true
+    changingTimer.restart()
+  }
+
+  // Reads everything about the monitors again.
+  function reload() {
+    root.refresh()
+    capsProcess.running = true
+    brightnessListProcess.running = true
+  }
+
+  // Hyprland sends no monitor event when a monitor turned off is unplugged
+  // or plugged back, so it would stay missing from the list. The kernel's
+  // hotplug events (a cable plugged or unplugged) are watched too, and the
+  // monitors are read once they settle and Hyprland has handled them.
+  Process {
+    running: true
+    command: ["udevadm", "monitor", "--udev", "--subsystem-match=drm"]
+
+    stdout: SplitParser {
+      onRead: line => {
+        if (!line.includes("(drm)")) return
+        root.hold()
+        hotplugTimer.restart()
       }
     }
+  }
+
+  Timer {
+    id: hotplugTimer
+    interval: 1500
+    onTriggered: root.reload()
   }
 }
