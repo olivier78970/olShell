@@ -33,6 +33,39 @@ Singleton {
   // not that they still match.
   readonly property string current: root.profiles[file.adapter.current] !== undefined ? file.adapter.current : root.factory
 
+  // `value` as JSON with the keys of every object sorted, so two equal values
+  // compare equal whatever order a saved profile kept their keys in.
+  function canonical(value) {
+    return JSON.stringify(value, (key, item) => {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) return item
+      const names = Object.keys(item).sort()
+      const byPosition = Object.keys(item).sort((a, b) => a - b)
+      // A list read back from the profiles file can come as an object keyed
+      // by position (an empty one is an empty object).
+      if (byPosition.every((name, index) => name === String(index))) return byPosition.map(name => item[name])
+      const sorted = {}
+      for (const name of names) sorted[name] = item[name]
+      return sorted
+    })
+  }
+
+  // Whether the settings, the language or the theme differ from those of the
+  // current profile (the built-in one included): it can be saved, or applied
+  // again to go back.
+  readonly property bool modified: {
+    const profile = root.profileOf(root.current)
+    if (profile === undefined) return false
+    for (const setting of Object.keys(Settings.defaults)) {
+      const value = Settings.get(setting)
+      if (value === undefined) continue
+      const saved = profile.values[setting]
+      // A setting a saved profile lacks (added since) is not a change.
+      if (saved === undefined && root.current !== root.factory) continue
+      if (root.canonical(value) !== root.canonical(saved !== undefined ? saved : Settings.defaults[setting])) return true
+    }
+    return I18n.setting !== (profile.language ?? "auto") || (profile.theme !== undefined && ThemeState.active.id !== profile.theme)
+  }
+
   // The profile `name`, as { values, language, theme }; the built-in one's
   // values are empty, which stands for every setting's built-in value.
   function profileOf(name) {

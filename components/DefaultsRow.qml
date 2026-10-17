@@ -2,8 +2,9 @@ import QtQuick
 import qs.config
 
 // A row of a settings page with a label and a few action buttons (a profile's,
-// an added item's). `buttons` is an array of { text, enabled }; a
-// disabled one is dimmed and can't be pressed. `pressed` fires with the index
+// an added item's). `buttons` is an array of { text, enabled, highlight }; a
+// disabled one is dimmed and can't be pressed, a highlighted one is drawn in
+// bold accent color. `highlightLabel` does the same for the name. `pressed` fires with the index
 // of the button clicked. When the row is selected, `focusIndex` marks the
 // button the keyboard is on.
 Item {
@@ -11,6 +12,7 @@ Item {
 
   property string label: ""
   property var buttons: []
+  property bool highlightLabel: false
   property bool selected: false
   property int focusIndex: -1
 
@@ -37,6 +39,8 @@ Item {
     anchors.rightMargin: 12
     anchors.verticalCenter: parent.verticalCenter
     text: root.label
+    color: root.highlightLabel ? Theme.accentColor : Theme.textColor
+    font.weight: root.highlightLabel ? Font.Bold : Theme.fontWeight
     elide: Text.ElideRight
   }
 
@@ -60,9 +64,10 @@ Item {
         width: label.implicitWidth + 24
         height: 30
         radius: Theme.radiusFor(height)
-        color: mouse.containsMouse && button.modelData.enabled ? Theme.borderColor : "transparent"
-        border.color: button.focused ? Theme.accentColor : Theme.outlineColor
-        border.width: button.focused ? 2 : 1
+        color: mouse.containsMouse && button.modelData.enabled ? Theme.borderColor : (button.lit ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.14) : "transparent")
+        readonly property bool lit: button.modelData.highlight === true
+        border.color: button.focused || button.lit ? Theme.accentColor : Theme.outlineColor
+        border.width: button.focused || button.lit ? 2 : 1
         opacity: button.modelData.enabled ? 1 : 0.35
 
         ThemedText {
@@ -70,7 +75,8 @@ Item {
           anchors.centerIn: parent
           text: button.modelData.text
           sizeScale: 0.85
-          color: mouse.containsMouse && button.modelData.enabled ? Theme.accentColor : Theme.textColor
+          font.weight: button.lit ? Font.Bold : Theme.fontWeight
+          color: (mouse.containsMouse && button.modelData.enabled) || button.lit ? Theme.accentColor : Theme.textColor
         }
 
         MouseArea {
