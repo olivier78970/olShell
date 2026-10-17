@@ -49,4 +49,5 @@ The per-file tree is `docs/structure.md`.
 - **Outside the project:** ask before editing the user's dotfiles (`~/.config/hypr` and the like); suggest the change instead.
 - **Hyprland:** dynamic rules set via `hyprctl keyword` are wiped when Hyprland reloads its config (matugen triggers a reload shortly after login). Reapply them on `Hyprland.rawEvent` `configreloaded`. Layer-rule namespace matches are regexes, so anchor them with `^...$`.
 - **Comments:** comments explain what an item is for, in full sentences, above properties and functions. Match that density.
+- **Branches:** a small change is made directly on the current branch; a medium or big change gets a new branch.
 - **Commit messages:** a single imperative sentence describing the user-visible change, with no type prefix (e.g. "Add tabs to the launcher: all, applications, files and the web"). Features are built on a branch and merged into master with `Merge <branch>: <what it does>`.

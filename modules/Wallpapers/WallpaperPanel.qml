@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import qs.components
 import qs.config
@@ -16,11 +17,16 @@ import qs.services
 //   quickshell -p . ipc call wallpapers applyPod
 //   quickshell -p . ipc call wallpapers applyRandom
 //   quickshell -p . ipc call wallpapers applyLast
+// A wallpaper is applied to the focused monitor only, and remembered for it.
 CarouselPanel {
   id: root
 
   readonly property string podPath: Paths.wallpaperOfTheDay
   property var wallpapers: []
+  // The monitor wallpapers are applied to: the focused one. Its wallpaper is
+  // the one in use, for the carousel and the random pick.
+  readonly property string monitorName: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : ""
+  readonly property string current: ThemeState.wallpaperOf(root.monitorName)
 
   title: I18n.tr("wallpaper.title")
   emptyText: I18n.tr("wallpaper.none")
@@ -66,18 +72,28 @@ CarouselPanel {
   // only one), or -1 when the list is empty.
   function randomIndex() {
     const indexes = root.wallpapers.map((path, index) => index)
-    const others = indexes.filter(index => root.wallpapers[index] !== ThemeState.wallpaper)
+    const others = indexes.filter(index => root.wallpapers[index] !== root.current)
     const pool = others.length > 0 ? others : indexes
     return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : -1
   }
 
-  // Applies the last wallpaper again: the one remembered in ThemeState. The
-  // colors are regenerated too: the file may have changed since (a new picture
-  // of the day is saved over the same pod.jpg). `onlyIfChanged` regenerates
-  // them only if it did, or the theme changed (see services/Matugen.qml).
+  // Applies the focused monitor's wallpaper again: the one remembered in
+  // ThemeState. The colors are regenerated too: the file may have changed
+  // since (a new picture of the day is saved over the same pod.jpg).
+  // `onlyIfChanged` regenerates them only if it did, or the theme changed (see
+  // services/Matugen.qml).
   function applyLast(onlyIfChanged) {
-    if (ThemeState.wallpaper.length > 0)
-      root.applyPath(ThemeState.wallpaper, onlyIfChanged)
+    if (root.current.length > 0)
+      root.applyPath(root.current, onlyIfChanged)
+  }
+
+  // Applies the remembered wallpapers: the last one applied to every monitor
+  // (also those that have none of their own), then each monitor's own on top.
+  function restore() {
+    if (ThemeState.wallpaper.length === 0) return
+    root.applyPath(ThemeState.wallpaper, true, "")
+    for (const name of Object.keys(ThemeState.wallpapers))
+      if (ThemeState.wallpapers[name] !== ThemeState.wallpaper) root.show(ThemeState.wallpapers[name], name)
   }
 
   // awww's daemon draws nothing until a wallpaper is sent to it, so the last
@@ -87,7 +103,7 @@ CarouselPanel {
   Timer {
     running: true
     interval: 1000
-    onTriggered: root.applyLast(true)
+    onTriggered: root.restore()
   }
 
   // A new picture of the day may have been downloaded at login since, over the
@@ -96,8 +112,8 @@ CarouselPanel {
     running: true
     interval: 5000
     onTriggered: {
-      if (ThemeState.wallpaper === root.podPath)
-        root.applyLast(true)
+      if (Object.values(ThemeState.wallpapers).concat(ThemeState.wallpaper).includes(root.podPath))
+        root.restore()
     }
   }
 
@@ -118,15 +134,35 @@ CarouselPanel {
     root.applyPath(root.wallpapers[index])
   }
 
-  function applyPath(path, onlyIfChanged) {
+  // Shows `path` on the monitor `monitor` ("" for all of them), without
+  // touching the colors. Calls queue up: awww is run one at a time.
+  function show(path, monitor) {
     // The script starts awww's daemon when it isn't running, detached from us.
     const transition = ["--transition-type", Settings.wallpaperTransition, "--transition-duration", String(Settings.wallpaperDuration)]
-    applyProcess.command = ["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, transition, [path])
+    const outputs = monitor.length > 0 ? ["--outputs", monitor] : []
+    root.applyQueue = root.applyQueue.concat([["python3", Paths.applyWallpaperScript].concat(Apps.wallpaperOptions, transition, outputs, [path])])
+    if (!applyProcess.running) root.runNext()
+  }
+
+  // The commands waiting for awww (see show()).
+  property var applyQueue: []
+
+  function runNext() {
+    if (root.applyQueue.length === 0) return
+    applyProcess.command = root.applyQueue[0]
+    root.applyQueue = root.applyQueue.slice(1)
     applyProcess.running = true
+  }
+
+  // Applies `path` to `monitor` ("" for all of them; the focused one when
+  // left out) and remembers it.
+  function applyPath(path, onlyIfChanged, monitor) {
+    const target = monitor === undefined ? root.monitorName : monitor
+    root.show(path, target)
     // Regenerates GeneratedColors.json, which Theme.qml picks up via
     // FileView, and the other apps' colors. Matugen defers its own start so
     // it doesn't spawn in the same tick as the wallpaper command above.
-    Matugen.applyWallpaper(path, onlyIfChanged === true)
+    Matugen.applyWallpaper(path, onlyIfChanged === true, target)
   }
 
   Process {
@@ -138,7 +174,7 @@ CarouselPanel {
         root.wallpapers = text.split("\n").filter(line => line.length > 0).sort()
         // Open on the wallpaper in use, once the carousel has taken the new
         // list, which resets its position.
-        Qt.callLater(root.showIndex, Math.max(0, root.wallpapers.indexOf(ThemeState.wallpaper)))
+        Qt.callLater(root.showIndex, Math.max(0, root.wallpapers.indexOf(root.current)))
         if (root.randomPending) {
           root.randomPending = false
           root.applyRandom()
@@ -149,6 +185,7 @@ CarouselPanel {
 
   Process {
     id: applyProcess
+    onRunningChanged: if (!running) root.runNext()
   }
 
   delegate: Component {
