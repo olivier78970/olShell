@@ -11,7 +11,8 @@ import qs.services
 // widgets then stacked in a column.
 Scope {
   Variants {
-    model: Quickshell.screens
+    // The screens that have a bar: all, or only the main one (Settings.barAllMonitors).
+    model: Quickshell.screens.filter(screen => Settings.barShownOn(screen.name))
 
     PanelWindow {
       id: root

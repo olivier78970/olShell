@@ -480,6 +480,7 @@ ModalPanel {
     if (row.key === "chatAiDefaultProvider") return ChatAi.defaultProviderId
     // Unset, the main monitor is the first one.
     if (row.key === "mainMonitor") return Matugen.mainMonitor
+    if (row.key === "barMonitor") return Settings.activeBarMonitor
     if (row.key === "monitorMode") return MonitorLayout.focused?.mode ?? ""
     if (row.key === "monitorScale") return MonitorLayout.focused?.scale ?? 1
     if (row.key === "monitorMirror") return MonitorLayout.focusedMirror
@@ -629,6 +630,7 @@ ModalPanel {
     // A provider's model is picked from its list, once there is one.
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId) === ""
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
+    if (row.key === "barMonitor") return !Settings.barAllMonitors
     if (row.key === "monitorBrightness") return MonitorLayout.focused?.hdr || !MonitorLayout.brightnessIgnored[MonitorLayout.focused?.name]
     if (row.key.startsWith("monitor") && row.kind !== "action") return MonitorLayout.focused !== null
     // A font size only matters while its sync is on.
@@ -678,6 +680,9 @@ ModalPanel {
     return names.map(name => ({ value: name, text: name }))
   }
 
+  // The choices of the monitor that keeps the bar: each connected monitor.
+  readonly property var barMonitorOptions: Hyprland.monitors.values.map(monitor => ({ value: monitor.name, text: monitor.name }))
+
   // The range of a slider: its own (a monitor's brightness), else the setting's.
   function rangeOf(row) {
     return row.range ?? Settings.limits[row.key]
@@ -722,6 +727,7 @@ ModalPanel {
     if (row.key === "windowRounding" && Settings.windowRoundingSame) return I18n.tr("settings.windowRoundingSame.disabled")
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
     if (row.key === "appFontSize" && !Settings.appFontSync) return I18n.tr("settings.fontSize.disabled")
+    if (row.key === "barMonitor" && Settings.barAllMonitors) return I18n.tr("settings.barMonitor.disabled")
     if (row.key === "barAutoHideDelay" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "animationDuration" && !Settings.animations) return I18n.tr("settings.animationDuration.disabled")
     if (["hyprlandAnimationDuration", "hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key) && !Settings.hyprlandAnimations) return I18n.tr("settings.hyprlandAnimations.disabled")
@@ -754,6 +760,7 @@ ModalPanel {
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
     if (row.key === "mainMonitor") return root.mainMonitorOptions
+    if (row.key === "barMonitor") return root.barMonitorOptions
     if (row.key === "monitorMode") return MonitorLayout.focusedModeOptions
     if (row.key === "monitorScale") return MonitorLayout.focusedScaleOptions
     if (row.key === "monitorMirror") return MonitorLayout.focusedMirrorOptions

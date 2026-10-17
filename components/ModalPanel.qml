@@ -66,8 +66,9 @@ PanelWindow {
   // Settings.panelPlacements.
   property string placement: "center"
   // Whether it opens against the bar rather than centered on the screen
-  // (see above).
-  readonly property bool attached: root.placement.startsWith("bar-")
+  // (see above). A screen with no bar (Settings.barAllMonitors) has nothing
+  // to attach to, so the panel is centered there.
+  readonly property bool attached: root.placement.startsWith("bar-") && Settings.barShownOn(root.targetScreen?.name ?? "")
   // Where along the bar an attached panel goes: "left", "center" or "right".
   readonly property string barAlign: root.attached ? root.placement.slice(4) : "center"
   // Whether it opens against the edge opposite the bar.

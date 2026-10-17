@@ -154,6 +154,20 @@ Singleton {
   readonly property real opacity: root.valid("opacity", file.adapter.opacity)
   // Space between the widgets of a pill.
   readonly property int spacing: root.valid("spacing", file.adapter.spacing)
+  // Whether every monitor has a bar; off, only barMonitor does (the other
+  // bars are not built, so their memory is freed).
+  readonly property bool barAllMonitors: root.valid("barAllMonitors", file.adapter.barAllMonitors)
+  // The name of the monitor that keeps its bar while barAllMonitors is off, or
+  // "" for the main monitor.
+  readonly property string barMonitor: root.valid("barMonitor", file.adapter.barMonitor)
+  // The monitor that has the bar without barAllMonitors: barMonitor while it
+  // is connected, else the main monitor, so there is always one bar.
+  readonly property string activeBarMonitor: root.barMonitor !== "" && Hyprland.monitors.values.some(monitor => monitor.name === root.barMonitor)
+    ? root.barMonitor : root.activeMainMonitor
+  // Whether the monitor `name` has a bar.
+  function barShownOn(name) {
+    return root.barAllMonitors || name === root.activeBarMonitor
+  }
   // Whether the bar tucks itself away until the pointer reaches the edge of
   // the screen it's anchored to.
   readonly property bool barAutoHide: root.valid("barAutoHide", file.adapter.barAutoHide)
@@ -488,6 +502,10 @@ Singleton {
   // The name of the main monitor, whose wallpaper the Automatic theme's
   // colors follow ("" for the first monitor Hyprland lists).
   readonly property string mainMonitor: root.valid("mainMonitor", file.adapter.mainMonitor)
+  // The main monitor in effect: mainMonitor, or the first one Hyprland lists
+  // while none is chosen.
+  readonly property string activeMainMonitor: root.mainMonitor !== "" ? root.mainMonitor
+    : (Hyprland.monitors.values.length > 0 ? Hyprland.monitors.values[0].name : "")
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement", "chatAiPlacement"]
@@ -929,7 +947,7 @@ Singleton {
     if (key === "webAppCommand") return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 500) : root.defaults[key]
     // A widget's click action: a command, or "" for nothing.
     if (key.endsWith("Action") && typeof root.defaults[key] === "string") return typeof value === "string" ? value.trim().slice(0, 500) : root.defaults[key]
-    if (key === "mainMonitor") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
+    if (key === "mainMonitor" || key === "barMonitor") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
@@ -1238,6 +1256,8 @@ Singleton {
       property int radius: Defaults.values.radius
       property real opacity: Defaults.values.opacity
       property int spacing: Defaults.values.spacing
+      property bool barAllMonitors: Defaults.values.barAllMonitors
+      property string barMonitor: Defaults.values.barMonitor
       property bool barAutoHide: Defaults.values.barAutoHide
       property bool animations: Defaults.values.animations
       property int animationDuration: Defaults.values.animationDuration

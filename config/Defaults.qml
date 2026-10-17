@@ -10,6 +10,8 @@ Singleton {
     radius: 10,
     opacity: 0.9,
     spacing: 15,
+    barAllMonitors: true,
+    barMonitor: "",
     barAutoHide: false,
     animations: true,
     animationDuration: 160,
