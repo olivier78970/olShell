@@ -23,6 +23,9 @@ CLAUDE.md gives the general flow (Defaults → Settings → Theme, translations,
   - A text setting also needs allowing in `choose()`'s `allowed` expression.
 - **`docs/settings.md`**: the Settings table row. The **From a script** section lists no keys: `settings map` gives every setting's page, kind, range and choices, so the key shows there on its own once it has a row. Also update the feature's own section if it describes the behaviour the setting changes.
   - `docs/settings.md` is 36 KB, and many paragraphs are one line of several thousand characters. Don't read it whole, and don't let a search print whole lines. Find what you need with `grep -n '<pattern>' docs/*.md | cut -c1-200`, then `Read` only those lines (`offset`/`limit`) before editing them.
+- **A row that can be greyed out** (it only matters while another setting is on): add the condition to `rowEnabled(row)` in `modules/Settings/SettingsPanel.qml`, keyed by the row's key (`<key>Row` for a check box), and the tooltip to `disabledReasonOf(row)`, with a `settings.<key>.disabled` translation (copy `barAutoHideDelay`).
+- **A choice among the connected monitors**: copy `mainMonitor` / `barMonitor`. A text setting (`valid()` branch trimming the string, `choose()`'s `allowed`), a `dropdown` row, and in `SettingsPanel.qml` a value in `valueOf` (what is in effect, which may differ from the saved text) and the options from `Hyprland.monitors.values`. Treat a saved monitor that isn't connected as unset, so the feature still works. `config/` can't reach `services/` singletons (see CLAUDE.md).
+- **A setting without a key of its own** (derived from, or written into, another setting): don't invent a virtual key, since `check-setting.sh`, profiles and Reset all expect a real one in `Defaults.values`. Make the real key the setting and compute the rest in `Settings.qml` (a function or readonly property).
 - **Settings applied once** (a Hyprland keyword, a process, a file): apply at startup and on change, not only through a binding.
 
 ## Profiles and page resets
@@ -46,7 +49,7 @@ With the checkout shell running (the `test-deploy` skill starts it and backs up 
 ```sh
 quickshell -p . ipc call settings set <key> <value>     # numbers, 1/0
 quickshell -p . ipc call settings choose <key> <value>  # choices, text
-quickshell -p . ipc call settings get <key>             # or getChoice
+quickshell -p . ipc call settings get <key>             # a number; getChoice for a choice or text
 quickshell -p . ipc call settings resetPage <category>   # to the current profile (`profiles list` names it)
 ```
 

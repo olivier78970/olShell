@@ -8,6 +8,8 @@
 #                                   the deployed shell only with the flag)
 #   shell.sh restart                restart the checkout shell
 #   shell.sh log [lines]            the checkout shell's log (default 60)
+#   shell.sh errors                 only the errors logged since the last reload
+#   shell.sh layers                 each monitor's layer surfaces (wallpaper, bar...)
 #   shell.sh deploy                 copy master into the deployed copy
 #   shell.sh deployed               stop the checkout, run the deployed copy
 #   shell.sh ipc <target> <fn> [args]   an IPC call to the shell that is running
@@ -85,6 +87,18 @@ case ${1:-status} in
     start "$repo"
     ;;
   log) qs log -p "$repo" -t "${2:-60}" ;;
+  errors)
+    # The log from the last reload on (a reload restarts the QML), without
+    # the Wayland text-input warnings that fill it. Nothing printed: clean.
+    qs log -p "$repo" -t 2000 | awk '/Reloading configuration/{n=NR} {l[NR]=$0} END{for(i=n;i<=NR;i++)print l[i]}' \
+      | grep -v textinput | grep -E 'ReferenceError|TypeError|Unable to assign|Cannot|ERROR' || true
+    ;;
+  layers)
+    # How many layer surfaces each monitor has and their names, the
+    # click-catching backdrops left out: the wallpaper daemon counts one, the
+    # shell's bar another.
+    hyprctl layers | awk '/^Monitor/{m=$2} /namespace:/{ if ($0 !~ /backdrop/) { n[m]++; match($0, /namespace: [^,]*/); ns[m]=ns[m] " " substr($0, RSTART + 11, RLENGTH - 11) } } END{for (m in n) print m " " n[m] " :" ns[m]}'
+    ;;
   ipc)
     # Whichever shell runs, whatever QS_CONFIG_PATH says (and without a
     # shell-variable word-splitting trap, which `q="quickshell ipc call"` hits in zsh).
@@ -122,5 +136,5 @@ case ${1:-status} in
     sleep 1
     running "$repo" && { echo "the checkout shell is still running: stopping it"; stop "$repo" || exit 1; }
     ;;
-  *) sed -n '2,14p' "$0"; exit 1 ;;
+  *) sed -n '2,16p' "$0"; exit 1 ;;
 esac

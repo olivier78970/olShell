@@ -14,9 +14,13 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`add-settings-tab`**: a new settings tab, or regrouping rows into tabs.
 - **`add-service`**: a new service in `services/`, with or without IPC.
 - **`test-deploy`**: running the checkout, reading its log, deploying.
+- **`remove-feature`**: removing a setting, widget, panel or service (or undoing a change spread over several files), and proving nothing is left.
+- **`multi-monitor`**: anything that depends on which monitor something is on (focused, main, a window's screen, per-monitor settings).
+- **`debug-qml`**: a runtime error, a warning or a feature that misbehaves, starting from `shell.sh errors`.
 - **`ship`**: commit, merge, push and deploy, when asked (`.claude/skills/ship/scripts/ship.sh` does the sequence).
 
 There is no build step, linter or test suite. The checks are scripts, run from the repo root:
+- `.claude/scripts/check-all.sh`: runs all the checks below that apply to the change in one go (and the shell's errors); use it before saying a change is done.
 - `.claude/scripts/structure.py --check`: `docs/structure.md` lists every file (run without `--check` to regenerate it).
 - `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists. `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" [--after <key>]` adds a text to all three dictionaries and runs it.
 - The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`) and `check-widget.sh`.
@@ -25,7 +29,7 @@ There is no build step, linter or test suite. The checks are scripts, run from t
 
 The shell the user runs day to day is a **deployed copy** of master in `~/.config/olShell`, not this checkout, and only one shell may run at a time. Before testing, ask the user before stopping the deployed shell. Deploy only when asked. `.claude/skills/test-deploy/scripts/shell.sh` does the switching, the log and the deploy, and backs up the settings first.
 
-Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards. Test through IPC (`.claude/skills/test-deploy/scripts/shell.sh ipc <target> <function> [args]`, which reaches the running shell whatever `QS_CONFIG_PATH` says) and the log, not screenshots: the user looks at the shell themselves.
+Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards. Test through IPC (`.claude/skills/test-deploy/scripts/shell.sh ipc <target> <function> [args]`, which reaches the running shell whatever `QS_CONFIG_PATH` says) and the log, not screenshots: the user looks at the shell themselves. `shell.sh errors` prints only the errors logged since the last reload (a clean test prints nothing), and `shell.sh layers` counts each monitor's layer surfaces, to check which monitors got a bar.
 
 ## Architecture
 
@@ -33,7 +37,7 @@ The per-file tree is `docs/structure.md`.
 
 - **Imports:** Quickshell turns every directory into a module, so files are imported as `qs.<path>` (`import qs.config`, `qs.services`, `qs.components`, `qs.modules.Bar.Widgets`), never by relative path.
 - **`shell.qml`** instantiates every module. Singletons are created lazily, so a service that has to exist from startup (to own an IPC target or a D-Bus name, or to apply a saved state) gets a dummy `readonly property var x: Service.prop` reference in `shell.qml`.
-- **`config/`** holds singletons for state and configuration:
+- **`config/`** holds singletons for state and configuration. They can't use the `services/` singletons (`config/` doesn't import `qs.services`: a `Matugen.x` there is a `ReferenceError` at runtime, and nothing fails at load). Put the shared logic in `config/` and let the service read it (e.g. `Settings.activeMainMonitor`, which `Matugen.mainMonitor` reads).
   - Each full-screen panel has a `*State.qml` singleton with `visible` and `toggle()`. Panels grab the keyboard, so every one opens through `Panels.open()` (`config/Panels.qml`), which closes the other panels and waits for their closing animation first.
   - Settings flow `Defaults.qml` (factory values) → `Settings.qml` (reads the git-ignored `Settings.json`, clamps to `limits` / `choices`) → `Theme.qml` (what widgets bind to for the look). The settings panel's categories and rows are in `modules/Settings/SettingsPages.qml`.
   - Colors: `GeneratedColors.qml` gives the active palette, either a fixed preset from `ThemePresets.qml` or matugen's `GeneratedColors.json`. `Theme` derives the rest from it.
@@ -49,5 +53,5 @@ The per-file tree is `docs/structure.md`.
 - **Outside the project:** ask before editing the user's dotfiles (`~/.config/hypr` and the like); suggest the change instead.
 - **Hyprland:** dynamic rules set via `hyprctl keyword` are wiped when Hyprland reloads its config (matugen triggers a reload shortly after login). Reapply them on `Hyprland.rawEvent` `configreloaded`. Layer-rule namespace matches are regexes, so anchor them with `^...$`.
 - **Comments:** comments explain what an item is for, in full sentences, above properties and functions. Match that density.
-- **Branches:** a small change is made directly on the current branch; a medium or big change gets a new branch.
+- **Branches:** classify the change before the first edit, and say which it is in one line. Small: one or two files, no new setting, panel, widget or service, no behavior question left open (a fix, a wording, a default). It is made directly on the current branch. Medium or big: anything that adds a setting, widget, panel or service (the `add-*` skills), touches three files or more, or changes how an existing feature behaves. It gets a new branch (`git switch -c <name>`) before any edit. When unsure, treat it as medium.
 - **Commit messages:** a single imperative sentence describing the user-visible change, with no type prefix (e.g. "Add tabs to the launcher: all, applications, files and the web"). Features are built on a branch and merged into master with `Merge <branch>: <what it does>`.
