@@ -28,7 +28,7 @@ CarouselPanel {
   readonly property string monitorName: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : Matugen.mainMonitor
   readonly property string current: ThemeState.wallpaperOf(root.monitorName)
 
-  title: I18n.tr("wallpaper.title")
+  title: I18n.tr("wallpaper.titleMonitor", root.monitorName)
   emptyText: I18n.tr("wallpaper.none")
   model: root.wallpapers
   style: Settings.wallpaperCarousel

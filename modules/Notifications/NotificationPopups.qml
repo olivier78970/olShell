@@ -5,8 +5,8 @@ import qs.config
 import qs.services
 
 // The pop-ups: the newest notifications, stacked in a corner or at the middle
-// of an edge (or halfway down the left or right one) of the focused screen (Settings.notificationPosition;
-// under the bar at the top). The newest is the one nearest the edge. The window
+// of an edge (or halfway down the left or right one) of every screen, one window
+// per screen (Settings.notificationPosition; under the bar at the top). The newest is the one nearest the edge. The window
 // is only as big as the pop-ups, so clicks elsewhere reach the windows below.
 //
 // At the top under a top bar (not auto-hiding), they're drawn inside the bar
@@ -20,12 +20,15 @@ import qs.services
 PanelWindow {
   id: root
 
+  // The screen this window is on (one window is made for each, see shell.qml).
+  required property var modelData
+
   readonly property bool showing: Notifications.popups.length > 0 && !NotificationCenterState.visible
   // The bar's popup layer they're drawn in, if they're against the bar.
   readonly property Item host: Notifications.atTop && Theme.barPosition === "top" && !Theme.barAutoHide
-    ? BarSlots.popupLayerFor(Notifications.screen) : null
+    ? BarSlots.popupLayerFor(root.modelData) : null
 
-  screen: Notifications.screen
+  screen: root.modelData
   // With neither side anchored the window is centered.
   anchors {
     top: Notifications.atTop

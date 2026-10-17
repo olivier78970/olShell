@@ -333,6 +333,7 @@ Singleton {
 
     "carousel.apply": "Enter: apply",
     "wallpaper.title": "Wallpapers",
+    "wallpaper.titleMonitor": "Wallpapers for monitor {0}",
     "wallpaper.none": "No wallpaper found",
     "wallpaper.pod": "Picture of the day",
     "wallpaper.random": "Random",
@@ -1094,6 +1095,7 @@ Singleton {
 
     "carousel.apply": "Entrée : appliquer",
     "wallpaper.title": "Fonds d'écran",
+    "wallpaper.titleMonitor": "Fonds d'écran pour l'écran {0}",
     "wallpaper.none": "Aucun fond d'écran trouvé",
     "wallpaper.pod": "Image du jour",
     "wallpaper.random": "Aléatoire",
@@ -1855,6 +1857,7 @@ Singleton {
 
     "carousel.apply": "Intro: aplicar",
     "wallpaper.title": "Fondos de pantalla",
+    "wallpaper.titleMonitor": "Fondos de pantalla para el monitor {0}",
     "wallpaper.none": "No se encontró ningún fondo",
     "wallpaper.pod": "Imagen del día",
     "wallpaper.random": "Aleatorio",
