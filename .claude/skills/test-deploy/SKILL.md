@@ -16,6 +16,8 @@ $S dev                     # run the checkout (refuses while the deployed shell 
 $S dev --stop-deployed     # only once the user has agreed to stop the deployed shell
 $S restart                 # stop the checkout shell and run it again (a fresh start, not a live reload)
 $S log [lines]             # the checkout shell's log
+$S errors                  # only the errors since the last reload (nothing printed: clean)
+$S layers                  # each monitor's layer surfaces: which monitors got a bar
 $S deploy                  # copy master into ~/.config/olShell
 $S deployed                # stop the checkout, run the deployed copy again
 $S ipc <target> <fn> [args]   # an IPC call to whichever shell runs (the checkout's, else the deployed one's)
@@ -29,7 +31,7 @@ $S backup                  # copy both shells' config/*.json to ~/.cache/olshell
 1. `$S status`. If the checkout is already running, use it.
 2. If the deployed shell is running, **ask the user** before stopping it, then run `$S dev --stop-deployed`.
 3. Quickshell reloads live when a `.qml` file changes. An in-place `sed -i` may not trigger the reload, so `touch shell.qml` afterwards, and check the log shows a reload.
-4. Drive the change with IPC (`$S ipc <target> <function> …`: it picks the running shell and unsets `QS_CONFIG_PATH`, which the harness's own shell has set to the deployed copy, so a bare `quickshell -p . ipc call` can reach the wrong shell or none; and don't keep `quickshell -p . ipc call` in a zsh variable, which doesn't word-split), then read `$S log` for `ReferenceError`, `TypeError`, `Unable to assign`, `Cannot` and warnings from the files you changed.
+4. Drive the change with IPC (`$S ipc <target> <function> …`: it picks the running shell and unsets `QS_CONFIG_PATH`, which the harness's own shell has set to the deployed copy, so a bare `quickshell -p . ipc call` can reach the wrong shell or none; and don't keep `quickshell -p . ipc call` in a zsh variable, which doesn't word-split), then run `$S errors` (it prints the `ReferenceError`, `TypeError`, `Unable to assign` and `Cannot` lines since the last reload; nothing means clean) and read `$S log` for warnings from the files you changed. `$S layers` shows which monitors got a bar, after a change to where the bar is built. `settings get` prints a number: for a choice or text setting, use `getChoice`.
 5. Don't take screenshots or send synthetic input. The user looks at the shell themselves, so tell them what to check and where.
 6. When done, and unless the user wants to keep testing, `$S deployed` gives them their everyday shell back.
 
