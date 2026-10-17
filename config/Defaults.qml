@@ -36,6 +36,7 @@ Singleton {
     workspacesPerMonitor: false,
     workspaceCountByMonitor: ({}),
     monitorPositions: ({}),
+    disabledMonitors: [],
     barStyle: "full",
     borderWidth: 0,
     borderOpaque: false,
