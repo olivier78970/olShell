@@ -107,7 +107,7 @@ Scope {
     // windowActiveOpacity, windowInactiveOpacity, osdMargin, volumeOsdMargin,
     // lockKeysOsdMargin); out-of-range values are
     // clamped.
-    // The yes/no settings (barAutoHide, animations, hyprlandAnimations,
+    // The yes/no settings (barAllMonitors, barAutoHide, animations, hyprlandAnimations,
     // hyprlandAnimationSame,
     // borderOpaque,
     // workspaceCountFromHyprland, workspacesPerMonitor (with it on, workspaceCount sets the focused monitor's count), clockSeconds, cpuActionTerminal,
@@ -335,7 +335,9 @@ Scope {
     // (chatAiDefaultProvider: a provider's id, e.g. "anthropic", or "" for the
     // first one that can be asked), for the weather's place (weatherLocation: a
     // place's name, or "" to find it from the internet address), for the main
-    // monitor (mainMonitor: a monitor's name, or "" for the first one), and for the
+    // monitor (mainMonitor: a monitor's name, or "" for the first one), for the
+    // monitor keeping the bar without barAllMonitors (barMonitor: a monitor's
+    // name, or "" for the main monitor), and for the
     // command opening a web app (webAppCommand: a program and its arguments,
     // %s for the address; "" for the default), and for the command a click on
     // a bar widget runs (cpuAction, ramAction, diskAction, networkAction,
@@ -344,7 +346,7 @@ Scope {
     // by commas, ~ for the home folder; bingWallpaperFolder: one path).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" || key === "monoFontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "mainMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
+        : key === "weatherLocation" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)

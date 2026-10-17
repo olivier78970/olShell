@@ -121,6 +121,10 @@ Singleton {
     { key: "screenshotDir", category: "general", kind: "path", label: I18n.tr("settings.screenshotDir") },
     { key: "opacity", category: "appearance", kind: "slider", label: I18n.tr("settings.opacity"), step: 0.05, format: v => Math.round(v * 100) + " %" },
     { key: "spacing", category: "appearance", kind: "slider", label: I18n.tr("settings.spacing"), step: 1, format: v => v + " px" },
+    { key: "barAllMonitorsRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAllMonitors"), toggles: [
+      { key: "barAllMonitors", text: "" }
+    ] },
+    { key: "barMonitor", category: "bar", kind: "dropdown", label: I18n.tr("settings.barMonitor") },
     { key: "barAutoHideRow", category: "bar", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.barAutoHide"), toggles: [
       { key: "barAutoHide", text: "" }
     ] },
