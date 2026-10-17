@@ -25,8 +25,14 @@ Singleton {
   property string requested: ""
 
   // Asks to confirm `action`, once the power panel (closed just before) has
-  // animated away, so the two never show together.
+  // animated away, so the two never show together. With
+  // Settings.powerConfirm off, the action runs at once instead.
   function request(action) {
+    if (!Settings.powerConfirm) {
+      root.pendingAction = action
+      root.confirm()
+      return
+    }
     root.requested = action
     requestTimer.restart()
   }

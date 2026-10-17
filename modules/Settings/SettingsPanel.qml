@@ -64,14 +64,14 @@ ModalPanel {
   // it and adds it), which says how a search went while there's news.
   readonly property var worldClockRows: Settings.worldClocks.map((clock, index) => ({
     key: "worldClock:" + index,
-    category: "clockPanel",
+    category: "panelClock",
     kind: "action",
     clockIndex: index,
     label: clock.name + "  (" + clock.zone + ")",
     title: index === 0 ? I18n.tr("settings.worldClocks") : ""
   })).concat([{
     key: "worldClockAdd",
-    category: "clockPanel",
+    category: "panelClock",
     kind: "path",
     label: I18n.tr("settings.worldClocks.add"),
     title: Settings.worldClocks.length === 0 ? I18n.tr("settings.worldClocks") : "",
@@ -473,6 +473,7 @@ ModalPanel {
   function currentOf(row) {
     if (row.key === "themeAccent") return root.themeAccentCurrent
     if (row.key === "widgetPick") return SettingsPanelState.widgetPage
+    if (row.key === "panelPick") return SettingsPanelState.panelPage
     // Adding an app holds no value of its own.
     if (row.key === "appOpacityAdd") return ""
     if (row.key.startsWith("chatAiModel:")) return ChatAi.providerOf(row.providerId)?.model ?? ""
@@ -761,6 +762,7 @@ ModalPanel {
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "monoFontFamily") return root.monoFontOptions
     if (row.key === "widgetPick") return SettingsPages.widgetPages.map(page => ({ value: page.id, text: page.label }))
+    if (row.key === "panelPick") return SettingsPages.panelPages.map(page => ({ value: page.id, text: page.label }))
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelOptions(row.providerId)
     if (row.key === "chatAiDefaultProvider") return ChatAi.known.map(provider => ({ value: provider.id, text: provider.name }))
     if (row.key === "appOpacityAdd") return root.appOpacityOptions
@@ -840,13 +842,15 @@ ModalPanel {
   property int category: SettingsPanelState.category
   onCategoryChanged: SettingsPanelState.category = root.category
   // The rows of the current page; `selected` indexes into these.
-  // (The Widgets tab shows the picked widget's page under the dropdown picking it.)
+  // (The Widgets and Panels tabs show the picked page under the dropdown picking it.)
   // (A row with an `available` function is left out while it returns false.)
   readonly property var rows: root.allRows.filter(row => (row.category === root.page
-    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage)) && (row.available?.() ?? true))
+    || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage)
+    || (root.page === "panelOptions" && row.category === SettingsPanelState.panelPage)) && (row.available?.() ?? true))
   // The page whose settings the reset button acts on: the page
-  // shown, or the picked widget's on the Widgets tab.
-  readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage : root.page
+  // shown, or the picked widget's or panel's on the Widgets or Panels tab.
+  readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage
+    : root.page === "panelOptions" ? SettingsPanelState.panelPage : root.page
   property int selected: 0
   // The width the panel needs for the current category: its widest row, or
   // its tabs if they are wider, and what surrounds them (the category rail,
@@ -986,6 +990,7 @@ ModalPanel {
   // own, not a setting.
   function setValue(row, value) {
     if (row.key === "widgetPick") SettingsPanelState.widgetPage = value
+    else if (row.key === "panelPick") SettingsPanelState.panelPage = value
     else if (row.key === "monitorMode") MonitorLayout.setMode(value)
     else if (row.key === "monitorScale") MonitorLayout.setScale(value)
     else if (row.key === "monitorMirror") MonitorLayout.setMirror(value)

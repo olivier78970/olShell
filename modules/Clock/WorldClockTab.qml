@@ -229,9 +229,10 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          const category = SettingsPages.categories.findIndex(category => (category.tabs ?? []).some(tab => tab.id === "clockPanel"))
+          const category = SettingsPages.categories.findIndex(category => (category.tabs ?? []).some(tab => tab.id === "panelOptions"))
+          SettingsPanelState.panelPage = "panelClock"
           SettingsPanelState.category = category
-          SettingsPanelState.tab = SettingsPages.categories[category].tabs.findIndex(tab => tab.id === "clockPanel")
+          SettingsPanelState.tab = SettingsPages.categories[category].tabs.findIndex(tab => tab.id === "panelOptions")
           SettingsPanelState.toggle()
         }
       }
