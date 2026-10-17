@@ -120,9 +120,12 @@ Singleton {
     { key: "barMarginLeft", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginLeft"), step: 5, format: v => v + " px" },
     { key: "barMarginRight", category: "bar", kind: "slider", label: I18n.tr("settings.barMarginRight"), step: 5, format: v => v + " px" },
     { key: "widgetPick", category: "widgets", kind: "dropdown", label: I18n.tr("settings.widgetPick") },
-    { key: "workspaceCount", category: "widgetWorkspaces", kind: "slider", label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
+    { key: "workspaceCount", category: "widgetWorkspaces", kind: "slider", settings: ["workspaceCountByMonitor"], label: I18n.tr("settings.workspaceCount"), tooltip: I18n.tr("settings.workspaceCount.tooltip"), step: 1, format: v => String(v) },
     { key: "workspaceCountFromHyprlandRow", category: "widgetWorkspaces", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspaceCountFromHyprland"), toggles: [
       { key: "workspaceCountFromHyprland", text: "" }
+    ] },
+    { key: "workspacesPerMonitorRow", category: "widgetWorkspaces", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.workspacesPerMonitor"), toggles: [
+      { key: "workspacesPerMonitor", text: "" }
     ] },
     { key: "barStyle", category: "bar", kind: "buttons", label: I18n.tr("settings.barStyle") },
     { key: "borderWidth", category: "appearance", kind: "slider", label: I18n.tr("settings.borderWidth"), step: 1, format: v => v + " px" },
@@ -187,6 +190,7 @@ Singleton {
     { key: "monoFontFamily", category: "text", kind: "dropdown", label: I18n.tr("settings.monoFontFamily") },
     { key: "alacrittyFontSize", category: "text", kind: "slider", label: I18n.tr("settings.alacrittyFontSize"), step: 1, format: v => v + " pt" },
     { key: "barLayout", category: "layout", kind: "layoutEditor", label: "" },
+    { key: "mainMonitor", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.mainMonitor") },
     { key: "wallpaperTransition", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.wallpaperTransition") },
     { key: "wallpaperDuration", category: "wallpaper", kind: "slider", label: I18n.tr("settings.wallpaperDuration"), step: 0.5, format: v => v.toFixed(1) + " s" },
     { key: "wallpaperCarousel", category: "wallpaper", kind: "dropdown", label: I18n.tr("settings.carouselStyle") },

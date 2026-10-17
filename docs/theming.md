@@ -40,7 +40,7 @@ Colors come from `config/GeneratedColors.json`, which matugen writes from the cu
 A fixed theme has no image, only five colors, so matugen builds a full palette around its accent: the apps get colors in the theme's family, not its exact palette (Dracula's purple accent gives a purple-tinted dark background, not Dracula's own `#282a36`).
 The shell itself always uses a fixed theme's exact colors.
 Every run also rewrites `config/GeneratedColors.json`, which **Automatique** reads: while a fixed theme is selected it holds that theme's palette, so the "Automatique" card of the theme panel previews those colors, not the wallpaper's, and selecting **Automatique** regenerates it from the wallpaper (the shell shows the previous palette until matugen has finished, about a second).
-The last wallpaper is remembered in `config/ThemeState.json` for that; until a wallpaper has been applied once, that state is empty and selecting **Automatique** regenerates nothing.
+The Automatic theme's colors come from the wallpaper of the **main monitor** (the Wallpaper settings' *Monitor for the automatic theme*, or the first monitor Hyprland lists): a wallpaper applied to another monitor leaves them as they are. The wallpapers are remembered per monitor in `config/ThemeState.json` for that; until a wallpaper has been applied once, that state is empty and selecting **Automatique** regenerates nothing.
 
 The config is used straight from the checkout, with template paths relative to the file, so nothing has to be copied into `~/.config/matugen` and the checkout can live anywhere.
 Don't also declare these templates in your global `config.toml`, or a plain `matugen image …` would write them a second time.

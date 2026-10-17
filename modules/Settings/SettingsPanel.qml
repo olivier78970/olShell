@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import qs.components
 import qs.config
@@ -476,6 +477,8 @@ ModalPanel {
     if (row.key === "appOpacityAdd") return ""
     if (row.key.startsWith("chatAiModel:")) return ChatAi.providerOf(row.providerId)?.model ?? ""
     if (row.key === "chatAiDefaultProvider") return ChatAi.defaultProviderId
+    // Unset, the main monitor is the first one.
+    if (row.key === "mainMonitor") return Matugen.mainMonitor
     return Settings.get(row.key)
   }
 
@@ -655,10 +658,27 @@ ModalPanel {
     return true
   }
 
+  // The label of slider `row`: the workspace count's names the focused
+  // monitor while the counts are per monitor.
+  // The main monitor's choices: each connected monitor (and the saved one,
+  // when it isn't connected right now).
+  readonly property var mainMonitorOptions: {
+    const names = Hyprland.monitors.values.map(monitor => monitor.name)
+    if (Settings.mainMonitor !== "" && !names.includes(Settings.mainMonitor)) names.push(Settings.mainMonitor)
+    return names.map(name => ({ value: name, text: name }))
+  }
+
+  function sliderLabelOf(row) {
+    if (row.key === "workspaceCount" && Settings.workspacesPerMonitor && Hyprland.focusedMonitor)
+      return I18n.tr("settings.workspaceCount.monitor", Hyprland.focusedMonitor.name)
+    return row.label
+  }
+
   // What slider `row` shows: its setting's value, or for the workspace
   // count while it follows the Hyprland config, the count the bar shows, and
   // for the curves' radius while it follows the widgets', theirs.
   function sliderValueOf(row) {
+    if (row.key === "workspaceCount" && Settings.workspacesPerMonitor) return Hyprland.focusedMonitor ? Settings.workspaceCountFor(Hyprland.focusedMonitor.name) : Settings.workspaceCount
     if (row.key === "workspaceCount") return WorkspaceRules.shownCount
     if (row.key === "curvedJoinsRadius") return Theme.joinRadius
     if (row.key === "windowBorderWidth") return HyprlandWindows.borderSize
@@ -709,6 +729,7 @@ ModalPanel {
 
   // The options of a buttons or dropdown row.
   function optionsOf(row) {
+    if (row.key === "mainMonitor") return root.mainMonitorOptions
     if (row.key === "fontFamily") return root.fontOptions
     if (row.key === "monoFontFamily") return root.monoFontOptions
     if (row.key === "widgetPick") return SettingsPages.widgetPages.map(page => ({ value: page.id, text: page.label }))
@@ -944,7 +965,7 @@ ModalPanel {
     const row = root.rows[root.selected]
     if (!root.rowEnabled(row)) return
     if (row.kind === "slider") {
-      Settings.set(row.key, Settings.get(row.key) + direction * row.step * steps)
+      Settings.set(row.key, (row.key === "workspaceCount" && Settings.workspacesPerMonitor ? root.sliderValueOf(row) : Settings.get(row.key)) + direction * row.step * steps)
     } else if ((row.kind === "dropdown" && row.key !== "appOpacityAdd") || row.kind === "buttons") {
       // (Stepping through the apps to add would add each of them.)
       const values = root.optionsOf(row).map(option => option.value)
@@ -1464,7 +1485,7 @@ ModalPanel {
                 visible: row.modelData.kind === "slider"
                 anchors.fill: parent
                 anchors.topMargin: row.above
-                label: row.modelData.label
+                label: root.sliderLabelOf(row.modelData)
                 from: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][0] : 0
                 to: row.modelData.kind === "slider" ? Settings.limits[row.modelData.key][1] : 1
                 stepSize: row.modelData.step ?? 1

@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import qs.config
 
@@ -47,11 +48,26 @@ import qs.config
 Singleton {
   id: root
 
-  // Called after the wallpaper was applied and remembered in ThemeState.
+  // The main monitor (Settings.mainMonitor, or the first one Hyprland lists)
+  // and its wallpaper, which the Automatic theme's colors come from.
+  readonly property string mainMonitor: Settings.mainMonitor !== "" ? Settings.mainMonitor
+    : (Hyprland.monitors.values.length > 0 ? Hyprland.monitors.values[0].name : "")
+  readonly property string mainWallpaper: ThemeState.wallpaperOf(root.mainMonitor)
+
+  // Another main monitor means another wallpaper to take the colors from.
+  onMainMonitorChanged: {
+    if (ThemeState.active.kind === "auto") request(true)
+  }
+
+  // Called after the wallpaper was applied (to `monitor` only, when given)
+  // and remembered in ThemeState.
   // `onlyIfChanged` skips the run when nothing changed since the last one
   // (the restore at startup).
-  function applyWallpaper(path, onlyIfChanged) {
-    ThemeState.setWallpaper(path)
+  function applyWallpaper(path, onlyIfChanged, monitor) {
+    ThemeState.setWallpaper(path, monitor)
+    // The colors follow the main monitor's wallpaper: another monitor's
+    // changes nothing for them.
+    if (monitor && monitor !== root.mainMonitor) return
     // Another theme ignores the wallpaper: it is only remembered, for when
     // "Automatique" is selected again.
     if (ThemeState.active.kind === "auto")
@@ -222,9 +238,9 @@ Singleton {
       const stamp = "theme|" + JSON.stringify([theme.id, theme.mode, theme.colors, exact !== null])
       const command = ["python3", Paths.matugenScript, Paths.matugenConfig, root.apps.join(","), root.addedApps, "color", "hex", theme.colors.accentColor, "-m", theme.mode]
       root.launch(command.concat(root.templateData(theme.mode, exact)), stamp, wantedIfChanged)
-    } else if (ThemeState.wallpaper.length > 0) {
+    } else if (root.mainWallpaper.length > 0) {
       // The stamp needs when the wallpaper's file last changed: read it first.
-      probe.path = ThemeState.wallpaper
+      probe.path = root.mainWallpaper
       probe.onlyIfChanged = wantedIfChanged
       probe.command = ["stat", "-c", "%Y", "--", probe.path]
       probe.running = true

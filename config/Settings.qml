@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 
 // The look-and-feel values the user can adjust from the settings panel,
@@ -209,6 +210,19 @@ Singleton {
   // Whether the bar shows as many as the Hyprland config sets up instead
   // (see services/WorkspaceRules.qml's shownCount).
   readonly property bool workspaceCountFromHyprland: root.valid("workspaceCountFromHyprland", file.adapter.workspaceCountFromHyprland)
+  // Whether each bar's workspaces widget shows only the workspaces the
+  // Hyprland config binds to that bar's monitor, and that monitor's own
+  // active workspace (see services/WorkspaceRules.qml's idsForMonitor).
+  readonly property bool workspacesPerMonitor: root.valid("workspacesPerMonitor", file.adapter.workspacesPerMonitor)
+  // With workspacesPerMonitor, the workspace count of the monitors that have
+  // one of their own, by monitor name; the others use workspaceCount. The
+  // count slider sets the focused monitor's (see set()).
+  readonly property var workspaceCountByMonitor: root.valid("workspaceCountByMonitor", file.adapter.workspaceCountByMonitor)
+
+  // The workspace count of the monitor `name`.
+  function workspaceCountFor(name) {
+    return root.workspaceCountByMonitor[name] ?? root.workspaceCount
+  }
   // "widgets": the bar itself is transparent and each widget pill has its
   // own background. "full": the bar has one continuous background instead
   // and the pills' own backgrounds are transparent. Either way, `opacity`
@@ -466,6 +480,9 @@ Singleton {
   // it from the internet address.
   readonly property string weatherUnit: root.valid("weatherUnit", file.adapter.weatherUnit)
   readonly property string weatherLocation: root.valid("weatherLocation", file.adapter.weatherLocation)
+  // The name of the main monitor, whose wallpaper the Automatic theme's
+  // colors follow ("" for the first monitor Hyprland lists).
+  readonly property string mainMonitor: root.valid("mainMonitor", file.adapter.mainMonitor)
 
   // The panels' placement settings, which panelPlacement sets all at once.
   readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement", "chatAiPlacement"]
@@ -773,6 +790,18 @@ Singleton {
   // is any non-empty name (whether it is installed isn't checked here), and a
   // yes/no setting is true or false.
   function valid(key, value) {
+    // The workspace counts of the monitors: those of a named monitor, within
+    // limits.workspaceCount.
+    if (key === "workspaceCountByMonitor") {
+      const counts = {}
+      if (value === null || typeof value !== "object") return counts
+      const [min, max] = root.limits.workspaceCount
+      for (const name of Object.keys(value)) {
+        const count = Math.round(Number(value[name]))
+        if (name.length > 0 && Number.isFinite(count)) counts[name] = Math.max(min, Math.min(max, count))
+      }
+      return counts
+    }
     // The search engines: the valid ones, with the browser's once (put first
     // if it went missing).
     // The clocks tab's places: those with a name and a time zone's name.
@@ -870,6 +899,7 @@ Singleton {
     if (key === "webAppCommand") return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 500) : root.defaults[key]
     // A widget's click action: a command, or "" for nothing.
     if (key.endsWith("Action") && typeof root.defaults[key] === "string") return typeof value === "string" ? value.trim().slice(0, 500) : root.defaults[key]
+    if (key === "mainMonitor") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
@@ -1148,6 +1178,14 @@ Singleton {
       return
     }
     if (root.defaults[key] === undefined) return
+    // With workspaces per monitor, the workspace count is the focused
+    // monitor's.
+    if (key === "workspaceCount" && root.workspacesPerMonitor && Hyprland.focusedMonitor) {
+      const counts = Object.assign({}, root.workspaceCountByMonitor)
+      counts[Hyprland.focusedMonitor.name] = value
+      root.set("workspaceCountByMonitor", counts)
+      return
+    }
     // A color mistyped in the settings keeps the one there was.
     if (root.colorKeys.includes(key) && !root.validColor(value)) return
     file.adapter[key] = root.valid(key, value)
@@ -1191,6 +1229,8 @@ Singleton {
       property bool curvedJoinsRadiusSame: Defaults.values.curvedJoinsRadiusSame
       property int workspaceCount: Defaults.values.workspaceCount
       property bool workspaceCountFromHyprland: Defaults.values.workspaceCountFromHyprland
+      property bool workspacesPerMonitor: Defaults.values.workspacesPerMonitor
+      property var workspaceCountByMonitor: Defaults.values.workspaceCountByMonitor
       property string barStyle: Defaults.values.barStyle
       property int borderWidth: Defaults.values.borderWidth
       property bool borderOpaque: Defaults.values.borderOpaque
@@ -1306,6 +1346,7 @@ Singleton {
       property var worldClocks: Defaults.values.worldClocks
       property string weatherUnit: Defaults.values.weatherUnit
       property string weatherLocation: Defaults.values.weatherLocation
+      property string mainMonitor: Defaults.values.mainMonitor
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
       property bool clockSeconds: Defaults.values.clockSeconds
