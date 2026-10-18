@@ -12,8 +12,9 @@ import qs.services
 // Wallpapers are browsed in a carousel, laid out as Settings.wallpaperCarousel
 // says (by default the centered one large and in front, the others stacked
 // behind it); Enter or a click applies one with awww.
-// The Bing "picture of the day", a random wallpaper, or the last one applied
-// can also be applied directly via:
+// The Bing "picture of the day" (the newest picture of the Bing folder, saved
+// as "pod" so the monitor follows the newest one), a random wallpaper, or the
+// last one applied can also be applied directly via:
 //   quickshell -p . ipc call wallpapers applyPod
 //   quickshell -p . ipc call wallpapers applyRandom
 //   quickshell -p . ipc call wallpapers applyLast
@@ -21,12 +22,11 @@ import qs.services
 CarouselPanel {
   id: root
 
-  readonly property string podPath: Paths.wallpaperOfTheDay
   property var wallpapers: []
   // The monitor wallpapers are applied to: the focused one. Its wallpaper is
   // the one in use, for the carousel and the random pick.
   readonly property string monitorName: Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : Matugen.mainMonitor
-  readonly property string current: ThemeState.wallpaperOf(root.monitorName)
+  readonly property string current: BingWallpaper.resolve(ThemeState.wallpaperOf(root.monitorName))
 
   title: I18n.tr("wallpaper.titleMonitor", root.monitorName)
 
@@ -60,7 +60,7 @@ CarouselPanel {
     }
 
     function applyPod(): void {
-      root.applyPath(root.podPath)
+      root.applyPod()
     }
 
     function applyLast(): void {
@@ -112,17 +112,30 @@ CarouselPanel {
   Timer {
     running: true
     interval: 1000
-    onTriggered: root.restore()
+    onTriggered: {
+      root.restore()
+      root.restored = true
+    }
   }
 
-  // A new picture of the day may have been downloaded at login since, over the
-  // same pod.jpg: apply it again, only when it is the wallpaper in use.
-  Timer {
-    running: true
-    interval: 5000
-    onTriggered: {
-      if (Object.values(ThemeState.wallpapers).concat(ThemeState.wallpaper).includes(root.podPath))
-        root.restore()
+  // Applies the picture of the day to the focused monitor, saved as "pod"
+  // instead of the file so the monitor follows the newest picture.
+  function applyPod() {
+    if (BingWallpaper.latest.length > 0) root.applyPath(BingWallpaper.podTag)
+  }
+
+  // Set once the remembered wallpapers have been restored at startup.
+  property bool restored: false
+
+  // The newest picture changed (a download, or the folder was read after the
+  // restore): the monitors showing the picture of the day move to it, the
+  // others keep their wallpaper.
+  Connections {
+    target: BingWallpaper
+    function onLatestChanged() {
+      if (!root.restored) return
+      for (const name of Object.keys(ThemeState.wallpapers))
+        if (ThemeState.wallpapers[name] === BingWallpaper.podTag) root.applyPath(BingWallpaper.podTag, true, name)
     }
   }
 
@@ -131,24 +144,6 @@ CarouselPanel {
     target: Profiles
     function onWallpapersApplied() {
       root.restore()
-    }
-  }
-
-  // Bing's picture of the day is applied as soon as it has been downloaded, to
-  // the main monitor, and to every other monitor that shows a Bing picture (an
-  // older one): the monitors with another wallpaper keep it. A
-  // picture already applied once is not applied again (at the next startup it
-  // is downloaded as present): the monitor keeps the wallpaper it was given.
-  Connections {
-    target: BingWallpaper
-    function onDownloaded(path) {
-      if (path === ThemeState.pod) return
-      ThemeState.setPod(path)
-      root.applyPath(path, true, Matugen.mainMonitor)
-      const prefix = Settings.bingWallpaperFolder + "/"
-      for (const name of Object.keys(ThemeState.wallpapers))
-        if (name !== Matugen.mainMonitor && ThemeState.wallpapers[name].startsWith(prefix))
-          root.applyPath(path, true, name)
     }
   }
 
@@ -163,7 +158,10 @@ CarouselPanel {
 
   // Shows `path` on the monitor `monitor` ("" for all of them), without
   // touching the colors. Calls queue up: awww is run one at a time.
-  function show(path, monitor) {
+  function show(saved, monitor) {
+    // The picture of the day is not known yet (or there is none): the monitor keeps what it shows.
+    const path = BingWallpaper.resolve(saved)
+    if (path.length === 0) return
     // The script starts awww's daemon when it isn't running, detached from us.
     const transition = ["--transition-type", Settings.wallpaperTransition, "--transition-duration", String(Settings.wallpaperDuration)]
     const outputs = monitor.length > 0 ? ["--outputs", monitor] : []
@@ -239,24 +237,6 @@ CarouselPanel {
     }
   }
 
-  // The latest picture of the day in the Bing folder: the one whose file name
-  // holds the latest date (bing-<date>.jpg, or <date>.jpg for older ones, the
-  // date as YYYYMMDD), or -1 when none has a date.
-  function podIndex() {
-    const prefix = Settings.bingWallpaperFolder + "/"
-    let found = -1
-    let latest = ""
-    root.wallpapers.forEach((path, index) => {
-      if (!path.startsWith(prefix) || path.indexOf("/", prefix.length) >= 0) return
-      const date = path.slice(prefix.length).match(/^(?:bing-)?(\d{8})\.[^.]+$/)?.[1] ?? ""
-      if (date > latest) {
-        latest = date
-        found = index
-      }
-    })
-    return found
-  }
-
   // The description scripts/bing-picture.py saved next to the current picture
   // (bing-<date>.json), or null when it has none: its copyright text and link.
   property var info: null
@@ -309,12 +289,12 @@ CarouselPanel {
     anchors.margins: 20
     label: I18n.tr("wallpaper.pod")
     onClicked: {
-      // Moves the carousel to the picture of the day instead of just
-      // applying it without visually reflecting the change.
-      const index = root.podIndex()
+      // Moves the carousel to the picture of the day, then applies it saved as
+      // "pod" (accepting the carousel's entry would save the file instead).
+      const index = root.wallpapers.indexOf(BingWallpaper.latest)
       if (index < 0) return
       root.currentIndex = index
-      root.accept()
+      root.applyPod()
     }
   }
 
