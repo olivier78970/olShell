@@ -72,7 +72,7 @@ Singleton {
     }
     if (I18n.setting !== (profile.language ?? "auto") || (profile.theme !== undefined && ThemeState.active.id !== profile.theme)) return true
     // A profile saved before wallpapers were kept, and the built-in one, have none.
-    return profile.wallpaper !== undefined && root.canonical([ThemeState.wallpaper, ThemeState.wallpapers]) !== root.canonical([profile.wallpaper, profile.wallpapers ?? {}])
+    return profile.wallpapers !== undefined && root.canonical(ThemeState.wallpapers) !== root.canonical(profile.wallpapers)
   }
 
   // The profile `name`, as { values, language, theme }; the built-in one's
@@ -120,7 +120,6 @@ Singleton {
       values: values,
       language: I18n.setting,
       theme: ThemeState.active.id,
-      wallpaper: ThemeState.wallpaper,
       wallpapers: JSON.parse(JSON.stringify(ThemeState.wallpapers))
     }
     file.adapter.profiles = all
@@ -144,8 +143,8 @@ Singleton {
       ThemeState.select(profile.theme)
       Matugen.applyTheme()
     }
-    if (profile.wallpaper !== undefined) {
-      ThemeState.setWallpapers(profile.wallpaper, JSON.parse(JSON.stringify(profile.wallpapers ?? {})))
+    if (profile.wallpapers !== undefined) {
+      ThemeState.setWallpapers(JSON.parse(JSON.stringify(profile.wallpapers)))
       root.wallpapersApplied()
     }
     file.adapter.current = name

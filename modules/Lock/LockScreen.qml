@@ -91,13 +91,14 @@ Scope {
         onTriggered: surface.now = new Date()
       }
 
-      // The wallpaper, blurred and darkened a little so the text reads on it
+      // The screen's own wallpaper, blurred and darkened a little so the text reads on it
       // (the theme background shows until it is loaded, or if there is none).
       Image {
         id: wallpaper
         anchors.fill: parent
         visible: false
-        source: BingWallpaper.resolve(ThemeState.wallpaper).length > 0 ? "file://" + BingWallpaper.resolve(ThemeState.wallpaper) : ""
+        readonly property string file: BingWallpaper.resolve(ThemeState.wallpaperOf(surface.screen ? surface.screen.name : ""))
+        source: wallpaper.file.length > 0 ? "file://" + wallpaper.file : ""
         fillMode: Image.PreserveAspectCrop
         sourceSize: Qt.size(surface.width, surface.height)
         asynchronous: true
