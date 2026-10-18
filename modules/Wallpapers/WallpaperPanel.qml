@@ -29,6 +29,13 @@ CarouselPanel {
   readonly property string current: ThemeState.wallpaperOf(root.monitorName)
 
   title: I18n.tr("wallpaper.titleMonitor", root.monitorName)
+
+  // The panel follows the focused monitor, so when that changes while it is
+  // open, the carousel moves to the wallpaper in use on the new monitor.
+  onMonitorNameChanged: {
+    const index = root.wallpapers.indexOf(root.current)
+    if (index >= 0) Qt.callLater(root.showIndex, index)
+  }
   emptyText: I18n.tr("wallpaper.none")
   model: root.wallpapers
   style: Settings.wallpaperCarousel
