@@ -126,10 +126,14 @@ CarouselPanel {
   }
 
   // Bing's picture of the day is applied as soon as it has been downloaded, to
-  // the main monitor only: the other monitors keep their own wallpaper.
+  // the main monitor only: the other monitors keep their own wallpaper. A
+  // picture already applied once is not applied again (at the next startup it
+  // is downloaded as present): the monitor keeps the wallpaper it was given.
   Connections {
     target: BingWallpaper
     function onDownloaded(path) {
+      if (path === ThemeState.pod) return
+      ThemeState.setPod(path)
       root.applyPath(path, true, Matugen.mainMonitor)
     }
   }
