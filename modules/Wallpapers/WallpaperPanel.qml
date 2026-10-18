@@ -117,6 +117,14 @@ CarouselPanel {
     }
   }
 
+  // Applying a profile puts its wallpapers in ThemeState: show them.
+  Connections {
+    target: Profiles
+    function onWallpapersApplied() {
+      root.restore()
+    }
+  }
+
   // Bing's picture of the day is applied as soon as it has been downloaded, to
   // the main monitor only: the other monitors keep their own wallpaper.
   Connections {

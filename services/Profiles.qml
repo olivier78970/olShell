@@ -6,7 +6,8 @@ import Quickshell.Io
 import qs.config
 
 // Saved configurations, kept in config/Profiles.json: a profile is a named
-// snapshot of every setting, the language and the theme in use, which can be
+// snapshot of every setting, the language, the theme in use and the wallpapers
+// (the last one and each monitor's), which can be
 // applied again later to switch between looks. Driven from the settings
 // panel's Profiles category, and from outside:
 //   quickshell -p . ipc call profiles list            (the names and the current one, as JSON)
@@ -18,12 +19,18 @@ Singleton {
 
   readonly property int maxNameLength: 40
 
+  // Emitted once a profile's wallpapers are in ThemeState, for the wallpaper
+  // panel to show them (it is the one that talks to awww).
+  signal wallpapersApplied()
+
   // The built-in profile: every setting at its built-in value, the language
   // automatic and the automatic theme. It is not stored, so it can't be
   // deleted or replaced, and a saved profile can't take its name.
   readonly property string factory: "factory"
 
-  // The saved profiles, by name: { values: { setting key: value }, language, theme }.
+  // The saved profiles, by name: { values: { setting key: value }, language, theme,
+  // wallpaper, wallpapers: { monitor name: path } }. A profile saved before
+  // wallpapers were kept lacks the last two and leaves them alone.
   readonly property var profiles: file.adapter.profiles ?? ({})
   // The profile names: the built-in one, then the saved ones in alphabetical
   // order.
@@ -49,7 +56,7 @@ Singleton {
     })
   }
 
-  // Whether the settings, the language or the theme differ from those of the
+  // Whether the settings, the language, the theme or the wallpapers differ from those of the
   // current profile (the built-in one included): it can be saved, or applied
   // again to go back.
   readonly property bool modified: {
@@ -63,7 +70,9 @@ Singleton {
       if (saved === undefined && root.current !== root.factory) continue
       if (root.canonical(value) !== root.canonical(saved !== undefined ? saved : Settings.defaults[setting])) return true
     }
-    return I18n.setting !== (profile.language ?? "auto") || (profile.theme !== undefined && ThemeState.active.id !== profile.theme)
+    if (I18n.setting !== (profile.language ?? "auto") || (profile.theme !== undefined && ThemeState.active.id !== profile.theme)) return true
+    // A profile saved before wallpapers were kept, and the built-in one, have none.
+    return profile.wallpaper !== undefined && root.canonical([ThemeState.wallpaper, ThemeState.wallpapers]) !== root.canonical([profile.wallpaper, profile.wallpapers ?? {}])
   }
 
   // The profile `name`, as { values, language, theme }; the built-in one's
@@ -107,15 +116,21 @@ Singleton {
     }
     const all = {}
     for (const other in root.profiles) all[other] = root.profiles[other]
-    all[key] = { values: values, language: I18n.setting, theme: ThemeState.active.id }
+    all[key] = {
+      values: values,
+      language: I18n.setting,
+      theme: ThemeState.active.id,
+      wallpaper: ThemeState.wallpaper,
+      wallpapers: JSON.parse(JSON.stringify(ThemeState.wallpapers))
+    }
     file.adapter.profiles = all
     file.adapter.current = key
     file.writeAdapter()
     return true
   }
 
-  // Puts every setting, the language and the theme to those of the profile
-  // `name` (the built-in value for a setting it doesn't have, such as one
+  // Puts every setting, the language, the theme and the wallpapers to those of
+  // the profile `name` (the built-in value for a setting it doesn't have, such as one
   // added since). Returns false when there is no such profile.
   function apply(name) {
     const profile = root.profileOf(name)
@@ -128,6 +143,10 @@ Singleton {
     if (profile.theme !== undefined && profile.theme !== ThemeState.active.id) {
       ThemeState.select(profile.theme)
       Matugen.applyTheme()
+    }
+    if (profile.wallpaper !== undefined) {
+      ThemeState.setWallpapers(profile.wallpaper, JSON.parse(JSON.stringify(profile.wallpapers ?? {})))
+      root.wallpapersApplied()
     }
     file.adapter.current = name
     file.writeAdapter()
