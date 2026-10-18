@@ -51,7 +51,7 @@ Singleton {
   // The main monitor (Settings.mainMonitor, or the first one Hyprland lists)
   // and its wallpaper, which the Automatic theme's colors come from.
   readonly property string mainMonitor: Settings.activeMainMonitor
-  readonly property string mainWallpaper: ThemeState.wallpaperOf(root.mainMonitor)
+  readonly property string mainWallpaper: BingWallpaper.resolve(ThemeState.wallpaperOf(root.mainMonitor))
 
   // Another main monitor means another wallpaper to take the colors from.
   onMainMonitorChanged: {

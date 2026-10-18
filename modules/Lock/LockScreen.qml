@@ -97,7 +97,7 @@ Scope {
         id: wallpaper
         anchors.fill: parent
         visible: false
-        source: ThemeState.wallpaper.length > 0 ? "file://" + ThemeState.wallpaper : ""
+        source: BingWallpaper.resolve(ThemeState.wallpaper).length > 0 ? "file://" + BingWallpaper.resolve(ThemeState.wallpaper) : ""
         fillMode: Image.PreserveAspectCrop
         sourceSize: Qt.size(surface.width, surface.height)
         asynchronous: true

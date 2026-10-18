@@ -4,7 +4,7 @@ Bind these to keys, e.g. from Hyprland:
 
 ```sh
 quickshell -p . ipc call wallpapers wallpapersToggle   # open/close the wallpaper panel
-quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day
+quickshell -p . ipc call wallpapers applyPod           # apply the Bing picture of the day (the newest one in the Bing folder; the monitor remembers "pod" and follows it)
 quickshell -p . ipc call wallpapers applyRandom        # apply a random wallpaper other than the current one, to the focused monitor
 quickshell -p . ipc call wallpapers applyLast          # apply the focused monitor's wallpaper again (e.g. after a new picture of the day was downloaded)
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
