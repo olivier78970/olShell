@@ -58,15 +58,15 @@ Singleton {
     if (ThemeState.active.kind === "auto") request(true)
   }
 
-  // Called after the wallpaper was applied (to `monitor` only, when given)
-  // and remembered in ThemeState.
+  // Called after the wallpaper was applied to `monitor` and remembered in
+  // ThemeState.
   // `onlyIfChanged` skips the run when nothing changed since the last one
   // (the restore at startup).
   function applyWallpaper(path, onlyIfChanged, monitor) {
     ThemeState.setWallpaper(path, monitor)
     // The colors follow the main monitor's wallpaper: another monitor's
     // changes nothing for them.
-    if (monitor && monitor !== root.mainMonitor) return
+    if (monitor !== root.mainMonitor) return
     // Another theme ignores the wallpaper: it is only remembered, for when
     // "Automatique" is selected again.
     if (ThemeState.active.kind === "auto")

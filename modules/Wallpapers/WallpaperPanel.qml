@@ -92,17 +92,25 @@ CarouselPanel {
   // `onlyIfChanged` regenerates them only if it did, or the theme changed (see
   // services/Matugen.qml).
   function applyLast(onlyIfChanged) {
-    if (root.current.length > 0)
-      root.applyPath(root.current, onlyIfChanged)
+    const saved = ThemeState.wallpaperOf(root.monitorName)
+    if (saved.length > 0)
+      root.applyPath(saved, onlyIfChanged)
   }
 
-  // Applies the remembered wallpapers: the last one applied to every monitor
-  // (also those that have none of their own), then each monitor's own on top.
+  // Applies the remembered wallpaper of the monitor `name`. A monitor without
+  // its own (see ThemeState.wallpaperOf) shows the main monitor's, which is
+  // not remembered for it.
+  function restoreMonitor(name) {
+    const saved = ThemeState.wallpaperOf(name)
+    if (saved.length === 0) return
+    if (ThemeState.wallpapers[name] !== undefined) root.applyPath(saved, true, name)
+    else root.show(saved, name)
+  }
+
+  // Applies the remembered wallpapers to the connected monitors.
   function restore() {
-    if (ThemeState.wallpaper.length === 0) return
-    root.applyPath(ThemeState.wallpaper, true, "")
-    for (const name of Object.keys(ThemeState.wallpapers))
-      if (ThemeState.wallpapers[name] !== ThemeState.wallpaper) root.show(ThemeState.wallpapers[name], name)
+    for (const monitor of Hyprland.monitors.values)
+      root.restoreMonitor(monitor.name)
   }
 
   // awww's daemon draws nothing until a wallpaper is sent to it, so the last
@@ -134,8 +142,8 @@ CarouselPanel {
     target: BingWallpaper
     function onLatestChanged() {
       if (!root.restored) return
-      for (const name of Object.keys(ThemeState.wallpapers))
-        if (ThemeState.wallpapers[name] === BingWallpaper.podTag) root.applyPath(BingWallpaper.podTag, true, name)
+      for (const monitor of Hyprland.monitors.values)
+        if (ThemeState.wallpaperOf(monitor.name) === BingWallpaper.podTag) root.restoreMonitor(monitor.name)
     }
   }
 
