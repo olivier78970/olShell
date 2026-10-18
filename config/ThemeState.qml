@@ -37,6 +37,14 @@ Singleton {
     file.writeAdapter()
   }
 
+  // Replaces the remembered wallpapers: the last one applied and each
+  // monitor's own (what applying a profile does).
+  function setWallpapers(last, perMonitor) {
+    file.adapter.wallpaper = last
+    file.adapter.wallpapers = perMonitor
+    file.writeAdapter()
+  }
+
   function setGenerated(stamp) {
     file.adapter.generated = stamp
     file.writeAdapter()
