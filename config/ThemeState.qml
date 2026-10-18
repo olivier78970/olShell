@@ -15,6 +15,8 @@ Singleton {
   readonly property var active: ThemePresets.resolve(file.adapter.selected)
   readonly property string wallpaper: file.adapter.wallpaper
   readonly property var wallpapers: file.adapter.wallpapers ?? ({})
+  // The last Bing picture of the day applied automatically (see BingWallpaper).
+  readonly property string pod: file.adapter.pod
   // What matugen last made the colors from (see services/Matugen.qml's
   // stamps), so a run that would make the same colors can be skipped.
   readonly property string generated: file.adapter.generated
@@ -45,6 +47,13 @@ Singleton {
     file.writeAdapter()
   }
 
+  // Remembers the Bing picture of the day last applied, so a restart doesn't
+  // apply the same one again over what the main monitor shows.
+  function setPod(path) {
+    file.adapter.pod = path
+    file.writeAdapter()
+  }
+
   function setGenerated(stamp) {
     file.adapter.generated = stamp
     file.writeAdapter()
@@ -61,6 +70,7 @@ Singleton {
       property string selected: "auto"
       property string wallpaper: ""
       property var wallpapers: ({})
+      property string pod: ""
       property string generated: ""
     }
   }
