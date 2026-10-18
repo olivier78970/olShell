@@ -32,7 +32,9 @@ CarouselPanel {
 
   // The panel follows the focused monitor, so when that changes while it is
   // open, the carousel moves to the wallpaper in use on the new monitor.
-  onMonitorNameChanged: {
+  // (Watching `current` rather than the monitor's name: the name changes
+  // before `current` has been re-evaluated, which gave the old monitor's.)
+  onCurrentChanged: {
     const index = root.wallpapers.indexOf(root.current)
     if (index >= 0) Qt.callLater(root.showIndex, index)
   }
