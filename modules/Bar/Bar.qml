@@ -142,10 +142,13 @@ Scope {
       // The margins become padding on barArea instead, below. Otherwise the
       // window carries them itself, same as always: all but the far one,
       // between the bar and the windows (see exclusiveZone).
-      margins.top: root.autoHide || Theme.barPosition === "bottom" ? 0 : Theme.barMarginTop
-      margins.bottom: root.autoHide || atTop ? 0 : Theme.barMarginBottom
-      margins.left: root.autoHide || Theme.barPosition === "right" ? 0 : Theme.barMarginLeft
-      margins.right: root.autoHide || atLeft ? 0 : Theme.barMarginRight
+      // Held at 0 until settings have settled (see `settled`): a margin the
+      // window gets while the saved settings are still arriving can be lost,
+      // leaving the default margins on the screen for the whole session.
+      margins.top: !root.settled || root.autoHide || Theme.barPosition === "bottom" ? 0 : Theme.barMarginTop
+      margins.bottom: !root.settled || root.autoHide || atTop ? 0 : Theme.barMarginBottom
+      margins.left: !root.settled || root.autoHide || Theme.barPosition === "right" ? 0 : Theme.barMarginLeft
+      margins.right: !root.settled || root.autoHide || atLeft ? 0 : Theme.barMarginRight
 
       // Grows (away from the edge: down or up, or sideways for a side bar)
       // to also hold an open attached panel or
