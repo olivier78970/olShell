@@ -127,6 +127,7 @@ Singleton {
     clockPlacement: root.panelPlacements,
     notificationCenterPlacement: root.panelPlacements,
     chatAiPlacement: root.panelPlacements,
+    emojiPlacement: root.panelPlacements,
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
@@ -326,7 +327,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -464,6 +465,7 @@ Singleton {
   readonly property string clockPlacement: root.valid("clockPlacement", file.adapter.clockPlacement)
   readonly property string notificationCenterPlacement: root.valid("notificationCenterPlacement", file.adapter.notificationCenterPlacement)
   readonly property string chatAiPlacement: root.valid("chatAiPlacement", file.adapter.chatAiPlacement)
+  readonly property string emojiPlacement: root.valid("emojiPlacement", file.adapter.emojiPlacement)
   // Whether the app switcher lists the windows in a column ("vertical") or
   // side by side ("horizontal", one of choices.switcherOrientation).
   readonly property string switcherOrientation: root.valid("switcherOrientation", file.adapter.switcherOrientation)
@@ -512,7 +514,7 @@ Singleton {
     : (Hyprland.monitors.values.length > 0 ? Hyprland.monitors.values[0].name : "")
 
   // The panels' placement settings, which panelPlacement sets all at once.
-  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement", "chatAiPlacement"]
+  readonly property var placementKeys: ["launcherPlacement", "settingsPlacement", "shortcutsPlacement", "wallpaperPlacement", "themePlacement", "powerPlacement", "notificationActionsPlacement", "switcherPlacement", "clockPlacement", "notificationCenterPlacement", "chatAiPlacement", "emojiPlacement"]
   // Where every panel opens, when they all open in the same place, or
   // "each" when they don't. Not saved: setting it sets each of them (see
   // set()).
@@ -1389,6 +1391,7 @@ Singleton {
       property string clockPlacement: Defaults.values.clockPlacement
       property string notificationCenterPlacement: Defaults.values.notificationCenterPlacement
       property string chatAiPlacement: Defaults.values.chatAiPlacement
+      property string emojiPlacement: Defaults.values.emojiPlacement
       property string switcherOrientation: Defaults.values.switcherOrientation
       property string switcherScope: Defaults.values.switcherScope
       property bool switcherGroupApps: Defaults.values.switcherGroupApps

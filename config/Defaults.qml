@@ -138,6 +138,7 @@ Singleton {
     clockPlacement: "bar-center",
     notificationCenterPlacement: "bar-center",
     chatAiPlacement: "bar-center",
+    emojiPlacement: "bar-center",
     switcherOrientation: "horizontal",
     switcherScope: "all",
     switcherGroupApps: true,
@@ -217,7 +218,7 @@ Singleton {
     barGroupsOff: [],
     barDisabled: [],
     barLeft: ["webApps", "launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
-    barCenter: ["clock", "volume"],
+    barCenter: ["clock", "emoji", "volume"],
     barRight: ["tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "notifications", "power"],
     barDividers: ["workspaces", "activeWindow", "wallpaper", "volume", "cpu", "ram", "disk", "network", "connection", "notifications", "power"]
     })

@@ -294,6 +294,7 @@ Singleton {
     { key: "clockPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.category.clock") },
     { key: "notificationCenterPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.notificationCenter") },
     { key: "chatAiPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.chatAi") },
+    { key: "emojiPlacement", category: "panels", kind: "dropdown", positionIcon: true, label: I18n.tr("settings.placement.emoji") },
     // The tools the AI may use, on or off.
     { key: "chatAiFileTools", category: "chatAiAccess", kind: "toggles", label: I18n.tr("settings.chatAiFileTools"), toggles: [
       { key: "chatAiListDir", text: I18n.tr("settings.chatAiTool.listDir") },

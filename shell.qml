@@ -9,6 +9,7 @@ import qs.modules.AppSwitcher
 import qs.modules.Bar
 import qs.modules.ChatAi
 import qs.modules.Clock
+import qs.modules.Emoji
 import qs.modules.Launcher
 import qs.modules.Lock
 import qs.modules.Notifications
@@ -103,6 +104,7 @@ ShellRoot {
   SettingsModule {}
   ShortcutsModule {}
   ChatAiModule {}
+  EmojiModule {}
   AppSwitcherModule {}
   LazyLoader {
     active: Settings.widgetEnabled("notifications")

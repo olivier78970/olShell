@@ -18,7 +18,7 @@ Singleton {
   readonly property var all: [
     WallpaperPanelState, ThemePanelState, LauncherState, SettingsPanelState,
     NotificationCenterState, PowerPanelState, ClockPanelState, ShortcutsPanelState,
-    AppSwitcherState, NotificationActionsState, ChatAiState,
+    AppSwitcherState, NotificationActionsState, ChatAiState, EmojiPanelState,
     PowerMenuState
   ]
 
@@ -28,7 +28,7 @@ Singleton {
   readonly property var widgetPanels: ({
     wallpaper: WallpaperPanelState, theme: ThemePanelState, launcher: LauncherState,
     notifications: NotificationCenterState, power: PowerPanelState, clock: ClockPanelState,
-    shortcuts: ShortcutsPanelState, chatAi: ChatAiState
+    shortcuts: ShortcutsPanelState, chatAi: ChatAiState, emoji: EmojiPanelState
   })
 
   // Whether `panel` belongs to a widget that is disabled.
