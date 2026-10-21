@@ -262,65 +262,122 @@ ModalPanel {
       font.bold: true
     }
 
-    GridView {
-      id: grid
-
-      // The place of the emoji under the mouse, -1 for none. It isn't the
-      // current item, as the grid scrolls to show that one whole: a row cut
-      // at the top or bottom would move as soon as the mouse touched it.
-      property int hovered: -1
-
-      // As many columns as fit, sharing the width.
-      readonly property int columns: Math.max(1, Math.floor(width / 52))
-
+    // The grid, and its scroll bar on the right. The bar's room is kept
+    // even while it is hidden, so the columns don't change between groups.
+    Item {
       width: parent.width
       height: parent.height - title.height - searchBox.height - tabs.height - heading.height - footer.height - parent.spacing * 5
-      clip: true
-      cellWidth: width / columns
-      cellHeight: 52
-      boundsBehavior: Flickable.StopAtBounds
-      highlightMoveDuration: 0
 
-      model: ScriptModel {
-        values: root.shown
+      GridView {
+        id: grid
+
+        // The place of the emoji under the mouse, -1 for none. It isn't the
+        // current item, as the grid scrolls to show that one whole: a row cut
+        // at the top or bottom would move as soon as the mouse touched it.
+        property int hovered: -1
+
+        // As many columns as fit, sharing the width.
+        readonly property int columns: Math.max(1, Math.floor(width / 52))
+
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: scrollBar.left
+        anchors.rightMargin: 4
+        clip: true
+        cellWidth: width / columns
+        cellHeight: 52
+        boundsBehavior: Flickable.StopAtBounds
+        highlightMoveDuration: 0
+
+        model: ScriptModel {
+          values: root.shown
+        }
+
+        delegate: Rectangle {
+          id: cell
+
+          required property var modelData
+          required property int index
+          readonly property bool current: cell.index === root.selected
+
+          width: grid.cellWidth - 4
+          height: grid.cellHeight - 4
+          radius: Theme.radiusFor(height)
+          color: cell.current ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.22) : "transparent"
+          border.color: cell.current ? Theme.accentColor : "transparent"
+          border.width: Theme.borderWidth
+
+          Text {
+            anchors.centerIn: parent
+            text: cell.modelData.emoji
+            font.pixelSize: 28
+          }
+
+          MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onEntered: grid.hovered = cell.index
+            onExited: if (grid.hovered === cell.index) grid.hovered = -1
+            onClicked: root.pick(cell.modelData.emoji)
+          }
+        }
+
+        // Nothing to show.
+        ThemedText {
+          visible: grid.count === 0
+          anchors.centerIn: parent
+          text: I18n.tr(root.query.length === 0 && EmojiPanelState.group === "recent" ? "emoji.noRecent" : "emoji.empty")
+          opacity: 0.6
+        }
       }
 
-      delegate: Rectangle {
-        id: cell
+      // A thin scroll bar, shown while the emoji don't all fit: drag it, or
+      // click its track to jump there.
+      Item {
+        id: scrollBar
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 8
+        visible: grid.contentHeight > grid.height
 
-        required property var modelData
-        required property int index
-        readonly property bool current: cell.index === root.selected
-
-        width: grid.cellWidth - 4
-        height: grid.cellHeight - 4
-        radius: Theme.radiusFor(height)
-        color: cell.current ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.22) : "transparent"
-        border.color: cell.current ? Theme.accentColor : "transparent"
-        border.width: Theme.borderWidth
-
-        Text {
-          anchors.centerIn: parent
-          text: cell.modelData.emoji
-          font.pixelSize: 28
+        Rectangle {
+          id: thumb
+          anchors.horizontalCenter: parent.horizontalCenter
+          width: scrollArea.containsMouse || scrollArea.pressed ? 6 : 4
+          height: Math.max(24, grid.visibleArea.heightRatio * scrollBar.height)
+          y: Math.min(scrollBar.height - thumb.height, grid.visibleArea.yPosition * scrollBar.height)
+          radius: width / 2
+          color: Theme.textColor
+          opacity: scrollArea.containsMouse || scrollArea.pressed ? 0.6 : 0.3
         }
 
         MouseArea {
+          id: scrollArea
+
+          // Where in the thumb it was grabbed.
+          property real grab: 0
+
           anchors.fill: parent
           hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onEntered: grid.hovered = cell.index
-          onExited: if (grid.hovered === cell.index) grid.hovered = -1
-          onClicked: root.pick(cell.modelData.emoji)
-        }
-      }
 
-      // Nothing to show.
-      ThemedText {
-        visible: grid.count === 0
-        anchors.centerIn: parent
-        text: I18n.tr(root.query.length === 0 && EmojiPanelState.group === "recent" ? "emoji.noRecent" : "emoji.empty")
-        opacity: 0.6
+          // Scrolls so the thumb's top is at `top` (in the bar).
+          function scrollTo(top) {
+            const ratio = Math.max(0, Math.min(1 - grid.visibleArea.heightRatio, top / scrollBar.height))
+            grid.contentY = grid.originY + ratio * grid.contentHeight
+          }
+
+          onPressed: mouse => {
+            const onThumb = mouse.y >= thumb.y && mouse.y <= thumb.y + thumb.height
+            scrollArea.grab = onThumb ? mouse.y - thumb.y : thumb.height / 2
+            scrollArea.scrollTo(mouse.y - scrollArea.grab)
+          }
+          onPositionChanged: mouse => {
+            if (scrollArea.pressed) scrollArea.scrollTo(mouse.y - scrollArea.grab)
+          }
+        }
       }
     }
 
