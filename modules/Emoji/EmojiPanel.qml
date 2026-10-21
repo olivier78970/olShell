@@ -10,18 +10,19 @@ import qs.config
 // Picking one (a click, or Enter on the selected one) copies it to the
 // clipboard and closes the panel; the copied ones are kept in a "recent"
 // group until the shell restarts (EmojiPanelState). Type to search every
-// group by the emoji's names and keywords in the shell's language (accents
-// don't count); the arrows move the selection, Tab and Shift+Tab change group,
-// Escape closes.
+// group by the emoji's names and keywords in all the shell's languages at
+// once (accents don't count), each emoji being named in the shell's language;
+// the arrows move the selection, Tab and Shift+Tab change group, Escape closes.
 ModalPanel {
   id: root
 
-  // Every emoji as { group, emoji, name, search }, in Unicode's order, named
-  // in the shell's language (Paths.emojiData), `search` being its name and
-  // keywords as searched (see searchText()).
+  // Every emoji as { group, emoji, names, search }, in Unicode's order
+  // (Paths.emojiData), `names` being its name in each language, by language,
+  // and `search` its names and keywords in every language as searched (see
+  // searchText()).
   property var all: []
-  // Each emoji's name, by the emoji, for the recent ones.
-  property var names: ({})
+  // Each emoji's entry of `all`, by the emoji, for the recent ones.
+  property var byEmoji: ({})
   property string query: ""
 
   // The groups' ids, in order, and the emoji standing for each on its tab.
@@ -37,11 +38,14 @@ ModalPanel {
     const words = root.searchText(root.query).split(/\s+/).filter(word => word.length > 0)
     if (words.length > 0) return root.all.filter(entry => words.every(word => entry.search.includes(word)))
     if (EmojiPanelState.group === "recent")
-      return EmojiPanelState.recent.map(emoji => ({ group: "recent", emoji: emoji, name: root.names[emoji] ?? "" }))
+      return EmojiPanelState.recent.map(emoji => root.byEmoji[emoji] ?? { group: "recent", emoji: emoji, names: {}, search: "" })
     return root.all.filter(entry => entry.group === EmojiPanelState.group)
   }
+  // The place of the emoji selected: the one under the mouse, else the
+  // grid's current one (which the arrows move).
+  readonly property int selected: grid.hovered >= 0 ? grid.hovered : grid.currentIndex
   // The emoji selected, or null.
-  readonly property var current: grid.currentIndex >= 0 && grid.currentIndex < root.shown.length ? root.shown[grid.currentIndex] : null
+  readonly property var current: root.selected >= 0 && root.selected < root.shown.length ? root.shown[root.selected] : null
 
   maxPanelWidth: 640
   maxPanelHeight: 600
@@ -53,6 +57,7 @@ ModalPanel {
   onOpened: {
     input.text = ""
     grid.currentIndex = 0
+    grid.hovered = -1
     grid.positionViewAtBeginning()
   }
 
@@ -62,20 +67,39 @@ ModalPanel {
     return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/œ/g, "oe").replace(/æ/g, "ae")
   }
 
-  // Read when the panel is built, and again if the language changes.
+  // `entry`'s name in the shell's language, or else in English.
+  function nameOf(entry) {
+    return entry.names[I18n.language] ?? entry.names[I18n.fallback] ?? ""
+  }
+
+  // Read once, when the panel is built: its first line names the language
+  // of each column after the group and the emoji.
   FileView {
-    path: Paths.emojiData(I18n.supported.includes(I18n.language) ? I18n.language : I18n.fallback)
+    path: Paths.emojiData
     onLoaded: {
       const all = []
-      const names = {}
+      const byEmoji = {}
+      let languages = []
       for (const line of this.text().split("\n")) {
         if (line.length === 0 || line.startsWith("#")) continue
-        const [group, emoji, name, keywords] = line.split("\t")
-        all.push({ group: group, emoji: emoji, name: name, search: root.searchText(name + " " + keywords.replace(/,/g, " ")) })
-        names[emoji] = name
+        const [group, emoji, ...columns] = line.split("\t")
+        if (group === "group") {
+          languages = columns
+          continue
+        }
+        const names = {}
+        const words = []
+        columns.forEach((column, index) => {
+          const [name, keywords] = column.split("|")
+          names[languages[index]] = name
+          words.push(name, keywords.replace(/,/g, " "))
+        })
+        const entry = { group: group, emoji: emoji, names: names, search: root.searchText(words.join(" ")) }
+        all.push(entry)
+        byEmoji[emoji] = entry
       }
       root.all = all
-      root.names = names
+      root.byEmoji = byEmoji
     }
   }
 
@@ -96,6 +120,7 @@ ModalPanel {
     input.text = ""
     EmojiPanelState.group = group
     grid.currentIndex = 0
+    grid.hovered = -1
     grid.positionViewAtBeginning()
   }
 
@@ -151,11 +176,17 @@ ModalPanel {
         onTextChanged: {
           root.query = input.text
           grid.currentIndex = 0
+          grid.hovered = -1
           grid.positionViewAtBeginning()
         }
 
-        // The arrows move the grid's selection rather than the cursor.
+        // The arrows move the grid's selection rather than the cursor,
+        // from the emoji under the mouse if there is one.
         Keys.onPressed: event => {
+          if (grid.hovered >= 0 && [Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down].includes(event.key)) {
+            grid.currentIndex = grid.hovered
+            grid.hovered = -1
+          }
           switch (event.key) {
           case Qt.Key_Left: grid.moveCurrentIndexLeft(); break
           case Qt.Key_Right: grid.moveCurrentIndexRight(); break
@@ -234,6 +265,11 @@ ModalPanel {
     GridView {
       id: grid
 
+      // The place of the emoji under the mouse, -1 for none. It isn't the
+      // current item, as the grid scrolls to show that one whole: a row cut
+      // at the top or bottom would move as soon as the mouse touched it.
+      property int hovered: -1
+
       // As many columns as fit, sharing the width.
       readonly property int columns: Math.max(1, Math.floor(width / 52))
 
@@ -254,7 +290,7 @@ ModalPanel {
 
         required property var modelData
         required property int index
-        readonly property bool current: GridView.isCurrentItem
+        readonly property bool current: cell.index === root.selected
 
         width: grid.cellWidth - 4
         height: grid.cellHeight - 4
@@ -273,7 +309,8 @@ ModalPanel {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onEntered: grid.currentIndex = cell.index
+          onEntered: grid.hovered = cell.index
+          onExited: if (grid.hovered === cell.index) grid.hovered = -1
           onClicked: root.pick(cell.modelData.emoji)
         }
       }
@@ -300,7 +337,7 @@ ModalPanel {
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         elide: Text.ElideRight
-        text: root.current ? root.current.name : ""
+        text: root.current ? root.nameOf(root.current) : ""
       }
 
       ThemedText {

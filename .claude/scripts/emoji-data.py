@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Writes modules/Emoji/emoji.<language>.tsv, the emoji panel's lists, one per
-language of the shell: every fully-qualified emoji of Unicode's emoji-test.txt
-but the skin-tone variants and the components, in Unicode's order, one per
-line as `group<TAB>emoji<TAB>name<TAB>keywords`, the name and keywords (comma
-separated) in that language from CLDR's annotations (the English ones for an
-emoji it doesn't translate). Downloads both, so it needs the network.
+"""Writes modules/Emoji/emoji.tsv, the emoji panel's list: every fully-qualified
+emoji of Unicode's emoji-test.txt but the skin-tone variants and the
+components, in Unicode's order, one per line as `group<TAB>emoji` then, for
+each language of the shell, a `<TAB>name|keywords` column, the name and
+keywords (comma separated) in that language from CLDR's annotations (the
+English ones for an emoji it doesn't translate). A first line
+`group<TAB>emoji<TAB>en<TAB>fr...` says which language each column is.
+Downloads both, so it needs the network.
 
 Usage (from the repo root):
   .claude/scripts/emoji-data.py
@@ -19,7 +21,7 @@ EMOJI_VERSION = "16.0"
 CLDR_VERSION = "46.0.0"
 # The shell's languages (config/I18n.qml's `supported`).
 LANGUAGES = ["en", "fr", "es"]
-OUT = "modules/Emoji/emoji.{}.tsv"
+OUT = "modules/Emoji/emoji.tsv"
 TEST_URL = f"https://unicode.org/Public/emoji/{EMOJI_VERSION}/emoji-test.txt"
 CLDR_URLS = [
     "https://cdn.jsdelivr.net/npm/cldr-annotations-full@{version}/annotations/{language}/annotations.json",
@@ -66,29 +68,31 @@ def annotations(language):
 
 
 def clean(text):
-    """`text` on one line, without the tabs and commas the file uses."""
-    return " ".join(text.replace("\t", " ").replace(",", " ").split())
+    """`text` on one line, without the tabs, bars and commas the file uses."""
+    return " ".join(text.replace("\t", " ").replace("|", " ").replace(",", " ").split())
 
 
 def main():
     rows = emoji_list()
     english = annotations("en")
-    for language in LANGUAGES:
-        local = annotations(language)
-        lines = []
-        for group, emoji, name in rows:
-            entry = local.get(emoji) or local.get(emoji.replace("️", "")) \
-                or english.get(emoji) or english.get(emoji.replace("️", "")) or {}
+    local = {language: annotations(language) for language in LANGUAGES}
+    lines = ["\t".join(["group", "emoji"] + LANGUAGES)]
+    for group, emoji, name in rows:
+        columns = [group, emoji]
+        for language in LANGUAGES:
+            found = local[language]
+            entry = found.get(emoji) or found.get(emoji.replace("\ufe0f", "")) \
+                or english.get(emoji) or english.get(emoji.replace("\ufe0f", "")) or {}
             title = clean(entry.get("tts", [name])[0])
             keywords = ",".join(clean(word) for word in entry.get("default", []))
-            lines.append(f"{group}\t{emoji}\t{title}\t{keywords}")
-        path = OUT.format(language)
-        with open(path, "w", encoding="utf-8") as out:
-            out.write(f"# The emoji the emoji panel shows in {language} (EmojiPanel.qml), one per line as\n")
-            out.write("# group, emoji, name and keywords, tab-separated; from Unicode's emoji-test.txt\n")
-            out.write(f"# {EMOJI_VERSION} and CLDR {CLDR_VERSION}, written by .claude/scripts/emoji-data.py.\n")
-            out.write("\n".join(lines) + "\n")
-        print(f"{path}: {len(lines)} emoji")
+            columns.append(f"{title}|{keywords}")
+        lines.append("\t".join(columns))
+    with open(OUT, "w", encoding="utf-8") as out:
+        out.write("# The emoji the emoji panel shows (EmojiPanel.qml), one per line as group, emoji\n")
+        out.write("# and a name|keywords column per language, tab-separated; from Unicode's\n")
+        out.write(f"# emoji-test.txt {EMOJI_VERSION} and CLDR {CLDR_VERSION}, written by .claude/scripts/emoji-data.py.\n")
+        out.write("\n".join(lines) + "\n")
+    print(f"{OUT}: {len(rows)} emoji in {', '.join(LANGUAGES)}")
 
 
 main()

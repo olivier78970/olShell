@@ -69,10 +69,10 @@ Binds it can't read (built in a loop, say) are counted against Hyprland's own li
 ## Emoji
 
 The emoji button (󰞅), in the middle of the bar by default, or `quickshell -p . ipc call emoji toggle` (bind it to a key) opens a panel with every emoji, by Unicode's groups: smileys, people, animals, food, travel, activities, objects, symbols and flags, one tab each, plus a **Recent** tab of the emoji copied since the shell started.
-Click an emoji, or select it and press **Enter**, to copy it to the clipboard and close the panel. Type to search every group by the emoji's names and keywords in the shell's language (all the words typed must match, accents don't count: `coeur` finds ❤️ in French); the arrows move the selection, **Tab** and **Shift+Tab** change group, **Escape** or a click outside closes.
+Click an emoji, or select it and press **Enter**, to copy it to the clipboard and close the panel. Type to search every group by the emoji's names and keywords in English, French and Spanish at once (all the words typed must match, accents don't count: `heart`, `coeur` and `corazón` all find ❤️), each emoji being named in the shell's language; the arrows move the selection, **Tab** and **Shift+Tab** change group, **Escape** or a click outside closes.
 `emoji copy "<emoji>"` copies one the same way, and `emoji recent` lists the recent ones as JSON.
 
-The lists are `modules/Emoji/emoji.<language>.tsv`, one per language, made by `.claude/scripts/emoji-data.py` from Unicode's `emoji-test.txt` (Emoji 16.0, without the skin-tone variants) and CLDR's translated names and keywords (an emoji CLDR doesn't translate keeps its English name); the emoji are drawn by the system's emoji font (Noto Color Emoji, `noto-fonts-emoji`).
+The list is [modules/Emoji/emoji.tsv](../modules/Emoji/emoji.tsv), with a name and keywords column per language, made by `.claude/scripts/emoji-data.py` from Unicode's `emoji-test.txt` (Emoji 16.0, without the skin-tone variants) and CLDR's translated names and keywords (an emoji CLDR doesn't translate keeps its English name); the emoji are drawn by the system's emoji font (Noto Color Emoji, `noto-fonts-emoji`).
 
 ## Web apps
 
