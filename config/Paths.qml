@@ -50,6 +50,11 @@ Singleton {
 
   // Lists the Hyprland config's shortcuts, for the shortcuts panel.
   readonly property string listShortcutsScript: Quickshell.shellPath("scripts/list-shortcuts.py")
+  // The emoji the emoji panel shows, with their names and keywords in
+  // `language` (written by .claude/scripts/emoji-data.py).
+  function emojiData(language) {
+    return Quickshell.shellPath("modules/Emoji/emoji." + language + ".tsv")
+  }
   // Gives time zones' UTC offsets now, for the clock panel's clocks tab.
   readonly property string timezonesScript: Quickshell.shellPath("scripts/timezones.py")
 

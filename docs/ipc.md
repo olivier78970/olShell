@@ -10,6 +10,8 @@ quickshell -p . ipc call wallpapers applyLast          # apply the focused monit
 quickshell -p . ipc call launcher toggle               # open/close the application launcher
 quickshell -p . ipc call shortcuts toggle              # open/close the keyboard shortcuts panel
 quickshell -p . ipc call chatai toggle                 # open/close the chat AI panel
+quickshell -p . ipc call emoji toggle                  # open/close the emoji panel
+quickshell -p . ipc call emoji copy "🎉"               # copy an emoji to the clipboard as the panel does (also: recent, the copied ones as JSON)
 quickshell -p . ipc call chatai ask "<question>"       # open it and ask (also: cancel, clear, answer, providers, select <id>, selectModel <id> <model>, selectDefault)
 quickshell -p . ipc call switcher toggle               # open the app switcher, or move on while open (also: next, prev, confirm, close)
 quickshell -p . ipc call settings toggle               # open/close the settings panel

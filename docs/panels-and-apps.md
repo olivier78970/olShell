@@ -66,6 +66,14 @@ A bind's own `description` option, if it has one, is shown instead.
 A Lua config binds each shortcut to a Lua function, so Hyprland itself (`hyprctl binds`) only knows its keys: [scripts/list-shortcuts.py](../scripts/list-shortcuts.py) reads what they do from the config's `hl.bind(...)` calls instead, each time the panel opens, following its `require(...)`s and resolving its string variables (`terminal`, `mainMod`...).
 Binds it can't read (built in a loop, say) are counted against Hyprland's own list of Super binds, and the panel says how many are missing.
 
+## Emoji
+
+The emoji button (󰞅), in the middle of the bar by default, or `quickshell -p . ipc call emoji toggle` (bind it to a key) opens a panel with every emoji, by Unicode's groups: smileys, people, animals, food, travel, activities, objects, symbols and flags, one tab each, plus a **Recent** tab of the emoji copied since the shell started.
+Click an emoji, or select it and press **Enter**, to copy it to the clipboard and close the panel. Type to search every group by the emoji's names and keywords in the shell's language (all the words typed must match, accents don't count: `coeur` finds ❤️ in French); the arrows move the selection, **Tab** and **Shift+Tab** change group, **Escape** or a click outside closes.
+`emoji copy "<emoji>"` copies one the same way, and `emoji recent` lists the recent ones as JSON.
+
+The lists are `modules/Emoji/emoji.<language>.tsv`, one per language, made by `.claude/scripts/emoji-data.py` from Unicode's `emoji-test.txt` (Emoji 16.0, without the skin-tone variants) and CLDR's translated names and keywords (an emoji CLDR doesn't translate keeps its English name); the emoji are drawn by the system's emoji font (Noto Color Emoji, `noto-fonts-emoji`).
+
 ## Web apps
 
 The web apps widget (a globe, first on the left of the bar) opens a menu of web apps, each with its site's icon: sites that each open in a window of their own.
