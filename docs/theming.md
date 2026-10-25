@@ -76,7 +76,8 @@ Its GTK theme mode doesn't do the job: Brave paints most of its interface with i
 Turn Brave off in the settings' **Theme** category (its Other apps tab) if you don't use it.
 
 To set it up, run a theme or wallpaper change once so matugen writes the extension, then in `brave://extensions` turn on **Developer mode**, click **Load unpacked** and pick `~/.local/share/olShell/brave-theme`.
-Brave reads a theme as it loads it: applying a wallpaper or a theme re-writes the file, but the browser only picks up the new colors when it restarts, or at once with the extension's reload button in `brave://extensions`.
+Brave reads a theme as it loads it: applying a wallpaper or a theme re-writes the file, but the browser only picks up the new colors when it restarts, or at once by loading the folder again with **Load unpacked**.
+A theme isn't listed in `brave://extensions` (the extensions page leaves themes out): it shows in Brave's **Settings › Appearance › Theme**, whose **Reset** button removes it.
 Brave also keeps the theme it built in `Cached Theme.pak`, in the same folder, and loads that at startup instead of the manifest, so the template's hook deletes it each time the manifest is written.
 Web pages aren't touched, and nor is Brave's own new tab page image.
 
