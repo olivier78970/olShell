@@ -87,6 +87,10 @@ PanelWindow {
   // `event.accepted = true` to consume it.
   signal keyPressed(var event)
 
+  // Set once the panel is built: a lazily built panel's `open` changes while
+  // it is being built, and it opens in Component.onCompleted instead, once.
+  property bool built: false
+
   // Follows the focused monitor (or the anchor's screen) while open, so a
   // panel that isn't attached to a bar moves with the mouse to another monitor.
   screen: root.targetScreen
@@ -142,7 +146,7 @@ PanelWindow {
   visible: root.shown && !root.attached
 
   onOpenChanged: {
-    if (root.open) root.opened()
+    if (root.open && root.built) root.opened()
     root.animateProgress()
   }
 
@@ -151,6 +155,7 @@ PanelWindow {
   // from the start, so `open` and `hostSlot` never change for it: it opens
   // here instead.
   Component.onCompleted: {
+    root.built = true
     root.animateProgress()
     if (!root.open) return
     root.opened()
