@@ -6,7 +6,8 @@ import qs.services
 
 // Output volume percentage (on a side bar, a ring filled to it around the
 // icon, the figure in a popup on hover); scroll over it to adjust, click to
-// open or close pavucontrol, middle-click to mute or unmute.
+// open or close pavucontrol, middle-click to mute or unmute, right-click for a
+// menu muting or unmuting.
 Item {
   id: root
 
@@ -55,16 +56,57 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
     // Left: closes pavucontrol if it's running, opens it otherwise. Middle:
-    // mutes or unmutes (the OSD shows it, as for the other ways).
+    // mutes or unmutes (the OSD shows it). Right: the menu.
     onClicked: mouse => {
-      if (mouse.button === Qt.MiddleButton) Audio.toggleMute()
-      else Quickshell.execDetached(["sh", "-c", "pkill -x pavucontrol || exec pavucontrol"])
+      if (mouse.button === Qt.RightButton) {
+        popup.dismiss()
+        menu.open = !menu.open
+      } else if (mouse.button === Qt.MiddleButton) Audio.toggleMute()
+      else {
+        menu.open = false
+        root.mixer()
+      }
     }
     onWheel: wheel => Audio.adjust((wheel.angleDelta.y / 120) * root.step)
+  }
+
+  // Opens pavucontrol, or closes it when it's running.
+  function mixer() {
+    Quickshell.execDetached(["sh", "-c", "pkill -x pavucontrol || exec pavucontrol"])
+  }
+
+  PopupMenu {
+    id: menu
+    anchorItem: root
+    alignCenter: true
+
+    PopupTitle {
+      text: I18n.tr("settings.widget.volume")
+      inMenu: true
+    }
+
+    // Mutes or unmutes (the OSD shows it, as for the other ways).
+    PowerMenuOption {
+      icon: Audio.muted ? "󰕾" : "󰝟"
+      label: I18n.tr(Audio.muted ? "volume.unmute" : "volume.mute")
+      onClicked: {
+        menu.open = false
+        Audio.toggleMute()
+      }
+    }
+
+    PowerMenuOption {
+      icon: "󰕾"
+      label: I18n.tr("volume.mixer")
+      onClicked: {
+        menu.open = false
+        root.mixer()
+      }
+    }
   }
 
   // The volume, on a side bar, where only the ring shows it.

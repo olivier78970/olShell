@@ -48,5 +48,8 @@ for other in $ids; do
   grep -qE "\b$other: \"" modules/Settings/BarLayoutEditor.qml || { printf '  MISSING  %s: no BarLayoutEditor icon\n' "$other"; missing=$((missing + 1)); }
 done
 
+# The click rules, for this widget (check-clicks.py with no argument checks them all).
+(set -o pipefail; "$(dirname "$0")/check-clicks.py" "$component" | sed 's/^click rules:/  --       click rules:/') || missing=$((missing + 1))
+
 echo "Also check by hand: the Layout paragraph's widget names in docs/settings.md, and the widget on a left/right bar (BarStack)."
 [ "$missing" -eq 0 ]

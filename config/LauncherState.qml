@@ -12,6 +12,9 @@ Singleton {
   id: root
 
   property bool visible: false
+  // The tab the next opening shows (one of Settings.choices.launcherTab), in
+  // place of the one chosen in the settings; empty for that one.
+  property string startTab: ""
   // The desktop entry ids of the applications (and games) last opened from
   // the launcher, the latest first, at most `maxRecent`.
   readonly property var recentApps: file.adapter.recentApps
@@ -20,12 +23,18 @@ Singleton {
 
   function toggle() {
     // Asked again while it is still waiting to open: cancel that.
-    if (Panels.cancel(root)) return
-    if (root.visible) {
+    if (Panels.cancel(root) || root.visible) {
+      root.startTab = ""
       root.visible = false
       return
     }
     Panels.open(root, () => root.visible = true)
+  }
+
+  // Opens the launcher on `tab`, or closes it when it's open.
+  function toggleTab(tab) {
+    root.startTab = tab
+    root.toggle()
   }
 
   // Puts an application first in the history (moving it up if it was there).

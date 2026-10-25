@@ -92,8 +92,10 @@ ModalPanel {
   open: LauncherState.visible
   onCloseRequested: LauncherState.visible = false
   onOpened: {
-    // The tab chosen in the settings (their ids are in the tabs' order).
-    root.switchTab(Math.max(0, Settings.choices.launcherTab.indexOf(Settings.launcherTab)))
+    // The tab asked for (the web apps widget's), else the one chosen in the
+    // settings (their ids are in the tabs' order).
+    root.switchTab(Math.max(0, Settings.choices.launcherTab.indexOf(LauncherState.startTab || Settings.launcherTab)))
+    LauncherState.startTab = ""
     root.fileResults = []
     root.fileResultsQuery = ""
     input.text = ""
