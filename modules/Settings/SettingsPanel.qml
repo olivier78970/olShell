@@ -16,6 +16,9 @@ import qs.services
 // dropdown row (Up/Down then move in it, Enter picks, Escape closes just the
 // list); on the font style row, Left/Right move between the buttons and Enter
 // switches one. The rows are grouped in categories, chosen with the icons on the left.
+// Ctrl+F or / types in the search above them, which lists the matching rows
+// of every page in place of the current page's: Down or Enter goes to them,
+// Escape clears it, Enter (or a click) opens a row's page on it.
 ModalPanel {
   id: root
 
@@ -550,6 +553,7 @@ ModalPanel {
 
   // An "action" row's button: what it says, and what it does.
   function actionButtonText(row) {
+    if (row.goTo) return I18n.tr("settings.search.open")
     if (row.key === "notificationActions") return I18n.tr("settings.notificationActions.manage", NotificationActions.rules.length)
     if (row.key === "addEngine") return I18n.tr("settings.launcherEngines.addButton")
     if (row.key === "addWebApp") return I18n.tr("settings.launcherEngines.addButton")
@@ -604,6 +608,7 @@ ModalPanel {
   }
 
   function runAction(row) {
+    if (row.goTo) root.goTo(row.goTo, row.goToKey ?? "")
     if (row.key === "notificationActions") NotificationActionsState.open(true)
     if (row.key === "addEngine") root.addEngine()
     if (row.key === "addWebApp") root.addWebApp()
@@ -851,9 +856,17 @@ ModalPanel {
   // The rows of the current page; `selected` indexes into these.
   // (The Widgets and Panels tabs show the picked page under the dropdown picking it.)
   // (A row with an `available` function is left out while it returns false.)
-  readonly property var rows: root.allRows.filter(row => (row.category === root.page
+  // (While searching, the rows found on every page, see SettingsPages.search().)
+  readonly property var rows: root.searching ? SettingsPages.search(root.query)
+    : root.allRows.filter(row => (row.category === root.page
     || (root.page === "widgets" && row.category === SettingsPanelState.widgetPage)
     || (root.page === "panelOptions" && row.category === SettingsPanelState.panelPage)) && (row.available?.() ?? true))
+  // What is typed in the search, and whether it lists rows (the panel is
+  // built anew each time it opens, so a search is gone once it closes).
+  readonly property string query: searchInput.text
+  readonly property bool searching: root.query.trim() !== ""
+  // A new search starts on its first row.
+  onQueryChanged: root.selected = 0
   // The page whose settings the reset button acts on: the page
   // shown, or the picked widget's or panel's on the Widgets or Panels tab.
   readonly property string settingsPage: root.page === "widgets" ? SettingsPanelState.widgetPage
@@ -878,6 +891,7 @@ ModalPanel {
   onRowsChanged: {
     const index = root.rows.findIndex(row => row.key === root.selectedKey)
     if (index >= 0 && index !== root.selected) root.selected = index
+    else if (root.selected >= root.rows.length && root.rows.length > 0) root.selected = root.rows.length - 1
     else root.syncSelectedKey()
   }
   // The row whose list of options is showing (its key, "" for none), and the
@@ -920,6 +934,7 @@ ModalPanel {
     else if (root.confirmProfile !== "") root.confirmProfile = ""
     else if (root.editKey !== "") root.editKey = ""
     else if (root.openKey !== "") root.openKey = ""
+    else if (root.query !== "") root.clearSearch()
     else SettingsPanelState.visible = false
   }
   onOpened: {
@@ -928,6 +943,7 @@ ModalPanel {
       SettingsPanelState.resuming = false
       return
     }
+    searchInput.text = ""
     root.selected = 0
     root.openKey = ""
     root.refreshFontOptions()
@@ -946,6 +962,7 @@ ModalPanel {
   }
 
   function selectCategory(index) {
+    root.clearSearch()
     root.pendingKey = null
     root.openKey = ""
     root.editKey = ""
@@ -964,6 +981,25 @@ ModalPanel {
     // A click sets the tab bar's own index (no longer bound): keep it right.
     tabBar.currentIndex = root.tab
     root.selected = 0
+  }
+
+  // Ends the search: the current page's rows again, the keys on them.
+  function clearSearch() {
+    searchInput.text = ""
+    if (searchInput.activeFocus) root.focusTarget.forceActiveFocus()
+  }
+
+  // Shows page `pageId` (a widget's or panel's through its tab), on the row
+  // `key` if it's there (a search's row, opened on its page).
+  function goTo(pageId, key) {
+    const tabId = SettingsPages.widgetPages.some(page => page.id === pageId) ? "widgets"
+      : SettingsPages.panelPages.some(page => page.id === pageId) ? "panelOptions" : pageId
+    if (tabId === "widgets") SettingsPanelState.widgetPage = pageId
+    if (tabId === "panelOptions") SettingsPanelState.panelPage = pageId
+    root.selectCategory(root.categories.findIndex(category => category.id === tabId || (category.tabs ?? []).some(tab => tab.id === tabId)))
+    root.selectTab(Math.max(0, root.tabs.findIndex(tab => tab.id === tabId)))
+    const index = root.rows.findIndex(row => row.key === key)
+    if (index >= 0) root.selected = index
   }
 
   // How many things of a row the keys can be on (see toggleFocus): its
@@ -1069,6 +1105,30 @@ ModalPanel {
     }
     if (root.openKey !== "") {
       root.listKeyPressed(event)
+      return
+    }
+    // While typing in the search, the keys it leaves are not the panel's
+    // either (Left at the start of the text, say).
+    if (searchInput.activeFocus) {
+      event.accepted = true
+      return
+    }
+    // Ctrl+F or /: type in the search.
+    if ((event.key === Qt.Key_F && (event.modifiers & Qt.ControlModifier)) || event.text === "/") {
+      searchInput.forceActiveFocus()
+      searchInput.selectAll()
+      event.accepted = true
+      return
+    }
+    // A search finding nothing has no row for the keys (Escape still clears it).
+    if (root.rows.length === 0) {
+      if (event.key !== Qt.Key_Escape) event.accepted = true
+      return
+    }
+    // Up on a search's first row: back to the search.
+    if (root.searching && event.key === Qt.Key_Up && root.selected === 0) {
+      searchInput.forceActiveFocus()
+      event.accepted = true
       return
     }
     const big = (event.modifiers & Qt.ShiftModifier) !== 0
@@ -1270,6 +1330,71 @@ ModalPanel {
     anchors.topMargin: 20
     spacing: 6
 
+    // The search, as wide as the category buttons under it, its icon in line
+    // with theirs. Typing lists the matching rows of every page.
+    Rectangle {
+      id: searchBox
+      width: 44 + railLabels.implicitWidth + 14
+      height: 40
+      radius: Theme.radiusFor(height)
+      color: "transparent"
+      border.color: searchInput.activeFocus ? Theme.accentColor : Theme.outlineColor
+      border.width: 1
+
+      ThemedText {
+        id: searchIcon
+        width: 44
+        horizontalAlignment: Text.AlignHCenter
+        anchors.verticalCenter: parent.verticalCenter
+        text: "󰍉"
+        color: searchInput.activeFocus || root.searching ? Theme.accentColor : Theme.textColor
+        opacity: searchInput.activeFocus || root.searching ? 1 : 0.7
+      }
+
+      TextInput {
+        id: searchInput
+        anchors.left: searchIcon.right
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        clip: true
+        color: Theme.textColor
+        selectionColor: Theme.accentColor
+        selectedTextColor: Theme.backgroundColor
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize()
+        font.weight: Theme.fontWeight
+        font.letterSpacing: Theme.fontLetterSpacing
+
+        // Down or Enter: on to the rows found; Escape: the search cleared,
+        // the keys back on the page.
+        Keys.onPressed: event => {
+          if (event.key === Qt.Key_Down || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            if (root.searching && root.rows.length > 0) {
+              root.selected = 0
+              root.focusTarget.forceActiveFocus()
+            }
+            event.accepted = true
+          } else if (event.key === Qt.Key_Escape) {
+            root.clearSearch()
+            root.focusTarget.forceActiveFocus()
+            event.accepted = true
+          } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+            event.accepted = true
+          }
+        }
+
+        ThemedText {
+          visible: searchInput.text.length === 0
+          anchors.verticalCenter: parent.verticalCenter
+          width: parent.width
+          elide: Text.ElideRight
+          text: I18n.tr("settings.search.placeholder")
+          opacity: 0.5
+        }
+      }
+    }
+
     Repeater {
       model: root.categories
 
@@ -1346,6 +1471,19 @@ ModalPanel {
     z: 30
   }
 
+  // A click anywhere while typing in the search gives the keys back to the
+  // page, then goes on to what is under it (the search itself takes them
+  // again).
+  MouseArea {
+    anchors.fill: parent
+    z: 40
+    enabled: searchInput.activeFocus
+    onPressed: mouse => {
+      root.focusTarget.forceActiveFocus()
+      mouse.accepted = false
+    }
+  }
+
   // Clicking anywhere else closes an open list (the click goes no further).
   // Above the rows, whose scrolling area would otherwise take the click.
   MouseArea {
@@ -1374,14 +1512,15 @@ ModalPanel {
       ThemedText {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        text: root.categories[root.category].label
+        text: root.searching ? I18n.tr("settings.search.title") : root.categories[root.category].label
         sizeScale: 1.2
       }
 
       PowerMenuOption {
         id: resetButton
-        // The profiles page holds no settings to reset.
-        visible: root.page !== "profiles"
+        // The profiles page holds no settings to reset, and a search's rows
+        // no one page.
+        visible: root.page !== "profiles" && !root.searching
         anchors.right: parent.right
         label: I18n.tr("settings.reset")
         // This page only: to the current profile's settings.
@@ -1392,7 +1531,7 @@ ModalPanel {
     // The tabs of a category that has them.
     TabBar {
       id: tabBar
-      visible: root.tabs.length > 0
+      visible: root.tabs.length > 0 && !root.searching
       width: parent.width
       model: root.tabs
       maxVisible: 6
@@ -1486,7 +1625,18 @@ ModalPanel {
                 text: row.title
                 sizeScale: 0.75
                 font.bold: true
-                opacity: 0.7
+                color: titleMouse.containsMouse ? Theme.accentColor : Theme.textColor
+                opacity: titleMouse.containsMouse ? 1 : 0.7
+
+                // A search's title (where its rows are) opens that page.
+                MouseArea {
+                  id: titleMouse
+                  anchors.fill: parent
+                  enabled: root.searching
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.goTo(row.modelData.category, "")
+                }
               }
 
               Rectangle {
@@ -1527,7 +1677,8 @@ ModalPanel {
                 highlightLabel: row.modelData.profile !== undefined && row.modelData.profile === Profiles.current && Profiles.modified
                 selected: root.selected === row.index
                 focusIndex: row.modelData.profile !== undefined && root.showSelection ? root.toggleFocus : 0
-                onActivated: root.selected = row.index
+                // A search's row opens its page, wherever it's clicked.
+                onActivated: row.modelData.goTo ? root.runAction(row.modelData) : root.selected = row.index
                 onPressed: index => row.modelData.profile !== undefined ? root.pressProfile(row.modelData, index) : root.runAction(row.modelData)
               }
 
@@ -1835,6 +1986,16 @@ ModalPanel {
             }
           }
         }
+      }
+
+      // A search that finds nothing says so.
+      ThemedText {
+        visible: root.searching && root.rows.length === 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 20
+        text: I18n.tr("settings.search.none", root.query.trim())
+        opacity: 0.6
       }
 
       // Where the visible part is, when the rows don't all fit.
