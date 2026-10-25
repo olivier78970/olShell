@@ -29,7 +29,7 @@ For the features that use them:
 - [adw-gtk3](https://github.com/lassekongo83/adw-gtk3) (`adw-gtk-theme`) and `gsettings` (`glib2`) for GTK apps in the shell's colors (see [GTK](docs/theming.md#gtk))
 - optionally [qt6ct](https://github.com/trialuser02/qt6ct) and [qt5ct](https://sourceforge.net/projects/qt5ct/) for Qt apps in the shell's colors (see [Qt](docs/theming.md#qt))
 - `secret-tool` (`libsecret`) and a Secret Service keyring (GNOME Keyring, KWallet...) for the chat AI panel's API keys, and an account with an AI provider or a local server (see [Chat AI](docs/chat-ai.md#chat-ai))
-- optionally [Zen browser](https://zen-browser.app) and [starship](https://starship.rs), which matugen can color with the shell's palette (see [Zen browser](docs/theming.md#zen-browser))
+- optionally [Zen browser](https://zen-browser.app), [Brave](https://brave.com) and [starship](https://starship.rs), which matugen can color with the shell's palette (see [Zen browser](docs/theming.md#zen-browser) and [Brave](docs/theming.md#brave))
 
 ## Running
 
@@ -48,7 +48,7 @@ quickshell -c <name>
 - [Settings and localization](docs/settings.md): every setting, the settings panel, the `settings` IPC calls for scripts, and the languages.
 - [IPC](docs/ipc.md): the calls to bind to keys.
 - [Chat AI](docs/chat-ai.md): the question-and-answer panel, its providers and what the AI may read or run.
-- [Theming](docs/theming.md): the themes, matugen, and Zen, alacritty, GTK and Qt colored from them.
+- [Theming](docs/theming.md): the themes, matugen, and Zen, Brave, alacritty, GTK and Qt colored from them.
 - [Panels and apps](docs/panels-and-apps.md): the launcher, app switcher, shortcuts, emoji, clock popup, wallpapers, web apps, zoom, the widgets' click actions and the audio mixer.
 - [System](docs/system.md): performance figures, network, Bluetooth, screenshots, notifications, power, the lock screen, polkit and the lock keys OSD.
 - [Structure](docs/structure.md): every file and what it is for (generated from the files' own comments).

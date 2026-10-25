@@ -17,8 +17,9 @@ set = false
 #   - exact: true when a fixed or custom theme's apps get its exact colors,
 #     given as background, text, textVariant (secondary text), pill, pillLow,
 #     pillHigh (the widget background, a step lower and higher), border,
-#     accent and onAccent (text on the accent), and backgroundStripped and
-#     textStripped (without the #). The apps' templates use them for those
+#     accent and onAccent (text on the accent), backgroundStripped and
+#     textStripped (without the #), and backgroundRgb, textRgb, textVariantRgb,
+#     pillRgb, pillHighRgb and accentRgb (as "r, g, b"). The apps' templates use them for those
 #     roles through `<* if {{olshell.exact}} *>...<* else *>...<* endif *>`,
 #     and matugen's own colors otherwise. The shell's own palette
 #     (quickshell-theme.json.template) is always matugen's.
@@ -46,6 +47,15 @@ output_path = "~/.config/zen/aakh3g1s.Default (release)/chrome/userChrome.css"
 [templates.zengmail]
 input_path = "zen-theme.css.template"
 output_path = "~/.config/zen/q8dicdeq.gmail/chrome/userChrome.css"
+
+# Brave's interface (window, tabs, toolbar, address bar and new tab page), as
+# a theme extension: load ~/.local/share/olShell/brave-theme once with "Load
+# unpacked" in brave://extensions (developer mode on). Brave only reads a
+# theme as it loads it, so it gets new colors once it restarts (or the
+# extension is reloaded there).
+[templates.brave]
+input_path = "brave-theme.json.template"
+output_path = "~/.local/share/olShell/brave-theme/manifest.json"
 
 [templates.alacritty]
 input_path = "alacritty-theme.toml.template"

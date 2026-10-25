@@ -82,6 +82,7 @@ Singleton {
   readonly property var apps: [
     Settings.matugenHyprland ? "hyprland" : "",
     Settings.matugenZen ? "zen" : "",
+    Settings.matugenBrave ? "brave" : "",
     Settings.matugenAlacritty ? "alacritty" : "",
     Settings.matugenGtk ? "gtk" : "",
     Settings.matugenQt ? "qt" : "",
@@ -140,6 +141,10 @@ Singleton {
 
     function onMatugenZenChanged() {
       if (Settings.matugenZen) appsSettled.restart()
+    }
+
+    function onMatugenBraveChanged() {
+      if (Settings.matugenBrave) appsSettled.restart()
     }
 
     function onMatugenAlacrittyChanged() {
@@ -209,6 +214,11 @@ Singleton {
       // Hyprland's colors are written without the #.
       data.backgroundStripped = data.background.slice(1)
       data.textStripped = data.text.slice(1)
+      // Brave's theme takes its colors as [r, g, b].
+      for (const role of ["background", "text", "textVariant", "pill", "pillHigh", "accent"]) {
+        const color = Qt.color(data[role])
+        data[role + "Rgb"] = [color.r, color.g, color.b].map(c => Math.round(c * 255)).join(", ")
+      }
     }
     return ["--import-json-string", JSON.stringify({ olshell: data })]
   }
