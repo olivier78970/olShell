@@ -1677,9 +1677,10 @@ ModalPanel {
                 highlightLabel: row.modelData.profile !== undefined && row.modelData.profile === Profiles.current && Profiles.modified
                 selected: root.selected === row.index
                 focusIndex: row.modelData.profile !== undefined && root.showSelection ? root.toggleFocus : 0
-                // A search's row opens its page, wherever it's clicked.
-                onActivated: row.modelData.goTo ? root.runAction(row.modelData) : root.selected = row.index
-                onPressed: index => row.modelData.profile !== undefined ? root.pressProfile(row.modelData, index) : root.runAction(row.modelData)
+                // A search's row opens its page, wherever it's clicked: once the
+                // click is over, since opening it takes this row away.
+                onActivated: row.modelData.goTo ? Qt.callLater(root.runAction, row.modelData) : root.selected = row.index
+                onPressed: index => row.modelData.goTo ? undefined : row.modelData.profile !== undefined ? root.pressProfile(row.modelData, index) : root.runAction(row.modelData)
               }
 
               SettingSlider {
