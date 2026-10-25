@@ -112,6 +112,53 @@ Singleton {
     .concat(root.widgetPages.map(page => page.id))
     .concat(root.panelPages.map(page => page.id))
 
+  // Where page `pageId` is, as the names leading to it: its category, its
+  // tab, then the widget or panel it's the page of ([] for no such page).
+  function locationOf(pageId) {
+    const widget = root.widgetPages.find(page => page.id === pageId)
+    const panel = root.panelPages.find(page => page.id === pageId)
+    const tabId = widget ? "widgets" : panel ? "panelOptions" : pageId
+    for (const category of root.categories) {
+      if (category.id === tabId) return [category.label]
+      const tab = (category.tabs ?? []).find(candidate => candidate.id === tabId)
+      if (tab) return [category.label, tab.label].concat(widget ? [widget.label] : panel ? [panel.label] : [])
+    }
+    return []
+  }
+
+  // `text` in lower case and without its accents, so a search for "theme"
+  // finds "Thème".
+  function fold(text) {
+    return String(text ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  }
+
+  // The settings panel's search: a row opening its page for each row of
+  // every page holding every word of `query` in its name, tooltip, check
+  // boxes, key or the names of its page, in the order of the pages (the page
+  // opens on that row, `goToKey`). A page whose names hold them all also
+  // gets a row opening it, first (for the pages of lists, like the profiles,
+  // which aren't searched row by row). The first row of each page is titled
+  // with where that page is. [] for an empty query.
+  function search(query) {
+    const words = root.fold(query).split(/\s+/).filter(word => word !== "")
+    if (words.length === 0) return []
+    const holdsAll = text => {
+      const folded = root.fold(text)
+      return words.every(word => folded.includes(word))
+    }
+    let found = []
+    for (const pageId of root.pages) {
+      const where = root.locationOf(pageId)
+      const place = where.join(" ")
+      const matching = root.rows.filter(row => row.category === pageId && (row.available?.() ?? true)
+        && holdsAll([row.label, row.tooltip, row.key, place].concat((row.toggles ?? []).map(toggle => toggle.text)).join(" ")))
+      const opener = holdsAll(place) ? [{ key: "goto:" + pageId, category: pageId, kind: "action", goTo: pageId, label: I18n.tr("settings.search.page") }] : []
+      const jumps = matching.map(row => ({ key: "goto:" + row.key, category: pageId, kind: "action", goTo: pageId, goToKey: row.key, label: row.label || where[where.length - 1] }))
+      found = found.concat(opener.concat(jumps).map((row, index) => Object.assign(row, { title: index === 0 ? where.join("  ›  ") : "" })))
+    }
+    return found
+  }
+
   // The rows of every category that hold a setting of their own, top to
   // bottom (the panel adds its engine, added-app and defaults rows). Sliders
   // take their range from Settings.limits.
