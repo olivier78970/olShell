@@ -28,7 +28,8 @@ INTRO = {
 # whose first comment isn't about the file.
 FALLBACK = {
     "shell.qml": "The shell root: instantiates every module and the services that must exist from startup.",
-    "matugen/quickshell.toml": "The matugen config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, GTK, Qt, starship).",
+    "matugen/quickshell.toml": "The matugen config: the shell's palette and the other apps' colors (Hyprland, Zen, Brave, alacritty, GTK, Qt, starship).",
+    "matugen/brave-theme.json.template": "Template of the theme extension coloring Brave.",
     "matugen/quickshell-theme.json.template": "Template of the shell's palette (written to config/GeneratedColors.json).",
     "matugen/hyprland-theme.lua.template": "Template of Hyprland's colors (~/.config/hypr/colors.lua).",
     "matugen/zen-theme.css.template": "Template coloring Zen browser.",

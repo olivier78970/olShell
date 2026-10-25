@@ -247,6 +247,7 @@ Singleton {
     { key: "matugenAppsRow", category: "themeApps", kind: "toggles", label: I18n.tr("settings.matugenApps"), toggles: [
       { key: "matugenHyprland", text: "Hyprland" },
       { key: "matugenZen", text: "Zen" },
+      { key: "matugenBrave", text: "Brave" },
       { key: "matugenAlacritty", text: "Alacritty" },
       { key: "matugenGtk", text: "GTK" },
       { key: "matugenQt", text: "Qt" },

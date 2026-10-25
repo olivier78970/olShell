@@ -402,6 +402,7 @@ Singleton {
   // scripts/matugen-run.py). One turned off keeps the colors it last got.
   readonly property bool matugenHyprland: root.valid("matugenHyprland", file.adapter.matugenHyprland)
   readonly property bool matugenZen: root.valid("matugenZen", file.adapter.matugenZen)
+  readonly property bool matugenBrave: root.valid("matugenBrave", file.adapter.matugenBrave)
   readonly property bool matugenAlacritty: root.valid("matugenAlacritty", file.adapter.matugenAlacritty)
   readonly property bool matugenGtk: root.valid("matugenGtk", file.adapter.matugenGtk)
   readonly property bool matugenQt: root.valid("matugenQt", file.adapter.matugenQt)
@@ -1350,6 +1351,7 @@ Singleton {
       property string themePill: Defaults.values.themePill
       property bool matugenHyprland: Defaults.values.matugenHyprland
       property bool matugenZen: Defaults.values.matugenZen
+      property bool matugenBrave: Defaults.values.matugenBrave
       property bool matugenAlacritty: Defaults.values.matugenAlacritty
       property bool matugenGtk: Defaults.values.matugenGtk
       property bool matugenQt: Defaults.values.matugenQt

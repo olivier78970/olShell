@@ -21,7 +21,7 @@ The palettes are the themes' published colors, as they were written in; check th
 
 Colors come from `config/GeneratedColors.json`, which matugen writes from the current wallpaper. The file is git-ignored; until it exists, the defaults in [config/GeneratedColors.qml](../config/GeneratedColors.qml) are used.
 
-[matugen/quickshell.toml](../matugen/quickshell.toml) is a dedicated matugen config holding this shell's templates (its palette, and the colors of Hyprland, [Zen](#zen-browser), [alacritty](#alacritty), [GTK](#gtk), [Qt](#qt) and starship), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`.
+[matugen/quickshell.toml](../matugen/quickshell.toml) is a dedicated matugen config holding this shell's templates (its palette, and the colors of Hyprland, [Zen](#zen-browser), [Brave](#brave), [alacritty](#alacritty), [GTK](#gtk), [Qt](#qt) and starship), so applying a wallpaper or a theme doesn't also re-theme every app in your global `~/.config/matugen/config.toml`.
 [services/Matugen.qml](../services/Matugen.qml) runs it:
 
 - applying a wallpaper regenerates everything from it when **Automatique** is selected; a fixed theme ignores the wallpaper, which is only remembered;
@@ -67,6 +67,17 @@ Zen reads `userChrome.css` once, at startup: applying a wallpaper or a theme re-
 The template sets Zen's accent color (`--zen-primary-color`, which every other `--zen-colors-*` value is mixed from) and the surfaces Zen hardcodes rather than deriving from it, all in `!important` because Zen writes some of them as inline styles.
 It replaces the workspace background chosen in Zen's settings.
 Web pages aren't touched — this colors the browser, not what it displays.
+
+## Brave
+
+[matugen/brave-theme.json.template](../matugen/brave-theme.json.template) colors [Brave](https://brave.com)'s interface (the window, tabs, toolbar, address bar and new tab page background) with the theme the shell is using, in the Automatic theme's mode.
+Brave, like the Chromium browsers, takes its colors from a theme extension, so the template is that extension's `manifest.json`, written to `~/.local/share/olShell/brave-theme/`.
+Its GTK theme mode doesn't do the job: Brave paints most of its interface with its own colors whatever the GTK theme.
+Turn Brave off in the settings' **Theme** category (its Other apps tab) if you don't use it.
+
+To set it up, run a theme or wallpaper change once so matugen writes the extension, then in `brave://extensions` turn on **Developer mode**, click **Load unpacked** and pick `~/.local/share/olShell/brave-theme`.
+Brave reads a theme as it loads it: applying a wallpaper or a theme re-writes the file, but the browser only picks up the new colors when it restarts, or at once with the extension's reload button in `brave://extensions`.
+Web pages aren't touched, and nor is Brave's own new tab page image.
 
 ## Alacritty
 

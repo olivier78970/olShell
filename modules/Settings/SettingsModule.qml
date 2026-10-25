@@ -119,7 +119,7 @@ Scope {
     // windowInactiveOpacitySame, volumeOsdSame, lockKeysOsdSame,
     // curvedJoins,
     // curvedJoinsRadiusSame, zoomBlocksInput, fontItalic, fontUnderline,
-    // fontOutline, matugenHyprland, matugenZen, matugenAlacritty, matugenGtk,
+    // fontOutline, matugenHyprland, matugenZen, matugenBrave, matugenAlacritty, matugenGtk,
     // matugenQt, matugenStarship, appFontSync, themeExactApps, lockStayAwakeFullscreen, powerConfirm, bingWallpapers,
     // chatAiListDir, chatAiFindFiles, chatAiSearchText, chatAiReadFile,
     // chatAiWebSearch, chatAiWebFetch, chatAiShellDocs, chatAiShellIpc,

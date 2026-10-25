@@ -96,6 +96,7 @@ Singleton {
     themePill: "normal",
     matugenHyprland: true,
     matugenZen: true,
+    matugenBrave: true,
     matugenAlacritty: true,
     matugenGtk: true,
     matugenQt: true,

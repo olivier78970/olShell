@@ -255,13 +255,14 @@ Python helpers the QML runs through `Process`.
 Everything matugen: its config and every template it fills.
 
 - [`alacritty-theme.toml.template`](../matugen/alacritty-theme.toml.template): Template coloring alacritty.
+- [`brave-theme.json.template`](../matugen/brave-theme.json.template): Template of the theme extension coloring Brave.
 - [`gtk-theme.css.template`](../matugen/gtk-theme.css.template): Template of the GTK named colors (libadwaita, and the olShell theme's).
 - [`gtk3-theme-index.css.template`](../matugen/gtk3-theme-index.css.template): The olShell GTK theme's GTK3 part (adw-gtk3-dark, or adw-gtk3 in light, plus the colors).
 - [`gtk4-theme-index.css.template`](../matugen/gtk4-theme-index.css.template): The olShell GTK theme's GTK4 part, for plain GTK4 apps.
 - [`hyprland-theme.lua.template`](../matugen/hyprland-theme.lua.template): Template of Hyprland's colors (~/.config/hypr/colors.lua).
 - [`qt-colors.conf.template`](../matugen/qt-colors.conf.template): The olShell qt5ct / qt6ct color scheme, for Qt apps.
 - [`quickshell-theme.json.template`](../matugen/quickshell-theme.json.template): Template of the shell's palette (written to config/GeneratedColors.json).
-- [`quickshell.toml`](../matugen/quickshell.toml): The matugen config: the shell's palette and the other apps' colors (Hyprland, Zen, alacritty, GTK, Qt, starship).
+- [`quickshell.toml`](../matugen/quickshell.toml): The matugen config: the shell's palette and the other apps' colors (Hyprland, Zen, Brave, alacritty, GTK, Qt, starship).
 - [`starship-theme.toml.template`](../matugen/starship-theme.toml.template): Template of the starship prompt (~/.config/starship/starship.toml).
 - [`zen-theme.css.template`](../matugen/zen-theme.css.template): Template coloring Zen browser.
 
