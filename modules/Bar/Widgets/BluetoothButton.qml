@@ -72,10 +72,13 @@ Item {
 
   // Pairs a nearby device; finishPairing() connects it once it's paired.
   // blueman's agent asks for a PIN or a confirmation when the device needs
-  // one.
+  // one. A pairing still waiting (for a confirmation never given, say) is
+  // cancelled first, so a click on another device always does something.
   function pair(device) {
-    if (root.pairingDevice !== null) return
+    const pending = root.pairingDevice
+    if (pending === device) return
     root.pairingDevice = device
+    if (pending !== null && pending.pairing) pending.cancelPair()
     device.pair()
   }
 
@@ -160,11 +163,20 @@ Item {
       checked: root.on
       switchEnabled: root.adapter !== null
       onToggled: root.adapter.enabled = !root.adapter.enabled
+
+      // Hovering any entry but a device closes the open device submenu.
+      HoverHandler {
+        onHoveredChanged: if (hovered) menu.activeEntry = null
+      }
     }
 
     PowerMenuOption {
       enabled: root.on
       label: I18n.tr(root.adapter?.discoverable ? "bluetooth.hide" : "bluetooth.discoverable")
+
+      HoverHandler {
+        onHoveredChanged: if (hovered) menu.activeEntry = null
+      }
       onClicked: {
         menu.open = false
         root.adapter.discoverable = !root.adapter.discoverable
@@ -211,36 +223,55 @@ Item {
           onTriggered: deviceRow.confirmingForget = false
         }
 
-        PopupMenu {
-          anchorItem: deviceRow
-          parentMenu: menu
-          // The menu already closes on a click outside, taking it along.
-          grabFocus: false
-          open: menu.open && menu.activeEntry === deviceRow
-          onOpenChanged: if (!open) deviceRow.confirmingForget = false
+        // Its submenu, created the first time it opens and then kept, as
+        // the tray's are: the rows are rebuilt whenever the adapter's device
+        // list changes (as a scan finds devices), and a submenu created with
+        // each row counted as shown for a moment, throwing the bar's input
+        // mask around as the list filled in.
+        Loader {
+          id: submenuLoader
+          active: false
+          sourceComponent: Component {
+            PopupMenu {
+              anchorItem: deviceRow
+              parentMenu: menu
+              // The menu already closes on a click outside, taking it along.
+              grabFocus: false
+              open: menu.open && menu.activeEntry === deviceRow
+              onOpenChanged: if (!open) deviceRow.confirmingForget = false
 
-          PowerMenuOption {
-            enabled: root.on
-            label: I18n.tr(deviceRow.modelData.connected ? "bluetooth.disconnect" : "bluetooth.connect")
-            onClicked: {
-              menu.open = false
-              if (deviceRow.modelData.connected) deviceRow.modelData.disconnect()
-              else deviceRow.modelData.connect()
+              PowerMenuOption {
+                enabled: root.on
+                label: I18n.tr(deviceRow.modelData.connected ? "bluetooth.disconnect" : "bluetooth.connect")
+                onClicked: {
+                  menu.open = false
+                  if (deviceRow.modelData.connected) deviceRow.modelData.disconnect()
+                  else deviceRow.modelData.connect()
+                }
+              }
+
+              PowerMenuOption {
+                active: deviceRow.confirmingForget
+                label: I18n.tr(deviceRow.confirmingForget ? "bluetooth.forgetConfirm" : "bluetooth.forget")
+                onClicked: {
+                  if (!deviceRow.confirmingForget) {
+                    deviceRow.confirmingForget = true
+                    forgetTimer.restart()
+                    return
+                  }
+                  menu.open = false
+                  deviceRow.modelData.forget()
+                }
+              }
             }
           }
+        }
 
-          PowerMenuOption {
-            active: deviceRow.confirmingForget
-            label: I18n.tr(deviceRow.confirmingForget ? "bluetooth.forgetConfirm" : "bluetooth.forget")
-            onClicked: {
-              if (!deviceRow.confirmingForget) {
-                deviceRow.confirmingForget = true
-                forgetTimer.restart()
-                return
-              }
-              menu.open = false
-              deviceRow.modelData.forget()
-            }
+        Connections {
+          target: menu
+
+          function onActiveEntryChanged() {
+            if (menu.activeEntry === deviceRow) submenuLoader.active = true
           }
         }
       }
@@ -252,6 +283,10 @@ Item {
       enabled: root.on
       label: I18n.tr("bluetooth.sendFiles")
       onClicked: root.run(["blueman-sendto"])
+
+      HoverHandler {
+        onHoveredChanged: if (hovered) menu.activeEntry = null
+      }
     }
 
     MenuSeparator {
@@ -266,6 +301,10 @@ Item {
       visible: root.on && !root.scanning
       label: I18n.tr("bluetooth.add")
       onClicked: root.scanning = true
+
+      HoverHandler {
+        onHoveredChanged: if (hovered) menu.activeEntry = null
+      }
     }
 
     PowerMenuOption {
@@ -281,6 +320,10 @@ Item {
         required property var modelData
         label: modelData.deviceName + (modelData.pairing || modelData.state === BluetoothDeviceState.Connecting ? "  …" : "")
         onClicked: root.pair(modelData)
+
+        HoverHandler {
+          onHoveredChanged: if (hovered) menu.activeEntry = null
+        }
       }
     }
   }
