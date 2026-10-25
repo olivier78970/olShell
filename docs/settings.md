@@ -69,6 +69,12 @@ The settings, with their range:
 | Bar widgets (Widgets tab, Bluetooth) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `blueman-manager` |
 | Bar widgets (Widgets tab, Bluetooth) | Click action: run it in a terminal | check box | off |
 | Bar widgets (Widgets tab, Bluetooth) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
+| Bar widgets (Widgets tab, Volume) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `pavucontrol` |
+| Bar widgets (Widgets tab, Volume) | Click action: run it in a terminal | check box | off |
+| Bar widgets (Widgets tab, Volume) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
+| Bar widgets (Widgets tab, Window title) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | empty |
+| Bar widgets (Widgets tab, Window title) | Click action: run it in a terminal | check box | off |
+| Bar widgets (Widgets tab, Window title) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
 | Monitors | Monitor positions, modes, scales, mirroring, color depths and HDR: the connected monitors drawn to scale, arranged by dragging (they stick to each other's edges and middles, and a drop over another monitor is refused; the main monitor, the one the automatic theme follows, is fixed). Set with `hyprctl eval` (`services/MonitorLayout.qml`) and kept in `Settings.json` (so they are part of the profiles and of the page's Reset, and applying a profile moves the monitors), and put back at startup, after a Hyprland config reload and when a monitor is plugged in; a monitor never moved keeps the config's place. The focused monitor is outlined. | drag | Hyprland config |
 | Monitors | *Only what a monitor can do is offered* (`scripts/monitor-caps.py` reads each monitor's EDID): the scale lists only the values that give a whole size on the desktop, color depth shows only for a monitor declaring 10 bits or more (or already using it), HDR only for one declaring HDR (or already using it), mirroring only with two monitors or more, brightness only for a monitor the shell can set; a row with nothing to choose is left out | | |
 | Monitors | Resolution of the focused monitor (a dropdown of its modes, resolution and refresh rate as Hyprland lists them, e.g. 2560×1440 @ 299.99 Hz; the mode picked is kept like the positions, and the other monitors move to keep their place around it: those past its right or bottom edge shift by the change in size, and those alongside it stay aligned to its start, end or middle as they were; the main monitor stays put) | choice | Hyprland config |
@@ -239,7 +245,7 @@ Each setting has a `kind`:
 - `text` (`choose`):
   - `weatherLocation`: a place's name (`""` for automatic).
   - `webAppCommand`: the command opening a web app, `%s` for its address (`""` for the default).
-  - `cpuAction`, `ramAction`, `diskAction`, `networkAction`, `connectionAction`, `bluetoothAction`: the command a click on the widget runs (`""` for nothing); `<widget>ActionTerminal` (yes/no) runs it in a terminal.
+  - `cpuAction`, `ramAction`, `diskAction`, `networkAction`, `connectionAction`, `bluetoothAction`, `volumeAction`, `activeWindowAction`: the command a click on the widget runs (`""` for nothing); `<widget>ActionTerminal` (yes/no) runs it in a terminal.
   - `chatAiDefaultProvider`: a chat AI provider's id (`anthropic`, `openai`, or an added one's), `""` for the first one that can be asked.
   - `fontFamily` and `monoFontFamily`: any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`.
     The panel's list only has the Nerd Font families, since the icons are Nerd Font glyphs.

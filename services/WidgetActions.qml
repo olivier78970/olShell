@@ -6,7 +6,8 @@ import Quickshell.Hyprland
 import qs.config
 
 // What a click on a configurable bar widget does. Each of the CPU, RAM,
-// storage, network speed, network and Bluetooth widgets has a command in the
+// storage, network speed, network, Bluetooth, volume and active window
+// widgets has a command in the
 // settings (`<id>Action`, empty to do nothing), whether it runs in a terminal
 // (`<id>ActionTerminal`) and whether its window opens floating in the middle
 // of the screen (`<id>ActionFloating`). If the application it started is still
@@ -21,7 +22,7 @@ Singleton {
   id: root
 
   // The widgets with such an action, by id.
-  readonly property var ids: ["cpu", "ram", "disk", "network", "connection", "bluetooth"]
+  readonly property var ids: ["cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "activeWindow"]
 
   // The action being run: { words, terminal, floating, windowClass }, once the open
   // windows are known.

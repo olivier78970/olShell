@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.components
 import qs.config
+import qs.services
 
 // Icon and title of the currently focused window (any compositor
 // supporting wlr-foreign-toplevel-management, not just Hyprland). A window
@@ -12,7 +13,8 @@ import qs.config
 // icon shows, and hovering it shows the title. On a bar along the top or
 // bottom the title is shortened (with an ellipsis) so its pill doesn't run
 // into the next one: the bar tells the pill how much room it has
-// (WidgetZone's maxWidth).
+// (WidgetZone's maxWidth). A click runs its action (Settings.activeWindowAction,
+// nothing by default).
 Row {
   id: root
 
@@ -98,13 +100,15 @@ Row {
       text: "󰀻"
     }
 
-    // On a side bar, where the title doesn't show, hovering the icon shows it.
+    // On a side bar, where the title doesn't show, hovering the icon shows
+    // it. A click runs the widget's action.
     MouseArea {
       anchors.fill: parent
-      enabled: root.iconOnly
       hoverEnabled: true
-      onEntered: tooltip.hoverEntered()
+      cursorShape: Settings.activeWindowAction !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
+      onEntered: if (root.iconOnly) tooltip.hoverEntered()
       onExited: tooltip.hoverExited()
+      onClicked: WidgetActions.run("activeWindow")
     }
   }
 
@@ -125,8 +129,10 @@ Row {
     MouseArea {
       anchors.fill: parent
       hoverEnabled: true
+      cursorShape: Settings.activeWindowAction !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
       onEntered: tooltip.hoverEntered()
       onExited: tooltip.hoverExited()
+      onClicked: WidgetActions.run("activeWindow")
     }
   }
 
