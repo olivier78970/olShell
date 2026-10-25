@@ -11,7 +11,7 @@ import qs.services
 // it shows what it's connected to, a click runs its action
 // (Settings.connectionAction) and a right click opens a menu to
 // connect or disconnect the wired network, pick a Wi-Fi network, reach a
-// hidden one or create one, switch VPN connections, turn networking and Wi-Fi
+// hidden one or create one, turn networking and Wi-Fi
 // on or off, see the connection's details and edit the connections. Reads
 // Quickshell's Networking module, and NetworkManager through nmcli for the rest
 // (services/NetworkManager.qml).
@@ -251,30 +251,6 @@ Item {
     MenuSeparator {
       visible: root.wifiDevice !== null
     }
-
-    // The VPN connections, the active ones lit: a click switches one.
-    MenuHeading {
-      label: I18n.tr("network.vpn")
-    }
-
-    Repeater {
-      model: NetworkManager.vpns
-
-      PowerMenuOption {
-        required property var modelData
-        enabled: NetworkManager.networkingEnabled
-        active: modelData.active
-        label: modelData.name
-        onClicked: root.pick(() => NetworkManager.setVpn(modelData.uuid, !modelData.active))
-      }
-    }
-
-    PowerMenuOption {
-      label: I18n.tr("network.addVpn")
-      onClicked: root.pick(() => NetworkManager.createConnection(""))
-    }
-
-    MenuSeparator {}
 
     PowerMenuOption {
       icon: NetworkManager.networkingEnabled ? "󰄲" : "󰄱"

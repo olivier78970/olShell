@@ -23,7 +23,6 @@ A click runs its [click action](panels-and-apps.md#widget-click-actions) (`nm-co
 the Wi-Fi networks in range, the strongest eight first, with their signal and a padlock for the secured ones (the connected one lit;
 a click connects: straight away to an open or known network, otherwise `nmcli --ask` asks for the password in a terminal) and **Disconnect**;
 **Connect to a hidden Wi-Fi network…** (its name and password asked in a terminal) and **Create a new Wi-Fi network…** (NetworkManager's connection editor);
-the VPN and WireGuard connections (a click switches one, the active ones lit) and **Add a VPN connection…**;
 **Enable networking** and **Enable Wi-Fi** check marks;
 **Connection information** (a popup with each active connection's interface, IPv4 and IPv6 addresses, gateway and DNS, until a click elsewhere);
 and **Edit connections…** (`nm-connection-editor`).

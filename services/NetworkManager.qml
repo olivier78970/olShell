@@ -7,8 +7,8 @@ import qs.config
 
 // What the connection widget (modules/Bar/Widgets/ConnectionButton.qml)
 // needs from NetworkManager beyond Quickshell's Networking module, through
-// nmcli: whether networking is on, the VPN connections, the details of the
-// active connections, and the windows it opens (a password prompt, hidden
+// nmcli: whether networking is on, the details of the active connections,
+// and the windows it opens (a password prompt, hidden
 // networks, the connection editor). Read again by refresh(), which the widget
 // calls as its menu or tooltip opens, and after each change it makes.
 Singleton {
@@ -16,15 +16,12 @@ Singleton {
 
   // Whether networking as a whole is on (nmcli networking).
   property bool networkingEnabled: true
-  // The VPN and WireGuard connections: [{ name, uuid, active }].
-  property var vpns: []
   // The connected devices' details: [{ device, type, connection, ipv4,
   // gateway, dns, ipv6 }], each address list as an array.
   property var details: []
 
   function refresh() {
     networkingProc.running = true
-    vpnProc.running = true
     detailsProc.running = true
   }
 
@@ -43,10 +40,6 @@ Singleton {
   function setNetworking(on) {
     root.networkingEnabled = on
     root.run(["networking", on ? "on" : "off"])
-  }
-
-  function setVpn(uuid, on) {
-    root.run(["connection", on ? "up" : "down", "uuid", uuid])
   }
 
   // Connects to a secured Wi-Fi network NetworkManager has no password for:
@@ -73,18 +66,6 @@ Singleton {
     Quickshell.execDetached(["nm-connection-editor", "--create"].concat(type ? ["--type=" + type] : []))
   }
 
-  // The fields of a line of `nmcli -t`, split on the colons it doesn't
-  // escape.
-  function fields(line) {
-    const result = [""]
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === "\\" && i + 1 < line.length) result[result.length - 1] += line[++i]
-      else if (line[i] === ":") result.push("")
-      else result[result.length - 1] += line[i]
-    }
-    return result
-  }
-
   Timer {
     id: refreshLater
     interval: 1500
@@ -96,18 +77,6 @@ Singleton {
     command: root.nmcli(["networking"])
     stdout: StdioCollector {
       onStreamFinished: root.networkingEnabled = this.text.trim() !== "disabled"
-    }
-  }
-
-  Process {
-    id: vpnProc
-    command: root.nmcli(["-t", "-f", "NAME,UUID,TYPE,ACTIVE", "connection", "show"])
-    stdout: StdioCollector {
-      onStreamFinished: {
-        root.vpns = this.text.split("\n").filter(line => line.length > 0).map(root.fields)
-          .filter(parts => parts[2] === "vpn" || parts[2] === "wireguard")
-          .map(parts => ({ name: parts[0], uuid: parts[1], active: parts[3] === "yes" }))
-      }
     }
   }
 
