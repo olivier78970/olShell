@@ -3,10 +3,11 @@ import qs.components
 import qs.config
 import qs.services
 
-// Web icon opening a menu of the web apps (see services/WebApps.qml), each
-// with its site's icon once found and a dot while its window is open: a
-// click on one switches to its window when it is open, else opens it (with Settings.webAppCommand). They are
-// added in the settings' web apps category.
+// Web icon opening the launcher on its web apps tab, and on a right click a
+// menu of the web apps (see services/WebApps.qml), each with its site's icon
+// once found and a dot while its window is open: a click on one switches to
+// its window when it is open, else opens it (with Settings.webAppCommand).
+// They are added in the settings' web apps category.
 Item {
   id: root
 
@@ -22,8 +23,15 @@ Item {
 
   MouseArea {
     anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     cursorShape: Qt.PointingHandCursor
-    onClicked: menu.open = !menu.open
+    onClicked: mouse => {
+      if (mouse.button === Qt.RightButton) menu.open = !menu.open
+      else {
+        menu.open = false
+        LauncherState.toggleTab("webApps")
+      }
+    }
   }
 
   PopupMenu {

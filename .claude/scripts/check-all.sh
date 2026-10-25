@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Runs every check a change needs, in one go: the file list, the translations,
-# debug logging in the added lines, one check-setting.sh per setting added to
-# Defaults.qml, and the checkout shell's errors since its last reload.
+# the bar widgets' click rules, debug logging in the added lines, one
+# check-setting.sh per setting added to Defaults.qml, and the checkout shell's
+# errors since its last reload.
 # Usage (from the repo root): check-all.sh
-# Exits 1 when the file list, the translations or the debug logging fail. A
-# setting's MISSING lines and the shell's errors are shown but don't fail it:
-# some settings legitimately have no place of their own (see add-setting).
+# Exits 1 when the file list, the translations, the click rules or the debug
+# logging fail. A setting's MISSING lines and the shell's errors are shown but
+# don't fail it: some settings legitimately have no place of their own (see
+# add-setting).
 set -u
 
 repo=$(git rev-parse --show-toplevel)
@@ -17,6 +19,9 @@ echo "== file list"
 
 echo "== translations"
 .claude/scripts/check-translations.py || failed=1
+
+echo "== bar widgets' click rules"
+.claude/skills/add-bar-widget/scripts/check-clicks.py || failed=1
 
 echo "== debug logging"
 added=$(git diff HEAD --unified=0 -- '*.qml' 2>/dev/null | grep -E '^\+.*console\.log' || true)

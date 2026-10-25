@@ -10,7 +10,7 @@ A widget is listed by id in several places that don't reference each other. One 
 - `ChatAiTrigger.qml`: an icon that opens a panel.
 - `ZoomButton.qml`: an icon with a figure, a wheel action and a tooltip popup.
 - `CpuUsage.qml`: a figure that can also be a ring gauge.
-- `BluetoothButton.qml`: an icon with a menu.
+- `BluetoothButton.qml`: an icon with an action, a right-click menu and a tooltip.
 
 ## Decide first
 
@@ -25,6 +25,19 @@ A widget is listed by id in several places that don't reference each other. One 
 - Draw text and icons with `BarText` (Nerd Font glyphs), so the font settings apply.
 - A tooltip is a `HoverPopup` (call `hoverEntered()` / `hoverExited()` from the `MouseArea`) that starts with `PopupTitle { text: I18n.tr("settings.widget.<id>") }`, as every widget popup has a title. A menu is a `PopupMenu`.
 - A figure that suits a gauge can offer a `<id>Layout` choice (auto / vertical / horizontal) like `cpuLayout` (`RingGauge` / `BarGauge`; the widget is a ring when it is `vertical`, or `auto` on a side bar). Settings of the widget itself go on a page of their own in **Bar widgets**' Widgets tab, where a dropdown picks the widget (a `widget<Name>` entry in `SettingsPages.widgetPages`, its rows `category: "widget<Name>"`) through the `add-setting` skill.
+
+## Clicks and hover
+
+Every widget answers the mouse the same way, so a user can guess what a widget does:
+
+- **Left click**: the widget's action. It opens its application or panel, or does the one thing the widget is for (lock, switch the language, take a screenshot, focus a workspace). It never opens a menu.
+- **Middle click** (optional): an alternative action, another application or panel (a `*State.toggle()`, `WidgetActions.run()`, `Quickshell.execDetached()`) or a quick toggle (the bell's do-not-disturb). It never opens a menu.
+- **Right click** (optional): a `PopupMenu`, toggled with `menu.open = !menu.open`. The actions that aren't worth a click of their own go there. A left click closes it (`menu.open = false`) before running the action.
+- **Hover** (optional): a `HoverPopup`, dismissed (`popup.dismiss()`) when a click runs the action or opens the menu.
+- **Wheel** (optional): adjusts the widget's value (volume, zoom).
+- `cursorShape: Qt.PointingHandCursor` only on a `MouseArea` that has an `onClicked` or `onWheel`.
+
+Write the handler as `onClicked: mouse => { if (mouse.button === Qt.RightButton) … else … }` with `acceptedButtons` listing the buttons used (see `BluetoothButton.qml`): `check-clicks.py` reads that shape.
 
 ## A widget that fronts a feature can be disabled
 
@@ -57,7 +70,7 @@ A widget with no feature of its own (the tray, workspaces) needs none of this. T
 .claude/scripts/check-translations.py
 ```
 
-The widget checker also verifies that every id in `widgetIds` has its component and its layout-editor icon.
+The widget checker also verifies that every id in `widgetIds` has its component and its layout-editor icon, and runs `check-clicks.py <Component>` (the click rules above; with no argument it checks every widget, as `check-all.sh` does).
 
 ## Test
 

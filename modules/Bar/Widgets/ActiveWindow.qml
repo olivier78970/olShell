@@ -125,7 +125,6 @@ Row {
     MouseArea {
       anchors.fill: parent
       hoverEnabled: true
-      cursorShape: titleText.truncated ? Qt.PointingHandCursor : Qt.ArrowCursor
       onEntered: tooltip.hoverEntered()
       onExited: tooltip.hoverExited()
     }

@@ -43,8 +43,9 @@ def add(key, texts, after):
             index = next((i for i in range(start, end) if re.match(rf'^\s*{re.escape(quote(after))}:', lines[i])), None)
             if index is None:
                 sys.exit(f"{after} not found in {language}")
-            # Past a value spread over several lines (a count's one / other).
-            while index + 1 < end and not re.match(r'^    ("|//)', lines[index + 1]):
+            # Past a value spread over several lines (a count's one / other),
+            # not past the blank line ending a group.
+            while index + 1 < end and lines[index + 1].strip() and not re.match(r'^    ("|//)', lines[index + 1]):
                 index += 1
             if lines[index].rstrip().endswith(","):
                 lines.insert(index + 1, new + ",")
