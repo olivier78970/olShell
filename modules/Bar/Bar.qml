@@ -224,9 +224,13 @@ Scope {
       // and any menu (the focus grab ends).
       WlrLayershell.keyboardFocus: root.anyOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
+      // clickCatcher is in the grab too: Hyprland judged a click on a menu's
+      // part that grew after it opened (its rows filling in) to be on
+      // clickCatcher, though the click went to the bar, and ended the grab,
+      // closing the menu. clickCatcher closes them on a click outside anyway.
       HyprlandFocusGrab {
         active: root.anyOpen
-        windows: [root]
+        windows: [root, clickCatcher]
         onCleared: root.dismissAll()
       }
 

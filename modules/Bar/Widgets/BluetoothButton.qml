@@ -9,19 +9,31 @@ import qs.services
 // Bluetooth is off (or there is no adapter), with a link while a device is
 // connected. Hovering it lists the connected devices with their battery; a
 // click runs its action (Settings.bluetoothAction) and a right click opens a menu to switch
-// Bluetooth on or off, make it discoverable, disconnect or reconnect a
-// device, send files, and open blueman's other windows.
+// Bluetooth on or off, make it discoverable, connect, disconnect or forget a
+// paired device, send files, and pair a device found nearby (Add device… scans for them).
 Item {
   id: root
 
   // The adapter in use (null without one), and whether it's on.
   readonly property var adapter: Bluetooth.defaultAdapter
   readonly property bool on: root.adapter !== null && root.adapter.enabled
-  // The adapter's devices: the connected ones, and the paired ones that
-  // aren't, which the menu offers to reconnect.
+  // The adapter's devices: the connected ones, and the paired ones, which
+  // the menu lists (the connected ones first, then by name).
   readonly property var devices: root.adapter ? root.adapter.devices.values : []
   readonly property var connectedDevices: root.devices.filter(device => device.connected)
-  readonly property var reconnectable: root.devices.filter(device => device.paired && !device.connected)
+  readonly property var pairedDevices: root.devices.filter(device => device.paired)
+    .sort((a, b) => (b.connected - a.connected) || a.name.localeCompare(b.name))
+  // The devices found nearby that aren't paired, which the menu offers to
+  // pair: only the named ones (a scan also turns up a crowd of nameless
+  // low-energy beacons), at most maxNearby of them.
+  readonly property var nearby: root.devices.filter(device => !device.paired && device.deviceName !== "").slice(0, root.maxNearby)
+  readonly property int maxNearby: 8
+  // Whether the menu is searching for devices, since its Add device… was
+  // clicked (see the Binding below).
+  property bool scanning: false
+  // The device being paired from the menu, until it's paired (it's then
+  // trusted and connected) or the pairing fails.
+  property var pairingDevice: null
 
   anchors.verticalCenter: parent.verticalCenter
   implicitWidth: icon.implicitWidth
@@ -58,6 +70,59 @@ Item {
     Quickshell.execDetached(command)
   }
 
+  // Pairs a nearby device; finishPairing() connects it once it's paired.
+  // blueman's agent asks for a PIN or a confirmation when the device needs
+  // one.
+  function pair(device) {
+    if (root.pairingDevice !== null) return
+    root.pairingDevice = device
+    device.pair()
+  }
+
+  // Once the device being paired is paired, trusts it (so it can reconnect
+  // by itself later) and connects it, unless pairing already did (many
+  // devices connect as they pair); forgets it if the pairing failed.
+  function finishPairing() {
+    const device = root.pairingDevice
+    if (device === null || device.pairing) return
+    root.pairingDevice = null
+    if (!device.paired) return
+    device.trusted = true
+    if (!device.connected) device.connect()
+  }
+
+  Connections {
+    target: root.pairingDevice
+
+    function onPairedChanged() {
+      root.finishPairing()
+    }
+
+    function onPairingChanged() {
+      root.finishPairing()
+    }
+  }
+
+  // The adapter scans for devices while the menu searches (and Bluetooth is
+  // on), so its list of nearby devices fills in. Scanning takes airtime from
+  // the connected devices, so the search ends as the menu closes, which stops
+  // the scan. It also pauses while a device pairs: a scan running alongside
+  // makes the pairing and the connection after it fail.
+  Binding {
+    target: root.adapter
+    property: "discovering"
+    value: true
+    when: menu.open && root.on && root.scanning && root.pairingDevice === null
+  }
+
+  Connections {
+    target: menu
+
+    function onOpenChanged() {
+      if (!menu.open) root.scanning = false
+    }
+  }
+
   // A device's name, with its battery when it reports one.
   function describe(device) {
     return device.batteryAvailable ? I18n.tr("bluetooth.battery", device.name, Math.round(device.battery * 100)) : device.name
@@ -87,19 +152,14 @@ Item {
     anchorItem: root
     alignCenter: true
 
-    PopupTitle {
+    // The title, with the switch turning Bluetooth on or off (not without an
+    // adapter).
+    MenuSwitchHeading {
+      title: true
       text: I18n.tr("settings.widget.bluetooth")
-      inMenu: true
-    }
-
-    PowerMenuOption {
-      enabled: root.adapter !== null
-      icon: root.on ? "󰂲" : "󰂯"
-      label: I18n.tr(root.on ? "bluetooth.turnOff" : "bluetooth.turnOn")
-      onClicked: {
-        menu.open = false
-        root.adapter.enabled = !root.adapter.enabled
-      }
+      checked: root.on
+      switchEnabled: root.adapter !== null
+      onToggled: root.adapter.enabled = !root.adapter.enabled
     }
 
     PowerMenuOption {
@@ -112,18 +172,76 @@ Item {
     }
 
     MenuSeparator {
-      visible: root.connectedDevices.length > 0
+      visible: root.pairedDevices.length > 0
     }
 
+    // The paired devices, the connected ones first (with a link and their
+    // battery). Hovering or clicking one opens its submenu beside the menu:
+    // Connect or Disconnect, and Forget, which asks for a second click
+    // first (forgetting a keyboard or a mouse means pairing it again).
     Repeater {
-      model: root.connectedDevices
+      model: root.pairedDevices
 
-      PowerMenuOption {
+      Item {
+        id: deviceRow
+
         required property var modelData
-        label: I18n.tr("bluetooth.disconnect", modelData.name)
-        onClicked: {
-          menu.open = false
-          modelData.disconnect()
+        // Whether its Forget was clicked once, for a few seconds.
+        property bool confirmingForget: false
+
+        width: deviceOption.width
+        height: deviceOption.height
+
+        HoverHandler {
+          onHoveredChanged: if (hovered) menu.activeEntry = deviceRow
+        }
+
+        PowerMenuOption {
+          id: deviceOption
+          // Lit while its submenu is open.
+          active: menu.activeEntry === deviceRow
+          icon: deviceRow.modelData.connected ? "󰂱" : "󰂯"
+          label: root.describe(deviceRow.modelData) + "  ›"
+          onClicked: menu.activeEntry = deviceRow
+        }
+
+        Timer {
+          id: forgetTimer
+          interval: 3000
+          onTriggered: deviceRow.confirmingForget = false
+        }
+
+        PopupMenu {
+          anchorItem: deviceRow
+          parentMenu: menu
+          // The menu already closes on a click outside, taking it along.
+          grabFocus: false
+          open: menu.open && menu.activeEntry === deviceRow
+          onOpenChanged: if (!open) deviceRow.confirmingForget = false
+
+          PowerMenuOption {
+            enabled: root.on
+            label: I18n.tr(deviceRow.modelData.connected ? "bluetooth.disconnect" : "bluetooth.connect")
+            onClicked: {
+              menu.open = false
+              if (deviceRow.modelData.connected) deviceRow.modelData.disconnect()
+              else deviceRow.modelData.connect()
+            }
+          }
+
+          PowerMenuOption {
+            active: deviceRow.confirmingForget
+            label: I18n.tr(deviceRow.confirmingForget ? "bluetooth.forgetConfirm" : "bluetooth.forget")
+            onClicked: {
+              if (!deviceRow.confirmingForget) {
+                deviceRow.confirmingForget = true
+                forgetTimer.restart()
+                return
+              }
+              menu.open = false
+              deviceRow.modelData.forget()
+            }
+          }
         }
       }
     }
@@ -137,52 +255,33 @@ Item {
     }
 
     MenuSeparator {
-      visible: root.reconnectable.length > 0
+      visible: root.on
     }
 
-    // The paired devices that aren't connected, under a heading: a click
-    // connects one.
+    // Add device… starts the scan, leaving the menu open: it gives way to a
+    // heading (saying it's searching until a device turns up) over the
+    // devices found nearby. A click pairs one, then connects it; it shows "…"
+    // while it pairs and then moves up among the connected ones.
     PowerMenuOption {
-      visible: root.reconnectable.length > 0
+      visible: root.on && !root.scanning
+      label: I18n.tr("bluetooth.add")
+      onClicked: root.scanning = true
+    }
+
+    PowerMenuOption {
+      visible: root.on && root.scanning
       enabled: false
-      label: I18n.tr("bluetooth.reconnect")
+      label: I18n.tr(root.nearby.length > 0 ? "bluetooth.nearby" : "bluetooth.searching")
     }
 
     Repeater {
-      model: root.reconnectable
+      model: root.on && root.scanning ? root.nearby : []
 
       PowerMenuOption {
         required property var modelData
-        enabled: root.on
-        label: modelData.name
-        onClicked: {
-          menu.open = false
-          modelData.connect()
-        }
+        label: modelData.deviceName + (modelData.pairing || modelData.state === BluetoothDeviceState.Connecting ? "  …" : "")
+        onClicked: root.pair(modelData)
       }
-    }
-
-    MenuSeparator {}
-
-    PowerMenuOption {
-      label: I18n.tr("bluetooth.devices")
-      onClicked: root.run(["blueman-manager"])
-    }
-
-    PowerMenuOption {
-      label: I18n.tr("bluetooth.adapters")
-      onClicked: root.run(["blueman-adapters"])
-    }
-
-    PowerMenuOption {
-      label: I18n.tr("bluetooth.services")
-      onClicked: root.run(["blueman-services"])
-    }
-
-    // blueman's plugin settings, which its applet opens (over D-Bus).
-    PowerMenuOption {
-      label: I18n.tr("bluetooth.plugins")
-      onClicked: root.run(["busctl", "--user", "call", "org.blueman.Applet", "/org/blueman/Applet", "org.blueman.Applet", "OpenPluginDialog"])
     }
   }
 

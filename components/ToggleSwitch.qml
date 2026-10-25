@@ -1,10 +1,11 @@
 import QtQuick
 import qs.config
 
-// An on/off switch: a rounded track with a knob that slides to the right and
-// fills the track with the accent color while `checked`. A click emits
-// `toggled`; whoever uses it decides what that changes, and `checked` follows
-// from there. Dimmed and inert while not `enabled`.
+// An on/off switch: a track, rounded as the theme's radius setting says, with
+// a knob that slides to the right and fills the track with the accent color
+// while `checked`. A click emits `toggled`; whoever uses it decides what that
+// changes, and `checked` follows from there. Dimmed and inert while not
+// `enabled`.
 Rectangle {
   id: root
 
@@ -13,7 +14,7 @@ Rectangle {
 
   implicitWidth: 36
   implicitHeight: 20
-  radius: height / 2
+  radius: Theme.radiusFor(height)
   color: root.checked ? Theme.accentColor : (mouse.containsMouse && root.enabled ? Theme.borderColor : "transparent")
   border.color: root.checked ? Theme.accentColor : Theme.outlineColor
   border.width: 1
@@ -23,11 +24,12 @@ Rectangle {
     ColorAnimation { duration: Theme.animationDuration }
   }
 
-  // The knob, against the right end while on.
+  // The knob, against the right end while on, its corners following the
+  // track's (inset by the gap around it).
   Rectangle {
     width: root.height - 6
     height: width
-    radius: width / 2
+    radius: Math.max(0, root.radius - 3)
     anchors.verticalCenter: parent.verticalCenter
     x: root.checked ? root.width - width - 3 : 3
     color: root.checked ? Theme.backgroundColor : Theme.textColor
