@@ -52,10 +52,13 @@ output_path = "~/.config/zen/q8dicdeq.gmail/chrome/userChrome.css"
 # a theme extension: load ~/.local/share/olShell/brave-theme once with "Load
 # unpacked" in brave://extensions (developer mode on). Brave only reads a
 # theme as it loads it, so it gets new colors once it restarts (or the
-# extension is reloaded there).
+# extension is reloaded there). It also keeps the theme it built from the
+# manifest in "Cached Theme.pak" next to it and loads that at startup rather
+# than the manifest, so the hook removes it to make the next start rebuild it.
 [templates.brave]
 input_path = "brave-theme.json.template"
 output_path = "~/.local/share/olShell/brave-theme/manifest.json"
+post_hook = 'rm -f ~/.local/share/olShell/brave-theme/"Cached Theme.pak"'
 
 [templates.alacritty]
 input_path = "alacritty-theme.toml.template"
