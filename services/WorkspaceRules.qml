@@ -8,7 +8,9 @@ import qs.config
 
 // The workspaces the Hyprland config has a rule for (so most likely keybinds
 // too): the bar's workspaces widget flags the others, and the settings panel
-// says how many there are.
+// says how many there are. Its `workspaces` IPC calls go to a workspace by
+// its place on the focused monitor (focus 1 is the first one bound to it),
+// so one shortcut serves every monitor.
 Singleton {
   id: root
 
@@ -42,6 +44,43 @@ Singleton {
       if (monitor === undefined || monitor === name) ids.push(id)
     }
     return follow ? ids : ids.slice(0, Settings.workspaceCountFor(name))
+  }
+
+  // The workspace ids the config binds to the monitor `name`, in order: what
+  // the `workspaces` IPC calls count in. With no rule for that monitor, every
+  // id stands for itself (so the calls behave like plain workspace numbers).
+  function boundTo(name) {
+    return Object.keys(root.monitorOf).map(Number).filter(id => root.monitorOf[id] === name).sort((a, b) => a - b)
+  }
+
+  // The id of the `place`-th workspace (from 1) of the focused monitor, or 0
+  // when that monitor has fewer.
+  function idAt(place) {
+    const ids = root.boundTo(Hyprland.focusedMonitor?.name ?? "")
+    if (ids.length === 0) return place > 0 ? place : 0
+    return place >= 1 && place <= ids.length ? ids[place - 1] : 0
+  }
+
+  IpcHandler {
+    target: "workspaces"
+
+    // Goes to the n-th workspace of the focused monitor.
+    function focus(place: int): void {
+      const id = root.idAt(place)
+      if (id > 0) Hyprland.dispatch("hl.dsp.focus({workspace=" + id + "})")
+    }
+
+    // Moves the active window to the n-th workspace of the focused monitor.
+    function moveWindow(place: int): void {
+      const id = root.idAt(place)
+      if (id > 0) Hyprland.dispatch("hl.dsp.window.move({workspace=" + id + "})")
+    }
+
+    // The focused monitor's workspace ids, in the order the calls count them,
+    // as JSON (empty when the config binds none to it).
+    function list(): string {
+      return JSON.stringify(root.boundTo(Hyprland.focusedMonitor?.name ?? ""))
+    }
   }
 
   // Read at start and after each config reload, so adding a rule shows.
