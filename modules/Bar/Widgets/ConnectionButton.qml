@@ -12,7 +12,7 @@ import qs.services
 // (Settings.connectionAction) and a right click opens a menu to
 // connect or disconnect the wired network, pick a Wi-Fi network, reach a
 // hidden one or create one, turn networking and Wi-Fi
-// on or off, see the connection's details and edit the connections. Reads
+// on or off, and see the connection's details. Reads
 // Quickshell's Networking module, and NetworkManager through nmcli for the rest
 // (services/NetworkManager.qml).
 Item {
@@ -28,6 +28,9 @@ Item {
     : []
   readonly property var wifiConnected: root.wifiDevice ? root.wifiDevice.networks.values.find(network => network.connected) ?? null : null
   readonly property var wiredConnected: root.wiredDevices.find(device => device.connected) ?? null
+  // Whether the menu shows its Wi-Fi section: there is a Wi-Fi device and
+  // networking is on.
+  readonly property bool wifiShown: root.wifiDevice !== null && NetworkManager.networkingEnabled
   // How many Wi-Fi networks the menu lists at most.
   readonly property int maxNetworks: 8
   // Connected, but without a full way to the internet.
@@ -155,9 +158,12 @@ Item {
     anchorItem: root
     alignCenter: true
 
-    PopupTitle {
+    // The title, with the switch turning networking as a whole on or off.
+    MenuSwitchHeading {
+      title: true
       text: I18n.tr("settings.widget.connection")
-      inMenu: true
+      checked: NetworkManager.networkingEnabled
+      onToggled: NetworkManager.setNetworking(!NetworkManager.networkingEnabled)
     }
 
     // Each wired device: its connection (a click connects it) and, while
@@ -169,6 +175,7 @@ Item {
         id: wired
 
         required property var modelData
+        required property int index
         readonly property var network: wired.modelData.network
 
         spacing: 6
@@ -194,18 +201,26 @@ Item {
           onClicked: root.pick(() => wired.modelData.disconnect())
         }
 
-        MenuSeparator {}
+        // Only between this device and whatever the menu shows after it.
+        MenuSeparator {
+          visible: wired.index < root.wiredDevices.length - 1 || root.wifiShown || NetworkManager.details.length > 0
+        }
       }
     }
 
     // The Wi-Fi networks in range, the connected one lit; a click connects.
-    MenuHeading {
-      visible: root.wifiDevice !== null && NetworkManager.networkingEnabled
-      label: I18n.tr("network.wifi")
+    // Its heading, with the switch turning the Wi-Fi on or off (not while
+    // the radio is blocked by its hardware switch).
+    MenuSwitchHeading {
+      visible: root.wifiShown
+      checked: Networking.wifiEnabled
+      switchEnabled: Networking.wifiHardwareEnabled
+      text: I18n.tr("network.wifi")
+      onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
     }
 
     MenuHeading {
-      visible: root.wifiDevice !== null && NetworkManager.networkingEnabled && (!Networking.wifiEnabled || root.wifiNetworks.length === 0)
+      visible: root.wifiShown && (!Networking.wifiEnabled || root.wifiNetworks.length === 0)
       label: I18n.tr(Networking.wifiEnabled ? "network.wifiNone" : "network.wifiOff")
     }
 
@@ -231,55 +246,32 @@ Item {
     }
 
     MenuSeparator {
-      visible: root.wifiDevice !== null && NetworkManager.networkingEnabled
+      visible: root.wifiShown && Networking.wifiEnabled
     }
 
     PowerMenuOption {
-      visible: root.wifiDevice !== null
-      enabled: NetworkManager.networkingEnabled && Networking.wifiEnabled
+      visible: root.wifiShown && Networking.wifiEnabled
       label: I18n.tr("network.hidden")
       onClicked: root.pick(() => NetworkManager.connectHidden())
     }
 
     PowerMenuOption {
-      visible: root.wifiDevice !== null
-      enabled: NetworkManager.networkingEnabled && Networking.wifiEnabled
+      visible: root.wifiShown && Networking.wifiEnabled
       label: I18n.tr("network.createWifi")
       onClicked: root.pick(() => NetworkManager.createConnection("802-11-wireless"))
     }
 
     MenuSeparator {
-      visible: root.wifiDevice !== null
+      visible: root.wifiShown && NetworkManager.details.length > 0
     }
 
     PowerMenuOption {
-      icon: NetworkManager.networkingEnabled ? "󰄲" : "󰄱"
-      label: I18n.tr("network.enableNetworking")
-      onClicked: root.pick(() => NetworkManager.setNetworking(!NetworkManager.networkingEnabled))
-    }
-
-    PowerMenuOption {
-      visible: root.wifiDevice !== null
-      enabled: NetworkManager.networkingEnabled && Networking.wifiHardwareEnabled
-      icon: Networking.wifiEnabled ? "󰄲" : "󰄱"
-      label: I18n.tr("network.enableWifi")
-      onClicked: root.pick(() => Networking.wifiEnabled = !Networking.wifiEnabled)
-    }
-
-    MenuSeparator {}
-
-    PowerMenuOption {
-      enabled: NetworkManager.details.length > 0
+      visible: NetworkManager.details.length > 0
       label: I18n.tr("network.info")
       onClicked: {
         menu.open = false
         info.open = true
       }
-    }
-
-    PowerMenuOption {
-      label: I18n.tr("network.edit")
-      onClicked: root.pick(() => NetworkManager.editConnections())
     }
   }
 

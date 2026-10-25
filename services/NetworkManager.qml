@@ -56,12 +56,8 @@ Singleton {
     refreshLater.restart()
   }
 
-  // Opens NetworkManager's connection editor: its list, or the dialog
-  // creating a connection (of `type`, or asking which).
-  function editConnections() {
-    Quickshell.execDetached(["nm-connection-editor"])
-  }
-
+  // Opens NetworkManager's connection editor on the dialog creating a
+  // connection (of `type`, or asking which).
   function createConnection(type) {
     Quickshell.execDetached(["nm-connection-editor", "--create"].concat(type ? ["--type=" + type] : []))
   }

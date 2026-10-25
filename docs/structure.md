@@ -92,6 +92,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 - [`HoverPopup.qml`](../components/HoverPopup.qml): Tooltip-style PopupMenu shown while the pointer hovers a widget.
 - [`IconButton.qml`](../components/IconButton.qml): Glyph-only button that lights up in the accent color on hover.
 - [`Linger.qml`](../components/Linger.qml): Stays `active` while `when` is true and for the length of an animation after it turns false (Theme.animationDuration): what keeps a panel…
+- [`MenuSwitchHeading.qml`](../components/MenuSwitchHeading.qml): A menu's title, or the heading of a group of its entries, with an on/off switch at the right end of its line (like the network menu's…
 - [`ModalPanel.qml`](../components/ModalPanel.qml): Screen-centered modal panel: a full-screen backdrop (dimmed, with `dimmed`) and a framed panel that takes exclusive keyboard focus.
 - [`PathRow.qml`](../components/PathRow.qml): A label with a text field on the right, for a value typed in (a folder, a color).
 - [`Pill.qml`](../components/Pill.qml): Rounded pill container that groups a bar section's widgets in a row (a column on a side bar).
@@ -109,6 +110,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 - [`ThemeAppRow.qml`](../components/ThemeAppRow.qml): An app added to the themed apps in the settings, on two lines: a check box for whether matugen colors it (`on`; `toggled` on click), its…
 - [`ThemedText.qml`](../components/ThemedText.qml): Text styled with the shell's font and text color.
 - [`ToggleRow.qml`](../components/ToggleRow.qml): A label with a row of independent on/off buttons (like bold / italic / underline in a text editor), or of check boxes with `checkBoxes` on.
+- [`ToggleSwitch.qml`](../components/ToggleSwitch.qml): An on/off switch: a rounded track with a knob that slides to the right and fills the track with the accent color while `checked`.
 
 ### modules/AppSwitcher/
 

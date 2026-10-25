@@ -19,13 +19,11 @@ Its numbers have fixed widths so the bar does not shift as they change.
 The network connection widget (`ConnectionButton`, after the network speed widget by default; a layout saved before it existed doesn't have it until you drag it into a lane in the settings' Bar widgets Layout tab, or `settings place connection right`) does what nm-applet's tray icon does, drawn like the rest of the bar.
 Its icon is the wired plug, or the Wi-Fi signal (four levels), while connected, in the warning color when the connection doesn't reach the internet; crossed out and dimmed while disconnected, and a network-off icon while networking is off.
 Hovering it says what it's connected to (the wired connection's name, or the Wi-Fi network and its signal) and the IPv4 address.
-A click runs its [click action](panels-and-apps.md#widget-click-actions) (`nm-connection-editor` by default) and a right click opens a menu with, as in nm-applet: each wired device's connection (a click connects it) and **Disconnect**;
-the Wi-Fi networks in range, the strongest eight first, with their signal and a padlock for the secured ones (the connected one lit;
+A click runs its [click action](panels-and-apps.md#widget-click-actions) (`nm-connection-editor` by default) and a right click opens a menu with, at the right end of its title, a switch turning networking as a whole on or off (every connection, wired, Wi-Fi and VPN, is dropped while it is off), then, as in nm-applet: each wired device's connection (a click connects it) and **Disconnect**;
+the Wi-Fi networks in range, under a heading with a switch turning the Wi-Fi on or off, the strongest eight first, with their signal and a padlock for the secured ones (the connected one lit;
 a click connects: straight away to an open or known network, otherwise `nmcli --ask` asks for the password in a terminal) and **Disconnect**;
-**Connect to a hidden Wi-Fi network…** (its name and password asked in a terminal) and **Create a new Wi-Fi network…** (NetworkManager's connection editor);
-**Enable networking** and **Enable Wi-Fi** check marks;
-**Connection information** (a popup with each active connection's interface, IPv4 and IPv6 addresses, gateway and DNS, until a click elsewhere);
-and **Edit connections…** (`nm-connection-editor`).
+while the Wi-Fi is on, **Connect to a hidden Wi-Fi network…** (its name and password asked in a terminal) and **Create a new Wi-Fi network…** (NetworkManager's connection editor);
+and, while connected, **Connection information** (a popup with each active connection's interface, IPv4 and IPv6 addresses, gateway and DNS, until a click elsewhere).
 The Wi-Fi scans while the menu is open.
 It reads Quickshell's Networking module, and NetworkManager through `nmcli` for what that module doesn't have ([services/NetworkManager.qml](../services/NetworkManager.qml)), so it works without nm-applet running.
 The terminal it opens is `networkTerminal` in [config/Apps.qml](../config/Apps.qml).
