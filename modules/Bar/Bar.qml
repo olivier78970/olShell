@@ -212,10 +212,7 @@ Scope {
         }
 
         Region {
-          x: popupLayer.x + popupLayer.bounds.x
-          y: popupLayer.y + popupLayer.bounds.y
-          width: popupLayer.bounds.width
-          height: popupLayer.bounds.height
+          item: popupMask
         }
       }
 
@@ -224,10 +221,10 @@ Scope {
       // and any menu (the focus grab ends).
       WlrLayershell.keyboardFocus: root.anyOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-      // clickCatcher is in the grab too: Hyprland judged a click on a menu's
-      // part that grew after it opened (its rows filling in) to be on
-      // clickCatcher, though the click went to the bar, and ended the grab,
-      // closing the menu. clickCatcher closes them on a click outside anyway.
+      // clickCatcher is in the grab too: it closes them on a click outside
+      // anyway, and a click Hyprland counts on it while its holes catch up
+      // with a menu that grew (see clickCatcher's remap) mustn't end the
+      // grab and close the menu.
       HyprlandFocusGrab {
         active: root.anyOpen
         windows: [root, clickCatcher]
@@ -263,8 +260,42 @@ Scope {
           ? root.screen.height - (root.autoHide ? 0 : Theme.barMarginBottom) - root.height
           : (root.autoHide ? 0 : Theme.barMarginTop)
 
-        visible: root.anyOpen
+        // Hidden for a moment as its holes change (see remap).
+        property bool remapping: false
+
+        visible: root.anyOpen && !clickCatcher.remapping
         screen: root.screen
+
+        // Hyprland applies this surface's input region only as it's shown:
+        // its holes kept the panel's or menu's size from when it opened, so
+        // over the rows a menu grew later (its list filling in) it took the
+        // pointer from the bar. Hiding and showing it again as a hole
+        // changes makes the new one count.
+        function remap() {
+          if (!root.anyOpen || clickCatcher.remapping) return
+          clickCatcher.remapping = true
+          remapTimer.restart()
+        }
+
+        Timer {
+          id: remapTimer
+          interval: 1
+          onTriggered: clickCatcher.remapping = false
+        }
+
+        Connections {
+          target: popupHole
+
+          function onWidthChanged() { clickCatcher.remap() }
+          function onHeightChanged() { clickCatcher.remap() }
+        }
+
+        Connections {
+          target: panelHole
+
+          function onWidthChanged() { clickCatcher.remap() }
+          function onHeightChanged() { clickCatcher.remap() }
+        }
 
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "quickshell:backdrop"
@@ -284,19 +315,31 @@ Scope {
 
           Region {
             intersection: Intersection.Subtract
-            x: clickCatcher.originX + panelSlot.x
-            y: clickCatcher.originY + panelSlot.y
-            width: panelSlot.width
-            height: panelSlot.height
+            item: panelHole
           }
 
           Region {
             intersection: Intersection.Subtract
-            x: clickCatcher.originX + popupLayer.x + popupLayer.bounds.x
-            y: clickCatcher.originY + popupLayer.y + popupLayer.bounds.y
-            width: popupLayer.bounds.width
-            height: popupLayer.bounds.height
+            item: popupHole
           }
+        }
+
+        // Where the open panel and the shown popups are, the holes in the
+        // mask above, as items (like the bar's popupMask).
+        Item {
+          id: panelHole
+          x: clickCatcher.originX + panelSlot.x
+          y: clickCatcher.originY + panelSlot.y
+          width: panelSlot.width
+          height: panelSlot.height
+        }
+
+        Item {
+          id: popupHole
+          x: clickCatcher.originX + popupLayer.x + popupLayer.bounds.x
+          y: clickCatcher.originY + popupLayer.y + popupLayer.bounds.y
+          width: popupLayer.bounds.width
+          height: popupLayer.bounds.height
         }
 
         MouseArea {
@@ -502,6 +545,16 @@ Scope {
 
         Component.onCompleted: BarSlots.register(panelSlot)
         Component.onDestruction: BarSlots.unregister(panelSlot)
+      }
+
+      // The rectangle the shown popups span, for the input mask above, as an
+      // item (like panelSlot for the panel).
+      Item {
+        id: popupMask
+        x: popupLayer.x + popupLayer.bounds.x
+        y: popupLayer.y + popupLayer.bounds.y
+        width: popupLayer.bounds.width
+        height: popupLayer.bounds.height
       }
 
       // Where the widgets' popups and menus are drawn while shown (see
