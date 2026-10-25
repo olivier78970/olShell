@@ -30,6 +30,7 @@ quickshell -p . ipc call volume increase 0.05
 quickshell -p . ipc call volume decrease 0.05
 quickshell -p . ipc call volume mute
 quickshell -p . ipc call zoom zoomIn               # zoom the screen in by the zoom step (zoomOut: out; zoomInBy <step>, zoomOutBy <step>: by a step of its own)
+quickshell -p . ipc call workspaces focus 1         # go to the focused monitor's 1st workspace, counting those the Hyprland config binds to it (moveWindow 1: move the active window there; list: its ids as JSON)
 quickshell -p . ipc call zoom set 2                # zoom to a factor, 1 being none (`zoom get` prints it, `zoom reset` goes back to 1)
 ```
 
