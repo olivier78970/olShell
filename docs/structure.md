@@ -110,7 +110,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 - [`ThemeAppRow.qml`](../components/ThemeAppRow.qml): An app added to the themed apps in the settings, on two lines: a check box for whether matugen colors it (`on`; `toggled` on click), its…
 - [`ThemedText.qml`](../components/ThemedText.qml): Text styled with the shell's font and text color.
 - [`ToggleRow.qml`](../components/ToggleRow.qml): A label with a row of independent on/off buttons (like bold / italic / underline in a text editor), or of check boxes with `checkBoxes` on.
-- [`ToggleSwitch.qml`](../components/ToggleSwitch.qml): An on/off switch: a rounded track with a knob that slides to the right and fills the track with the accent color while `checked`.
+- [`ToggleSwitch.qml`](../components/ToggleSwitch.qml): An on/off switch: a track, rounded as the theme's radius setting says, with a knob that slides to the right and fills the track with the…
 
 ### modules/AppSwitcher/
 
