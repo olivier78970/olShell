@@ -590,6 +590,12 @@ Singleton {
   readonly property string bluetoothAction: root.valid("bluetoothAction", file.adapter.bluetoothAction)
   readonly property bool bluetoothActionTerminal: root.valid("bluetoothActionTerminal", file.adapter.bluetoothActionTerminal)
   readonly property bool bluetoothActionFloating: root.valid("bluetoothActionFloating", file.adapter.bluetoothActionFloating)
+  readonly property string volumeAction: root.valid("volumeAction", file.adapter.volumeAction)
+  readonly property bool volumeActionTerminal: root.valid("volumeActionTerminal", file.adapter.volumeActionTerminal)
+  readonly property bool volumeActionFloating: root.valid("volumeActionFloating", file.adapter.volumeActionFloating)
+  readonly property string activeWindowAction: root.valid("activeWindowAction", file.adapter.activeWindowAction)
+  readonly property bool activeWindowActionTerminal: root.valid("activeWindowActionTerminal", file.adapter.activeWindowActionTerminal)
+  readonly property bool activeWindowActionFloating: root.valid("activeWindowActionFloating", file.adapter.activeWindowActionFloating)
   // The AI providers the chat AI panel can ask, in order: the built-in ones,
   // { builtin: "anthropic" | "openai" | "xai" | "google", model } (their address and API are
   // fixed, see services/ChatAi.qml), always in the list once, and those
@@ -1445,6 +1451,12 @@ Singleton {
       property string bluetoothAction: Defaults.values.bluetoothAction
       property bool bluetoothActionTerminal: Defaults.values.bluetoothActionTerminal
       property bool bluetoothActionFloating: Defaults.values.bluetoothActionFloating
+      property string volumeAction: Defaults.values.volumeAction
+      property bool volumeActionTerminal: Defaults.values.volumeActionTerminal
+      property bool volumeActionFloating: Defaults.values.volumeActionFloating
+      property string activeWindowAction: Defaults.values.activeWindowAction
+      property bool activeWindowActionTerminal: Defaults.values.activeWindowActionTerminal
+      property bool activeWindowActionFloating: Defaults.values.activeWindowActionFloating
       property var chatAiProviders: Defaults.values.chatAiProviders
       property bool chatAiListDir: Defaults.values.chatAiListDir
       property bool chatAiFindFiles: Defaults.values.chatAiFindFiles

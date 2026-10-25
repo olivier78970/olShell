@@ -6,8 +6,9 @@ import qs.services
 
 // Output volume percentage (on a side bar, a ring filled to it around the
 // icon, the figure in a popup on hover); scroll over it to adjust, click to
-// open or close pavucontrol, middle-click to mute or unmute, right-click for a
-// menu muting or unmuting.
+// run its action (Settings.volumeAction, pavucontrol by default),
+// middle-click to mute or unmute, right-click for a menu muting or unmuting
+// or opening pavucontrol.
 Item {
   id: root
 
@@ -59,8 +60,8 @@ Item {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
     onEntered: popup.hoverEntered()
     onExited: popup.hoverExited()
-    // Left: closes pavucontrol if it's running, opens it otherwise. Middle:
-    // mutes or unmutes (the OSD shows it). Right: the menu.
+    // Left: runs its action (see services/WidgetActions.qml). Middle: mutes
+    // or unmutes (the OSD shows it). Right: the menu.
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton) {
         popup.dismiss()
@@ -68,7 +69,7 @@ Item {
       } else if (mouse.button === Qt.MiddleButton) Audio.toggleMute()
       else {
         menu.open = false
-        root.mixer()
+        WidgetActions.run("volume")
       }
     }
     onWheel: wheel => Audio.adjust((wheel.angleDelta.y / 120) * root.step)

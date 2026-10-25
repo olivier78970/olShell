@@ -194,6 +194,12 @@ Singleton {
     bluetoothAction: "blueman-manager",
     bluetoothActionTerminal: false,
     bluetoothActionFloating: false,
+    volumeAction: "pavucontrol",
+    volumeActionTerminal: false,
+    volumeActionFloating: false,
+    activeWindowAction: "",
+    activeWindowActionTerminal: false,
+    activeWindowActionFloating: false,
     chatAiProviders: [
       { builtin: "anthropic", model: "" },
       { builtin: "openai", model: "" },

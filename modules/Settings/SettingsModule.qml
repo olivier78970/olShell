@@ -114,7 +114,9 @@ Scope {
     // ramActionTerminal, diskActionTerminal, networkActionTerminal,
     // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
     // ramActionFloating, diskActionFloating, networkActionFloating,
-    // connectionActionFloating, bluetoothActionFloating, blur, blurXray,
+    // connectionActionFloating, bluetoothActionFloating, volumeActionTerminal,
+    // activeWindowActionTerminal, volumeActionFloating,
+    // activeWindowActionFloating, blur, blurXray,
     // windowBorderSame, windowBorderColors, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
     // windowInactiveOpacitySame, volumeOsdSame, lockKeysOsdSame,
     // curvedJoins,
@@ -341,7 +343,8 @@ Scope {
     // command opening a web app (webAppCommand: a program and its arguments,
     // %s for the address; "" for the default), and for the command a click on
     // a bar widget runs (cpuAction, ramAction, diskAction, networkAction,
-    // connectionAction, bluetoothAction: a program and its arguments; "" for
+    // connectionAction, bluetoothAction, volumeAction, activeWindowAction: a
+    // program and its arguments; "" for
     // nothing), and for the wallpaper folders (wallpaperFolders: paths separated
     // by commas, ~ for the home folder; bingWallpaperFolder: one path).
     function choose(key: string, value: string): void {

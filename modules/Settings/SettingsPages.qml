@@ -450,6 +450,20 @@ Singleton {
     { key: "bluetoothActionFloatingRow", category: "widgetBluetooth", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
       { key: "bluetoothActionFloating", text: "" }
     ] },
+    { key: "volumeAction", category: "widgetVolume", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "volumeActionTerminalRow", category: "widgetVolume", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "volumeActionTerminal", text: "" }
+    ] },
+    { key: "volumeActionFloatingRow", category: "widgetVolume", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "volumeActionFloating", text: "" }
+    ] },
+    { key: "activeWindowAction", category: "widgetActiveWindow", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
+    { key: "activeWindowActionTerminalRow", category: "widgetActiveWindow", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "activeWindowActionTerminal", text: "" }
+    ] },
+    { key: "activeWindowActionFloatingRow", category: "widgetActiveWindow", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "activeWindowActionFloating", text: "" }
+    ] },
     { key: "zoomMax", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomMax"), step: 1, format: v => "×" + v },
     { key: "zoomStep", category: "widgetZoom", kind: "slider", label: I18n.tr("settings.zoomStep"), step: 0.1, format: v => v.toFixed(1) },
     { key: "zoomBlocksInputRow", category: "widgetZoom", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.zoomBlocksInput"), toggles: [
