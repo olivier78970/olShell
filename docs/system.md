@@ -9,7 +9,7 @@ The **Performances** tab of the clock popup shows the machine's load at a glance
   Gauges and bars turn to `Theme.warningColor` above 90%.
 
 The right part of the bar also has a disk widget (`DiskUsage`, after the RAM widget) showing how full the main disk, the one mounted on `/`, is, in percent (in the warning color above 90%); hovering it shows the used space over the capacity (e.g.
-"825.8 GiB used / 915.3 GiB").
+"825.8 GiB used / 915.3 GiB") and the space left ("89.5 GiB free": what can still be written, without the blocks the file system keeps for root).
 It reads the same figures as the storage card above (`SystemStats.rootDisk`, refreshed every 20 s), and clicking it runs its [click action](panels-and-apps.md#widget-click-actions) (gdu on that disk by default).
 It also has an instant download / upload speed widget (`NetworkSpeed`, between the disk and volume widgets), fed by the same network figures, refreshed every second.
 Its numbers have fixed widths so the bar does not shift as they change.
@@ -37,6 +37,16 @@ A click runs its [click action](panels-and-apps.md#widget-click-actions) (bluema
 It reads BlueZ through Quickshell's Bluetooth module, so it works without blueman running; the windows it opens are blueman's (the plugins one through `blueman-applet`, over D-Bus).
 
 The figures come from [services/SystemStats.qml](../services/SystemStats.qml), which the CPU and RAM widgets share, so they're polled once however many monitors there are: CPU every 2 s, memory every 3 s, network every second, disks every 20 s.
+
+### Gmail
+
+The shell can watch a Gmail inbox and notify each new mail, with the sender as the title and the subject as the text: clicking it or **Open** opens the mail in Gmail in the browser, **Mark as read** marks it as read; more than three mails arriving at once get one notification for them all.
+It connects to Gmail over IMAP with an *app password* (Google account › Security › App passwords, which needs 2-step verification), and stays connected with IMAP IDLE, so a mail is notified as soon as it arrives, with no polling; it connects again on its own after a network loss.
+To set it up, open the settings' **Bar widgets** category, **Widgets** tab, **Gmail**: tick **Notify new emails**, type the **Gmail address**, then the **App password**, which goes to the keyring (with `secret-tool`, under `service=olshell-gmail`), never to the settings file (an empty field keeps the saved one; `gmail forgetPassword` takes it out).
+The Gmail widget (`GmailButton`, off by default: drag it into a lane in the Layout tab) shows an envelope with the number of unread conversations beside it (as Gmail counts them, a thread with several unread replies counting once), in the accent color while there are some, dimmed while the inbox isn't watched, with a warning while there's no password or Gmail refused it.
+Hovering it shows the address and the count or what's wrong; a click runs its [click action](panels-and-apps.md#widget-click-actions), a mail app or a web app of your choice, or with none set opens the inbox in the browser, a middle click checks it again now (after a refused password, say), and a right click opens a menu with a switch turning the watching on or off and **Check now**.
+Disabling the widget (the Layout tab's **Disabled** lane) also stops the watching and the `gmail` calls.
+[services/Gmail.qml](../services/Gmail.qml) runs [scripts/gmail.py](../scripts/gmail.py), which does the IMAP work, shows the notifications with `notify-send` and keeps the password.
 
 ## Screenshots
 

@@ -11,6 +11,11 @@ import qs.config
 // way (`editing` cleared) is committed too. While not `interactive` the row is
 // dimmed and can't be edited; `disabledReason` then explains why in a tooltip. Up/Down/Tab are kept from the owner's row
 // navigation while typing.
+// With a `completionPrefix` ("webapp:"), typing text that starts with it
+// opens a list of the `completions` (names) containing what follows, floating
+// in `overlayHost`: Up/Down move through it, Enter or a click picks one
+// (the field then holds the prefix and the name, and is committed), Tab only
+// fills it in. With no completions at all, the list says `completionEmptyText`.
 Item {
   id: root
 
@@ -23,6 +28,42 @@ Item {
   property string placeholder: ""
   property bool interactive: true
   property string disabledReason: ""
+  // Typed in as dots (a password); `value` should then stay empty.
+  property bool secret: false
+  // The completion list (see above), and where it floats (an item covering
+  // the panel, above its other items).
+  property string completionPrefix: ""
+  property var completions: []
+  property string completionEmptyText: ""
+  property Item overlayHost: null
+
+  // What the field holds as typed, kept in step with it.
+  property string typed: ""
+  // The completions offered for it: those containing what follows the
+  // prefix (any case), the ones starting with it first; [] while the text
+  // doesn't start with the prefix, or names exactly one completion.
+  readonly property var matches: {
+    if (!root.editing || root.completionPrefix === "" || !root.typed.toLowerCase().startsWith(root.completionPrefix.toLowerCase())) return []
+    const wanted = root.typed.slice(root.completionPrefix.length).trim().toLowerCase()
+    const found = root.completions.filter(name => name.toLowerCase().includes(wanted))
+    if (found.length === 1 && found[0].toLowerCase() === wanted) return []
+    return found.filter(name => name.toLowerCase().startsWith(wanted)).concat(found.filter(name => !name.toLowerCase().startsWith(wanted)))
+  }
+  // Whether the list shows: matches, or the empty text when there's nothing
+  // to complete at all.
+  readonly property bool completing: root.matches.length > 0
+    || (root.editing && root.completionPrefix !== "" && root.completions.length === 0 && root.completionEmptyText !== ""
+      && root.typed.toLowerCase().startsWith(root.completionPrefix.toLowerCase()))
+  // The match Up/Down have reached.
+  property int highlighted: 0
+  onMatchesChanged: root.highlighted = 0
+
+  // Puts completion `name` in the field, and commits it unless `fillOnly`.
+  function complete(name, fillOnly) {
+    field.text = root.completionPrefix + name
+    field.cursorPosition = field.text.length
+    if (!fillOnly) field.submit()
+  }
 
   // Whether Enter or Escape ended the typing: any other end of it (another
   // row or tab, or the panel closing) keeps what was typed.
@@ -139,6 +180,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       visible: root.editing
       clip: true
+      echoMode: root.secret ? TextInput.Password : TextInput.Normal
       color: Theme.textColor
       selectionColor: Theme.accentColor
       selectedTextColor: Theme.backgroundColor
@@ -151,12 +193,17 @@ Item {
       // TextInput passes Enter on to its parent after accepting, and the
       // settings panel would take it as an Enter on the row, opening the field
       // again.
+      onTextChanged: root.typed = field.text
+
+      // Enter picks the highlighted completion while the list shows.
       Keys.onReturnPressed: event => {
-        field.submit()
+        if (root.matches.length > 0) root.complete(root.matches[root.highlighted], false)
+        else field.submit()
         event.accepted = true
       }
       Keys.onEnterPressed: event => {
-        field.submit()
+        if (root.matches.length > 0) root.complete(root.matches[root.highlighted], false)
+        else field.submit()
         event.accepted = true
       }
 
@@ -169,10 +216,19 @@ Item {
         root.cancelled()
         event.accepted = true
       }
-      // Not row navigation while typing.
-      Keys.onUpPressed: event => event.accepted = true
-      Keys.onDownPressed: event => event.accepted = true
-      Keys.onTabPressed: event => event.accepted = true
+      // Not row navigation while typing: they move through the completions.
+      Keys.onUpPressed: event => {
+        if (root.matches.length > 0) root.highlighted = (root.highlighted + root.matches.length - 1) % root.matches.length
+        event.accepted = true
+      }
+      Keys.onDownPressed: event => {
+        if (root.matches.length > 0) root.highlighted = (root.highlighted + 1) % root.matches.length
+        event.accepted = true
+      }
+      Keys.onTabPressed: event => {
+        if (root.matches.length > 0) root.complete(root.matches[root.highlighted], true)
+        event.accepted = true
+      }
     }
 
     MouseArea {
@@ -217,5 +273,101 @@ Item {
     onPicked: value => root.picked(value)
     onScreenPickStarted: root.screenPickStarted()
     onScreenPickFinished: root.screenPickFinished()
+  }
+
+  // The completion list, floating above the rest of the panel just under the
+  // field, as wide as it (see DropdownRow's floating list, which this copies).
+  Rectangle {
+    id: completionList
+    visible: root.completing && root.overlayHost !== null
+    z: 1
+    width: box.width
+    height: Math.min(Math.max(root.matches.length, 1), 6) * 30 + 8
+    radius: Theme.radiusFor(30)
+    color: Theme.pillColor
+    border.color: Theme.accentColor
+    border.width: 1
+
+    // Moved to the host once, not bound to it: a binding moves the list back
+    // into the row as the panel is torn down, which crashes the shell.
+    Component.onCompleted: if (root.overlayHost) completionList.parent = root.overlayHost
+
+    // Puts the list under the field, or above it when it would go past the
+    // bottom of the host.
+    function place() {
+      const host = completionList.parent
+      const below = box.mapToItem(host, 0, box.height)
+      completionList.x = below.x
+      const above = box.mapToItem(host, 0, 0).y - completionList.height
+      completionList.y = below.y + completionList.height > host.height && above >= 0 ? above : below.y
+    }
+
+    // Follows the field while the list shows (the rows can scroll under it).
+    Timer {
+      interval: 16
+      repeat: true
+      running: completionList.visible
+      triggeredOnStart: true
+      onTriggered: completionList.place()
+    }
+
+    // Keeps clicks between the entries from reaching what's under the list.
+    MouseArea {
+      anchors.fill: parent
+    }
+
+    // With nothing to complete, what to do about it.
+    ThemedText {
+      visible: root.matches.length === 0
+      anchors.left: parent.left
+      anchors.leftMargin: 14
+      anchors.right: parent.right
+      anchors.rightMargin: 14
+      anchors.verticalCenter: parent.verticalCenter
+      text: root.completionEmptyText
+      elide: Text.ElideRight
+      opacity: 0.55
+    }
+
+    ListView {
+      id: completionView
+      anchors.fill: parent
+      anchors.margins: 4
+      clip: true
+      model: root.matches
+      currentIndex: root.highlighted
+      boundsBehavior: Flickable.StopAtBounds
+      onCurrentIndexChanged: completionView.positionViewAtIndex(completionView.currentIndex, ListView.Contain)
+
+      delegate: Rectangle {
+        id: entry
+
+        required property string modelData
+        required property int index
+
+        width: ListView.view.width
+        height: 30
+        radius: Theme.radiusFor(height)
+        color: entry.index === root.highlighted ? Qt.rgba(Theme.accentColor.r, Theme.accentColor.g, Theme.accentColor.b, 0.22) : "transparent"
+
+        ThemedText {
+          anchors.left: parent.left
+          anchors.leftMargin: 10
+          anchors.right: parent.right
+          anchors.rightMargin: 10
+          anchors.verticalCenter: parent.verticalCenter
+          text: entry.modelData
+          elide: Text.ElideRight
+        }
+
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onEntered: root.highlighted = entry.index
+          onClicked: root.complete(entry.modelData, false)
+        }
+      }
+    }
   }
 }

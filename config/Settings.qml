@@ -327,7 +327,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "gmail", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -506,6 +506,11 @@ Singleton {
   // it from the internet address.
   readonly property string weatherUnit: root.valid("weatherUnit", file.adapter.weatherUnit)
   readonly property string weatherLocation: root.valid("weatherLocation", file.adapter.weatherLocation)
+  // Gmail: whether the inbox of the address typed in is watched (new mails
+  // notified, the unread count on the gmail widget). Its app password is in
+  // the keyring, not here (see services/Gmail.qml).
+  readonly property bool gmailEnabled: root.valid("gmailEnabled", file.adapter.gmailEnabled)
+  readonly property string gmailAddress: root.valid("gmailAddress", file.adapter.gmailAddress)
   // The name of the main monitor, whose wallpaper the Automatic theme's
   // colors follow ("" for the first monitor Hyprland lists).
   readonly property string mainMonitor: root.valid("mainMonitor", file.adapter.mainMonitor)
@@ -581,6 +586,10 @@ Singleton {
   readonly property string diskAction: root.valid("diskAction", file.adapter.diskAction)
   readonly property bool diskActionTerminal: root.valid("diskActionTerminal", file.adapter.diskActionTerminal)
   readonly property bool diskActionFloating: root.valid("diskActionFloating", file.adapter.diskActionFloating)
+  // (The Gmail widget's: with no command, a click opens Gmail in the browser.)
+  readonly property string gmailAction: root.valid("gmailAction", file.adapter.gmailAction)
+  readonly property bool gmailActionTerminal: root.valid("gmailActionTerminal", file.adapter.gmailActionTerminal)
+  readonly property bool gmailActionFloating: root.valid("gmailActionFloating", file.adapter.gmailActionFloating)
   readonly property string networkAction: root.valid("networkAction", file.adapter.networkAction)
   readonly property bool networkActionTerminal: root.valid("networkActionTerminal", file.adapter.networkActionTerminal)
   readonly property bool networkActionFloating: root.valid("networkActionFloating", file.adapter.networkActionFloating)
@@ -966,6 +975,8 @@ Singleton {
     if (key.endsWith("Action") && typeof root.defaults[key] === "string") return typeof value === "string" ? value.trim().slice(0, 500) : root.defaults[key]
     if (key === "mainMonitor" || key === "barMonitor") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     if (key === "weatherLocation") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
+    // An email address, or "" for none.
+    if (key === "gmailAddress") return typeof value === "string" ? value.trim().toLowerCase().slice(0, 200) : root.defaults[key]
     if (root.colorKeys.includes(key)) return root.validColor(value) ? value.trim().toLowerCase() : root.defaults[key]
     // A yes/no setting; a number counts too (0 is off), for the IPC calls.
     if (typeof root.defaults[key] === "boolean") {
@@ -1418,6 +1429,8 @@ Singleton {
       property var worldClocks: Defaults.values.worldClocks
       property string weatherUnit: Defaults.values.weatherUnit
       property string weatherLocation: Defaults.values.weatherLocation
+      property bool gmailEnabled: Defaults.values.gmailEnabled
+      property string gmailAddress: Defaults.values.gmailAddress
       property string mainMonitor: Defaults.values.mainMonitor
       property string launcherTab: Defaults.values.launcherTab
       property string clockDate: Defaults.values.clockDate
@@ -1442,6 +1455,9 @@ Singleton {
       property string diskAction: Defaults.values.diskAction
       property bool diskActionTerminal: Defaults.values.diskActionTerminal
       property bool diskActionFloating: Defaults.values.diskActionFloating
+      property string gmailAction: Defaults.values.gmailAction
+      property bool gmailActionTerminal: Defaults.values.gmailActionTerminal
+      property bool gmailActionFloating: Defaults.values.gmailActionFloating
       property string networkAction: Defaults.values.networkAction
       property bool networkActionTerminal: Defaults.values.networkActionTerminal
       property bool networkActionFloating: Defaults.values.networkActionFloating

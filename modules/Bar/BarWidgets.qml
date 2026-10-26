@@ -24,6 +24,7 @@ Singleton {
     cpu: cpu,
     ram: ram,
     disk: disk,
+    gmail: gmail,
     network: network,
     connection: connection,
     bluetooth: bluetooth,
@@ -50,6 +51,7 @@ Singleton {
   Component { id: cpu; CpuUsage {} }
   Component { id: ram; RamUsage {} }
   Component { id: disk; DiskUsage {} }
+  Component { id: gmail; GmailButton {} }
   Component { id: network; NetworkSpeed {} }
   Component { id: connection; ConnectionButton {} }
   Component { id: bluetooth; BluetoothButton {} }

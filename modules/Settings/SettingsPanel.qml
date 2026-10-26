@@ -37,7 +37,7 @@ ModalPanel {
   // The rows of every category, top to bottom: the ones holding a setting
   // (see SettingsPages), then the launcher's engines, the web apps, the theme's added apps,
   // the profiles, the clocks and the app opacities.
-  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.webAppRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.profileRows).concat(root.worldClockRows).concat(root.appOpacityRows)
+  readonly property var allRows: SettingsPages.rows.concat(root.engineRows).concat(root.webAppRows).concat(root.chatAiProviderRows).concat(root.matugenAppRows).concat(root.profileRows).concat(root.worldClockRows).concat(root.gmailRows).concat(root.appOpacityRows)
 
   // The Profiles category: a row typing in a name to save the current
   // configuration under (Enter saves; an existing name is replaced), then a
@@ -83,6 +83,21 @@ ModalPanel {
       : WorldClock.status === "network" ? I18n.tr("settings.worldClocks.network")
       : I18n.tr("settings.worldClocks.hint")
   }])
+
+  // The Gmail widget's page: after the address, a row typing in the app
+  // password, which goes to the keyring (see Gmail.setPassword), never to the
+  // settings; it says whether one is saved, or what went wrong with it.
+  readonly property var gmailRows: [{
+    key: "gmailPassword",
+    category: "widgetGmail",
+    kind: "path",
+    secret: true,
+    label: I18n.tr("settings.gmailPassword"),
+    placeholder: Gmail.passwordError !== "" ? I18n.tr("settings.gmailPassword.failed", Gmail.passwordError)
+      : Gmail.error === "login" || Gmail.error === "appPassword" ? I18n.tr("gmail.error." + Gmail.error)
+      : Gmail.hasPassword ? I18n.tr("settings.gmailPassword.saved")
+      : I18n.tr("settings.gmailPassword.hint")
+  }]
 
   // The launcher category's search engines, a row each in their order (the
   // first with the list's title above it), then a row adding one. A row's
@@ -636,6 +651,9 @@ ModalPanel {
     if (row.key.startsWith("chatAiModel:")) return root.chatAiModelsStatus(row.providerId) === ""
     if (row.key === "barAutoHideDelay") return Theme.barAutoHide
     if (row.key === "barMonitor") return !Settings.barAllMonitors
+    if (row.key === "gmailPassword") return Settings.gmailAddress !== ""
+    // A click action opening a web app has no terminal or floating option.
+    if (root.webAppActionOf(row) !== null) return false
     if (row.key === "monitorBrightness") return MonitorLayout.focused?.hdr || !MonitorLayout.brightnessIgnored[MonitorLayout.focused?.name]
     if (row.key.startsWith("monitor") && row.kind !== "action") return MonitorLayout.focused !== null
     // A font size only matters while its sync is on.
@@ -683,6 +701,13 @@ ModalPanel {
     const names = Hyprland.monitors.values.map(monitor => monitor.name)
     if (Settings.mainMonitor !== "" && !names.includes(Settings.mainMonitor)) names.push(Settings.mainMonitor)
     return names.map(name => ({ value: name, text: name }))
+  }
+
+  // For a widget's "run it in a terminal" or "floating window" row, the web
+  // app its click action opens (see WidgetActions.webAppOf), else null.
+  function webAppActionOf(row) {
+    const match = /^(\w+)Action(Terminal|Floating)Row$/.exec(row.key)
+    return match && WidgetActions.ids.includes(match[1]) ? WidgetActions.webAppOf(Settings.get(match[1] + "Action")) : null
   }
 
   // The choices of the monitor that keeps the bar: each connected monitor.
@@ -733,6 +758,8 @@ ModalPanel {
     if (row.key === "windowGapsIn" && Settings.windowGapsInSame) return I18n.tr("settings.windowGapsInSame.disabled")
     if (row.key === "appFontSize" && !Settings.appFontSync) return I18n.tr("settings.fontSize.disabled")
     if (row.key === "barMonitor" && Settings.barAllMonitors) return I18n.tr("settings.barMonitor.disabled")
+    if (row.key === "gmailPassword" && Settings.gmailAddress === "") return I18n.tr("settings.gmailPassword.disabled")
+    if (root.webAppActionOf(row) !== null) return I18n.tr("settings.widgetAction.webAppDisabled")
     if (row.key === "barAutoHideDelay" && !Theme.barAutoHide) return I18n.tr("settings.barAutoHide.disabledOff")
     if (row.key === "animationDuration" && !Settings.animations) return I18n.tr("settings.animationDuration.disabled")
     if (["hyprlandAnimationDuration", "hyprlandWindowStyle", "hyprlandWorkspaceStyle"].includes(row.key) && !Settings.hyprlandAnimations) return I18n.tr("settings.hyprlandAnimations.disabled")
@@ -1896,8 +1923,15 @@ ModalPanel {
                 anchors.fill: parent
                 anchors.topMargin: row.above
                 label: row.modelData.label
-                // The rows adding a place or saving a profile hold no setting: always empty.
-                value: row.modelData.kind === "path" && row.modelData.key !== "worldClockAdd" && row.modelData.key !== "profileSave" ? String(Settings.get(row.modelData.key)) : ""
+                // The rows adding a place, saving a profile or typing in the
+                // Gmail password hold no setting: always empty.
+                value: row.modelData.kind === "path" && !["worldClockAdd", "profileSave", "gmailPassword"].includes(row.modelData.key) ? String(Settings.get(row.modelData.key)) : ""
+                secret: row.modelData.secret ?? false
+                // A widget's click action completes "webapp:" with the web apps' names.
+                completionPrefix: WidgetActions.ids.some(id => row.modelData.key === id + "Action") ? "webapp:" : ""
+                completions: Settings.webApps.map(app => app.name)
+                completionEmptyText: I18n.tr("settings.widgetAction.noWebApps")
+                overlayHost: listLayer
                 placeholder: row.modelData.placeholder ?? ""
                 interactive: root.rowEnabled(row.modelData)
                 disabledReason: root.disabledReasonOf(row.modelData)
@@ -1910,6 +1944,8 @@ ModalPanel {
                   if (root.editKey === row.modelData.key) root.editKey = ""
                   if (row.modelData.key === "worldClockAdd") WorldClock.add(text)
                   else if (row.modelData.key === "profileSave") Profiles.save(text)
+                  // (An empty field keeps the saved password; the `gmail forgetPassword` call takes it out.)
+                  else if (row.modelData.key === "gmailPassword") { if (text.trim() !== "") Gmail.setPassword(text) }
                   else Settings.set(row.modelData.key, text)
                 }
                 onCancelled: root.editKey = ""
