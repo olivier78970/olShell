@@ -5,7 +5,7 @@ import qs.services
 
 // How full the main disk (the one mounted on "/") is, in percent (on a side
 // bar, a ring filled to it around the icon), in the warning color above 90%;
-// hover to see used/total in a popup, click to run its
+// hover to see used/total and the space left in a popup, click to run its
 // action (Settings.diskAction).
 Item {
   id: root
@@ -80,6 +80,11 @@ Item {
       text: SystemStats.rootDisk
         ? I18n.tr("disk.used", SystemStats.formatBytes(SystemStats.rootDisk.used), SystemStats.formatBytes(SystemStats.rootDisk.size))
         : ""
+    }
+
+    // The space left.
+    ThemedText {
+      text: SystemStats.rootDisk ? I18n.tr("disk.free", SystemStats.formatBytes(SystemStats.rootDisk.avail)) : ""
     }
   }
 }

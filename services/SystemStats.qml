@@ -32,7 +32,8 @@ Singleton {
   property var lastNet: null
   property double lastNetTime: 0
 
-  // Mounted disks: [{ mount, device, fstype, size, used }], sizes in bytes.
+  // Mounted disks: [{ mount, device, fstype, size, used, avail }], sizes in
+  // bytes (avail is what users can still write, without the reserved blocks).
   property var disks: []
   // The main disk, the one mounted on "/" (null until the first poll), and
   // how full it is, in percent.
@@ -249,7 +250,7 @@ Singleton {
     id: diskProc
     environment: ({ LC_ALL: "C" })
     command: ["df", "-B1", "-x", "tmpfs", "-x", "devtmpfs", "-x", "efivarfs", "-x", "squashfs", "-x", "overlay",
-      "--output=source,fstype,size,used,target"]
+      "--output=source,fstype,size,used,avail,target"]
 
     stdout: StdioCollector {
       onStreamFinished: {
@@ -258,8 +259,8 @@ Singleton {
         const byDevice = {}
         for (const line of text.split("\n").slice(1)) {
           const parts = line.trim().split(/\s+/)
-          if (parts.length < 5) continue
-          const disk = { device: parts[0], fstype: parts[1], size: Number(parts[2]), used: Number(parts[3]), mount: parts.slice(4).join(" ") }
+          if (parts.length < 6) continue
+          const disk = { device: parts[0], fstype: parts[1], size: Number(parts[2]), used: Number(parts[3]), avail: Number(parts[4]), mount: parts.slice(5).join(" ") }
           if (!(disk.size > 0)) continue
           const known = byDevice[disk.device]
           if (!known || disk.mount.length < known.mount.length) byDevice[disk.device] = disk
