@@ -41,12 +41,13 @@ Singleton {
 
   // Runs widget `id`'s action, if it has one: false when it has none, or
   // names a web app that doesn't exist (for a widget with something else to
-  // do then).
-  function run(id) {
+  // do then). A web app opens on `address` when given (a Gmail
+  // notification's mail), else as it is.
+  function run(id, address) {
     const command = Settings.get(id + "Action")
     const webApp = root.webAppOf(command)
     if (webApp) {
-      if (webApp.app) WebApps.launch(webApp.app)
+      if (webApp.app) WebApps.launch(webApp.app, address ?? "")
       return webApp.app !== null
     }
     const words = WebApps.split(command)
