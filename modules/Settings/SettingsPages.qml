@@ -88,6 +88,7 @@ Singleton {
     { id: "widgetCpu", label: I18n.tr("settings.widget.cpu") },
     { id: "widgetRam", label: I18n.tr("settings.widget.ram") },
     { id: "widgetDisk", label: I18n.tr("settings.widget.disk") },
+    { id: "widgetGmail", label: I18n.tr("settings.widget.gmail") },
     { id: "widgetNetwork", label: I18n.tr("settings.widget.network") },
     { id: "widgetConnection", label: I18n.tr("settings.widget.connection") },
     { id: "widgetBluetooth", label: I18n.tr("settings.widget.bluetooth") },
@@ -428,6 +429,17 @@ Singleton {
     ] },
     { key: "diskActionFloatingRow", category: "widgetDisk", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
       { key: "diskActionFloating", text: "" }
+    ] },
+    { key: "gmailEnabledRow", category: "widgetGmail", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.gmailEnabled"), toggles: [
+      { key: "gmailEnabled", text: "" }
+    ] },
+    { key: "gmailAddress", category: "widgetGmail", kind: "path", label: I18n.tr("settings.gmailAddress"), placeholder: I18n.tr("settings.gmailAddress.hint") },
+    { key: "gmailAction", category: "widgetGmail", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.gmailAction.browser") },
+    { key: "gmailActionTerminalRow", category: "widgetGmail", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [
+      { key: "gmailActionTerminal", text: "" }
+    ] },
+    { key: "gmailActionFloatingRow", category: "widgetGmail", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
+      { key: "gmailActionFloating", text: "" }
     ] },
     { key: "networkAction", category: "widgetNetwork", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
     { key: "networkActionTerminalRow", category: "widgetNetwork", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [

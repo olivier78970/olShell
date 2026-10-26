@@ -28,7 +28,7 @@ Item {
   readonly property var icons: ({
     launcher: "", settings: "󰒓", workspaces: "󰕰", activeWindow: "󰖯", clock: "󰥔",
     wallpaper: "󰋩", theme: "󰏘", screenshot: "󰄀", zoom: "󱡴", shortcuts: "󰌌",
-    tray: "󰀻", cpu: "󰻠", ram: "󰍛", disk: "󰋊", network: "󰛳", connection: "󰖩",
+    tray: "󰀻", cpu: "󰻠", ram: "󰍛", disk: "󰋊", gmail: "󰇮", network: "󰛳", connection: "󰖩",
     bluetooth: "󰂯", volume: "󰕾", notifications: "󰂚", lock: "󰌾", power: "󰐥", chatAi: "󰭹", webApps: "󰖟", emoji: "󰞅"
   })
   // The icon of each group mode, in the order the button goes through them.

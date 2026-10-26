@@ -111,9 +111,9 @@ Scope {
     // hyprlandAnimationSame,
     // borderOpaque,
     // workspaceCountFromHyprland, workspacesPerMonitor (with it on, workspaceCount sets the focused monitor's count), clockSeconds, cpuActionTerminal,
-    // ramActionTerminal, diskActionTerminal, networkActionTerminal,
+    // ramActionTerminal, diskActionTerminal, gmailActionTerminal, networkActionTerminal,
     // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
-    // ramActionFloating, diskActionFloating, networkActionFloating,
+    // ramActionFloating, diskActionFloating, gmailActionFloating, networkActionFloating,
     // connectionActionFloating, bluetoothActionFloating, volumeActionTerminal,
     // activeWindowActionTerminal, volumeActionFloating,
     // activeWindowActionFloating, blur, blurXray,
@@ -125,7 +125,7 @@ Scope {
     // matugenQt, matugenStarship, appFontSync, themeExactApps, lockStayAwakeFullscreen, powerConfirm, bingWallpapers,
     // chatAiListDir, chatAiFindFiles, chatAiSearchText, chatAiReadFile,
     // chatAiWebSearch, chatAiWebFetch, chatAiShellDocs, chatAiShellIpc,
-    // chatAiShowUsage, chatAiShowHint, chatAiShowAccess) take
+    // chatAiShowUsage, chatAiShowHint, chatAiShowAccess, gmailEnabled) take
     // 1 or 0.
     function set(key: string, value: real): void {
       Settings.set(key, value)
@@ -134,7 +134,7 @@ Scope {
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
-    // disk, network, connection, bluetooth, volume, notifications, lock, power, chatAi,
+    // disk, gmail, network, connection, bluetooth, volume, notifications, lock, power, chatAi,
     // webApps, emoji),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
@@ -336,20 +336,21 @@ Scope {
     // a "#rrggbb" color), for the chat AI's default provider
     // (chatAiDefaultProvider: a provider's id, e.g. "anthropic", or "" for the
     // first one that can be asked), for the weather's place (weatherLocation: a
-    // place's name, or "" to find it from the internet address), for the main
+    // place's name, or "" to find it from the internet address), for the Gmail
+    // account watched (gmailAddress: an email address), for the main
     // monitor (mainMonitor: a monitor's name, or "" for the first one), for the
     // monitor keeping the bar without barAllMonitors (barMonitor: a monitor's
     // name, or "" for the main monitor), and for the
     // command opening a web app (webAppCommand: a program and its arguments,
     // %s for the address; "" for the default), and for the command a click on
-    // a bar widget runs (cpuAction, ramAction, diskAction, networkAction,
+    // a bar widget runs (cpuAction, ramAction, diskAction, gmailAction, networkAction,
     // connectionAction, bluetoothAction, volumeAction, activeWindowAction: a
     // program and its arguments; "" for
-    // nothing), and for the wallpaper folders (wallpaperFolders: paths separated
+    // nothing, or for gmailAction Gmail in the browser), and for the wallpaper folders (wallpaperFolders: paths separated
     // by commas, ~ for the home folder; bingWallpaperFolder: one path).
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" || key === "monoFontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
+        : key === "weatherLocation" || key === "gmailAddress" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
@@ -373,7 +374,7 @@ Scope {
 
     // Puts a page (appearance, blur, windows, text, bar, layout,
     // widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
-    // widgetRam, widgetDisk, widgetNetwork, widgetConnection,
+    // widgetRam, widgetDisk, widgetGmail, widgetNetwork, widgetConnection,
     // widgetBluetooth, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher,

@@ -73,6 +73,10 @@ Singleton {
   readonly property string aiAskScript: Quickshell.shellPath("scripts/ai-ask.py")
   readonly property string aiKeyScript: Quickshell.shellPath("scripts/ai-key.py")
 
+  // Watches the Gmail inbox, shows its mails' notifications and keeps its app
+  // password in the keyring.
+  readonly property string gmailScript: Quickshell.shellPath("scripts/gmail.py")
+
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
   readonly property string matugenConfig: Quickshell.shellPath("matugen/quickshell.toml")

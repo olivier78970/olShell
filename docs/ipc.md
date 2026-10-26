@@ -26,6 +26,7 @@ quickshell -p . ipc call lock lock                # lock the screen (`lock statu
 quickshell -p . ipc call power toggle              # open/close the power panel
 quickshell -p . ipc call power logout              # ask to confirm logging out (also: restart, shutdown, firmware for the UEFI setup)
 quickshell -p . ipc call power suspend             # suspend at once, with no confirmation
+quickshell -p . ipc call gmail unread               # the Gmail inbox's unread conversations, -1 while not watched (also: status as JSON, check to connect again now, open the inbox, forgetPassword)
 quickshell -p . ipc call volume increase 0.05
 quickshell -p . ipc call volume decrease 0.05
 quickshell -p . ipc call volume mute

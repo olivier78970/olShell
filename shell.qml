@@ -40,6 +40,9 @@ ShellRoot {
   // And the Bing wallpaper service, which downloads the picture of the day
   // once at startup when its setting is on.
   readonly property var bingWallpapers: BingWallpaper.enabled
+  // And the Gmail service, which watches the inbox from the start (for its
+  // notifications) and answers the `gmail` IPC calls.
+  readonly property var gmailUnread: Gmail.unread
   // And the zoom service, which answers the `zoom` IPC calls.
   readonly property var zoomFactor: Zoom.factor
   // And the workspace rules, which answer the `workspaces` IPC calls.
