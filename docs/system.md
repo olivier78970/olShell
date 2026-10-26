@@ -26,7 +26,7 @@ while the Wi-Fi is on, **Connect to a hidden Wi-Fi network…** (its name and pa
 and, while connected, **Connection information** (a popup with each active connection's interface, IPv4 and IPv6 addresses, gateway and DNS, until a click elsewhere).
 The Wi-Fi scans while the menu is open.
 It reads Quickshell's Networking module, and NetworkManager through `nmcli` for what that module doesn't have ([services/NetworkManager.qml](../services/NetworkManager.qml)), so it works without nm-applet running.
-The terminal it opens is `networkTerminal` in [config/Apps.qml](../config/Apps.qml).
+The terminal it opens is the **Terminal** of the settings' **Default apps** (see [Default apps](panels-and-apps.md#default-apps)).
 
 ### Bluetooth
 

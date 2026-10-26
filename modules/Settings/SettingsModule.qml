@@ -347,10 +347,15 @@ Scope {
     // connectionAction, bluetoothAction, volumeAction, activeWindowAction: a
     // program and its arguments; "" for
     // nothing, or for gmailAction Gmail in the browser), and for the wallpaper folders (wallpaperFolders: paths separated
-    // by commas, ~ for the home folder; bingWallpaperFolder: one path).
+    // by commas, ~ for the home folder; bingWallpaperFolder: one path), and
+    // for the default applications (defaultBrowser, defaultMail,
+    // defaultFileManager, defaultTextEditor, defaultTerminal,
+    // defaultImageViewer, defaultVideoPlayer, defaultMusicPlayer,
+    // defaultPdfViewer, defaultArchiveManager, defaultTorrentClient: a desktop
+    // entry id, e.g. "mpv.desktop"; for defaultMail also "webapp:<name>").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" || key === "monoFontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "gmailAddress" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") ? true
+        : key === "weatherLocation" || key === "gmailAddress" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") || DefaultApps.kinds.some(kind => kind.key === key) ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
@@ -377,7 +382,7 @@ Scope {
     // widgetRam, widgetDisk, widgetGmail, widgetNetwork, widgetConnection,
     // widgetBluetooth, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
-    // lockKeysOsd, lock, launcher,
+    // lockKeysOsd, lock, launcher, defaultApps,
     // panels, panelPower, panelSwitcher, panelClock or general) back to the settings of the
     // current profile.
     function resetPage(category: string): void {

@@ -573,6 +573,22 @@ Singleton {
   // for the app's address (added at the end when there is none). Run without
   // a shell (see services/WebApps.qml); empty puts the default back.
   readonly property string webAppCommand: root.valid("webAppCommand", file.adapter.webAppCommand)
+  // The default applications, by kind (see services/DefaultApps.qml, which
+  // applies them to ~/.config/mimeapps.list, and scripts/default-apps.py,
+  // which lists the MIME types of each kind): each a desktop entry id. The
+  // mail client may also be a web app, "webapp:<name>". The terminal is also
+  // the one the shell runs terminal applications in (see config/Apps.qml).
+  readonly property string defaultBrowser: root.valid("defaultBrowser", file.adapter.defaultBrowser)
+  readonly property string defaultMail: root.valid("defaultMail", file.adapter.defaultMail)
+  readonly property string defaultFileManager: root.valid("defaultFileManager", file.adapter.defaultFileManager)
+  readonly property string defaultTextEditor: root.valid("defaultTextEditor", file.adapter.defaultTextEditor)
+  readonly property string defaultTerminal: root.valid("defaultTerminal", file.adapter.defaultTerminal)
+  readonly property string defaultImageViewer: root.valid("defaultImageViewer", file.adapter.defaultImageViewer)
+  readonly property string defaultVideoPlayer: root.valid("defaultVideoPlayer", file.adapter.defaultVideoPlayer)
+  readonly property string defaultMusicPlayer: root.valid("defaultMusicPlayer", file.adapter.defaultMusicPlayer)
+  readonly property string defaultPdfViewer: root.valid("defaultPdfViewer", file.adapter.defaultPdfViewer)
+  readonly property string defaultArchiveManager: root.valid("defaultArchiveManager", file.adapter.defaultArchiveManager)
+  readonly property string defaultTorrentClient: root.valid("defaultTorrentClient", file.adapter.defaultTorrentClient)
   // What a click on a configurable bar widget runs (a program and its
   // arguments, empty for nothing), whether it runs in a terminal and whether
   // its window opens floating in the middle of the screen; see
@@ -970,6 +986,12 @@ Singleton {
     // A provider's id, or "" for the first one that can be asked.
     if (key === "chatAiDefaultProvider") return typeof value === "string" ? value.trim().slice(0, 100) : root.defaults[key]
     // A place's name, or "" for none.
+    // A default application: a desktop entry id, or for the mail client a
+    // web app ("webapp:<name>").
+    if (key.startsWith("default") && typeof root.defaults[key] === "string") {
+      const id = typeof value === "string" ? value.trim().slice(0, 200) : ""
+      return (id.endsWith(".desktop") && !id.includes("/")) || (key === "defaultMail" && /^webapp:.+/.test(id)) ? id : root.defaults[key]
+    }
     if (key === "webAppCommand") return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, 500) : root.defaults[key]
     // A widget's click action: a command, or "" for nothing.
     if (key.endsWith("Action") && typeof root.defaults[key] === "string") return typeof value === "string" ? value.trim().slice(0, 500) : root.defaults[key]
@@ -1446,6 +1468,17 @@ Singleton {
       property string activeWindowLayout: Defaults.values.activeWindowLayout
       property var webApps: Defaults.values.webApps
       property string webAppCommand: Defaults.values.webAppCommand
+      property string defaultBrowser: Defaults.values.defaultBrowser
+      property string defaultMail: Defaults.values.defaultMail
+      property string defaultFileManager: Defaults.values.defaultFileManager
+      property string defaultTextEditor: Defaults.values.defaultTextEditor
+      property string defaultTerminal: Defaults.values.defaultTerminal
+      property string defaultImageViewer: Defaults.values.defaultImageViewer
+      property string defaultVideoPlayer: Defaults.values.defaultVideoPlayer
+      property string defaultMusicPlayer: Defaults.values.defaultMusicPlayer
+      property string defaultPdfViewer: Defaults.values.defaultPdfViewer
+      property string defaultArchiveManager: Defaults.values.defaultArchiveManager
+      property string defaultTorrentClient: Defaults.values.defaultTorrentClient
       property string cpuAction: Defaults.values.cpuAction
       property bool cpuActionTerminal: Defaults.values.cpuActionTerminal
       property bool cpuActionFloating: Defaults.values.cpuActionFloating

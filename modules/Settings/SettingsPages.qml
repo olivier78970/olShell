@@ -59,6 +59,7 @@ Singleton {
     { id: "lock", icon: "󰌾", label: I18n.tr("settings.category.lock") },
     { id: "launcher", icon: "󰍉", label: I18n.tr("settings.category.launcher") },
     { id: "webApps", icon: "󰖟", label: I18n.tr("settings.category.webApps") },
+    { id: "defaultApps", icon: "󰣆", label: I18n.tr("settings.category.defaultApps") },
     // Panels: where each opens, then one tab for the panels with settings of
     // their own: a dropdown picks the panel (panelPages), and the rows of its
     // page are listed under it.
@@ -395,6 +396,19 @@ Singleton {
     ] },
     { key: "weatherUnit", category: "panelClock", kind: "buttons", title: I18n.tr("clock.tab.weather"), label: I18n.tr("settings.weatherUnit") },
     { key: "webAppCommand", category: "webApps", kind: "path", label: I18n.tr("settings.webAppCommand") },
+    // The default applications, each a dropdown of the applications of its
+    // kind (see services/DefaultApps.qml).
+    { key: "defaultBrowser", category: "defaultApps", kind: "dropdown", defaultApp: "browser", label: I18n.tr("settings.defaultApps.browser") },
+    { key: "defaultMail", category: "defaultApps", kind: "dropdown", defaultApp: "mail", label: I18n.tr("settings.defaultApps.mail") },
+    { key: "defaultFileManager", category: "defaultApps", kind: "dropdown", defaultApp: "fileManager", label: I18n.tr("settings.defaultApps.fileManager") },
+    { key: "defaultTextEditor", category: "defaultApps", kind: "dropdown", defaultApp: "textEditor", label: I18n.tr("settings.defaultApps.textEditor") },
+    { key: "defaultTerminal", category: "defaultApps", kind: "dropdown", defaultApp: "terminal", label: I18n.tr("settings.defaultApps.terminal") },
+    { key: "defaultImageViewer", category: "defaultApps", kind: "dropdown", defaultApp: "imageViewer", label: I18n.tr("settings.defaultApps.imageViewer") },
+    { key: "defaultVideoPlayer", category: "defaultApps", kind: "dropdown", defaultApp: "videoPlayer", label: I18n.tr("settings.defaultApps.videoPlayer") },
+    { key: "defaultMusicPlayer", category: "defaultApps", kind: "dropdown", defaultApp: "musicPlayer", label: I18n.tr("settings.defaultApps.musicPlayer") },
+    { key: "defaultPdfViewer", category: "defaultApps", kind: "dropdown", defaultApp: "pdfViewer", label: I18n.tr("settings.defaultApps.pdfViewer") },
+    { key: "defaultArchiveManager", category: "defaultApps", kind: "dropdown", defaultApp: "archiveManager", label: I18n.tr("settings.defaultApps.archiveManager") },
+    { key: "defaultTorrentClient", category: "defaultApps", kind: "dropdown", defaultApp: "torrentClient", label: I18n.tr("settings.defaultApps.torrentClient") },
     { key: "weatherLocation", category: "panelClock", kind: "path", label: I18n.tr("settings.weatherLocation"), placeholder: I18n.tr("settings.weatherLocation.auto") },
     { key: "switcherPreviewsRow", category: "panelSwitcher", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.switcherPreviews"), toggles: [
       { key: "switcherPreviews", text: "" }

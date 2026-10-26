@@ -67,6 +67,9 @@ ShellRoot {
   readonly property var profileNames: Profiles.names
   // And the web apps service, which answers the `webApps` IPC calls.
   readonly property var webApps: WebApps.shown
+  // And the default applications service, which applies them to the system
+  // from the start and answers the `defaultApps` IPC calls.
+  readonly property var defaultApps: DefaultApps.wanted
   // And the notification rules, which have to be read before the first
   // notification arrives (created by that notification, they were still empty
   // when it was matched, so its command didn't run).

@@ -4,9 +4,9 @@ import Quickshell
 import Quickshell.Hyprland
 import qs.config
 
-// Runs a terminal application (yazi, btop, gdu...) in Apps.appTerminal, in a
-// floating window centered on the focused monitor, or any program in such a
-// window. The launcher uses it for the desktop entries that ask for a
+// Runs a terminal application (yazi, btop, gdu...) in the terminal
+// (Apps.terminal, the settings' one), in a floating window centered on the
+// focused monitor, or any program in such a window. The launcher uses it for the desktop entries that ask for a
 // terminal, and the bar widgets for their click action (see
 // WidgetActions.qml).
 Singleton {
@@ -18,13 +18,8 @@ Singleton {
 
   // `command` (a program and its arguments) run by the terminal, with window
   // class `windowClass` when there is one (so the window can be found again).
-  // The class goes before Apps.appTerminal's last word, the option that takes
-  // the command.
   function terminalCommand(command, windowClass) {
-    const terminal = windowClass
-      ? Apps.appTerminal.slice(0, -1).concat(["--class", windowClass, Apps.appTerminal[Apps.appTerminal.length - 1]])
-      : Apps.appTerminal
-    return terminal.concat(command)
+    return Apps.terminalCommand(command, windowClass)
   }
 
   // Opens `command` in a floating window centered on the focused monitor
