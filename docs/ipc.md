@@ -17,6 +17,7 @@ quickshell -p . ipc call switcher toggle               # open the app switcher, 
 quickshell -p . ipc call settings toggle               # open/close the settings panel
 quickshell -p . ipc call profiles apply "<name>"       # switch to a saved configuration (also: list, save "<name>", remove "<name>")
 quickshell -p . ipc call webApps open "<name>"         # open a web app (also: list)
+quickshell -p . ipc call defaultApps openMail "<web app>" "<mailto: link>"  # open a mailto: link in a web app (what the mail client entry calls)
 quickshell -p . ipc call notifications toggle          # open/close the notification center
 quickshell -p . ipc call clock toggle                  # open/close the clock panel (on the focused screen)
 quickshell -p . ipc call weather now                   # the clock panel's weather as JSON (also: refresh)

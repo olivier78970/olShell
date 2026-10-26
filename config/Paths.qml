@@ -63,6 +63,9 @@ Singleton {
 
   // Reads the default browser's default search engine, for the launcher.
   readonly property string defaultSearchEngineScript: Quickshell.shellPath("scripts/default-search-engine.py")
+  // Lists the applications of each kind and sets the default ones (see
+  // services/DefaultApps.qml).
+  readonly property string defaultAppsScript: Quickshell.shellPath("scripts/default-apps.py")
 
   // The shell's own folder (this checkout, or the deployed copy), without a
   // trailing slash: the chat AI reads its documentation and runs its IPC calls.

@@ -660,6 +660,7 @@ Singleton {
     "settings.category.lock": "Lock screen",
     "settings.category.launcher": "Launcher",
     "settings.category.webApps": "Web apps",
+    "settings.category.defaultApps": "Default apps",
     "settings.webApps": "Web apps  ·  each opens with the command above",
     "settings.webApps.add": "Add a web app",
     "settings.webAppCommand": "Command (%s: the address, else added at the end)",
@@ -827,7 +828,20 @@ Singleton {
     "gmail.error.login": "Gmail refused the address or the app password",
     "gmail.error.appPassword": "That's the account password: Gmail needs an app password (16 letters)",
     "gmail.error.network": "Can't reach Gmail, trying again…",
-    "gmail.check": "Check now"
+    "gmail.check": "Check now",
+    "settings.defaultApps.browser": "Web browser",
+    "settings.defaultApps.mail": "Mail client",
+    "settings.defaultApps.fileManager": "File manager",
+    "settings.defaultApps.textEditor": "Text editor",
+    "settings.defaultApps.terminal": "Terminal",
+    "settings.defaultApps.imageViewer": "Image viewer",
+    "settings.defaultApps.videoPlayer": "Video player",
+    "settings.defaultApps.musicPlayer": "Music player",
+    "settings.defaultApps.pdfViewer": "PDF viewer",
+    "settings.defaultApps.archiveManager": "Archive manager",
+    "settings.defaultApps.torrentClient": "Torrent client",
+    "settings.defaultApps.webApp": "{0} (web app)",
+    "settings.defaultApps.missing": "{0} (not installed)"
   })
 
   readonly property var fr: ({
@@ -1481,6 +1495,7 @@ Singleton {
     "settings.category.lock": "Verrouillage",
     "settings.category.launcher": "Lanceur",
     "settings.category.webApps": "Applications web",
+    "settings.category.defaultApps": "Applications par défaut",
     "settings.webApps": "Applications web  ·  chacune s'ouvre avec la commande ci-dessus",
     "settings.webApps.add": "Ajouter une application web",
     "settings.webAppCommand": "Commande (%s : l'adresse, sinon ajoutée à la fin)",
@@ -1648,7 +1663,20 @@ Singleton {
     "gmail.error.login": "Gmail a refusé l'adresse ou le mot de passe d'application",
     "gmail.error.appPassword": "C'est le mot de passe du compte : Gmail demande un mot de passe d'application (16 lettres)",
     "gmail.error.network": "Gmail injoignable, nouvel essai…",
-    "gmail.check": "Vérifier maintenant"
+    "gmail.check": "Vérifier maintenant",
+    "settings.defaultApps.browser": "Navigateur web",
+    "settings.defaultApps.mail": "Client de messagerie",
+    "settings.defaultApps.fileManager": "Gestionnaire de fichiers",
+    "settings.defaultApps.textEditor": "Éditeur de texte",
+    "settings.defaultApps.terminal": "Terminal",
+    "settings.defaultApps.imageViewer": "Visionneuse d'images",
+    "settings.defaultApps.videoPlayer": "Lecteur vidéo",
+    "settings.defaultApps.musicPlayer": "Lecteur de musique",
+    "settings.defaultApps.pdfViewer": "Lecteur PDF",
+    "settings.defaultApps.archiveManager": "Gestionnaire d'archives",
+    "settings.defaultApps.torrentClient": "Client torrent",
+    "settings.defaultApps.webApp": "{0} (application web)",
+    "settings.defaultApps.missing": "{0} (non installée)"
   })
 
   readonly property var es: ({
@@ -2302,6 +2330,7 @@ Singleton {
     "settings.category.lock": "Pantalla de bloqueo",
     "settings.category.launcher": "Lanzador",
     "settings.category.webApps": "Aplicaciones web",
+    "settings.category.defaultApps": "Aplicaciones predeterminadas",
     "settings.webApps": "Aplicaciones web  ·  cada una se abre con el comando de arriba",
     "settings.webApps.add": "Añadir una aplicación web",
     "settings.webAppCommand": "Comando (%s: la dirección, si no se añade al final)",
@@ -2469,6 +2498,19 @@ Singleton {
     "gmail.error.login": "Gmail rechazó la dirección o la contraseña de aplicación",
     "gmail.error.appPassword": "Es la contraseña de la cuenta: Gmail pide una contraseña de aplicación (16 letras)",
     "gmail.error.network": "No se puede conectar con Gmail, reintentando…",
-    "gmail.check": "Comprobar ahora"
+    "gmail.check": "Comprobar ahora",
+    "settings.defaultApps.browser": "Navegador web",
+    "settings.defaultApps.mail": "Cliente de correo",
+    "settings.defaultApps.fileManager": "Gestor de archivos",
+    "settings.defaultApps.textEditor": "Editor de texto",
+    "settings.defaultApps.terminal": "Terminal",
+    "settings.defaultApps.imageViewer": "Visor de imágenes",
+    "settings.defaultApps.videoPlayer": "Reproductor de vídeo",
+    "settings.defaultApps.musicPlayer": "Reproductor de música",
+    "settings.defaultApps.pdfViewer": "Visor de PDF",
+    "settings.defaultApps.archiveManager": "Gestor de archivos comprimidos",
+    "settings.defaultApps.torrentClient": "Cliente de torrents",
+    "settings.defaultApps.webApp": "{0} (aplicación web)",
+    "settings.defaultApps.missing": "{0} (no instalada)"
   })
 }

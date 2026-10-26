@@ -341,6 +341,8 @@ ModalPanel {
   }
   Component.onCompleted: {
     if (root.page === "appOpacity") clientsProcess.running = true
+    // (Listed on every opening, so an application just installed is offered.)
+    DefaultApps.refresh()
     if (root.page === "chatAi") ChatAi.refreshKeys()
   }
 
@@ -695,6 +697,21 @@ ModalPanel {
 
   // The label of slider `row`: the workspace count's names the focused
   // monitor while the counts are per monitor.
+  // The choices of default application row `row`: the installed
+  // applications of its kind, the web apps that can compose a mail for the
+  // mail client, and the saved one, marked missing, when it is neither.
+  function defaultAppOptions(row) {
+    const options = (DefaultApps.candidates[row.defaultApp] ?? []).map(app => ({ value: app.id, text: app.name }))
+    if (row.defaultApp === "mail") {
+      for (const app of DefaultApps.mailWebApps) options.push({ value: "webapp:" + app.name, text: I18n.tr("settings.defaultApps.webApp", app.name) })
+    }
+    // (Not marked missing while the applications are still being listed.)
+    const saved = Settings.get(row.key)
+    const name = saved.replace(/^webapp:/, "").replace(/\.desktop$/, "")
+    if (!options.some(option => option.value === saved)) options.push({ value: saved, text: DefaultApps.candidates[row.defaultApp] ? I18n.tr("settings.defaultApps.missing", name) : name })
+    return options
+  }
+
   // The main monitor's choices: each connected monitor (and the saved one,
   // when it isn't connected right now).
   readonly property var mainMonitorOptions: {
@@ -793,6 +810,7 @@ ModalPanel {
   function optionsOf(row) {
     if (row.key === "mainMonitor") return root.mainMonitorOptions
     if (row.key === "barMonitor") return root.barMonitorOptions
+    if (row.defaultApp) return root.defaultAppOptions(row)
     if (row.key === "monitorMode") return MonitorLayout.focusedModeOptions
     if (row.key === "monitorScale") return MonitorLayout.focusedScaleOptions
     if (row.key === "monitorMirror") return MonitorLayout.focusedMirrorOptions

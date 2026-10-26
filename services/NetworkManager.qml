@@ -45,14 +45,14 @@ Singleton {
   // Connects to a secured Wi-Fi network NetworkManager has no password for:
   // nmcli asks for it in a terminal. The name goes in as an argument.
   function connectWithPassword(ssid) {
-    Quickshell.execDetached(Apps.networkTerminal.concat(["-e", "sh", "-c", 'nmcli --ask device wifi connect "$1" || { printf "\\n%s" "$2"; read -r _; }', "sh", ssid, I18n.tr("network.pressEnter")]))
+    Quickshell.execDetached(Apps.terminalCommand(["sh", "-c", 'nmcli --ask device wifi connect "$1" || { printf "\\n%s" "$2"; read -r _; }', "sh", ssid, I18n.tr("network.pressEnter")], "quickshell-network", "nmcli"))
     refreshLater.restart()
   }
 
   // Connects to a hidden Wi-Fi network: its name and password are asked for
   // in a terminal.
   function connectHidden() {
-    Quickshell.execDetached(Apps.networkTerminal.concat(["-e", "sh", "-c", 'printf "%s" "$1"; read -r ssid && nmcli --ask device wifi connect "$ssid" hidden yes || { printf "\\n%s" "$2"; read -r _; }', "sh", I18n.tr("network.hiddenPrompt"), I18n.tr("network.pressEnter")]))
+    Quickshell.execDetached(Apps.terminalCommand(["sh", "-c", 'printf "%s" "$1"; read -r ssid && nmcli --ask device wifi connect "$ssid" hidden yes || { printf "\\n%s" "$2"; read -r _; }', "sh", I18n.tr("network.hiddenPrompt"), I18n.tr("network.pressEnter")], "quickshell-network", "nmcli"))
     refreshLater.restart()
   }
 
