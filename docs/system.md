@@ -96,7 +96,7 @@ Stop the other one and keep it from starting again (for swaync: `systemctl --use
 - **The bell** is a bar widget like the others, just before the power button by default (a layout saved before it existed doesn't have it until you drag it into a lane in the settings' Bar widgets Layout tab, or `settings place notifications right`).
   The bell is accent-colored while the center has notifications, and red while one of them is urgent.
   Their number is written to the right of the bell: it goes down only when one is dismissed, not when its pop-up goes away.
-  A **middle click** switches *do not disturb* on or off, and a **right click** opens a menu to clear the center, open the notification actions or switch *do not disturb* on or off (also in the center's header and the settings' Notifications category): the bell is crossed out and no pop-up shows, except for urgent notifications; everything still goes to the center.
+  A **middle click** switches *do not disturb* on or off, and a **right click** opens a menu to clear the center or open the notification actions, with a switch at its top right letting notifications pop up, switched off for *do not disturb* (also in the center's header and the settings' Notifications category): the bell is crossed out and no pop-up shows, except for urgent notifications; everything still goes to the center.
 - The history is kept in memory: it is lost when the shell restarts. A notification an application replaces (`notify-send -r`) or closes is updated or removed here too.
 
 [services/Notifications.qml](../services/Notifications.qml) is the server and answers the IPC calls; [modules/Notifications/](../modules/Notifications) has the pop-ups, the center and the notification card.

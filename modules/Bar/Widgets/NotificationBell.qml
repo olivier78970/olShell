@@ -4,8 +4,9 @@ import qs.config
 import qs.services
 
 // Bell that opens the notification center. A left click toggles the center, a
-// middle click do-not-disturb, a right click opens a menu: do-not-disturb,
-// clearing the center and the notification actions. The bell is crossed out while do-not-disturb is
+// middle click do-not-disturb, a right click opens a menu: its title's switch
+// (off while do-not-disturb is on), clearing the center and the notification
+// actions. The bell is crossed out while do-not-disturb is
 // on. The number of notifications in the center is written to its right (it
 // goes down when one is dismissed), or under it on a side bar.
 Item {
@@ -58,18 +59,13 @@ Item {
     anchorItem: root
     alignCenter: true
 
-    PopupTitle {
+    // The title, with the switch letting notifications pop up, or not while
+    // do-not-disturb is on (like the Bluetooth and network menus' switches).
+    MenuSwitchHeading {
+      title: true
       text: I18n.tr("notifications.title")
-      inMenu: true
-    }
-
-    PowerMenuOption {
-      icon: Notifications.dnd ? "󰂚" : "󰂛"
-      label: I18n.tr(Notifications.dnd ? "notifications.dndOff" : "notifications.dndOn")
-      onClicked: {
-        menu.open = false
-        Notifications.setDnd(!Notifications.dnd)
-      }
+      checked: !Notifications.dnd
+      onToggled: Notifications.setDnd(!Notifications.dnd)
     }
 
     PowerMenuOption {
