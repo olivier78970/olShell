@@ -12,7 +12,8 @@ import qs.config
 // Settings.gmailEnabled is on, an address is set, the gmail widget isn't
 // disabled and the keyring has the password. IPC: `gmail check` connects
 // again now, `gmail open` opens the inbox, `gmail unread` prints the count
-// (-1 when unknown), `gmail status` says what the watching is at, `gmail
+// (-1 when unknown), `gmail openMail <link>` is a notification's Open (the
+// widget's click action, else the link in the browser), `gmail status` says what the watching is at, `gmail
 // forgetPassword` takes the password out of the keyring.
 Singleton {
   id: root
@@ -116,7 +117,7 @@ Singleton {
   // waits for its buttons, so it runs on its own.
   function notify(uid, link, title, body) {
     Quickshell.execDetached(["python3", Paths.gmailScript, "notify", root.address, uid, link, title, body,
-      I18n.tr("gmail.open"), I18n.tr("gmail.markRead")])
+      I18n.tr("gmail.open"), I18n.tr("gmail.markRead"), Paths.shellDir])
   }
 
   Process {
@@ -210,6 +211,13 @@ Singleton {
     // Opens the inbox in the browser.
     function open(): void {
       root.openInbox()
+    }
+
+    // What a notification's Open does: runs the widget's click action when
+    // it has one (a mail app, or a web app, which opens on the mail), else
+    // opens `link` (the mail, or the inbox) in the browser.
+    function openMail(link: string): void {
+      if (!WidgetActions.run("gmail", link)) Qt.openUrlExternally(link)
     }
 
     // The inbox's unread conversations, or -1 while it isn't watched or not

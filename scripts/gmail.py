@@ -2,7 +2,7 @@
 """Watches a Gmail inbox over IMAP, and keeps its app password in the keyring.
 
 Usage: gmail.py watch ADDRESS
-       gmail.py notify ADDRESS UID LINK TITLE BODY OPEN_LABEL READ_LABEL
+       gmail.py notify ADDRESS UID LINK TITLE BODY OPEN_LABEL READ_LABEL SHELL
        gmail.py read ADDRESS UID
        gmail.py password set|clear|has ADDRESS   (set reads it from stdin)
 
@@ -28,8 +28,10 @@ It exits after a "password", "appPassword" or "login" error, and connects again 
 after a network one. Used by services/Gmail.qml.
 
 `notify` shows a mail's notification with notify-send and waits for its
-buttons (so it is started detached): clicking it or OPEN_LABEL opens LINK,
-READ_LABEL marks the mail as read (an empty UID, for several mails at once,
+buttons (so it is started detached): clicking it or OPEN_LABEL asks the shell
+running from the folder SHELL to open LINK (`gmail openMail`, which runs the
+Gmail widget's click action when it has one), or opens LINK itself when the
+shell doesn't answer; READ_LABEL marks the mail as read (an empty UID, for several mails at once,
 has no such button). `read` marks a mail as read.
 `password` prints {"ok": true} or {"ok": false, "message": TEXT}, `has`
 prints {"has": true|false}.
@@ -233,7 +235,7 @@ def read(address, uid):
     imap.logout()
 
 
-def notify(address, uid, url, title, body, open_label, read_label):
+def notify(address, uid, url, title, body, open_label, read_label, shell):
     """The `notify` command: shows a mail and does what its buttons ask."""
     # No time limit: notify-send waits until the notification is closed.
     if not shutil.which("notify-send"):
@@ -245,7 +247,12 @@ def notify(address, uid, url, title, body, open_label, read_label):
                             capture_output=True, text=True)
     choice = answer.stdout.strip()
     if choice in ("default", "open"):
-        subprocess.run(["xdg-open", url], check=False)
+        # The shell may have restarted meanwhile, or be gone.
+        # (-p goes after "ipc": before it, QS_CONFIG_PATH would win.)
+        asked = subprocess.run(["quickshell", "ipc", "-p", shell, "call", "gmail", "openMail", url],
+                               capture_output=True, check=False) if shutil.which("quickshell") else None
+        if asked is None or asked.returncode != 0:
+            subprocess.run(["xdg-open", url], check=False)
     elif choice == "read":
         read(address, uid)
 
@@ -254,7 +261,7 @@ def main():
     args = sys.argv[1:]
     if args[:1] == ["watch"] and len(args) == 2:
         watch(args[1])
-    elif args[:1] == ["notify"] and len(args) == 8:
+    elif args[:1] == ["notify"] and len(args) == 9:
         notify(*args[1:])
     elif args[:1] == ["read"] and len(args) == 3:
         read(args[1], args[2])

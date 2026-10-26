@@ -58,9 +58,12 @@ Singleton {
   // Switches to web app `app`'s window when it is open, else opens it: the
   // command's words, with %s in them replaced by the address (or the
   // address added at the end without one), run as they are, without a
-  // shell.
-  function launch(app) {
-    const window = root.windowOf(app)
+  // shell. With an `address` (a page of the web app's site, as a mail of a
+  // Gmail notification), a new window opens on it even if the web app's is
+  // open (a browser window can't be sent to another page), and is the web
+  // app's window from then on.
+  function launch(app, address) {
+    const window = address ? null : root.windowOf(app)
     if (window) {
       Hyprland.dispatch("hl.dsp.focus({ window = " + JSON.stringify("address:0x" + window.address.replace(/^0x/, "")) + " })")
       return
@@ -68,7 +71,8 @@ Singleton {
     const words = root.split(Settings.webAppCommand)
     if (words.length === 0) return
     root.waiting = root.waiting.filter(other => other.url !== app.url).concat([{ url: app.url, until: Date.now() + root.claimTime }])
-    const command = words.some(word => word.includes("%s")) ? words.map(word => word.split("%s").join(app.url)) : words.concat([app.url])
+    const url = address || app.url
+    const command = words.some(word => word.includes("%s")) ? words.map(word => word.split("%s").join(url)) : words.concat([url])
     Quickshell.execDetached(command)
   }
 
