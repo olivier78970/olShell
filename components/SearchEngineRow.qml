@@ -7,7 +7,8 @@ import qs.config
 // with -1 or 1; dimmed when there is nowhere to move, see `canMoveBack` and
 // `canMoveForward`) and a button taking it out of the list (`removed`).
 // With `iconSource`, an image (a web app's favicon) goes between the check
-// box and the fields.
+// box and the fields; with `fallbackIcon`, a glyph takes its place while
+// there is no image (none found, or one that doesn't load).
 // With `browser`, it is the default browser's engine instead: `label` in
 // place of the fields, and no remove button (the arrows move right into its
 // place).
@@ -28,6 +29,9 @@ Item {
   property string name: ""
   property string url: ""
   property string iconSource: ""
+  // The glyph shown in the image's place when there is none, "" for no icon
+  // at all.
+  property string fallbackIcon: ""
   property bool on: true
   property bool canMoveBack: false
   property bool canMoveForward: false
@@ -80,21 +84,33 @@ Item {
     }
   }
 
-  Image {
+  Item {
     id: siteIcon
-    visible: root.iconSource !== ""
+    visible: root.iconSource !== "" || root.fallbackIcon !== ""
     anchors.left: check.right
     anchors.leftMargin: 12
     anchors.verticalCenter: parent.verticalCenter
     width: 20
     height: 20
-    sourceSize.width: 40
-    sourceSize.height: 40
-    source: root.iconSource
-    fillMode: Image.PreserveAspectFit
-    smooth: true
-    asynchronous: true
     opacity: root.on ? 1 : 0.5
+
+    Image {
+      id: siteImage
+      anchors.fill: parent
+      sourceSize.width: 40
+      sourceSize.height: 40
+      source: root.iconSource
+      fillMode: Image.PreserveAspectFit
+      smooth: true
+      asynchronous: true
+    }
+
+    ThemedText {
+      visible: siteImage.status !== Image.Ready
+      anchors.centerIn: parent
+      text: root.fallbackIcon
+      sizeScale: 1.1
+    }
   }
 
   // The browser's engine: what it is, instead of fields.

@@ -1759,6 +1759,7 @@ ModalPanel {
                 name: row.modelData.engine?.name ?? ""
                 url: row.modelData.engine?.url ?? ""
                 iconSource: row.modelData.webApp ? WebApps.iconOf(row.modelData.engine) : ""
+                fallbackIcon: row.modelData.webApp ? "󰖟" : ""
                 on: row.modelData.engine?.on ?? false
                 canMoveBack: row.modelData.canMoveBack ?? false
                 canMoveForward: row.modelData.canMoveForward ?? false
