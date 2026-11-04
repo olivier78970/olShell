@@ -64,6 +64,11 @@ def fetch(url):
 
 
 def extension(content_type, url, data):
+    # A site may answer a missing file with its HTML page (status 200): that
+    # isn't an icon, whatever the address ends with.
+    start = data.lstrip()[:200].lower()
+    if content_type in ("text/html", "application/xhtml+xml") or start.startswith((b"<!doctype html", b"<html")):
+        return None
     if data.lstrip()[:5] in (b"<?xml", b"<svg ") or b"<svg" in data[:300]:
         return "svg"
     if data[:8] == b"\x89PNG\r\n\x1a\n":
@@ -102,7 +107,14 @@ def candidates(url):
         if content_type in ("text/html", "application/xhtml+xml"):
             parser = IconLinks()
             parser.feed(data.decode("utf-8", "replace"))
-            found = [urljoin(page_url, href) for href, size in sorted(parser.icons, key=lambda icon: -icon[1])]
+            # A relative link is tried from the page's folder, then from the
+            # site's root (a single-page site's links are written for its root
+            # whatever the address shown).
+            root = f"{urlparse(page_url).scheme}://{urlparse(page_url).netloc}/"
+            for href, size in sorted(parser.icons, key=lambda icon: -icon[1]):
+                for address in (urljoin(page_url, href), urljoin(root, href)):
+                    if address not in found:
+                        found.append(address)
     except Exception:
         page_url = url
     parts = urlparse(page_url)
