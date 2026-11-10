@@ -114,7 +114,8 @@ Scope {
     // ramActionTerminal, diskActionTerminal, gmailActionTerminal, networkActionTerminal,
     // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
     // ramActionFloating, diskActionFloating, gmailActionFloating, networkActionFloating,
-    // connectionActionFloating, bluetoothActionFloating, volumeActionTerminal,
+    // connectionActionFloating, bluetoothActionFloating, printerActionTerminal,
+    // printerActionFloating, printerAlwaysShown, volumeActionTerminal,
     // activeWindowActionTerminal, volumeActionFloating,
     // activeWindowActionFloating, blur, blurXray,
     // windowBorderSame, windowBorderColors, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
@@ -134,7 +135,7 @@ Scope {
     // Puts a bar widget in a zone ("left", "center", "right", or "off" to hide
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
-    // disk, gmail, network, connection, bluetooth, volume, notifications, lock, power, chatAi,
+    // disk, gmail, network, connection, bluetooth, printer, volume, notifications, lock, power, chatAi,
     // webApps, emoji),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
@@ -344,7 +345,7 @@ Scope {
     // command opening a web app (webAppCommand: a program and its arguments,
     // %s for the address; "" for the default), and for the command a click on
     // a bar widget runs (cpuAction, ramAction, diskAction, gmailAction, networkAction,
-    // connectionAction, bluetoothAction, volumeAction, activeWindowAction: a
+    // connectionAction, bluetoothAction, printerAction, volumeAction, activeWindowAction: a
     // program and its arguments; "" for
     // nothing, or for gmailAction Gmail in the browser), and for the wallpaper folders (wallpaperFolders: paths separated
     // by commas, ~ for the home folder; bingWallpaperFolder: one path), and
@@ -380,7 +381,7 @@ Scope {
     // Puts a page (appearance, blur, windows, text, bar, layout,
     // widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
     // widgetRam, widgetDisk, widgetGmail, widgetNetwork, widgetConnection,
-    // widgetBluetooth, widgetVolume, widgetZoom,
+    // widgetBluetooth, widgetPrinter, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher, defaultApps,
     // panels, panelPower, panelSwitcher, panelClock or general) back to the settings of the

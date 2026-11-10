@@ -24,6 +24,7 @@ For the features that use them:
 - [`fd`](https://github.com/sharkdp/fd) for the launcher's files (and the chat AI's file searches, with [`ripgrep`](https://github.com/BurntSushi/ripgrep) for its text searches;
   both fall back to plain Python without them), `xdg-utils` (`xdg-open` to open a file or an address, `xdg-settings` to find the default browser's search engine) and `nautilus` (to show a file in its folder)
 - NetworkManager (`nmcli`) and `nm-connection-editor` for the network connection widget, and BlueZ with [blueman](https://github.com/blueman-project/blueman) for the Bluetooth widget's windows (blueman's own tray icon, whose applet starts along with those windows, is left out of the tray: `hiddenTrayItems` in [config/Apps.qml](config/Apps.qml))
+- CUPS with `system-config-printer` and `python-pycups` for the printer widget (see [Printer](docs/system.md#printer))
 - an emoji font, e.g. Noto Color Emoji (`noto-fonts-emoji`), for the emoji panel (see [Emoji](docs/panels-and-apps.md#emoji))
 - [hyprpicker](https://github.com/hyprwm/hyprpicker) for the color picker's **From the screen** (custom theme)
 - [adw-gtk3](https://github.com/lassekongo83/adw-gtk3) (`adw-gtk-theme`) and `gsettings` (`glib2`) for GTK apps in the shell's colors (see [GTK](docs/theming.md#gtk))
@@ -50,5 +51,5 @@ quickshell -c <name>
 - [Chat AI](docs/chat-ai.md): the question-and-answer panel, its providers and what the AI may read or run.
 - [Theming](docs/theming.md): the themes, matugen, and Zen, Brave, alacritty, GTK and Qt colored from them.
 - [Panels and apps](docs/panels-and-apps.md): the launcher, app switcher, shortcuts, emoji, clock popup, wallpapers, web apps, zoom, the widgets' click actions and the audio mixer.
-- [System](docs/system.md): performance figures, network, Bluetooth, screenshots, notifications, power, the lock screen, polkit and the lock keys OSD.
+- [System](docs/system.md): performance figures, network, Bluetooth, the printer, screenshots, notifications, power, the lock screen, polkit and the lock keys OSD.
 - [Structure](docs/structure.md): every file and what it is for (generated from the files' own comments).
