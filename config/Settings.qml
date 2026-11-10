@@ -327,7 +327,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "gmail", "network", "connection", "bluetooth", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "gmail", "network", "connection", "bluetooth", "printer", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -615,6 +615,12 @@ Singleton {
   readonly property string bluetoothAction: root.valid("bluetoothAction", file.adapter.bluetoothAction)
   readonly property bool bluetoothActionTerminal: root.valid("bluetoothActionTerminal", file.adapter.bluetoothActionTerminal)
   readonly property bool bluetoothActionFloating: root.valid("bluetoothActionFloating", file.adapter.bluetoothActionFloating)
+  readonly property string printerAction: root.valid("printerAction", file.adapter.printerAction)
+  readonly property bool printerActionTerminal: root.valid("printerActionTerminal", file.adapter.printerActionTerminal)
+  readonly property bool printerActionFloating: root.valid("printerActionFloating", file.adapter.printerActionFloating)
+  // Whether the printer widget stays on the bar while the print queue is
+  // empty (else it only shows while there are jobs).
+  readonly property bool printerAlwaysShown: root.valid("printerAlwaysShown", file.adapter.printerAlwaysShown)
   readonly property string volumeAction: root.valid("volumeAction", file.adapter.volumeAction)
   readonly property bool volumeActionTerminal: root.valid("volumeActionTerminal", file.adapter.volumeActionTerminal)
   readonly property bool volumeActionFloating: root.valid("volumeActionFloating", file.adapter.volumeActionFloating)
@@ -1500,6 +1506,10 @@ Singleton {
       property string bluetoothAction: Defaults.values.bluetoothAction
       property bool bluetoothActionTerminal: Defaults.values.bluetoothActionTerminal
       property bool bluetoothActionFloating: Defaults.values.bluetoothActionFloating
+      property string printerAction: Defaults.values.printerAction
+      property bool printerActionTerminal: Defaults.values.printerActionTerminal
+      property bool printerActionFloating: Defaults.values.printerActionFloating
+      property bool printerAlwaysShown: Defaults.values.printerAlwaysShown
       property string volumeAction: Defaults.values.volumeAction
       property bool volumeActionTerminal: Defaults.values.volumeActionTerminal
       property bool volumeActionFloating: Defaults.values.volumeActionFloating

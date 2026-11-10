@@ -28,6 +28,7 @@ quickshell -p . ipc call power toggle              # open/close the power panel
 quickshell -p . ipc call power logout              # ask to confirm logging out (also: restart, shutdown, firmware for the UEFI setup)
 quickshell -p . ipc call power suspend             # suspend at once, with no confirmation
 quickshell -p . ipc call gmail unread               # the Gmail inbox's unread conversations, -1 while not watched (also: status as JSON, check to connect again now, open the inbox, openMail <link> to do what a notification's Open does, forgetPassword)
+quickshell -p . ipc call printers jobs              # the print jobs waiting or printing, one per line: id, printer, size in kB, CUPS state, name (also: hold <id> to suspend a job, release <id> to let it print again, cancel <id>, cancelAll, settings to open system-config-printer)
 quickshell -p . ipc call volume increase 0.05
 quickshell -p . ipc call volume decrease 0.05
 quickshell -p . ipc call volume mute

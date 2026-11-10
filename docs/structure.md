@@ -60,6 +60,7 @@ Singletons wrapping system state and processes; most also hold an IPC target.
 - [`NetworkManager.qml`](../services/NetworkManager.qml): What the connection widget (modules/Bar/Widgets/ConnectionButton.qml) needs from NetworkManager beyond Quickshell's Networking module…
 - [`Notifications.qml`](../services/Notifications.qml): The desktop notification server: it takes the place of mako, dunst or swaync (only one program can own the org.freedesktop.Notifications…
 - [`Polkit.qml`](../services/Polkit.qml): The shell as the session's polkit authentication agent: when an application asks for administrator rights (pkexec, a settings or package…
+- [`Printers.qml`](../services/Printers.qml): The CUPS printers and the print jobs waiting or printing, for the printer widget.
 - [`Profiles.qml`](../services/Profiles.qml): Saved configurations, kept in config/Profiles.json: a profile is a named snapshot of every setting, the language, the theme in use and the…
 - [`Screenshot.qml`](../services/Screenshot.qml): Takes screenshots with scripts/screenshot.py.
 - [`SystemStats.qml`](../services/SystemStats.qml): CPU, RAM, network and storage figures, polled once for the whole shell rather than once per bar instance (i.e. per screen).
@@ -143,6 +144,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 - [`NetworkSpeed.qml`](../modules/Bar/Widgets/NetworkSpeed.qml): Instant download and upload speed of the physical network interfaces.
 - [`NotificationBell.qml`](../modules/Bar/Widgets/NotificationBell.qml): Bell that opens the notification center.
 - [`PowerTrigger.qml`](../modules/Bar/Widgets/PowerTrigger.qml): Icon that opens the power panel.
+- [`PrinterButton.qml`](../modules/Bar/Widgets/PrinterButton.qml): Printer with the number of print jobs waiting or printing to its right (under it on a side bar), shown only while the queue isn't empty…
 - [`RamUsage.qml`](../modules/Bar/Widgets/RamUsage.qml): RAM usage percentage (on a side bar, a ring filled to it around the icon); hover to see used/total in a popup, click to run its action…
 - [`ScreenshotButton.qml`](../modules/Bar/Widgets/ScreenshotButton.qml): Camera icon: a left click takes a screenshot in the mode last chosen, a right click opens a menu to choose a mode (the whole screen, a…
 - [`SettingsTrigger.qml`](../modules/Bar/Widgets/SettingsTrigger.qml): Icon that opens the settings panel.
@@ -254,6 +256,7 @@ Python helpers the QML runs through `Process`.
 - [`matugen-run.py`](../scripts/matugen-run.py): Run matugen with only the templates of the apps that are turned on.
 - [`monitor-brightness.py`](../scripts/monitor-brightness.py): Reads and sets the brightness of the monitors.
 - [`monitor-caps.py`](../scripts/monitor-caps.py): Says what each connected monitor can do, read from its EDID.
+- [`printers-watch.py`](../scripts/printers-watch.py): Prints the CUPS print queue whenever it changes.
 - [`screenshot.py`](../scripts/screenshot.py): Takes a screenshot with grim, saves it, copies it to the clipboard and says so.
 - [`timezones.py`](../scripts/timezones.py): Prints the UTC offset each time zone given has right now, as JSON.
 

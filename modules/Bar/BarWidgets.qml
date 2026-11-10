@@ -28,6 +28,7 @@ Singleton {
     network: network,
     connection: connection,
     bluetooth: bluetooth,
+    printer: printer,
     volume: volume,
     notifications: notifications,
     lock: lock,
@@ -55,6 +56,7 @@ Singleton {
   Component { id: network; NetworkSpeed {} }
   Component { id: connection; ConnectionButton {} }
   Component { id: bluetooth; BluetoothButton {} }
+  Component { id: printer; PrinterButton {} }
   Component { id: volume; Volume {} }
   Component { id: notifications; NotificationBell {} }
   Component { id: lock; LockButton {} }

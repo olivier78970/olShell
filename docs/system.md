@@ -48,6 +48,16 @@ Hovering it shows the address and the count or what's wrong; a click runs its [c
 Disabling the widget (the Layout tab's **Disabled** lane) also stops the watching and the `gmail` calls.
 [services/Gmail.qml](../services/Gmail.qml) runs [scripts/gmail.py](../scripts/gmail.py), which does the IMAP work, shows the notifications with `notify-send` and keeps the password.
 
+### Printer
+
+The printer widget (`PrinterButton`, in the right of the bar by default) shows a printer with the number of print jobs waiting or printing, and by default only while there is at least one (tick **Always shown** in the settings' **Bar widgets** category, **Widgets** tab, **Printer**, to keep it there with an empty queue).
+It turns to the warning color, with an alert printer, while a printer with jobs is stopped (out of paper, jammed, paused).
+A left click runs its click action, the printer settings (`system-config-printer`) by default; the same page sets another command (see [the widgets' click actions](panels-and-apps.md)).
+Hovering it shows the printers, each ready, printing or stopped (with CUPS' reason), then the jobs with their size and status (and their printer, when there are several).
+A right click opens a menu with the same contents as the popup, and two buttons on each job: 󰏤 suspends it (CUPS holds it in the queue; not while it is printing) and 󰐊 lets it print again, and 󰅖 cancels it after a second click (the first asks *Cancel?* beside it, and the second must come within three seconds; CUPS lets you suspend or cancel only your own jobs). The 󰅖 button at the right of the *Print jobs* line, above the jobs' buttons (which stand in columns at the right of the menu), cancels every job: a first click asks *Cancel all jobs?* beside it, and a second click within three seconds confirms.
+Disabling the widget (the Layout tab's **Disabled** lane) also stops the watching and the `printers` calls.
+[services/Printers.qml](../services/Printers.qml) runs [scripts/printers-watch.py](../scripts/printers-watch.py), which asks CUPS for the queue every two seconds through `pycups` (the `python-pycups` package, which `system-config-printer` already needs), and cancels jobs with CUPS' `cancel` command.
+
 ## Screenshots
 
 The camera button in the middle of the top bar takes a screenshot: a **left click** captures in the mode chosen last, a **right click** opens a menu to choose a mode (the current one is in the accent color), and choosing one remembers it and takes the screenshot at once (after a quarter of a second, so the menu is gone from the picture).

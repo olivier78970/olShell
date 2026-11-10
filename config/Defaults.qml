@@ -210,6 +210,10 @@ Singleton {
     bluetoothAction: "blueman-manager",
     bluetoothActionTerminal: false,
     bluetoothActionFloating: false,
+    printerAction: "system-config-printer",
+    printerActionTerminal: false,
+    printerActionFloating: false,
+    printerAlwaysShown: false,
     volumeAction: "pavucontrol",
     volumeActionTerminal: false,
     volumeActionFloating: false,
@@ -242,7 +246,7 @@ Singleton {
     barDisabled: [],
     barLeft: ["webApps", "launcher", "settings", "workspaces", "activeWindow", "wallpaper", "theme", "zoom", "screenshot", "shortcuts"],
     barCenter: ["clock", "emoji", "volume"],
-    barRight: ["tray", "cpu", "ram", "disk", "network", "connection", "bluetooth", "notifications", "power"],
-    barDividers: ["workspaces", "activeWindow", "wallpaper", "volume", "cpu", "ram", "disk", "network", "connection", "notifications", "power"]
+    barRight: ["tray", "printer", "cpu", "ram", "disk", "network", "connection", "bluetooth", "notifications", "power"],
+    barDividers: ["workspaces", "activeWindow", "wallpaper", "volume", "printer", "cpu", "ram", "disk", "network", "connection", "notifications", "power"]
     })
 }

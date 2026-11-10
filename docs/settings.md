@@ -73,6 +73,10 @@ The settings, with their range:
 | Bar widgets (Widgets tab, Bluetooth) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `blueman-manager` |
 | Bar widgets (Widgets tab, Bluetooth) | Click action: run it in a terminal | check box | off |
 | Bar widgets (Widgets tab, Bluetooth) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
+| Bar widgets (Widgets tab, Printer) | Always shown: keep the printer widget on the bar while the print queue is empty (else it only shows while there are jobs; see [Printer](system.md#printer)) | check box | off |
+| Bar widgets (Widgets tab, Printer) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `system-config-printer` |
+| Bar widgets (Widgets tab, Printer) | Click action: run it in a terminal | check box | off |
+| Bar widgets (Widgets tab, Printer) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
 | Bar widgets (Widgets tab, Volume) | Click action: the command a left click runs (a program and its arguments; empty does nothing) | text | `pavucontrol` |
 | Bar widgets (Widgets tab, Volume) | Click action: run it in a terminal | check box | off |
 | Bar widgets (Widgets tab, Volume) | Floating window: open the action's window floating, in the middle of the screen (a terminal one always gets a window of its own; a tiled one opens where Hyprland puts it) | check box | off |
@@ -170,7 +174,7 @@ The settings, with their range:
 | General | Language | Automatic / English / Français / Español | Automatic |
 | General | Screenshot folder | an absolute path (`~` is your home folder), typed in | `~/Pictures/Screenshots` |
 
-**The bar's layout.** The **Layout** tab of the **Bar widgets** category shows the bar as three lanes, **Left**, **Center** and **Right**, each holding its groups in bar order, and a lane of the widgets that are **Off** (launcher, settings button, workspaces, window title, clock, wallpaper, theme, screenshot, zoom and keyboard shortcuts buttons, tray, CPU, RAM, disk, Gmail, network, network connection, Bluetooth, volume, notifications, lock, power, chat AI, web apps, emoji).
+**The bar's layout.** The **Layout** tab of the **Bar widgets** category shows the bar as three lanes, **Left**, **Center** and **Right**, each holding its groups in bar order, and a lane of the widgets that are **Off** (launcher, settings button, workspaces, window title, clock, wallpaper, theme, screenshot, zoom and keyboard shortcuts buttons, tray, CPU, RAM, disk, Gmail, network, network connection, Bluetooth, printer, volume, notifications, lock, power, chat AI, web apps, emoji).
 The widgets of a pill are split into **groups** by dividers: a group starts at the first widget of a pill and at each widget with a divider before it, and is drawn as one cell holding its widgets.
 Drag a widget into a group to join it where you drop it, between groups (or into an empty lane) to start a group of its own there, or to **Off** to turn it off (turned on again from the IPC call, it goes back where it was);
 drag a group by its handle (󰇛) to move it, with its widgets and mode, anywhere in a lane, or to **Off** to turn all its widgets off.
@@ -185,6 +189,7 @@ What each widget takes with it:
 - `notifications`: the notification pop-ups, the center and the rules panel, and the notification server itself, which gives up the D-Bus name.
 - `volume`: the volume OSD and the `volume` calls.
 - `gmail`: the watching of the inbox (no more notifications) and the `gmail` calls.
+- `printer`: the watching of the print queue and the `printers` calls.
 - `zoom`: the zoom OSD, its look-only shield and the `zoom` calls, and the screen goes back to no zoom.
 - `screenshot`, `webApps`, `lock` (the lock screen and idle timer, and `lock` calls): their `screenshot`, `webApps` and `lock` calls.
 - `workspaces` (its settings are the count and **Workspaces per monitor**, which shows on each screen's bar only the workspaces the Hyprland config binds to that screen, and makes the count slider set the count of the focused screen, with that screen's own active one highlighted), `activeWindow`, `tray`, `cpu`, `ram`, `disk`, `network`, `connection`, `bluetooth`: only the widget itself.
@@ -202,7 +207,7 @@ Popups that open from the bar's own widgets (the clock, the tray, a widget's too
 The text settings apply to all text and icons in the shell: the weight is what the font offers (a font without that weight uses the nearest it has), the outline is drawn in the accent color, and letter spacing and capitalization change the width of the text (so the bar's contents move).
 The settings are grouped in categories, shown as a column of buttons on the left of the panel, each an icon with its name (appearance, text, top bar, bar widgets, wallpaper, notifications, OSD, lock screen, launcher, panels, chat AI, general); click one to show its settings, whose name is the panel's heading.
 **Appearance** has three tabs under its name: **General** (the widgets' look, the gap and the curved joins), **Blur** (the blur and Hyprland's blur options) and **Windows** (Hyprland's window look, synced with the shell's on request).
-**Bar widgets** has a **Layout** tab (the bar's layout, below) and a **Widgets** tab for the widgets with settings of their own: a dropdown lists them (**Workspaces**, **Window title**, **Clock**, **CPU**, **RAM**, **Disk**, **Gmail**, **Network**, **Network connection**, **Bluetooth**, **Volume**, **Zoom**) and the picked widget's settings show under it, with a **Reset** button and **defaults** row for that widget only;
+**Bar widgets** has a **Layout** tab (the bar's layout, below) and a **Widgets** tab for the widgets with settings of their own: a dropdown lists them (**Workspaces**, **Window title**, **Clock**, **CPU**, **RAM**, **Disk**, **Gmail**, **Network**, **Network connection**, **Bluetooth**, **Printer**, **Volume**, **Zoom**) and the picked widget's settings show under it, with a **Reset** button and **defaults** row for that widget only;
 so does **Panels**: **Placement** (where each panel opens) and a tab for each panel with settings of its own, named after it (**App switcher**, **Clock**);
 click one, or press **Tab / Shift+Tab**, to switch.
 
@@ -262,7 +267,7 @@ Each setting has a `kind`:
   - `weatherLocation`: a place's name (`""` for automatic).
   - `gmailAddress`: the Gmail address watched (`""` for none); its app password is typed in the settings, not set here.
   - `webAppCommand`: the command opening a web app, `%s` for its address (`""` for the default).
-  - `cpuAction`, `ramAction`, `diskAction`, `gmailAction`, `networkAction`, `connectionAction`, `bluetoothAction`, `volumeAction`, `activeWindowAction`: the command a click on the widget runs (`""` for nothing, or for `gmailAction` Gmail in the browser), or `webapp:<name>` to open a web app; `<widget>ActionTerminal` (yes/no) runs it in a terminal.
+  - `cpuAction`, `ramAction`, `diskAction`, `gmailAction`, `networkAction`, `connectionAction`, `bluetoothAction`, `printerAction`, `volumeAction`, `activeWindowAction`: the command a click on the widget runs (`""` for nothing, or for `gmailAction` Gmail in the browser), or `webapp:<name>` to open a web app; `<widget>ActionTerminal` (yes/no) runs it in a terminal.
   - `chatAiDefaultProvider`: a chat AI provider's id (`anthropic`, `openai`, or an added one's), `""` for the first one that can be asked.
   - `fontFamily` and `monoFontFamily`: any installed font family, e.g. `settings choose fontFamily "DejaVu Sans Mono"`.
     The panel's list only has the Nerd Font families, since the icons are Nerd Font glyphs.

@@ -55,6 +55,8 @@ Singleton {
   readonly property string emojiData: Quickshell.shellPath("modules/Emoji/emoji.tsv")
   // Gives time zones' UTC offsets now, for the clock panel's clocks tab.
   readonly property string timezonesScript: Quickshell.shellPath("scripts/timezones.py")
+  // Watches the CUPS print queue, for the printer widget.
+  readonly property string printersWatchScript: Quickshell.shellPath("scripts/printers-watch.py")
 
   // Finds the web apps' icons (their sites' favicons), and the folder it
   // keeps them in.
