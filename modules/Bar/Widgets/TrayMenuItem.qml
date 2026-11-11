@@ -60,18 +60,8 @@ Item {
   implicitWidth: width
   implicitHeight: height
 
-  // A soft hairline, inset from the menu's rounded sides, with rounded ends.
-  Rectangle {
+  MenuSeparator {
     visible: root.modelData.isSeparator
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.leftMargin: 10
-    anchors.rightMargin: 10
-    anchors.verticalCenter: parent.verticalCenter
-    height: 1
-    radius: 0.5
-    color: Theme.separatorColor
-    opacity: 0.5
   }
 
   PowerMenuOption {

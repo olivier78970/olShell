@@ -94,6 +94,7 @@ Singleton {
     { id: "widgetConnection", label: I18n.tr("settings.widget.connection") },
     { id: "widgetBluetooth", label: I18n.tr("settings.widget.bluetooth") },
     { id: "widgetPrinter", label: I18n.tr("settings.widget.printer") },
+    { id: "widgetAgent", label: I18n.tr("settings.widget.agent") },
     { id: "widgetVolume", label: I18n.tr("settings.widget.volume") },
     { id: "widgetZoom", label: I18n.tr("settings.category.zoom") }
   ]
@@ -486,6 +487,11 @@ Singleton {
     ] },
     { key: "printerActionFloatingRow", category: "widgetPrinter", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionFloating"), toggles: [
       { key: "printerActionFloating", text: "" }
+    ] },
+    { key: "agentDefault", category: "widgetAgent", kind: "dropdown", label: I18n.tr("settings.agentDefault") },
+    { key: "agentFolder", category: "widgetAgent", kind: "path", label: I18n.tr("settings.agentFolder") },
+    { key: "agentFloatingRow", category: "widgetAgent", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.agentFloating"), toggles: [
+      { key: "agentFloating", text: "" }
     ] },
     { key: "volumeAction", category: "widgetVolume", kind: "path", label: I18n.tr("settings.widgetAction"), placeholder: I18n.tr("settings.widgetAction.none") },
     { key: "volumeActionTerminalRow", category: "widgetVolume", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.widgetActionTerminal"), toggles: [

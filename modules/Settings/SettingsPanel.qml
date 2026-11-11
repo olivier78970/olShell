@@ -840,6 +840,7 @@ ModalPanel {
     if (row.key === "switcherOrientation") return root.switcherOrientationOptions
     if (row.key === "switcherScope") return root.switcherScopeOptions
     if (row.key === "weatherUnit") return root.weatherUnitOptions
+    if (row.key === "agentDefault") return root.agentDefaultOptions
     if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
@@ -881,6 +882,11 @@ ModalPanel {
   // The weather's temperature units, named in the current language.
   readonly property var weatherUnitOptions: Settings.choices.weatherUnit
     .map(name => ({ value: name, text: I18n.tr("settings.weatherUnit." + name) }))
+  // The agents, each marked "(not installed)" when its command line isn't
+  // there (it can't be picked then; see setValue()).
+  readonly property var agentDefaultOptions: Settings.choices.agentDefault
+    .map(name => ({ value: name, text: Agents.isInstalled(name) ? I18n.tr("settings.agentDefault." + name)
+      : I18n.tr("settings.agentDefault.missing", I18n.tr("settings.agentDefault." + name)) }))
 
   // The launcher's tabs, named as in the launcher.
   readonly property var launcherTabOptions: Settings.choices.launcherTab
@@ -1084,6 +1090,8 @@ ModalPanel {
     else if (row.key === "monitorMirror") MonitorLayout.setMirror(value)
     else if (row.key === "monitorDepth") MonitorLayout.setDepth(value)
     else if (row.key === "monitorHdr") MonitorLayout.setHdr(value)
+    // An agent that isn't installed can't be the default one.
+    else if (row.key === "agentDefault" && !Agents.isInstalled(value)) return
     else Settings.set(row.key, value)
   }
 
@@ -1112,6 +1120,8 @@ ModalPanel {
       root.openKey = ""
       return
     }
+    // The agents may have been installed or removed since.
+    if (row.key === "agentDefault") Agents.lookUp()
     const values = root.optionsOf(row).map(option => option.value)
     root.highlight = Math.max(0, values.indexOf(root.currentOf(row)))
     root.openKey = row.key

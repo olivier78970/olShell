@@ -46,6 +46,8 @@ ShellRoot {
   // And the printers service, which watches the print queue and answers the
   // `printers` IPC calls.
   readonly property var printJobs: Printers.jobs
+  // And the agents service, which answers the `agent` IPC calls.
+  readonly property var agents: Agents.all
   // And the zoom service, which answers the `zoom` IPC calls.
   readonly property var zoomFactor: Zoom.factor
   // And the workspace rules, which answer the `workspaces` IPC calls.

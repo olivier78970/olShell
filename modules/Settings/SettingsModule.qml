@@ -115,7 +115,7 @@ Scope {
     // connectionActionTerminal, bluetoothActionTerminal, cpuActionFloating,
     // ramActionFloating, diskActionFloating, gmailActionFloating, networkActionFloating,
     // connectionActionFloating, bluetoothActionFloating, printerActionTerminal,
-    // printerActionFloating, printerAlwaysShown, volumeActionTerminal,
+    // printerActionFloating, printerAlwaysShown, agentFloating, volumeActionTerminal,
     // activeWindowActionTerminal, volumeActionFloating,
     // activeWindowActionFloating, blur, blurXray,
     // windowBorderSame, windowBorderColors, windowRoundingSame, windowGapsInSame, windowActiveOpacitySame,
@@ -136,7 +136,7 @@ Scope {
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
     // disk, gmail, network, connection, bluetooth, printer, volume, notifications, lock, power, chatAi,
-    // webApps, emoji),
+    // webApps, emoji, agent),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)
@@ -325,7 +325,7 @@ Scope {
     // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
     // hyprlandWorkspaceStyle, launcherTab, clockDate, cpuLayout, ramLayout, diskLayout,
     // volumeLayout, networkLayout, activeWindowLayout (auto, vertical or horizontal),
-    // switcherOrientation, switcherScope, weatherUnit,
+    // switcherOrientation, switcherScope, weatherUnit, agentDefault (claude or codex, if installed),
     // notificationPosition, osdPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,
@@ -348,7 +348,9 @@ Scope {
     // connectionAction, bluetoothAction, printerAction, volumeAction, activeWindowAction: a
     // program and its arguments; "" for
     // nothing, or for gmailAction Gmail in the browser), and for the wallpaper folders (wallpaperFolders: paths separated
-    // by commas, ~ for the home folder; bingWallpaperFolder: one path), and
+    // by commas, ~ for the home folder; bingWallpaperFolder: one path), for
+    // the folder the agent widget starts its agent in (agentFolder: one
+    // path, ~ for the home folder), and
     // for the default applications (defaultBrowser, defaultMail,
     // defaultFileManager, defaultTextEditor, defaultTerminal,
     // defaultImageViewer, defaultVideoPlayer, defaultMusicPlayer,
@@ -356,8 +358,9 @@ Scope {
     // entry id, e.g. "mpv.desktop"; for defaultMail also "webapp:<name>").
     function choose(key: string, value: string): void {
       const allowed = key === "fontFamily" || key === "monoFontFamily" ? Qt.fontFamilies().includes(value)
-        : key === "weatherLocation" || key === "gmailAddress" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || WidgetActions.ids.some(id => key === id + "Action") || DefaultApps.kinds.some(kind => kind.key === key) ? true
+        : key === "weatherLocation" || key === "gmailAddress" || key === "mainMonitor" || key === "barMonitor" || key === "webAppCommand" || key === "wallpaperFolders" || key === "bingWallpaperFolder" || key === "agentFolder" || WidgetActions.ids.some(id => key === id + "Action") || DefaultApps.kinds.some(kind => kind.key === key) ? true
         : key === "chatAiDefaultProvider" ? (value === "" || ChatAi.known.some(provider => provider.id === value))
+        : key === "agentDefault" ? Settings.choices.agentDefault.includes(value) && Agents.isInstalled(value)
         : (Settings.colorKeys.includes(key) ? Settings.validColor(value) : Settings.choices[key]?.includes(value))
       if (allowed) Settings.set(key, value)
     }
@@ -381,7 +384,7 @@ Scope {
     // Puts a page (appearance, blur, windows, text, bar, layout,
     // widgetWorkspaces, widgetActiveWindow, widgetClock, widgetCpu,
     // widgetRam, widgetDisk, widgetGmail, widgetNetwork, widgetConnection,
-    // widgetBluetooth, widgetPrinter, widgetVolume, widgetZoom,
+    // widgetBluetooth, widgetPrinter, widgetAgent, widgetVolume, widgetZoom,
     // wallpaper, theme, notifications, osd, volumeOsd,
     // lockKeysOsd, lock, launcher, defaultApps,
     // panels, panelPower, panelSwitcher, panelClock or general) back to the settings of the

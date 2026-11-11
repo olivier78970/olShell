@@ -131,25 +131,6 @@ Item {
     return device.batteryAvailable ? I18n.tr("bluetooth.battery", device.name, Math.round(device.battery * 100)) : device.name
   }
 
-  // A thin line between groups of menu entries, as wide as the menu.
-  component MenuSeparator: Item {
-    anchors.left: parent?.left
-    anchors.right: parent?.right
-    height: 11
-
-    Rectangle {
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.leftMargin: 10
-      anchors.rightMargin: 10
-      anchors.verticalCenter: parent.verticalCenter
-      height: 1
-      radius: 0.5
-      color: Theme.separatorColor
-      opacity: 0.5
-    }
-  }
-
   PopupMenu {
     id: menu
     anchorItem: root

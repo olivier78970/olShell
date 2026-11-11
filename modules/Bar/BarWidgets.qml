@@ -35,7 +35,8 @@ Singleton {
     power: power,
     chatAi: chatAi,
     webApps: webApps,
-    emoji: emoji
+    emoji: emoji,
+    agent: agent
   })
 
   Component { id: launcher; LauncherTrigger {} }
@@ -64,4 +65,5 @@ Singleton {
   Component { id: chatAi; ChatAiTrigger {} }
   Component { id: webApps; WebAppsButton {} }
   Component { id: emoji; EmojiTrigger {} }
+  Component { id: agent; AgentButton {} }
 }

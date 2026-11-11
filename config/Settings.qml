@@ -131,6 +131,7 @@ Singleton {
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
+    agentDefault: ["claude", "codex"],
     wallpaperCarousel: root.carouselStyles,
     themeCarousel: root.carouselStyles,
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
@@ -327,7 +328,7 @@ Singleton {
   // The bar's widgets, by id, in the order the settings panel lists them (the
   // bar draws them from modules/Bar/BarWidgets.qml), and the three places on
   // the bar they can be put in. Every widget is in at most one of them.
-  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "gmail", "network", "connection", "bluetooth", "printer", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji"]
+  readonly property var widgetIds: ["launcher", "settings", "workspaces", "activeWindow", "clock", "wallpaper", "theme", "screenshot", "zoom", "shortcuts", "tray", "cpu", "ram", "disk", "gmail", "network", "connection", "bluetooth", "printer", "volume", "notifications", "lock", "power", "chatAi", "webApps", "emoji", "agent"]
   readonly property var zones: ["left", "center", "right"]
   // Where each widget is: { left: [ids], center: [ids], right: [ids] }, the
   // widgets of a zone in the order they are drawn. Made from the saved lists
@@ -621,6 +622,13 @@ Singleton {
   // Whether the printer widget stays on the bar while the print queue is
   // empty (else it only shows while there are jobs).
   readonly property bool printerAlwaysShown: root.valid("printerAlwaysShown", file.adapter.printerAlwaysShown)
+  // The agent a left click on the agent widget runs the command line of
+  // (choices.agentDefault: Claude Code or Codex), the folder it starts it
+  // in, and whether its terminal window opens floating in the middle of the
+  // screen (else tiled).
+  readonly property string agentDefault: root.valid("agentDefault", file.adapter.agentDefault)
+  readonly property string agentFolder: root.valid("agentFolder", file.adapter.agentFolder)
+  readonly property bool agentFloating: root.valid("agentFloating", file.adapter.agentFloating)
   readonly property string volumeAction: root.valid("volumeAction", file.adapter.volumeAction)
   readonly property bool volumeActionTerminal: root.valid("volumeActionTerminal", file.adapter.volumeActionTerminal)
   readonly property bool volumeActionFloating: root.valid("volumeActionFloating", file.adapter.volumeActionFloating)
@@ -978,7 +986,7 @@ Singleton {
       const text = typeof value === "string" ? value.trim().slice(0, 1000) : ""
       return root.folderList(text).length > 0 ? text : root.defaults[key]
     }
-    if (key === "screenshotDir" || key === "bingWallpaperFolder") {
+    if (key === "screenshotDir" || key === "bingWallpaperFolder" || key === "agentFolder") {
       // ~ is the home folder, a trailing slash is dropped, and anything that
       // isn't then an absolute path (or is just "/") is the default.
       let path = typeof value === "string" ? value.trim() : ""
@@ -1510,6 +1518,9 @@ Singleton {
       property bool printerActionTerminal: Defaults.values.printerActionTerminal
       property bool printerActionFloating: Defaults.values.printerActionFloating
       property bool printerAlwaysShown: Defaults.values.printerAlwaysShown
+      property string agentDefault: Defaults.values.agentDefault
+      property string agentFolder: Defaults.values.agentFolder
+      property bool agentFloating: Defaults.values.agentFloating
       property string volumeAction: Defaults.values.volumeAction
       property bool volumeActionTerminal: Defaults.values.volumeActionTerminal
       property bool volumeActionFloating: Defaults.values.volumeActionFloating

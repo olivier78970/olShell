@@ -29,6 +29,7 @@ quickshell -p . ipc call power logout              # ask to confirm logging out 
 quickshell -p . ipc call power suspend             # suspend at once, with no confirmation
 quickshell -p . ipc call gmail unread               # the Gmail inbox's unread conversations, -1 while not watched (also: status as JSON, check to connect again now, open the inbox, openMail <link> to do what a notification's Open does, forgetPassword)
 quickshell -p . ipc call printers jobs              # the print jobs waiting or printing, one per line: id, printer, size in kB, CUPS state, name (also: hold <id> to suspend a job, release <id> to let it print again, cancel <id>, cancelAll, settings to open system-config-printer)
+quickshell -p . ipc call agent usage                # each agent (the default one first), its plan, then its limits: window in minutes, percent used and when it resets (also: open, to run the default agent's command line in a terminal; desktop, to start the default agent's desktop app: Claude Desktop or ChatGPT)
 quickshell -p . ipc call volume increase 0.05
 quickshell -p . ipc call volume decrease 0.05
 quickshell -p . ipc call volume mute
