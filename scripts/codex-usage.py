@@ -11,7 +11,9 @@ time it runs. Of the answer it keeps only the plan and the limits. It prints
 one JSON object, as scripts/claude-usage.py does:
   {"plan": P, "limits": [{"minutes": W, "percent": N, "resetsAt": ISO}, ...]}
 or {"error": R}, where R is "login" (no ChatGPT login, as with an API key,
-or ChatGPT refused it: run codex to sign in again) or "network". P is the
+or ChatGPT refused it: run codex to sign in again), "network" or "rateLimit" (the endpoint
+refused for asking too often, with "retryAfter": the seconds it asks to
+wait, when it says). P is the
 plan ("Free", "Plus", "Pro"...), and the limits are the windows the plan
 has, each W minutes long (a 5-hour and a weekly one, or a single 30-day one
 on the free plan). Used by services/AgentUsage.qml.
@@ -49,6 +51,18 @@ def limit(window):
     }
 
 
+
+# The answer when the endpoint refuses for asking too often: the error, with
+# the seconds its Retry-After header asks to wait, when it gives a number.
+def rate_limited(error):
+    answer = {"error": "rateLimit"}
+    try:
+        answer["retryAfter"] = max(0, int(error.headers.get("Retry-After", "")))
+    except ValueError:
+        pass
+    return answer
+
+
 def main():
     login = tokens()
     if not login or not login.get("access_token"):
@@ -62,6 +76,8 @@ def main():
         with urllib.request.urlopen(request, timeout=15) as answer:
             usage = json.load(answer)
     except urllib.error.HTTPError as error:
+        if error.code == 429:
+            return rate_limited(error)
         return {"error": "login" if error.code in (401, 403) else "network"}
     except (OSError, ValueError):
         return {"error": "network"}

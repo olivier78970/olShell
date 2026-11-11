@@ -9,7 +9,9 @@ endpoint, the one Claude Code's /usage asks. It never refreshes the token:
 Claude Code does that each time it runs. It prints one JSON object, as scripts/codex-usage.py does:
   {"plan": P, "limits": [{"minutes": W, "percent": N, "resetsAt": ISO}, ...]}
 or {"error": R}, where R is "login" (no login, or Claude refused it: run
-claude to sign in again) or "network". P is the plan as Anthropic names it
+claude to sign in again), "network" or "rateLimit" (the endpoint
+refused for asking too often, with "retryAfter": the seconds it asks to
+wait, when it says). P is the plan as Anthropic names it
 ("Pro", "Max 5x"...), and the limits are the 5-hour session's (W 300) and the
 week's (W 10080), those the plan has. Used by services/AgentUsage.qml.
 """
@@ -50,6 +52,18 @@ def plan_name(login):
     return name + " " + multiplier.group(1) if name and multiplier else name
 
 
+
+# The answer when the endpoint refuses for asking too often: the error, with
+# the seconds its Retry-After header asks to wait, when it gives a number.
+def rate_limited(error):
+    answer = {"error": "rateLimit"}
+    try:
+        answer["retryAfter"] = max(0, int(error.headers.get("Retry-After", "")))
+    except ValueError:
+        pass
+    return answer
+
+
 def main():
     login = credentials()
     if not login or not login.get("accessToken"):
@@ -63,6 +77,8 @@ def main():
         with urllib.request.urlopen(request, timeout=15) as answer:
             usage = json.load(answer)
     except urllib.error.HTTPError as error:
+        if error.code == 429:
+            return rate_limited(error)
         return {"error": "login" if error.code in (401, 403) else "network"}
     except (OSError, ValueError):
         return {"error": "network"}
