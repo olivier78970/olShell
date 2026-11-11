@@ -29,7 +29,7 @@ Item {
     launcher: "", settings: "󰒓", workspaces: "󰕰", activeWindow: "󰖯", clock: "󰥔",
     wallpaper: "󰋩", theme: "󰏘", screenshot: "󰄀", zoom: "󱡴", shortcuts: "󰌌",
     tray: "󰀻", cpu: "󰻠", ram: "󰍛", disk: "󰋊", gmail: "󰇮", network: "󰛳", connection: "󰖩",
-    bluetooth: "󰂯", printer: "󰐪", volume: "󰕾", notifications: "󰂚", lock: "󰌾", power: "󰐥", chatAi: "󰭹", webApps: "󰖟", emoji: "󰞅"
+    bluetooth: "󰂯", printer: "󰐪", volume: "󰕾", notifications: "󰂚", lock: "󰌾", power: "󰐥", chatAi: "󰭹", webApps: "󰖟", emoji: "󰞅", agent: "󰫢"
   })
   // The icon of each group mode, in the order the button goes through them.
   readonly property var modeIcons: ({ on: "󰈈", hover: "󰍽", off: "󰈉" })

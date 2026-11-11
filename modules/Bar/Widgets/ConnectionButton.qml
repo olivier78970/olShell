@@ -129,25 +129,6 @@ Item {
     action()
   }
 
-  // A thin line between groups of menu entries, as wide as the menu.
-  component MenuSeparator: Item {
-    anchors.left: parent?.left
-    anchors.right: parent?.right
-    height: 11
-
-    Rectangle {
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.leftMargin: 10
-      anchors.rightMargin: 10
-      anchors.verticalCenter: parent.verticalCenter
-      height: 1
-      radius: 0.5
-      color: Theme.separatorColor
-      opacity: 0.5
-    }
-  }
-
   // The title of a group of menu entries.
   component MenuHeading: PowerMenuOption {
     enabled: false
@@ -201,9 +182,20 @@ Item {
           onClicked: root.pick(() => wired.modelData.disconnect())
         }
 
-        // Only between this device and whatever the menu shows after it.
-        MenuSeparator {
+        // Only between this device and whatever the menu shows after it. It
+        // spans the whole menu, not just this device's entries (often
+        // narrower than the Wi-Fi networks'), without counting in their
+        // width, which the menu's own width depends on.
+        Item {
           visible: wired.index < root.wiredDevices.length - 1 || root.wifiShown || NetworkManager.details.length > 0
+          width: 1
+          height: 11
+
+          MenuSeparator {
+            anchors.left: undefined
+            anchors.right: undefined
+            width: wired.parent?.width ?? 0
+          }
         }
       }
     }

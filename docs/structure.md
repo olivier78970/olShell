@@ -41,6 +41,8 @@ Singletons for state and configuration. `*.json` files here are runtime state, g
 
 Singletons wrapping system state and processes; most also hold an IPC target.
 
+- [`AgentUsage.qml`](../services/AgentUsage.qml): One AI agent of the agent widget (see Agents.qml, which holds one for each): its name, icon and commands, whether it is installed, and its…
+- [`Agents.qml`](../services/Agents.qml): The AI agents of the agent bar widget, a fixed list (Claude and Codex, the choices of Settings.agentDefault), each an AgentUsage with its…
 - [`AppFonts.qml`](../services/AppFonts.qml): Gives GTK and Qt apps the shell's font family (Settings.fontFamily) and their own size (Settings.appFontSize) while Settings.appFontSync is…
 - [`Audio.qml`](../services/Audio.qml): Default output volume/mute state, shared by the bar widget and the OSD.
 - [`BingWallpaper.qml`](../services/BingWallpaper.qml): Downloads Bing's picture of the day (scripts/bing-picture.py) into Settings.bingWallpaperFolder when Settings.bingWallpapers is on: once at…
@@ -95,6 +97,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 - [`HoverPopup.qml`](../components/HoverPopup.qml): Tooltip-style PopupMenu shown while the pointer hovers a widget.
 - [`IconButton.qml`](../components/IconButton.qml): Glyph-only button that lights up in the accent color on hover.
 - [`Linger.qml`](../components/Linger.qml): Stays `active` while `when` is true and for the length of an animation after it turns false (Theme.animationDuration): what keeps a panel…
+- [`MenuSeparator.qml`](../components/MenuSeparator.qml): The line between groups of entries in a bar widget's menu or popup (PopupMenu, HoverPopup), the same in every one: a soft hairline across…
 - [`MenuSwitchHeading.qml`](../components/MenuSwitchHeading.qml): A menu's title, or the heading of a group of its entries, with an on/off switch at the right end of its line (like the network menu's…
 - [`ModalPanel.qml`](../components/ModalPanel.qml): Screen-centered modal panel: a full-screen backdrop (dimmed, with `dimmed`) and a framed panel that takes exclusive keyboard focus.
 - [`PathRow.qml`](../components/PathRow.qml): A label with a text field on the right, for a value typed in (a folder, a color).
@@ -130,6 +133,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 ### modules/Bar/Widgets/
 
 - [`ActiveWindow.qml`](../modules/Bar/Widgets/ActiveWindow.qml): Icon and title of the currently focused window (any compositor supporting wlr-foreign-toplevel-management, not just Hyprland).
+- [`AgentButton.qml`](../modules/Bar/Widgets/AgentButton.qml): The agent widget, for the AI agents of services/Agents.qml (Claude and Codex), drawn as a four-pointed star.
 - [`BluetoothButton.qml`](../modules/Bar/Widgets/BluetoothButton.qml): Bluetooth icon, doing what blueman's tray icon does: crossed out while Bluetooth is off (or there is no adapter), with a link while a…
 - [`ChatAiTrigger.qml`](../modules/Bar/Widgets/ChatAiTrigger.qml): Icon that opens or closes the chat AI panel.
 - [`Clock.qml`](../modules/Bar/Widgets/Clock.qml): Centered date/time display, in the current language, with the date format and seconds chosen in the settings (Settings.clockDate…
@@ -247,6 +251,8 @@ Python helpers the QML runs through `Process`.
 - [`app-fonts.py`](../scripts/app-fonts.py): Set the font of GTK and Qt apps.
 - [`apply-wallpaper.py`](../scripts/apply-wallpaper.py): Show an image as the wallpaper with awww, starting its daemon first if needed.
 - [`bing-picture.py`](../scripts/bing-picture.py): Downloads Bing's picture of the day from bing.biturl.top and prints its path.
+- [`claude-usage.py`](../scripts/claude-usage.py): Prints the Claude plan and its usage limits, for the agent bar widget.
+- [`codex-usage.py`](../scripts/codex-usage.py): Prints the ChatGPT plan of the Codex login and its Codex usage limits, for the agent bar widget.
 - [`default-apps.py`](../scripts/default-apps.py): Lists and sets the default applications, by kind, for the settings' Default apps.
 - [`default-search-engine.py`](../scripts/default-search-engine.py): Prints the default browser's default search engine, as JSON.
 - [`favicon.py`](../scripts/favicon.py): Finds the icons of web sites and keeps them in a folder, for the web apps.
