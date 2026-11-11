@@ -879,7 +879,8 @@ Singleton {
     "agent.loading": "Reading the limits…",
     "agent.none": "No agent installed: install Claude Code or Codex",
     "agent.error.login": "Not signed in: run {0} to sign in",
-    "agent.error.network": "Its server can't be reached"
+    "agent.error.network": "Its server can't be reached",
+    "agent.error.rateLimit": "Usage limits are rate limited, try again in a few minutes"
   })
 
   readonly property var fr: ({
@@ -1752,7 +1753,8 @@ Singleton {
     "agent.loading": "Lecture des limites…",
     "agent.none": "Aucun agent installé : installez Claude Code ou Codex",
     "agent.error.login": "Non connecté : lancez {0} pour vous connecter",
-    "agent.error.network": "Son serveur est injoignable"
+    "agent.error.network": "Son serveur est injoignable",
+    "agent.error.rateLimit": "Trop de demandes de limites, réessayez dans quelques minutes"
   })
 
   readonly property var es: ({
@@ -2625,6 +2627,7 @@ Singleton {
     "agent.loading": "Leyendo los límites…",
     "agent.none": "Ningún agente instalado: instale Claude Code o Codex",
     "agent.error.login": "Sin sesión: ejecute {0} para iniciar sesión",
-    "agent.error.network": "No se puede contactar con su servidor"
+    "agent.error.network": "No se puede contactar con su servidor",
+    "agent.error.rateLimit": "Demasiadas consultas de límites, vuelva a intentarlo en unos minutos"
   })
 }

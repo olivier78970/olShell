@@ -33,17 +33,26 @@ QtObject {
   // percent (used), resetsAt (a Date, or null) }.
   property var limits: []
   // What kept them from being read: "" (nothing), "login" (no login, or it
-  // was refused: running the agent signs in again) or "network".
+  // was refused: running the agent signs in again), "network" or
+  // "rateLimit" (its endpoint refused for being asked too often). The plan
+  // and limits last read stay shown meanwhile.
   property string error: ""
   // Whether they were read at least once, and when they were last read.
   property bool loaded: false
   property date updated: new Date(0)
   readonly property bool loading: reader.running
 
+  // After a "rateLimit" answer, the endpoint isn't asked again before this
+  // time: 5 minutes later, or later when the endpoint asked to wait longer.
+  property date retryAt: new Date(0)
+  readonly property int rateLimitPause: 300
+
   // Reads the plan and limits again, unless they were read less than
-  // `maxAge` seconds ago (0 reads them anyway).
+  // `maxAge` seconds ago (0 reads them anyway), or the endpoint asked to
+  // wait (see retryAt).
   function refresh(maxAge) {
     if (!root.active || reader.running || finder.running) return
+    if (Date.now() < root.retryAt.getTime()) return
     if (maxAge > 0 && root.loaded && Date.now() - root.updated.getTime() < maxAge * 1000) return
     root.readAfterFinding = true
     finder.running = true
@@ -94,6 +103,8 @@ QtObject {
           return
         }
         root.error = answer.error ?? ""
+        if (root.error === "rateLimit")
+          root.retryAt = new Date(Date.now() + Math.max(root.rateLimitPause, answer.retryAfter ?? 0) * 1000)
         if (root.error === "") {
           root.plan = answer.plan ?? ""
           root.limits = (answer.limits ?? [])
