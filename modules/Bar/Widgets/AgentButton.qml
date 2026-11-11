@@ -119,9 +119,8 @@ Item {
     }
   }
 
-  // An agent's section of the menu: a heading with
-  // its icon and name over a line, then, set in under it, its plan and its
-  // session and weekly limits (or why they aren't known yet). `agent` is the
+  // An agent's section of the menu: its name over a line, then, aligned
+  // with it and the menu's title, its plan and its session and weekly limits (or why they aren't known yet). `agent` is the
   // agent (an AgentUsage of Agents); `inset` lines it up with a menu's entries.
   // Its size comes from its text and gauges alone, and the line spans the
   // whole menu, the section's width or more (were the line part of the
@@ -143,18 +142,9 @@ Item {
       y: section.topPadding
       spacing: 4
 
-      Row {
-        spacing: 8
-
-        ThemedText {
-          text: section.agent?.icon ?? ""
-          color: Theme.accentColor
-        }
-
-        ThemedText {
-          text: section.agent?.name ?? ""
-          font.bold: true
-        }
+      ThemedText {
+        text: section.agent?.name ?? ""
+        font.bold: true
       }
 
       // Room for the line, drawn below across the whole menu.
@@ -165,8 +155,6 @@ Item {
       }
 
       Column {
-        leftPadding: 12
-
         // Said instead of the limits until they are read, or when they can't be.
         ThemedText {
           visible: !section.agent?.loaded || section.agent?.error !== ""
