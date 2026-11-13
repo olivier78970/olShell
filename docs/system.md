@@ -71,8 +71,8 @@ Disabling the widget (the Layout tab's **Disabled** lane) also stops the reading
 
 The dictation widget (`HyprwhsprButton`, 󰍬, off by default: drag it onto the bar in the Layout tab) controls [hyprwhspr](https://github.com/goodroot/hyprwhspr), the speech-to-text daemon, through its `hyprwhspr.service` user unit and its `hyprwhspr` command.
 Its microphone turns to the warning color with a record dot (󰑊) while it records, to an hourglass (󰔟) while it transcribes (only known with hyprwhspr's mic-osd overlay on), to a sleeping sign (󰒲) while its model is unloaded, and is crossed out and dimmed while the service is stopped.
-A left click starts a recording, or stops the one going on (hyprwhspr then transcribes it and types the text); while the service is stopped it starts it, and while the model is unloaded it loads it back.
-A right click opens a menu whose title has a switch at its right end: off stops the service, which frees the model and the GPU with it; on starts it again (or reloads the model). Below are the state, Start / Stop recording, Cancel recording while it records, and Restart the service.
+A left click starts a recording, or stops the one going on (hyprwhspr then transcribes it and types the text); while the service is stopped it enables and starts it, and while the model is unloaded it loads it back.
+A right click opens a menu whose title has a switch at its right end: off stops and disables the service, which frees the model and the GPU with it and keeps it off after a restart; on enables and starts it again (or reloads the model), so it also comes back with the next session. Below are the state, Start / Stop recording, Cancel recording while it records, and Restart the service.
 Disabling the widget (the Layout tab's **Disabled** lane) also stops the watching and the `hyprwhspr` calls.
 [services/Hyprwhspr.qml](../services/Hyprwhspr.qml) runs [scripts/hyprwhspr-watch.py](../scripts/hyprwhspr-watch.py), which asks systemd about the unit every second and reads the signal files hyprwhspr keeps in `$XDG_RUNTIME_DIR/hyprwhspr` (the ones its Waybar module reads) four times a second.
 

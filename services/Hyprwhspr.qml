@@ -55,9 +55,10 @@ Singleton {
     Quickshell.execDetached(["hyprwhspr"].concat(args))
   }
 
-  // Runs systemctl on the unit (start, stop, restart).
-  function systemctl(action) {
-    Quickshell.execDetached(["systemctl", "--user", action, "hyprwhspr.service"])
+  // Runs systemctl on the unit (enable, disable, restart), with extra flags
+  // such as --now.
+  function systemctl(action, flags) {
+    Quickshell.execDetached(["systemctl", "--user", action].concat(flags ?? []).concat(["hyprwhspr.service"]))
   }
 
   // Starts a recording, or stops the one going on (it's then transcribed and
@@ -73,15 +74,20 @@ Singleton {
     if (root.recording) root.hyprwhspr(["record", "cancel"])
   }
 
-  // Starts the service, or loads the model back when only that was unloaded.
+  // Enables and starts the service, so it also starts with the next session,
+  // or loads the model back when only that was unloaded (enabling the unit
+  // too, in case it was started by hand).
   function turnOn() {
-    if (root.running && root.unloaded) root.hyprwhspr(["model", "reload"])
-    else if (!root.running) root.systemctl("start")
+    if (root.running && root.unloaded) {
+      root.hyprwhspr(["model", "reload"])
+      root.systemctl("enable")
+    } else if (!root.running) root.systemctl("enable", ["--now"])
   }
 
-  // Stops the service, which frees the model with it.
+  // Stops and disables the service, which frees the model with it and keeps
+  // it off after a restart.
   function turnOff() {
-    root.systemctl("stop")
+    root.systemctl("disable", ["--now"])
   }
 
   // Frees the model (and the GPU) while the service keeps running.
@@ -140,12 +146,12 @@ Singleton {
       root.cancel()
     }
 
-    // Starts the service (or loads the model back).
+    // Enables and starts the service (or loads the model back).
     function on(): void {
       root.turnOn()
     }
 
-    // Stops the service, freeing the model.
+    // Stops and disables the service, freeing the model.
     function off(): void {
       root.turnOff()
     }
