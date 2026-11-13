@@ -136,7 +136,7 @@ Scope {
     // it; the widget ids are launcher, settings, workspaces, activeWindow,
     // clock, wallpaper, theme, screenshot, zoom, shortcuts, tray, cpu, ram,
     // disk, gmail, network, connection, bluetooth, printer, volume, notifications, lock, power, chatAi,
-    // webApps, emoji, agent),
+    // webApps, emoji, agent, hyprwhspr),
     // at the end of it, or `position` places from its start when not negative.
     function place(widget: string, zone: string, position: int): void {
       Settings.place(widget, zone, position < 0 ? undefined : position)

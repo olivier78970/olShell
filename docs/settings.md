@@ -177,7 +177,7 @@ The settings, with their range:
 | General | Language | Automatic / English / Français / Español | Automatic |
 | General | Screenshot folder | an absolute path (`~` is your home folder), typed in | `~/Pictures/Screenshots` |
 
-**The bar's layout.** The **Layout** tab of the **Bar widgets** category shows the bar as three lanes, **Left**, **Center** and **Right**, each holding its groups in bar order, and a lane of the widgets that are **Off** (launcher, settings button, workspaces, window title, clock, wallpaper, theme, screenshot, zoom and keyboard shortcuts buttons, tray, CPU, RAM, disk, Gmail, network, network connection, Bluetooth, printer, volume, notifications, lock, power, chat AI, web apps, emoji, agent).
+**The bar's layout.** The **Layout** tab of the **Bar widgets** category shows the bar as three lanes, **Left**, **Center** and **Right**, each holding its groups in bar order, and a lane of the widgets that are **Off** (launcher, settings button, workspaces, window title, clock, wallpaper, theme, screenshot, zoom and keyboard shortcuts buttons, tray, CPU, RAM, disk, Gmail, network, network connection, Bluetooth, printer, volume, notifications, lock, power, chat AI, web apps, emoji, agent, dictation).
 The widgets of a pill are split into **groups** by dividers: a group starts at the first widget of a pill and at each widget with a divider before it, and is drawn as one cell holding its widgets.
 Drag a widget into a group to join it where you drop it, between groups (or into an empty lane) to start a group of its own there, or to **Off** to turn it off (turned on again from the IPC call, it goes back where it was);
 drag a group by its handle (󰇛) to move it, with its widgets and mode, anywhere in a lane, or to **Off** to turn all its widgets off.
@@ -194,6 +194,7 @@ What each widget takes with it:
 - `gmail`: the watching of the inbox (no more notifications) and the `gmail` calls.
 - `printer`: the watching of the print queue and the `printers` calls.
 - `agent`: the reading of the agents' usage limits and the `agent` calls.
+- `hyprwhspr`: the watching of hyprwhspr and the `hyprwhspr` calls.
 - `zoom`: the zoom OSD, its look-only shield and the `zoom` calls, and the screen goes back to no zoom.
 - `screenshot`, `webApps`, `lock` (the lock screen and idle timer, and `lock` calls): their `screenshot`, `webApps` and `lock` calls.
 - `workspaces` (its settings are the count and **Workspaces per monitor**, which shows on each screen's bar only the workspaces the Hyprland config binds to that screen, and makes the count slider set the count of the focused screen, with that screen's own active one highlighted), `activeWindow`, `tray`, `cpu`, `ram`, `disk`, `network`, `connection`, `bluetooth`: only the widget itself.
