@@ -41,8 +41,8 @@ Singletons for state and configuration. `*.json` files here are runtime state, g
 
 Singletons wrapping system state and processes; most also hold an IPC target.
 
-- [`AgentUsage.qml`](../services/AgentUsage.qml): One AI agent of the agent widget (see Agents.qml, which holds one for each): its name, icon and commands, whether it is installed, and its…
-- [`Agents.qml`](../services/Agents.qml): The AI agents of the agent bar widget, a fixed list (Claude and Codex, the choices of Settings.agentDefault), each an AgentUsage with its…
+- [`AgentUsage.qml`](../services/AgentUsage.qml): One AI agent of the agent widget (see Agents.qml, which holds one for each): its name, icon and commands, whether they are installed, and…
+- [`Agents.qml`](../services/Agents.qml): The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok and Antigravity, the choices of Settings.agentDefault), each an…
 - [`AppFonts.qml`](../services/AppFonts.qml): Gives GTK and Qt apps the shell's font family (Settings.fontFamily) and their own size (Settings.appFontSize) while Settings.appFontSync is…
 - [`Audio.qml`](../services/Audio.qml): Default output volume/mute state, shared by the bar widget and the OSD.
 - [`BingWallpaper.qml`](../services/BingWallpaper.qml): Downloads Bing's picture of the day (scripts/bing-picture.py) into Settings.bingWallpaperFolder when Settings.bingWallpapers is on: once at…
@@ -134,7 +134,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 ### modules/Bar/Widgets/
 
 - [`ActiveWindow.qml`](../modules/Bar/Widgets/ActiveWindow.qml): Icon and title of the currently focused window (any compositor supporting wlr-foreign-toplevel-management, not just Hyprland).
-- [`AgentButton.qml`](../modules/Bar/Widgets/AgentButton.qml): The agent widget, for the AI agents of services/Agents.qml (Claude and Codex), drawn as a four-pointed star.
+- [`AgentButton.qml`](../modules/Bar/Widgets/AgentButton.qml): The agent widget, for the AI agents of services/Agents.qml (Claude, Codex, Grok and Antigravity), drawn as a four-pointed star.
 - [`BluetoothButton.qml`](../modules/Bar/Widgets/BluetoothButton.qml): Bluetooth icon, doing what blueman's tray icon does: crossed out while Bluetooth is off (or there is no adapter), with a link while a…
 - [`ChatAiTrigger.qml`](../modules/Bar/Widgets/ChatAiTrigger.qml): Icon that opens or closes the chat AI panel.
 - [`Clock.qml`](../modules/Bar/Widgets/Clock.qml): Centered date/time display, in the current language, with the date format and seconds chosen in the settings (Settings.clockDate…
@@ -250,6 +250,7 @@ Python helpers the QML runs through `Process`.
 
 - [`ai-ask.py`](../scripts/ai-ask.py): Asks an AI provider one question, letting it search and read the user's files.
 - [`ai-key.py`](../scripts/ai-key.py): Keeps the chat AI providers' API keys in the secret keyring.
+- [`antigravity-usage.py`](../scripts/antigravity-usage.py): Prints the plan of the Antigravity login and its usage limits, for the agent bar widget.
 - [`app-fonts.py`](../scripts/app-fonts.py): Set the font of GTK and Qt apps.
 - [`apply-wallpaper.py`](../scripts/apply-wallpaper.py): Show an image as the wallpaper with awww, starting its daemon first if needed.
 - [`bing-picture.py`](../scripts/bing-picture.py): Downloads Bing's picture of the day from bing.biturl.top and prints its path.
@@ -259,6 +260,7 @@ Python helpers the QML runs through `Process`.
 - [`default-search-engine.py`](../scripts/default-search-engine.py): Prints the default browser's default search engine, as JSON.
 - [`favicon.py`](../scripts/favicon.py): Finds the icons of web sites and keeps them in a folder, for the web apps.
 - [`gmail.py`](../scripts/gmail.py): Watches a Gmail inbox over IMAP, and keeps its app password in the keyring.
+- [`grok-usage.py`](../scripts/grok-usage.py): Prints the Grok plan of the Grok Build login and its usage limit, for the agent bar widget.
 - [`hyprwhspr-watch.py`](../scripts/hyprwhspr-watch.py): Prints hyprwhspr's state whenever it changes.
 - [`list-shortcuts.py`](../scripts/list-shortcuts.py): Lists the Hyprland config's shortcuts with the Super key, as JSON.
 - [`lock-keys-watch.py`](../scripts/lock-keys-watch.py): Prints the Caps Lock / Num Lock state whenever it changes.

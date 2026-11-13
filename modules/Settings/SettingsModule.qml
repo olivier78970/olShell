@@ -325,7 +325,8 @@ Scope {
     // matugenAccent, fontCaps, barStyle, barPosition, hyprlandWindowStyle,
     // hyprlandWorkspaceStyle, launcherTab, clockDate, cpuLayout, ramLayout, diskLayout,
     // volumeLayout, networkLayout, activeWindowLayout (auto, vertical or horizontal),
-    // switcherOrientation, switcherScope, weatherUnit, agentDefault (claude or codex, if installed),
+    // switcherOrientation, switcherScope, weatherUnit, agentDefault (claude, codex, grok or antigravity, if installed),
+    // agentClick and agentMiddleClick (cli, desktop or none),
     // notificationPosition, osdPosition, volumeOsdPosition, lockKeysOsdPosition, and the
     // panels' panelPlacement (every one at once), launcherPlacement, settingsPlacement, shortcutsPlacement,
     // wallpaperPlacement, themePlacement, powerPlacement,

@@ -841,6 +841,7 @@ ModalPanel {
     if (row.key === "switcherScope") return root.switcherScopeOptions
     if (row.key === "weatherUnit") return root.weatherUnitOptions
     if (row.key === "agentDefault") return root.agentDefaultOptions
+    if (row.key === "agentClick" || row.key === "agentMiddleClick") return root.agentClickOptions
     if (Settings.choices[row.key] === Settings.panelPlacements) return root.placementOptions
     if (row.key === "panelPlacement") return root.allPlacementOptions
     return []
@@ -884,6 +885,10 @@ ModalPanel {
     .map(name => ({ value: name, text: I18n.tr("settings.weatherUnit." + name) }))
   // The agents, each marked "(not installed)" when its command line isn't
   // there (it can't be picked then; see setValue()).
+  // What a click on the agent widget does (the action and the alternative
+  // action share their choices), named in the current language.
+  readonly property var agentClickOptions: Settings.choices.agentClick
+    .map(name => ({ value: name, text: I18n.tr("settings.agentClick." + name) }))
   readonly property var agentDefaultOptions: Settings.choices.agentDefault
     .map(name => ({ value: name, text: Agents.isInstalled(name) ? I18n.tr("settings.agentDefault." + name)
       : I18n.tr("settings.agentDefault.missing", I18n.tr("settings.agentDefault." + name)) }))

@@ -489,6 +489,8 @@ Singleton {
       { key: "printerActionFloating", text: "" }
     ] },
     { key: "agentDefault", category: "widgetAgent", kind: "dropdown", label: I18n.tr("settings.agentDefault") },
+    { key: "agentClick", category: "widgetAgent", kind: "dropdown", label: I18n.tr("settings.agentClick") },
+    { key: "agentMiddleClick", category: "widgetAgent", kind: "dropdown", label: I18n.tr("settings.agentMiddleClick") },
     { key: "agentFolder", category: "widgetAgent", kind: "path", label: I18n.tr("settings.agentFolder") },
     { key: "agentFloatingRow", category: "widgetAgent", kind: "toggles", checkBoxes: true, label: I18n.tr("settings.agentFloating"), toggles: [
       { key: "agentFloating", text: "" }

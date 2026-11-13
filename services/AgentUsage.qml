@@ -1,10 +1,12 @@
 import QtQuick
 import Quickshell.Io
+import qs.config
 
 // One AI agent of the agent widget (see Agents.qml, which holds one for
-// each): its name, icon and commands, whether it is installed, and its plan
+// each): its name, icon and commands, whether they are installed, and its plan
 // and usage limits, read by its script (scripts/claude-usage.py,
-// scripts/codex-usage.py) when refresh() is called.
+// scripts/codex-usage.py, scripts/grok-usage.py, scripts/antigravity-usage.py)
+// when refresh() is called.
 QtObject {
   id: root
 
@@ -15,6 +17,12 @@ QtObject {
   // Its command line, run in a terminal, and its desktop app ([] for none).
   required property var command
   property var desktop: []
+  // The web app (Settings.webApps, by name in any case) standing in for the
+  // desktop app when that isn't installed ("" for none), and that web app,
+  // or null when there is none by that name.
+  property string webApp: ""
+  readonly property var webAppEntry: root.webApp === "" ? null
+    : Settings.webApps.find(app => app.name.toLowerCase() === root.webApp.toLowerCase()) ?? null
   // The script printing its plan and limits (see claude-usage.py).
   required property string script
   // Whether it may be asked (while the agent widget is enabled).
@@ -25,12 +33,18 @@ QtObject {
   // the next time the menu opens. True until known, so a menu opened at once
   // doesn't miss it.
   property bool installed: true
+  // The same for its desktop app (its command on the PATH), false when it
+  // has none; and whether it can be opened at all: the desktop app, or else
+  // its web app.
+  property bool desktopFound: root.desktop.length > 0
+  readonly property bool desktopInstalled: root.desktopFound || root.webAppEntry !== null
 
   // The plan as its maker names it ("Pro", "Max 5x", "Free"...), "" until
   // known.
   property string plan: ""
-  // Its limits, shortest window first: { minutes (the window's length),
-  // percent (used), resetsAt (a Date, or null) }.
+  // Its limits, shortest window first (then by name): { minutes (the
+  // window's length), percent (used), resetsAt (a Date, or null), name (what
+  // it limits, as a model, when several share a window; else "") }.
   property var limits: []
   // What kept them from being read: "" (nothing), "login" (no login, or it
   // was refused: running the agent signs in again), "network" or
@@ -56,18 +70,29 @@ QtObject {
     if (maxAge > 0 && root.loaded && Date.now() - root.updated.getTime() < maxAge * 1000) return
     root.readAfterFinding = true
     finder.running = true
+    root.lookUpDesktop()
   }
 
   // Looks for the command line again, without reading the plan and limits.
   function lookUp() {
     if (!finder.running) finder.running = true
+    root.lookUpDesktop()
+  }
+
+  // Looks for the desktop app on the PATH again.
+  function lookUpDesktop() {
+    if (root.desktop.length === 0) root.desktopFound = false
+    else if (!desktopFinder.running) desktopFinder.running = true
   }
 
   // Whether the search for the command was started by refresh(), so the
   // plan and limits are read once it is found.
   property bool readAfterFinding: false
 
-  Component.onCompleted: finder.running = true
+  Component.onCompleted: {
+    finder.running = true
+    root.lookUpDesktop()
+  }
 
   // The plan and limits as one line each, for the `agent usage` IPC call.
   function describe() {
@@ -75,7 +100,7 @@ QtObject {
     if (root.error !== "") return root.name + ": error: " + root.error
     if (!root.loaded) return root.name + ": not read yet"
     return [root.name + ": " + root.plan].concat(root.limits.map(limit =>
-      "  " + limit.minutes + " min: " + limit.percent + "% until " + (limit.resetsAt?.toISOString() ?? "?"))).join("\n")
+"  " + (limit.name ? limit.name + ", " : "") + limit.minutes + " min: " + limit.percent + "% until " + (limit.resetsAt?.toISOString() ?? "?"))).join("\n")
   }
 
   // (A QtObject has no default property, so the processes sit here.)
@@ -88,6 +113,12 @@ QtObject {
       if (root.readAfterFinding && root.installed) reader.running = true
       root.readAfterFinding = false
     }
+  }
+
+  // Looks for the desktop app's command on the PATH.
+  readonly property Process desktopFinder: Process {
+    command: ["which", root.desktop[0] ?? ""]
+    onExited: code => root.desktopFound = code === 0
   }
 
   readonly property Process reader: Process {
@@ -108,8 +139,8 @@ QtObject {
         if (root.error === "") {
           root.plan = answer.plan ?? ""
           root.limits = (answer.limits ?? [])
-            .map(limit => ({ minutes: limit.minutes, percent: limit.percent, resetsAt: limit.resetsAt ? new Date(limit.resetsAt) : null }))
-            .sort((a, b) => a.minutes - b.minutes)
+            .map(limit => ({ minutes: limit.minutes, percent: limit.percent, resetsAt: limit.resetsAt ? new Date(limit.resetsAt) : null, name: limit.name ?? "" }))
+            .sort((a, b) => a.minutes - b.minutes || a.name.localeCompare(b.name))
           root.loaded = true
         }
         root.updated = new Date()

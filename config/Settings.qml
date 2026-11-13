@@ -131,7 +131,9 @@ Singleton {
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
-    agentDefault: ["claude", "codex"],
+    agentDefault: ["claude", "codex", "grok", "antigravity"],
+    agentClick: ["cli", "desktop", "none"],
+    agentMiddleClick: ["cli", "desktop", "none"],
     wallpaperCarousel: root.carouselStyles,
     themeCarousel: root.carouselStyles,
     wallpaperTransition: ["fade", "none", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer", "any", "random"],
@@ -623,10 +625,16 @@ Singleton {
   // empty (else it only shows while there are jobs).
   readonly property bool printerAlwaysShown: root.valid("printerAlwaysShown", file.adapter.printerAlwaysShown)
   // The agent a left click on the agent widget runs the command line of
-  // (choices.agentDefault: Claude Code or Codex), the folder it starts it
-  // in, and whether its terminal window opens floating in the middle of the
-  // screen (else tiled).
+  // (choices.agentDefault: Claude Code, Codex, Grok Build or Antigravity),
+  // the folder it starts it in, and whether its terminal window opens
+  // floating in the middle of the screen (else tiled).
   readonly property string agentDefault: root.valid("agentDefault", file.adapter.agentDefault)
+  // What a left click (the action) and a middle click (the alternative
+  // action) on the agent widget do with the default agent
+  // (choices.agentClick): run its command line ("cli"), start its desktop
+  // app ("desktop"), or nothing ("none").
+  readonly property string agentClick: root.valid("agentClick", file.adapter.agentClick)
+  readonly property string agentMiddleClick: root.valid("agentMiddleClick", file.adapter.agentMiddleClick)
   readonly property string agentFolder: root.valid("agentFolder", file.adapter.agentFolder)
   readonly property bool agentFloating: root.valid("agentFloating", file.adapter.agentFloating)
   readonly property string volumeAction: root.valid("volumeAction", file.adapter.volumeAction)
@@ -1519,6 +1527,8 @@ Singleton {
       property bool printerActionFloating: Defaults.values.printerActionFloating
       property bool printerAlwaysShown: Defaults.values.printerAlwaysShown
       property string agentDefault: Defaults.values.agentDefault
+      property string agentClick: Defaults.values.agentClick
+      property string agentMiddleClick: Defaults.values.agentMiddleClick
       property string agentFolder: Defaults.values.agentFolder
       property bool agentFloating: Defaults.values.agentFloating
       property string volumeAction: Defaults.values.volumeAction
