@@ -627,6 +627,7 @@ Singleton {
     "settings.widget.volume": "Volume",
     "settings.widget.bluetooth": "Bluetooth",
     "settings.widget.printer": "Printer",
+    "settings.widget.hyprwhspr": "Dictation (hyprwhspr)",
     "settings.widget.connection": "Network connection",
     "network.wired": "Wired network",
     "network.wiredDevice": "Wired network ({0})",
@@ -880,7 +881,20 @@ Singleton {
     "agent.none": "No agent installed: install Claude Code or Codex",
     "agent.error.login": "Not signed in: run {0} to sign in",
     "agent.error.network": "Its server can't be reached",
-    "agent.error.rateLimit": "Usage limits are rate limited, try again in a few minutes"
+    "agent.error.rateLimit": "Usage limits are rate limited, try again in a few minutes",
+    "hyprwhspr.state.ready": "Ready to record",
+    "hyprwhspr.state.recording": "Recording…",
+    "hyprwhspr.state.processing": "Transcribing…",
+    "hyprwhspr.state.unloaded": "Model unloaded",
+    "hyprwhspr.state.starting": "Starting…",
+    "hyprwhspr.state.stopping": "Stopping…",
+    "hyprwhspr.state.stopped": "Stopped",
+    "hyprwhspr.state.failed": "The service failed",
+    "hyprwhspr.state.missing": "hyprwhspr isn't installed",
+    "hyprwhspr.startRecording": "Start recording",
+    "hyprwhspr.stopRecording": "Stop recording",
+    "hyprwhspr.cancelRecording": "Cancel recording",
+    "hyprwhspr.restart": "Restart the service"
   })
 
   readonly property var fr: ({
@@ -1501,6 +1515,7 @@ Singleton {
     "settings.widget.volume": "Volume",
     "settings.widget.bluetooth": "Bluetooth",
     "settings.widget.printer": "Imprimante",
+    "settings.widget.hyprwhspr": "Dictée (hyprwhspr)",
     "settings.widget.connection": "Connexion réseau",
     "network.wired": "Réseau filaire",
     "network.wiredDevice": "Réseau filaire ({0})",
@@ -1754,7 +1769,20 @@ Singleton {
     "agent.none": "Aucun agent installé : installez Claude Code ou Codex",
     "agent.error.login": "Non connecté : lancez {0} pour vous connecter",
     "agent.error.network": "Son serveur est injoignable",
-    "agent.error.rateLimit": "Trop de demandes de limites, réessayez dans quelques minutes"
+    "agent.error.rateLimit": "Trop de demandes de limites, réessayez dans quelques minutes",
+    "hyprwhspr.state.ready": "Prêt à enregistrer",
+    "hyprwhspr.state.recording": "Enregistrement…",
+    "hyprwhspr.state.processing": "Transcription…",
+    "hyprwhspr.state.unloaded": "Modèle déchargé",
+    "hyprwhspr.state.starting": "Démarrage…",
+    "hyprwhspr.state.stopping": "Arrêt…",
+    "hyprwhspr.state.stopped": "Arrêté",
+    "hyprwhspr.state.failed": "Le service a échoué",
+    "hyprwhspr.state.missing": "hyprwhspr n'est pas installé",
+    "hyprwhspr.startRecording": "Démarrer l'enregistrement",
+    "hyprwhspr.stopRecording": "Arrêter l'enregistrement",
+    "hyprwhspr.cancelRecording": "Annuler l'enregistrement",
+    "hyprwhspr.restart": "Redémarrer le service"
   })
 
   readonly property var es: ({
@@ -2375,6 +2403,7 @@ Singleton {
     "settings.widget.volume": "Volumen",
     "settings.widget.bluetooth": "Bluetooth",
     "settings.widget.printer": "Impresora",
+    "settings.widget.hyprwhspr": "Dictado (hyprwhspr)",
     "settings.widget.connection": "Conexión de red",
     "network.wired": "Red cableada",
     "network.wiredDevice": "Red cableada ({0})",
@@ -2628,6 +2657,19 @@ Singleton {
     "agent.none": "Ningún agente instalado: instale Claude Code o Codex",
     "agent.error.login": "Sin sesión: ejecute {0} para iniciar sesión",
     "agent.error.network": "No se puede contactar con su servidor",
-    "agent.error.rateLimit": "Demasiadas consultas de límites, vuelva a intentarlo en unos minutos"
+    "agent.error.rateLimit": "Demasiadas consultas de límites, vuelva a intentarlo en unos minutos",
+    "hyprwhspr.state.ready": "Listo para grabar",
+    "hyprwhspr.state.recording": "Grabando…",
+    "hyprwhspr.state.processing": "Transcribiendo…",
+    "hyprwhspr.state.unloaded": "Modelo descargado",
+    "hyprwhspr.state.starting": "Iniciando…",
+    "hyprwhspr.state.stopping": "Deteniendo…",
+    "hyprwhspr.state.stopped": "Detenido",
+    "hyprwhspr.state.failed": "El servicio falló",
+    "hyprwhspr.state.missing": "hyprwhspr no está instalado",
+    "hyprwhspr.startRecording": "Empezar a grabar",
+    "hyprwhspr.stopRecording": "Detener la grabación",
+    "hyprwhspr.cancelRecording": "Cancelar la grabación",
+    "hyprwhspr.restart": "Reiniciar el servicio"
   })
 }

@@ -67,6 +67,15 @@ A right click opens a menu with a section for each installed agent (its command,
 Disabling the widget (the Layout tab's **Disabled** lane) also stops the reading and the `agent` calls.
 [services/Agents.qml](../services/Agents.qml) lists the agents, each an [AgentUsage](../services/AgentUsage.qml) running its script: [scripts/claude-usage.py](../scripts/claude-usage.py) reads Claude Code's login (`~/.claude/.credentials.json`) and asks Anthropic's usage endpoint, the one Claude Code's `/usage` reads; [scripts/codex-usage.py](../scripts/codex-usage.py) reads Codex's ChatGPT login (`~/.codex/auth.json`) and asks ChatGPT's Codex usage endpoint, the one Codex's `/status` reads. Each token goes only to its own maker's endpoint, of whose answer only the plan and the limits are kept, and the shell never refreshes it.
 
+### Dictation (hyprwhspr)
+
+The dictation widget (`HyprwhsprButton`, 󰍬, off by default: drag it onto the bar in the Layout tab) controls [hyprwhspr](https://github.com/goodroot/hyprwhspr), the speech-to-text daemon, through its `hyprwhspr.service` user unit and its `hyprwhspr` command.
+Its microphone turns to the warning color with a record dot (󰑊) while it records, to an hourglass (󰔟) while it transcribes (only known with hyprwhspr's mic-osd overlay on), to a sleeping sign (󰒲) while its model is unloaded, and is crossed out and dimmed while the service is stopped.
+A left click starts a recording, or stops the one going on (hyprwhspr then transcribes it and types the text); while the service is stopped it starts it, and while the model is unloaded it loads it back.
+A right click opens a menu whose title has a switch at its right end: off stops the service, which frees the model and the GPU with it; on starts it again (or reloads the model). Below are the state, Start / Stop recording, Cancel recording while it records, and Restart the service.
+Disabling the widget (the Layout tab's **Disabled** lane) also stops the watching and the `hyprwhspr` calls.
+[services/Hyprwhspr.qml](../services/Hyprwhspr.qml) runs [scripts/hyprwhspr-watch.py](../scripts/hyprwhspr-watch.py), which asks systemd about the unit every second and reads the signal files hyprwhspr keeps in `$XDG_RUNTIME_DIR/hyprwhspr` (the ones its Waybar module reads) four times a second.
+
 ## Screenshots
 
 The camera button in the middle of the top bar takes a screenshot: a **left click** captures in the mode chosen last, a **right click** opens a menu to choose a mode (the current one is in the accent color), and choosing one remembers it and takes the screenshot at once (after a quarter of a second, so the menu is gone from the picture).

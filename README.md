@@ -26,6 +26,7 @@ For the features that use them:
 - NetworkManager (`nmcli`) and `nm-connection-editor` for the network connection widget, and BlueZ with [blueman](https://github.com/blueman-project/blueman) for the Bluetooth widget's windows (blueman's own tray icon, whose applet starts along with those windows, is left out of the tray: `hiddenTrayItems` in [config/Apps.qml](config/Apps.qml))
 - CUPS with `system-config-printer` and `python-pycups` for the printer widget (see [Printer](docs/system.md#printer))
 - Claude Code (`claude-code`) and Codex (`openai-codex`), signed in, and Claude Desktop (`claude-desktop`) and ChatGPT (`chatgpt-desktop-bin`) for its middle click, for the agent widget (see [Agent](docs/system.md#agent))
+- [hyprwhspr](https://github.com/goodroot/hyprwhspr), with its systemd user service, for the dictation widget (see [Dictation](docs/system.md#dictation-hyprwhspr))
 - an emoji font, e.g. Noto Color Emoji (`noto-fonts-emoji`), for the emoji panel (see [Emoji](docs/panels-and-apps.md#emoji))
 - [hyprpicker](https://github.com/hyprwm/hyprpicker) for the color picker's **From the screen** (custom theme)
 - [adw-gtk3](https://github.com/lassekongo83/adw-gtk3) (`adw-gtk-theme`) and `gsettings` (`glib2`) for GTK apps in the shell's colors (see [GTK](docs/theming.md#gtk))

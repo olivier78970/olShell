@@ -57,6 +57,8 @@ Singleton {
   readonly property string timezonesScript: Quickshell.shellPath("scripts/timezones.py")
   // Watches the CUPS print queue, for the printer widget.
   readonly property string printersWatchScript: Quickshell.shellPath("scripts/printers-watch.py")
+  // Watches hyprwhspr's service and recording, for the hyprwhspr widget.
+  readonly property string hyprwhsprWatchScript: Quickshell.shellPath("scripts/hyprwhspr-watch.py")
 
   // Finds the web apps' icons (their sites' favicons), and the folder it
   // keeps them in.

@@ -46,6 +46,9 @@ ShellRoot {
   // And the printers service, which watches the print queue and answers the
   // `printers` IPC calls.
   readonly property var printJobs: Printers.jobs
+  // And the hyprwhspr service, which watches the dictation daemon and answers
+  // the `hyprwhspr` IPC calls.
+  readonly property var hyprwhsprState: Hyprwhspr.state
   // And the agents service, which answers the `agent` IPC calls.
   readonly property var agents: Agents.all
   // And the zoom service, which answers the `zoom` IPC calls.
