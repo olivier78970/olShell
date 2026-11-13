@@ -5,7 +5,7 @@ description: Remove a feature from olShell completely - a setting, a bar widget,
 
 # Removing a feature from olShell
 
-It is the reverse of the `add-setting`, `add-panel`, `add-bar-widget` and `add-service` skills: whatever place those list for adding, the feature has to leave. A leftover doesn't fail loudly (a dead translation key, a row in the docs, a key in `Settings.json`), so finish with the leftovers script, which must come back empty.
+It is the reverse of the `add-setting`, `add-panel`, `add-bar-widget`, `add-service` and `add-agent` skills: whatever place those list for adding, the feature has to leave. A leftover doesn't fail loudly (a dead translation key, a row in the docs, a key in `Settings.json`), so finish with the leftovers script, which must come back empty.
 
 ## Decide how
 

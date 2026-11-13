@@ -21,7 +21,7 @@ Only when the user asks, and only the steps they named. A request for "commit" i
 ## Commit and merge
 
 1. `git status --short`, and `git diff --stat` for what is in. Remove any debug logging first (`grep -rn 'console.log' --include='*.qml' .` for the lines you added).
-2. Run the checks that apply: `.claude/scripts/check-translations.py`, `.claude/scripts/structure.py --check` (rerun it without `--check` if files were added, moved or removed), and the `check-*.sh` of the skill the change followed.
+2. Run `.claude/scripts/check-all.sh` (rerun `.claude/scripts/structure.py` first if files were added, moved or removed).
 3. Work happens on a feature branch (`git checkout -b <short-name>`; on master, branch before committing).
 4. Commit with a single imperative sentence describing the user-visible change, no type prefix (`Add tabs to the launcher: all, applications, files and the web`), then the attribution line the session's system reminder gives.
 5. Merge into master with `git merge --no-ff <branch> -m "Merge <branch>: <what it does>"` (plus the attribution line), from master.
@@ -29,6 +29,8 @@ Only when the user asks, and only the steps they named. A request for "commit" i
 ## Push
 
 `git push origin master`, after the merge. The branch itself isn't pushed unless asked.
+
+GitHub's push protection refuses a push holding something that looks like a secret (`GH013`), such as a CLI's public OAuth client id and secret in a usage script; each finding gives its own `unblock-secret` URL, and a second finding may only show once the first is allowed. Give the user the URLs, with whether the value is really public: when it is, they allow it there and you push again (the commits stay as they are); when it isn't, it comes out of the commit before anything is pushed. `ship.sh` prints these URLs, still deploys, and ends in failure.
 
 ## Deploy
 
