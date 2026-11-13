@@ -9,7 +9,8 @@ import qs.services
 // services/Hyprwhspr.qml). A left click starts or stops a recording (or
 // brings hyprwhspr up when it's stopped or unloaded); a right click opens a
 // menu with a switch in its title starting or stopping the service (stopping
-// it frees the model), what it's doing, the recording buttons and restarting.
+// it frees the model), what it's doing, the recording buttons and restarting (while it runs or
+// has failed).
 Item {
   id: root
 
@@ -97,8 +98,10 @@ Item {
 
     MenuSeparator {}
 
+    // Only while the service runs or has failed: turning a stopped one on is
+    // the switch's job, which also enables it.
     PowerMenuOption {
-      enabled: Hyprwhspr.state !== "missing"
+      enabled: Hyprwhspr.canRestart
       label: I18n.tr("hyprwhspr.restart")
       onClicked: root.run(Hyprwhspr.restart)
     }

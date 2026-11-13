@@ -100,9 +100,15 @@ Singleton {
     if (root.running && root.unloaded) root.hyprwhspr(["model", "reload"])
   }
 
-  // Restarts the service (after a failure, or a change to its config).
+  // Whether restart() may run: while the service runs or has failed. A
+  // stopped (and disabled) service is brought up by turnOn() instead, which
+  // also enables it, so restarting it wouldn't survive the next session.
+  readonly property bool canRestart: root.running || root.service === "failed"
+
+  // Restarts the service (after a failure, or a change to its config), only
+  // while it runs or has failed.
   function restart() {
-    root.systemctl("restart")
+    if (root.canRestart) root.systemctl("restart")
   }
 
   Process {
@@ -166,7 +172,7 @@ Singleton {
       root.reloadModel()
     }
 
-    // Restarts the service.
+    // Restarts the service, while it runs or has failed.
     function restart(): void {
       root.restart()
     }
