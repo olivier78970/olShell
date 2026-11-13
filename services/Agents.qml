@@ -5,10 +5,10 @@ import Quickshell
 import Quickshell.Io
 import qs.config
 
-// The AI agents of the agent bar widget, a fixed list (Claude and Codex, the
+// The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok and Antigravity, the
 // choices of Settings.agentDefault), each an AgentUsage with its plan and
 // usage limits; and running the default agent's command line in a terminal,
-// or its desktop app (Claude Desktop, ChatGPT). IPC (target `agent`, while the widget is enabled):
+// or its desktop app (Claude Desktop, ChatGPT, Grok Desktop, Antigravity). IPC (target `agent`, while the widget is enabled):
 // `open` runs the default agent's command line, `desktop` its desktop app,
 // `usage` prints each agent's plan and limits as they were last read.
 Singleton {
@@ -37,8 +37,31 @@ Singleton {
     active: root.active
   }
 
+  readonly property AgentUsage grok: AgentUsage {
+    key: "grok"
+    name: "Grok"
+    icon: "󰧑"
+    command: ["grok"]
+    desktop: ["grok-desktop"]
+    webApp: "Grok"
+    script: Paths.grokUsageScript
+    active: root.active
+  }
+
+  // Google's agent: its CLI (agy) and its desktop app (Antigravity), signed
+  // in with the same Google account.
+  readonly property AgentUsage antigravity: AgentUsage {
+    key: "antigravity"
+    name: "Antigravity"
+    icon: "󰊭"
+    command: ["agy"]
+    desktop: ["antigravity"]
+    script: Paths.antigravityUsageScript
+    active: root.active
+  }
+
   // Every agent, in the order of Settings.choices.agentDefault.
-  readonly property var all: [root.claude, root.codex]
+  readonly property var all: [root.claude, root.codex, root.grok, root.antigravity]
   // The default agent (Settings.agentDefault), and every agent with it
   // first, as the widget's menu lists them.
   readonly property AgentUsage current: root.all.find(agent => agent.key === Settings.agentDefault) ?? root.claude
@@ -69,20 +92,32 @@ Singleton {
     root.all.forEach(agent => agent.refresh(maxAge))
   }
 
-  // Runs the default agent's command line in a terminal from
-  // Settings.agentFolder, in a floating window in the middle of the screen
-  // with Settings.agentFloating, else in a tiled one.
-  function openAgent() {
-    const command = root.current.command
+  // Runs the command line of `agent` (the default agent when left out) in a
+  // terminal from Settings.agentFolder, in a floating window in the middle
+  // of the screen with Settings.agentFloating, else in a tiled one.
+  function openAgent(agent) {
+    const command = (agent ?? root.current).command
     if (Settings.agentFloating) TerminalApps.launch(command, Settings.agentFolder)
     else Quickshell.execDetached({ command: TerminalApps.terminalCommand(command), workingDirectory: Settings.agentFolder })
   }
 
-  // Starts the default agent's desktop app: Claude Desktop for Claude, the
-  // ChatGPT app for Codex. Already running, it brings its window forward
-  // instead.
-  function openDesktop() {
-    if (root.current.desktop.length > 0) Quickshell.execDetached(root.current.desktop)
+  // Starts the desktop app of `agent` (the default agent when left out):
+  // Claude Desktop for Claude, the ChatGPT app for Codex, Grok Desktop for
+  // Grok, the Antigravity app for Antigravity; or else the web app standing
+  // in for it (the Grok web app for Grok). Already running, it brings its
+  // window forward instead. With neither installed, it does nothing.
+  function openDesktop(agent) {
+    const target = agent ?? root.current
+    if (target.desktopFound) Quickshell.execDetached(target.desktop)
+    else if (target.webAppEntry) WebApps.launch(target.webAppEntry, "")
+  }
+
+  // Does what a click on the widget is set to do (a choice of
+  // Settings.choices.agentClick) with the default agent: runs its command
+  // line ("cli"), starts its desktop app ("desktop"), or nothing ("none").
+  function act(action) {
+    if (action === "cli") root.openAgent()
+    else if (action === "desktop") root.openDesktop()
   }
 
   IpcHandler {

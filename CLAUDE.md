@@ -13,6 +13,7 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`add-bar-widget`**: a new bar widget.
 - **`add-settings-tab`**: a new settings tab, or regrouping rows into tabs.
 - **`add-service`**: a new service in `services/`, with or without IPC.
+- **`add-agent`**: a new AI agent in the agent widget, next to Claude and Codex.
 - **`test-deploy`**: running the checkout, reading its log, deploying.
 - **`remove-feature`**: removing a setting, widget, panel or service (or undoing a change spread over several files), and proving nothing is left.
 - **`multi-monitor`**: anything that depends on which monitor something is on (focused, main, a window's screen, per-monitor settings).
@@ -23,7 +24,7 @@ There is no build step, linter or test suite. The checks are scripts, run from t
 - `.claude/scripts/check-all.sh`: runs all the checks below that apply to the change in one go (and the shell's errors); use it before saying a change is done.
 - `.claude/scripts/structure.py --check`: `docs/structure.md` lists every file (run without `--check` to regenerate it).
 - `.claude/scripts/check-translations.py`: en, fr and es have the same keys and placeholders, and every literal `I18n.tr` key exists. `.claude/scripts/add-translation.py <key> "<en>" "<fr>" "<es>" [--after <key>]` adds a text to all three dictionaries and runs it.
-- The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`), `check-widget.sh` and `check-clicks.py` (every bar widget follows the click rules: left the action, middle an alternative action, right a menu; see `add-bar-widget`).
+- The skills' own checkers: `check-setting.sh`, `check-panel.sh` (it also checks that every panel State is in `Panels.all` and opens through `Panels.open()`), `check-widget.sh`, `check-agents.py` (every agent of the agent widget is wired everywhere) and `check-clicks.py` (every bar widget follows the click rules: left the action, middle an alternative action, right a menu; see `add-bar-widget`).
 
 ## Running
 

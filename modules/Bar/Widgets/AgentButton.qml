@@ -3,15 +3,18 @@ import qs.components
 import qs.config
 import qs.services
 
-// The agent widget, for the AI agents of services/Agents.qml (Claude and
-// Codex), drawn as a four-pointed star. A left click runs the default
-// agent's command line (Settings.agentDefault: Claude Code or Codex) in a
-// terminal window (from Settings.agentFolder, floating or not by
-// Settings.agentFloating); a middle click starts its desktop app, Claude
-// Desktop or ChatGPT (or brings its window forward). A right click opens a menu with a
-// section for each installed agent, the default one first: its plan, then each of its
+// The agent widget, for the AI agents of services/Agents.qml (Claude, Codex,
+// Grok and Antigravity), drawn as a four-pointed star. A left click and a
+// middle click each do what their setting says (Settings.agentClick and
+// agentMiddleClick) with the default agent (Settings.agentDefault): by
+// default, the left click runs its command line in a terminal window (from
+// Settings.agentFolder, floating or not by Settings.agentFloating), and the
+// middle click starts its desktop app, Claude Desktop, ChatGPT, Grok Desktop
+// or Antigravity (or brings its window forward). A right click opens a menu with a section
+// for each installed agent, the default one first: its plan, then each of its
 // usage limits with how much is used and how long until it starts again
-// (read again while the menu is open).
+// (read again while the menu is open). Beside each agent's name, a button
+// runs its command line and another starts its desktop app, when installed.
 Item {
   id: root
 
@@ -34,12 +37,13 @@ Item {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
     cursorShape: Qt.PointingHandCursor
     onClicked: mouse => {
-      if (mouse.button === Qt.RightButton) menu.open = !menu.open
-      else {
-        menu.open = false
-        if (mouse.button === Qt.MiddleButton) Agents.openDesktop()
-        else Agents.openAgent()
+      if (mouse.button === Qt.RightButton) {
+        menu.open = !menu.open
+        return
       }
+      menu.open = false
+      if (mouse.button === Qt.MiddleButton) Agents.act(Settings.agentMiddleClick)
+      else Agents.act(Settings.agentClick)
     }
   }
 
@@ -75,7 +79,8 @@ Item {
     return I18n.tr("agent.window.hours", Math.round(minutes / 60))
   }
 
-  // A limit: its name, a gauge of the share used (in the warning color from
+  // A limit: its name (what it limits, as an Antigravity model group, before the window's
+  // when it has one), a gauge of the share used (in the warning color from
   // 80%), and the percent used with the time until it starts again.
   component UsageLimit: Column {
     id: usage
@@ -87,7 +92,7 @@ Item {
     spacing: 4
 
     ThemedText {
-      text: root.windowName(usage.limit?.minutes ?? 0)
+      text: (usage.limit?.name ? usage.limit.name + " · " : "") + root.windowName(usage.limit?.minutes ?? 0)
       color: Theme.accentColor
     }
 
@@ -122,9 +127,13 @@ Item {
   // An agent's section of the menu: its name over a line, then, aligned
   // with it and the menu's title, its plan and its session and weekly limits (or why they aren't known yet). `agent` is the
   // agent (an AgentUsage of Agents); `inset` lines it up with a menu's entries.
-  // Its size comes from its text and gauges alone, and the line spans the
-  // whole menu, the section's width or more (were the line part of the
-  // size, the section and the menu would size each other in a loop).
+  // At the right end of its name's line, a button runs its command line in a
+  // terminal and another starts its desktop app, each shown only when its
+  // command is on the PATH (looked for again as the menu opens).
+  // Its size comes from its text, buttons and gauges alone, and the line and
+  // the buttons span the whole menu, the section's width or more (were they
+  // part of the size, the section and the menu would size each other in a
+  // loop).
   component AgentSection: Item {
     id: section
 
@@ -133,7 +142,7 @@ Item {
     property real topPadding: 2
     property real bottomPadding: 0
 
-    implicitWidth: content.implicitWidth + section.inset * 2
+    implicitWidth: Math.max(content.implicitWidth, agentName.implicitWidth + 16 + launchers.implicitWidth) + section.inset * 2
     implicitHeight: content.implicitHeight + section.topPadding + section.bottomPadding
 
     Column {
@@ -143,6 +152,7 @@ Item {
       spacing: 4
 
       ThemedText {
+        id: agentName
         text: section.agent?.name ?? ""
         font.bold: true
       }
@@ -189,6 +199,34 @@ Item {
       height: lineSlot.height
 
       MenuSeparator {}
+    }
+
+    // The buttons running the agent: its command line, then its desktop app.
+    // Clicking one closes the menu.
+    Row {
+      id: launchers
+      x: Math.max(section.width, section.parent?.width ?? 0) - section.inset - width + 6
+      y: content.y + agentName.y + (agentName.height - height) / 2
+
+      IconButton {
+        visible: section.agent?.installed ?? false
+        icon: "󰆍"
+        sizeScale: 1
+        onClicked: {
+          menu.open = false
+          Agents.openAgent(section.agent)
+        }
+      }
+
+      IconButton {
+        visible: section.agent?.desktopInstalled ?? false
+        icon: "󰍹"
+        sizeScale: 1
+        onClicked: {
+          menu.open = false
+          Agents.openDesktop(section.agent)
+        }
+      }
     }
   }
 

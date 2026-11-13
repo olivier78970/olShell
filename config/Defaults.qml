@@ -215,6 +215,8 @@ Singleton {
     printerActionFloating: false,
     printerAlwaysShown: false,
     agentDefault: "claude",
+    agentClick: "cli",
+    agentMiddleClick: "desktop",
     agentFolder: Quickshell.env("HOME"),
     agentFloating: true,
     volumeAction: "pavucontrol",
