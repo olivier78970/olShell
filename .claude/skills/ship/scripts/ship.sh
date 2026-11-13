@@ -56,12 +56,21 @@ if [ -n "$(git status --porcelain)" ]; then
   git add -A && git commit -q -m "$(message "$commit")" || fail "commit"
 fi
 git checkout -q master || fail "checkout master"
-git merge --no-ff "$branch" -m "$(message "Merge $branch: $what")" | tail -1 || fail "merge"
+git merge --no-ff "$branch" -m "$(message "Merge $branch: $what")" >/dev/null || fail "merge"
 [ -z "$(git status --porcelain)" ] || fail "master isn't clean after the merge"
 echo "ship: merged $branch into master ($(git log -1 --format=%h))"
 
+# A refused push doesn't stop the deploy (master is merged either way), but
+# the script then ends in failure. GitHub's push protection prints the URLs
+# that let the user allow a public value it took for a secret.
+pushed=1
 if [ "$push" = 1 ]; then
-  git push origin master 2>&1 | tail -2
+  if out=$(git push origin master 2>&1); then
+    echo "$out" | tail -1
+  else
+    pushed=0
+    echo "$out" | grep -E "error|rejected|unblock-secret|path:" >&2
+  fi
 fi
 
 if [ "$deploy" = 1 ]; then
@@ -72,3 +81,5 @@ if [ "$deploy" = 1 ]; then
   $shell status
   [ "$($shell status | grep -c 'running (')" -le 1 ] || fail "both shells are running"
 fi
+
+[ "$pushed" = 1 ] || fail "the push was refused (above); master is merged but not pushed: fix it, then git push origin master"

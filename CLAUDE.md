@@ -13,7 +13,7 @@ The recurring changes each have a project skill (`.claude/skills/`) listing ever
 - **`add-bar-widget`**: a new bar widget.
 - **`add-settings-tab`**: a new settings tab, or regrouping rows into tabs.
 - **`add-service`**: a new service in `services/`, with or without IPC.
-- **`add-agent`**: a new AI agent in the agent widget, next to Claude and Codex.
+- **`add-agent`**: an AI agent in the agent widget, new or swapped for another.
 - **`test-deploy`**: running the checkout, reading its log, deploying.
 - **`remove-feature`**: removing a setting, widget, panel or service (or undoing a change spread over several files), and proving nothing is left.
 - **`multi-monitor`**: anything that depends on which monitor something is on (focused, main, a window's screen, per-monitor settings).
@@ -53,6 +53,8 @@ The per-file tree is `docs/structure.md`.
 - **Git-ignored runtime state:** `config/*.json` files (Settings, Profiles, ThemeState, LocaleState, LauncherState, ChatAiState, GeneratedColors, NotificationActions). Back up `Settings.json` before anything that resets or bulk-changes settings.
 - **Outside the project:** ask before editing the user's dotfiles (`~/.config/hypr` and the like); suggest the change instead.
 - **Hyprland:** dynamic rules set via `hyprctl keyword` are wiped when Hyprland reloads its config (matugen triggers a reload shortly after login). Reapply them on `Hyprland.rawEvent` `configreloaded`. Layer-rule namespace matches are regexes, so anchor them with `^...$`.
+- **Icons:** Nerd Font glyphs are private-use characters that can vanish when written through a heredoc, leaving `""`. Write them as escapes (`"\U000F018D"` in a Python edit script), then check the line holds a glyph (`grep -n 'icon:' <file>`).
+- **Shell:** `ls` is an eza alias that rejects some paths, so use `command ls`; zsh expands unquoted globs, so quote patterns (`grep --include='*.qml'`).
 - **Comments:** comments explain what an item is for, in full sentences, above properties and functions. Match that density.
 - **Branches:** classify the change before the first edit, and say which it is in one line. Small: one or two files, no new setting, panel, widget or service, no behavior question left open (a fix, a wording, a default). It is made directly on the current branch. Medium or big: anything that adds a setting, widget, panel or service (the `add-*` skills), touches three files or more, or changes how an existing feature behaves. It gets a new branch (`git switch -c <name>`) before any edit. When unsure, treat it as medium.
 - **Commit messages:** a single imperative sentence describing the user-visible change, with no type prefix (e.g. "Add tabs to the launcher: all, applications, files and the web"). Features are built on a branch and merged into master with `Merge <branch>: <what it does>`.
