@@ -6,7 +6,10 @@ import qs.config
 // each): its name, icon and commands, whether they are installed, and its plan
 // and usage limits, read by its script (scripts/claude-usage.py,
 // scripts/codex-usage.py, scripts/grok-usage.py, scripts/antigravity-usage.py)
-// when refresh() is called.
+// when refresh() is called. An agent without limits of its own (opencode, Kilo
+// Code, which sign in to other makers' accounts) has its script read the
+// services it is connected to instead (scripts/opencode-connections.py,
+// scripts/kilo-connections.py).
 QtObject {
   id: root
 
@@ -23,8 +26,12 @@ QtObject {
   property string webApp: ""
   readonly property var webAppEntry: root.webApp === "" ? null
     : Settings.webApps.find(app => app.name.toLowerCase() === root.webApp.toLowerCase()) ?? null
-  // The script printing its plan and limits (see claude-usage.py).
+  // The script printing its plan and limits (see claude-usage.py), or the
+  // services it is connected to (see opencode-connections.py).
   required property string script
+  // Whether it has a plan and limits of its own (false for opencode and
+  // Kilo Code).
+  property bool hasLimits: true
   // Whether it may be asked (while the agent widget is enabled).
   property bool active: true
 
@@ -46,9 +53,14 @@ QtObject {
   // window's length), percent (used), resetsAt (a Date, or null), name (what
   // it limits, as a model, when several share a window; else "") }.
   property var limits: []
+  // For an agent without limits of its own, the names of the services it is
+  // connected to ("Anthropic", "Claude Agent"...), [] for none.
+  property var connections: []
   // What kept them from being read: "" (nothing), "login" (no login, or it
-  // was refused: running the agent signs in again), "network" or
-  // "rateLimit" (its endpoint refused for being asked too often). The plan
+  // was refused: running the agent signs in again), "network",
+  // "rateLimit" (its endpoint refused for being asked too often) or
+  // "unreadable" (opencode's database or Kilo Code's login file couldn't be
+  // read). The plan
   // and limits last read stay shown meanwhile.
   property string error: ""
   // Whether they were read at least once, and when they were last read.
@@ -99,6 +111,7 @@ QtObject {
     if (!root.installed) return root.name + ": not installed"
     if (root.error !== "") return root.name + ": error: " + root.error
     if (!root.loaded) return root.name + ": not read yet"
+    if (!root.hasLimits) return root.name + ": no limits of its own, connected to: " + (root.connections.join(", ") || "nothing")
     return [root.name + ": " + root.plan].concat(root.limits.map(limit =>
 "  " + (limit.name ? limit.name + ", " : "") + limit.minutes + " min: " + limit.percent + "% until " + (limit.resetsAt?.toISOString() ?? "?"))).join("\n")
   }
@@ -138,6 +151,7 @@ QtObject {
           root.retryAt = new Date(Date.now() + Math.max(root.rateLimitPause, answer.retryAfter ?? 0) * 1000)
         if (root.error === "") {
           root.plan = answer.plan ?? ""
+          root.connections = answer.connections ?? []
           root.limits = (answer.limits ?? [])
             .map(limit => ({ minutes: limit.minutes, percent: limit.percent, resetsAt: limit.resetsAt ? new Date(limit.resetsAt) : null, name: limit.name ?? "" }))
             .sort((a, b) => a.minutes - b.minutes || a.name.localeCompare(b.name))

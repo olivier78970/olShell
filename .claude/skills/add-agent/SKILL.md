@@ -1,6 +1,6 @@
 ---
 name: add-agent
-description: Add an AI coding agent to olShell's agent bar widget, next to Claude, Codex, Grok and Antigravity - its AgentUsage in services/Agents.qml (CLI, desktop app or web app, icon), the usage script reading its plan and limits, its choice in Settings.agentDefault, translations and docs. Use it whenever the user wants another agent or AI CLI (opencode, Cursor, Copilot, Kiro...) in the agent widget or its menu, or as the default agent, or to swap one agent for another, even if they don't say "add an agent".
+description: Add an AI coding agent to olShell's agent bar widget, next to Claude, Codex, Grok, Antigravity, opencode and Kilo Code - its AgentUsage in services/Agents.qml (CLI, desktop app or web app, icon), the usage script reading its plan and limits, its choice in Settings.agentDefault, translations and docs. Use it whenever the user wants another agent or AI CLI (opencode, Cursor, Copilot, Kiro...) in the agent widget or its menu, or as the default agent, or to swap one agent for another, even if they don't say "add an agent".
 ---
 
 # Adding an agent to the agent widget
@@ -18,7 +18,7 @@ Look these up before writing anything, and ask the user what can't be found:
 - **Its login and usage endpoint**: where the CLI keeps its token, and the endpoint its own usage or status command asks (Claude Code's `/usage`, Codex's `/status`, Grok Build's `/usage`). Read the source rather than guessing: for an open-source CLI, shallow-clone it into the scratchpad and grep it locally (GitHub's code search allows about 10 queries a minute); for a closed binary, `strings` on it gives its endpoints, `v1internal:` methods and OAuth client ids. Tools that already read the quota (CodexBar, AIUsage) show the request and the answer's shape.
 - **Its plan and limits**: what the endpoint answers, and how its windows map to minutes (300 for 5 hours, 10080 for a week).
 
-Then call the endpoint once with the user's real login, printing only status codes and field names, before wiring anything: a maker may have stopped serving that CLI (Google refuses Gemini CLI to individual accounts with `UNSUPPORTED_CLIENT` and points to Antigravity). If the agent has no usage endpoint its login can reach, stop and ask the user: `AgentUsage` needs a script, and an agent without limits is a change to `AgentUsage` and the menu, not something to fake in a script.
+Then call the endpoint once with the user's real login, printing only status codes and field names, before wiring anything: a maker may have stopped serving that CLI (Google refuses Gemini CLI to individual accounts with `UNSUPPORTED_CLIENT` and points to Antigravity). If the agent has no usage endpoint its login can reach, stop and ask the user. An agent that signs in to other makers' accounts (opencode) has no limits of its own: give it `hasLimits: false` and a script printing `{"connections": [names]}`, the services it is connected to (`opencode-connections.py`), and its menu section lists them (`agent.connections`). Never fake limits in a script.
 
 ## Logins
 

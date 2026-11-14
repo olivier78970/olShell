@@ -5,10 +5,11 @@ import Quickshell
 import Quickshell.Io
 import qs.config
 
-// The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok and Antigravity, the
-// choices of Settings.agentDefault), each an AgentUsage with its plan and
-// usage limits; and running the default agent's command line in a terminal,
-// or its desktop app (Claude Desktop, ChatGPT, Grok Desktop, Antigravity). IPC (target `agent`, while the widget is enabled):
+// The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok, Antigravity,
+// opencode and Kilo Code, the choices of Settings.agentDefault), each an AgentUsage with its
+// plan and usage limits; and running the default agent's command line in a
+// terminal, or its desktop app (Claude Desktop, ChatGPT, Grok Desktop,
+// Antigravity, OpenCode Desktop). IPC (target `agent`, while the widget is enabled):
 // `open` runs the default agent's command line, `desktop` its desktop app,
 // `usage` prints each agent's plan and limits as they were last read.
 Singleton {
@@ -60,8 +61,37 @@ Singleton {
     active: root.active
   }
 
+  // The open-source agent: its CLI (opencode) and its desktop app (OpenCode
+  // Desktop). It signs in to other makers' accounts (an Anthropic API key,
+  // Claude Agent...), whose limits their agents' sections show, so it has no
+  // limits of its own: its script reads the services it is connected to.
+  readonly property AgentUsage opencode: AgentUsage {
+    key: "opencode"
+    name: "opencode"
+    icon: "󰅴"
+    command: ["opencode"]
+    desktop: ["opencode-desktop"]
+    script: Paths.opencodeConnectionsScript
+    hasLimits: false
+    active: root.active
+  }
+
+  // Kilo Code's CLI (kilo), a fork of opencode, without a desktop app on
+  // Linux. Like opencode, it signs in to other makers' accounts, so its
+  // script reads the services it is connected to.
+  readonly property AgentUsage kilo: AgentUsage {
+    key: "kilo"
+    name: "Kilo Code"
+    icon: "󰬒"
+    command: ["kilo"]
+    desktop: []
+    script: Paths.kiloConnectionsScript
+    hasLimits: false
+    active: root.active
+  }
+
   // Every agent, in the order of Settings.choices.agentDefault.
-  readonly property var all: [root.claude, root.codex, root.grok, root.antigravity]
+  readonly property var all: [root.claude, root.codex, root.grok, root.antigravity, root.opencode, root.kilo]
   // The default agent (Settings.agentDefault), and every agent with it
   // first, as the widget's menu lists them.
   readonly property AgentUsage current: root.all.find(agent => agent.key === Settings.agentDefault) ?? root.claude
@@ -103,7 +133,8 @@ Singleton {
 
   // Starts the desktop app of `agent` (the default agent when left out):
   // Claude Desktop for Claude, the ChatGPT app for Codex, Grok Desktop for
-  // Grok, the Antigravity app for Antigravity; or else the web app standing
+  // Grok, the Antigravity app for Antigravity, OpenCode Desktop for opencode;
+  // or else the web app standing
   // in for it (the Grok web app for Grok). Already running, it brings its
   // window forward instead. With neither installed, it does nothing.
   function openDesktop(agent) {
