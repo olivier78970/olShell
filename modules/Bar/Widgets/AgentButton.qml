@@ -125,14 +125,14 @@ Item {
     }
   }
 
-  // An agent's section of the menu: its name over a line, then, aligned
+  // An agent's section of the menu: its name on a highlighted row, then, aligned
   // with it and the menu's title, its plan and its session and weekly limits (or why they aren't known yet). `agent` is the
   // agent (an AgentUsage of Agents); `inset` lines it up with a menu's entries.
-  // At the right end of its name's line, a button runs its command line in a
+  // At the right end of its name's row, a button runs its command line in a
   // terminal and another starts its desktop app, each shown only when its
   // command is on the PATH (looked for again as the menu opens).
-  // Its size comes from its text, buttons and gauges alone, and the line and
-  // the buttons span the whole menu, the section's width or more (were they
+  // Its size comes from its text, buttons and gauges alone, and the row's
+  // highlight and the buttons span the whole menu, the section's width or more (were they
   // part of the size, the section and the menu would size each other in a
   // loop).
   component AgentSection: Item {
@@ -146,27 +146,36 @@ Item {
     implicitWidth: Math.max(content.implicitWidth, agentName.implicitWidth + 16 + launchers.implicitWidth) + section.inset * 2
     implicitHeight: content.implicitHeight + section.topPadding + section.bottomPadding
 
+    // The highlight behind the name's row: a faint band of the accent color
+    // across the menu, standing a little out of the row on every side.
+    Rectangle {
+      readonly property real overhang: 8
+
+      x: section.inset - overhang
+      y: content.y + agentName.y - 4
+      width: Math.max(section.width, section.parent?.width ?? 0) - x * 2
+      height: agentName.height + 8
+      radius: Theme.radiusFor(height)
+      color: Qt.alpha(Theme.accentColor, 0.18)
+    }
+
     Column {
       id: content
       x: section.inset
       y: section.topPadding
       spacing: 4
 
-      // The agent's name, larger, in bold and the accent color, so each
-      // section's start stands out.
+      // The agent's name, in bold, on the highlighted row.
       ThemedText {
         id: agentName
         text: section.agent?.name ?? ""
         font.bold: true
-        color: Theme.accentColor
-        sizeScale: 1.2
       }
 
-      // Room for the line, drawn below across the whole menu.
+      // Room below the highlighted row.
       Item {
-        id: lineSlot
         width: 1
-        height: 11
+        height: 4
       }
 
       Column {
@@ -219,14 +228,6 @@ Item {
           }
         }
       }
-    }
-
-    Item {
-      y: content.y + lineSlot.y
-      width: Math.max(section.width, section.parent?.width ?? 0)
-      height: lineSlot.height
-
-      MenuSeparator {}
     }
 
     // The buttons running the agent: its command line, then its desktop app.
@@ -286,7 +287,7 @@ Item {
         required property int index
         agent: modelData
         inset: 12
-        topPadding: index > 0 ? 10 : 2
+        topPadding: index > 0 ? 14 : 6
         bottomPadding: index === Agents.installed.length - 1 ? 4 : 0
       }
     }
