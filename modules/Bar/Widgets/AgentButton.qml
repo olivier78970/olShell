@@ -167,11 +167,25 @@ Item {
 
       Column {
         // For an agent without limits of its own (opencode, Kilo Code): the services it
-        // is connected to, once read.
+        // is connected to, once read: a heading, then each service on its own
+        // line in bold and the accent color, so it stands out; or how to
+        // connect one when there is none.
         ThemedText {
           visible: !(section.agent?.hasLimits ?? true) && section.agent.loaded
-          text: section.agent?.connections.length ? I18n.tr("agent.connections", section.agent.connections.join(", "))
+          text: section.agent?.connections.length ? I18n.tr("agent.connections")
             : I18n.tr("agent.noConnection", section.agent?.command[0] ?? "")
+        }
+
+        Repeater {
+          model: !(section.agent?.hasLimits ?? true) && section.agent.loaded ? section.agent.connections : []
+
+          ThemedText {
+            required property string modelData
+            topPadding: 2
+            text: modelData
+            font.bold: true
+            color: Theme.accentColor
+          }
         }
 
         // Said instead of the limits until they are read, or when they can't
