@@ -42,7 +42,7 @@ Singletons for state and configuration. `*.json` files here are runtime state, g
 Singletons wrapping system state and processes; most also hold an IPC target.
 
 - [`AgentUsage.qml`](../services/AgentUsage.qml): One AI agent of the agent widget (see Agents.qml, which holds one for each): its name, icon and commands, whether they are installed, and…
-- [`Agents.qml`](../services/Agents.qml): The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok and Antigravity, the choices of Settings.agentDefault), each an…
+- [`Agents.qml`](../services/Agents.qml): The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok, Antigravity, opencode and Kilo Code, the choices of…
 - [`AppFonts.qml`](../services/AppFonts.qml): Gives GTK and Qt apps the shell's font family (Settings.fontFamily) and their own size (Settings.appFontSize) while Settings.appFontSync is…
 - [`Audio.qml`](../services/Audio.qml): Default output volume/mute state, shared by the bar widget and the OSD.
 - [`BingWallpaper.qml`](../services/BingWallpaper.qml): Downloads Bing's picture of the day (scripts/bing-picture.py) into Settings.bingWallpaperFolder when Settings.bingWallpapers is on: once at…
@@ -134,7 +134,7 @@ Generic building blocks shared by the widgets and panels (`import qs.components`
 ### modules/Bar/Widgets/
 
 - [`ActiveWindow.qml`](../modules/Bar/Widgets/ActiveWindow.qml): Icon and title of the currently focused window (any compositor supporting wlr-foreign-toplevel-management, not just Hyprland).
-- [`AgentButton.qml`](../modules/Bar/Widgets/AgentButton.qml): The agent widget, for the AI agents of services/Agents.qml (Claude, Codex, Grok and Antigravity), drawn as a four-pointed star.
+- [`AgentButton.qml`](../modules/Bar/Widgets/AgentButton.qml): The agent widget, for the AI agents of services/Agents.qml (Claude, Codex, Grok, Antigravity, opencode and Kilo Code), drawn as a…
 - [`BluetoothButton.qml`](../modules/Bar/Widgets/BluetoothButton.qml): Bluetooth icon, doing what blueman's tray icon does: crossed out while Bluetooth is off (or there is no adapter), with a link while a…
 - [`ChatAiTrigger.qml`](../modules/Bar/Widgets/ChatAiTrigger.qml): Icon that opens or closes the chat AI panel.
 - [`Clock.qml`](../modules/Bar/Widgets/Clock.qml): Centered date/time display, in the current language, with the date format and seconds chosen in the settings (Settings.clockDate…
@@ -262,11 +262,13 @@ Python helpers the QML runs through `Process`.
 - [`gmail.py`](../scripts/gmail.py): Watches a Gmail inbox over IMAP, and keeps its app password in the keyring.
 - [`grok-usage.py`](../scripts/grok-usage.py): Prints the Grok plan of the Grok Build login and its usage limit, for the agent bar widget.
 - [`hyprwhspr-watch.py`](../scripts/hyprwhspr-watch.py): Prints hyprwhspr's state whenever it changes.
+- [`kilo-connections.py`](../scripts/kilo-connections.py): Prints the services Kilo Code is connected to, for the agent bar widget.
 - [`list-shortcuts.py`](../scripts/list-shortcuts.py): Lists the Hyprland config's shortcuts with the Super key, as JSON.
 - [`lock-keys-watch.py`](../scripts/lock-keys-watch.py): Prints the Caps Lock / Num Lock state whenever it changes.
 - [`matugen-run.py`](../scripts/matugen-run.py): Run matugen with only the templates of the apps that are turned on.
 - [`monitor-brightness.py`](../scripts/monitor-brightness.py): Reads and sets the brightness of the monitors.
 - [`monitor-caps.py`](../scripts/monitor-caps.py): Says what each connected monitor can do, read from its EDID.
+- [`opencode-connections.py`](../scripts/opencode-connections.py): Prints the services opencode is connected to, for the agent bar widget.
 - [`printers-watch.py`](../scripts/printers-watch.py): Prints the CUPS print queue whenever it changes.
 - [`screenshot.py`](../scripts/screenshot.py): Takes a screenshot with grim, saves it, copies it to the clipboard and says so.
 - [`timezones.py`](../scripts/timezones.py): Prints the UTC offset each time zone given has right now, as JSON.

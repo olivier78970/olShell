@@ -4,16 +4,17 @@ import qs.config
 import qs.services
 
 // The agent widget, for the AI agents of services/Agents.qml (Claude, Codex,
-// Grok and Antigravity), drawn as a four-pointed star. A left click and a
+// Grok, Antigravity, opencode and Kilo Code), drawn as a four-pointed star. A left click and a
 // middle click each do what their setting says (Settings.agentClick and
 // agentMiddleClick) with the default agent (Settings.agentDefault): by
 // default, the left click runs its command line in a terminal window (from
 // Settings.agentFolder, floating or not by Settings.agentFloating), and the
 // middle click starts its desktop app, Claude Desktop, ChatGPT, Grok Desktop
-// or Antigravity (or brings its window forward). A right click opens a menu with a section
+// Antigravity or OpenCode Desktop (or brings its window forward). A right click opens a menu with a section
 // for each installed agent, the default one first: its plan, then each of its
 // usage limits with how much is used and how long until it starts again
-// (read again while the menu is open). Beside each agent's name, a button
+// (read again while the menu is open); or, for opencode and Kilo Code, which
+// have none of their own, the services each is connected to. Beside each agent's name, a button
 // runs its command line and another starts its desktop app, when installed.
 Item {
   id: root
@@ -165,20 +166,29 @@ Item {
       }
 
       Column {
-        // Said instead of the limits until they are read, or when they can't be.
+        // For an agent without limits of its own (opencode, Kilo Code): the services it
+        // is connected to, once read.
         ThemedText {
-          visible: !section.agent?.loaded || section.agent?.error !== ""
+          visible: !(section.agent?.hasLimits ?? true) && section.agent.loaded
+          text: section.agent?.connections.length ? I18n.tr("agent.connections", section.agent.connections.join(", "))
+            : I18n.tr("agent.noConnection", section.agent?.command[0] ?? "")
+        }
+
+        // Said instead of the limits until they are read, or when they can't
+        // be (only the error for an agent without limits of its own).
+        ThemedText {
+          visible: section.agent?.error ? true : (section.agent?.hasLimits ?? false) && !section.agent.loaded
           text: section.agent?.error ? I18n.tr("agent.error." + section.agent.error, section.agent.command[0]) : I18n.tr("agent.loading")
           color: section.agent?.error ? Theme.warningColor : Theme.textColor
         }
 
         ThemedText {
-          visible: section.agent?.loaded ?? false
+          visible: (section.agent?.loaded ?? false) && section.agent.hasLimits
           text: I18n.tr("agent.plan", section.agent?.plan ?? "")
         }
 
         ThemedText {
-          visible: (section.agent?.loaded ?? false) && section.agent.limits.length === 0
+          visible: (section.agent?.loaded ?? false) && section.agent.hasLimits && section.agent.limits.length === 0
           text: I18n.tr("agent.noLimit")
         }
 

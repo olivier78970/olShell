@@ -2,7 +2,8 @@
 """Checks that every agent of the agent widget is wired everywhere an agent is
 listed: the choices of Settings.agentDefault, its AgentUsage in
 services/Agents.qml and its place in Agents.all (in the same order), its usage
-script and the Paths property naming it, its name in the default agent's list
+script and the Paths property naming it (unless it has no script: an agent
+without limits of its own, as opencode), its name in the default agent's list
 (en, fr, es), the SettingsModule comment, and the docs.
 
 Usage (from the repo root): check-agents.py
@@ -66,7 +67,8 @@ for key in keys:
     check("Agents.qml: desktop (may be [] when there is no desktop app)", "desktop:" in body)
 
     script = re.search(r"script: Paths\.(\w+)", body)
-    check("Agents.qml: script: Paths.<name>", script is not None)
+    if script is None:
+        print("  (no script: no limits of its own)")
     if script:
         file = re.search(rf'property string {script.group(1)}: Quickshell\.shellPath\("([^"]+)"\)', paths)
         check(f"Paths.qml: {script.group(1)}", file is not None)
