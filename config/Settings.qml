@@ -131,7 +131,7 @@ Singleton {
     switcherOrientation: ["vertical", "horizontal"],
     switcherScope: ["all", "workspace", "monitor"],
     weatherUnit: ["celsius", "fahrenheit"],
-    agentDefault: ["claude", "codex", "grok", "antigravity", "opencode", "kilo"],
+    agentDefault: ["claude", "codex", "grok", "antigravity", "opencode", "kilo", "pi"],
     agentClick: ["cli", "desktop", "none"],
     agentMiddleClick: ["cli", "desktop", "none"],
     wallpaperCarousel: root.carouselStyles,
@@ -625,7 +625,7 @@ Singleton {
   // empty (else it only shows while there are jobs).
   readonly property bool printerAlwaysShown: root.valid("printerAlwaysShown", file.adapter.printerAlwaysShown)
   // The agent a left click on the agent widget runs the command line of
-  // (choices.agentDefault: Claude Code, Codex, Grok Build, Antigravity, opencode or Kilo Code),
+  // (choices.agentDefault: Claude Code, Codex, Grok Build, Antigravity, opencode, Kilo Code or pi),
   // the folder it starts it in, and whether its terminal window opens
   // floating in the middle of the screen (else tiled).
   readonly property string agentDefault: root.valid("agentDefault", file.adapter.agentDefault)

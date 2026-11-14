@@ -6,7 +6,7 @@ import Quickshell.Io
 import qs.config
 
 // The AI agents of the agent bar widget, a fixed list (Claude, Codex, Grok, Antigravity,
-// opencode and Kilo Code, the choices of Settings.agentDefault), each an AgentUsage with its
+// opencode, Kilo Code and pi, the choices of Settings.agentDefault), each an AgentUsage with its
 // plan and usage limits; and running the default agent's command line in a
 // terminal, or its desktop app (Claude Desktop, ChatGPT, Grok Desktop,
 // Antigravity, OpenCode Desktop). IPC (target `agent`, while the widget is enabled):
@@ -90,8 +90,22 @@ Singleton {
     active: root.active
   }
 
+  // The pi coding agent's CLI (pi), without a desktop app. Like opencode, it
+  // signs in to other makers' accounts, so its script reads the services it
+  // is connected to.
+  readonly property AgentUsage pi: AgentUsage {
+    key: "pi"
+    name: "pi"
+    icon: "󰏿"
+    command: ["pi"]
+    desktop: []
+    script: Paths.piConnectionsScript
+    hasLimits: false
+    active: root.active
+  }
+
   // Every agent, in the order of Settings.choices.agentDefault.
-  readonly property var all: [root.claude, root.codex, root.grok, root.antigravity, root.opencode, root.kilo]
+  readonly property var all: [root.claude, root.codex, root.grok, root.antigravity, root.opencode, root.kilo, root.pi]
   // The default agent (Settings.agentDefault), and every agent with it
   // first, as the widget's menu lists them.
   readonly property AgentUsage current: root.all.find(agent => agent.key === Settings.agentDefault) ?? root.claude
