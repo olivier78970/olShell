@@ -1,6 +1,6 @@
 ---
 name: add-agent
-description: Add an AI coding agent to olShell's agent bar widget, next to Claude, Codex, Grok, Antigravity, opencode and Kilo Code - its AgentUsage in services/Agents.qml (CLI, desktop app or web app, icon), the usage script reading its plan and limits, its choice in Settings.agentDefault, translations and docs. Use it whenever the user wants another agent or AI CLI (opencode, Cursor, Copilot, Kiro...) in the agent widget or its menu, or as the default agent, or to swap one agent for another, even if they don't say "add an agent".
+description: Add an AI coding agent to olShell's agent bar widget, next to Claude, Codex, Grok, Antigravity, opencode, Kilo Code and pi - its AgentUsage in services/Agents.qml (CLI, desktop app or web app, icon), the usage script reading its plan and limits, its choice in Settings.agentDefault, translations and docs. Use it whenever the user wants another agent or AI CLI (opencode, Cursor, Copilot, Kiro...) in the agent widget or its menu, or as the default agent, or to swap one agent for another, even if they don't say "add an agent".
 ---
 
 # Adding an agent to the agent widget

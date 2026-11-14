@@ -4,7 +4,7 @@ import qs.config
 import qs.services
 
 // The agent widget, for the AI agents of services/Agents.qml (Claude, Codex,
-// Grok, Antigravity, opencode and Kilo Code), drawn as a four-pointed star. A left click and a
+// Grok, Antigravity, opencode, Kilo Code and pi), drawn as a four-pointed star. A left click and a
 // middle click each do what their setting says (Settings.agentClick and
 // agentMiddleClick) with the default agent (Settings.agentDefault): by
 // default, the left click runs its command line in a terminal window (from
@@ -13,8 +13,8 @@ import qs.services
 // Antigravity or OpenCode Desktop (or brings its window forward). A right click opens a menu with a section
 // for each installed agent, the default one first: its plan, then each of its
 // usage limits with how much is used and how long until it starts again
-// (read again while the menu is open); or, for opencode and Kilo Code, which
-// have none of their own, the services each is connected to. Beside each agent's name, a button
+// (read again while the menu is open); or, for opencode, Kilo Code and pi,
+// which have none of their own, the services each is connected to. Beside each agent's name, a button
 // runs its command line and another starts its desktop app, when installed.
 Item {
   id: root
@@ -179,7 +179,7 @@ Item {
       }
 
       Column {
-        // For an agent without limits of its own (opencode, Kilo Code): the services it
+        // For an agent without limits of its own (opencode, Kilo Code, pi): the services it
         // is connected to, once read: a heading, then each service on its own
         // line in bold and the accent color, so it stands out; or how to
         // connect one when there is none.

@@ -85,13 +85,14 @@ Singleton {
   readonly property string gmailScript: Quickshell.shellPath("scripts/gmail.py")
 
   // Read the Claude, Codex, Grok and Antigravity plans and their usage limits, and the
-  // services opencode and Kilo Code are connected to, for the agent widget.
+  // services opencode, Kilo Code and pi are connected to, for the agent widget.
   readonly property string claudeUsageScript: Quickshell.shellPath("scripts/claude-usage.py")
   readonly property string codexUsageScript: Quickshell.shellPath("scripts/codex-usage.py")
   readonly property string grokUsageScript: Quickshell.shellPath("scripts/grok-usage.py")
   readonly property string antigravityUsageScript: Quickshell.shellPath("scripts/antigravity-usage.py")
   readonly property string opencodeConnectionsScript: Quickshell.shellPath("scripts/opencode-connections.py")
   readonly property string kiloConnectionsScript: Quickshell.shellPath("scripts/kilo-connections.py")
+  readonly property string piConnectionsScript: Quickshell.shellPath("scripts/pi-connections.py")
 
   // Dedicated matugen config, kept in the repo so nothing has to be copied
   // into ~/.config/matugen: the shell's palette and the other apps' colors.
