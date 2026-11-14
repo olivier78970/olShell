@@ -152,10 +152,14 @@ Item {
       y: section.topPadding
       spacing: 4
 
+      // The agent's name, larger, in bold and the accent color, so each
+      // section's start stands out.
       ThemedText {
         id: agentName
         text: section.agent?.name ?? ""
         font.bold: true
+        color: Theme.accentColor
+        sizeScale: 1.2
       }
 
       // Room for the line, drawn below across the whole menu.
